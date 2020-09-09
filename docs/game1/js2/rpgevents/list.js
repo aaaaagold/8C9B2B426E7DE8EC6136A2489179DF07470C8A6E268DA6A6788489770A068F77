@@ -1,0 +1,286 @@
+"use strict";
+// etc.
+// form: any
+(()=>{ // strt
+let list=rpgevts.list;
+
+list.discardLastNChoices=n=>{
+	if(n>=0) ; else n=1;
+	return (olist,c,rtv)=>{
+		let next1=deepcopy(olist[c]);
+		next1.parameters[0].length-=n;
+		rtv.push(next1);
+		return 1;
+	};
+};
+list.discardShopItemsFirstN=n=>{
+	if(n>=0) ; else n=0;
+	return (olist,c,rtv)=>{
+		if(olist[c].code!==302) throw new Error('the following command in the event page is not a shop command');
+		let shopLen=1;
+		for(let cmd=olist[c+shopLen];cmd&&cmd.code===605;cmd=olist[c+shopLen])
+			++shopLen;
+		if(n>=shopLen){
+			n=shopLen;
+			let next1=deepcopy(olist[c]);
+			next1.parameters[1]=0;
+			rtv.push(next1);
+		}else{
+			let next1=deepcopy(olist[c]);
+			for(let x=4,i=c+n;x--;) next1.parameters[x]=olist[i].parameters[x];
+			rtv.push(next1);
+			++n; // need edit first shop command
+		}
+		return n;
+	};
+};
+list.getSS=(self,argv)=>{
+	if(!argv) return false;
+	return $gameMap.ss(argv[0],argv[1]);
+};
+list.setSS=(self,argv)=>{
+	if(!argv) return false;
+	return $gameMap._events[argv[0]].ssStateSet(argv[1],!argv[2]);
+};
+list.popupmsg_u=(self,argv)=>$gameMessage.popup(argv[0],1);
+list.strtEvt=(self,argv)=>{
+	let meta=argv[1]||{}; meta.startBy=self._eventId;
+	return $gameMap._events[argv[0]].start(undefined,meta);
+}
+list.strtEvt_noStartBy=(self,argv)=>$gameMap._events[argv[0]].start(undefined,argv[1]);
+let refreshEvtViaId=id=>$gameMap._events[id].refresh(true);
+list.refreshEvt=(self,argv)=>argv.forEach(refreshEvtViaId);
+list.locate=(self,argv)=>self.locate(argv[0],argv[1]);
+list.evtJmp=(self,argv)=>$gameMap._events[argv[0]].jump(argv[1],argv[2]);
+let mv2evts_map=id=>$gameMap._events[id];
+list.mv2evts=(self,argv)=>self.moveToChrs_bfs(argv.map(mv2evts_map));
+list.mv2evtsWithMetaTag=(self,argv)=>{
+	let arr=$gameMap._events.filter(evt=>evt&&!evt._erased&&evt.getData().meta[argv[0]]);
+	return arr&&self.moveToChrs_bfs(arr);
+};
+list.cpevtOnTiles=(self,argv)=>{
+	let evtid=argv[0];
+	let tileLv=argv[1];
+	let tileBeg=argv[2];
+	let tileEnd=argv[3];
+	let rate=argv[4]===undefined?1:argv[3];
+	for(let y=0,w=$gameMap.width(),h=$gameMap.height();y!==h;++y){ for(let x=0;x!==w;++x){
+		let tile=$gameMap.allTiles(x,y)[3-tileLv];
+		if(tileBeg<=tile&&tile<tileEnd&&Math.random()<rate) $gameMap.cpevt(evtid,x,y,1,1);
+	} }
+};
+list.chaseWithHistory=(self,argv)=>{
+	const dist=argv&&argv[0]||7;
+	const target=argv&&argv[1]||$gamePlayer;
+	const kargs=argv&&argv[2];
+	while(self.queueLen(0)>=dist) self.queuePop(0);
+	if(self.isNearThePlayer(0,dist)) self.moveTypeTowardPlayer();
+	else{
+		let p=target,dir;
+		if(dir=self.findDirTo([[p.x,p.y],],undefined,kargs)){
+			self.moveStraight(dir);
+			self.pushXyToQueue(0,target);
+		}else if(dir=self.findDirFromQueue(0,undefined,kargs)){
+			self.moveStraight(dir);
+		}else self.moveRandom();
+	}
+};
+const chasePlayerWithHistory_argv=[]; chasePlayerWithHistory_argv.length=3;
+list.chasePlayerWithHistory=(self,argv2)=>{
+	chasePlayerWithHistory_argv[0]=2;
+	chasePlayerWithHistory_argv[1]=$gamePlayer;
+	chasePlayerWithHistory_argv[2]=argv2&&argv2[0];
+	return list.chaseWithHistory(self,chasePlayerWithHistory_argv);
+};
+
+list.core_nearestTree=(xy)=>{
+	let evts=$gameMap._events;
+	let org={x:xy.x,y:xy.y,dist2:true};
+	let h=new Heap((b,a)=>a.dist2(org)-b.dist2(org));
+	for(let x=0;x!==evts.length;++x){
+		let evt=evts[x];
+		if(evt && $gameMap.isValid(evt.x,evt.y) & !evt._erased && evt.event().meta.dectree)
+			h.push(evt);
+	}
+	return h.top;
+};
+list.core_gotoNearestTree=(chr,minRemain)=>{
+	minRemain^=0;
+	let srcXY=chr,dstXY=list.core_nearestTree(chr);
+	if(!srcXY||!dstXY) return;
+	else if(!($gameParty.mapChanges[74].vars.tree>=minRemain)) return chr.moveRandom();
+	let dx=((dstXY.x-srcXY.x)^0).clamp(-1,1)^0;
+	let dy=((srcXY.y-dstXY.y)^0).clamp(-1,1)^0;
+	return chr.moveDiagonally(dx===0?0:dx+5,dy===0?0:dy*3+5);
+};
+
+list.crystalcave_dragon_chase=(self)=>{
+	//:! ["list","crystalcave_dragon_chase"]
+	while(self.queueLen(0)>=7) self.queuePop(0);
+	if(self.isNearThePlayer(0,7)) self.moveTypeTowardPlayer();
+	else{
+		let p=$gamePlayer,dir;
+		if(dir=self.findDirectionTo(p.x,p.y)){
+			self.moveStraight(dir);
+			self.pushXyToQueue(0,$gamePlayer);
+		}else if(dir=self.findDirFromQueue(0)){
+			self.moveStraight(dir);
+		}else self.moveRandom();
+	}
+};
+
+list.treeRemain=self=>$gameParty.mch().vars.tree;
+
+list.gameoverIfSameLoc=(self)=>{
+	//:! ["list","gameoverIfSameLoc"]
+	// too frequent cause stuck @ changing scene
+	if(self.dist2($gamePlayer)===0) SceneManager.goto(Scene_Gameover);
+};
+list.playerJumpToMe=(self,argv)=>{
+	// argv = dx,dy
+	let x=self.x,y=self.y;
+	if(argv){
+		x+=argv[0]|0;
+		y+=argv[1]|0;
+	}
+	return $gamePlayer.jumpAbs(x,y);
+};
+list.playerIsInLoc=(self,argv)=>$gamePlayer.isInLoc(argv[0],argv[1],argv[2],argv[3]);
+
+let burnLicenceLv_funcCache;
+list.burnLicenceLv=()=>{
+	if(!burnLicenceLv_funcCache) burnLicenceLv_funcCache=eval($dataCustom._code.getBurnLicenceLv);
+	return burnLicenceLv_funcCache();
+};
+list.partyBurnLvOutput=(self)=>$gameParty.burnLvOutput();
+list.partyBurnLvOutputGe=(self,argv)=>list.partyBurnLvOutput()>=argv[0];
+list.gotBurnLvOutput=(self,argv,itrp)=>(itrp._strtMeta&&itrp._strtMeta.partyBurnLvOutput)|0;
+list.gotBurnLvOutputGe=(self,argv,itrp)=>list.gotBurnLvOutput(self,argv,itrp)>=argv[0];
+list.gotBurnLvOutputGeBurnlv=(self,argv,itrp)=>list.gotBurnLvOutput(self,argv,itrp)>=(Number(self.getData().meta.burnlv)|0);
+
+list.cleanSs=()=>{
+	let data=$gameSelfSwitches._data;
+	for(let x=0;x!==data.length;++x){
+		let d=data[x],hasKey=false;
+		for(let i in d) if(hasKey=d.hasOwnProperty(i)) break;
+		if(hasKey===false) data[x]=0;
+	}
+	while(data.length&&!data.back) data.pop();
+	for(let x=0;x!==data.length;++x) if(!data[x]) data[x]=0;
+};
+
+list.clearSsInNoobs=()=>{
+	let data=$gameSelfSwitches._data,mcs=$gameParty.mapChanges;
+	let maps=[129,131,132,133,134,135,136,];
+	for(let x=0;x!==maps.length;++x){
+		let idx=maps[x];
+		data[idx]=0;
+		if(mcs[idx]) mcs[idx].events={};
+	}
+	list.cleanSs();
+};
+list.zone1_transChoices=()=>list.discardLastNChoices(4-$gameVariables.value(8));
+list.achievement_zone1_urReady=()=>{
+	let ac=$gameParty._achievement;
+	if(ac[14]&&ac[15]&&ac[16]) $gameParty.gainAchievement(18);
+};
+
+list.gainAchievement=(self,id)=>$gameParty.gainAchievement(id);
+
+list.treeGotBurnType=(self,argv,itrp)=>{
+	let strtMeta=itrp._strtMeta;
+	if(!strtMeta) return 0;
+	return (strtMeta.slash<<1)|(strtMeta.burn);
+};
+list.evtCanBeBurnt=(self,argv,itrp)=>self.canBurned();
+list.evtCanBeSlashed=(self,argv,itrp)=>self.canSlashed();
+
+list.ko_lab_genBalls=(self,argv)=>{ // mvr
+	if(self._funcMvrIdx===argv[0]) return;
+	self._funcMvrIdx|=0;
+	if(self.x&1){
+		self._funcMvrIdx=0;
+		self.jumpAbs(16,15);
+	}else switch(self._funcMvrIdx&1){
+	default: break;
+	case 0:{
+		AudioManager.playSe({name:"jump1",volume:90,pitch:100});
+		if(self._funcMvrIdx&16) self.jumpAbs((self._funcMvrIdx&15)+2,self.y);
+		else self.jumpAbs(16-(self._funcMvrIdx&15),self.y);
+	}break;
+	case 1:{
+		self.setDirection(8);
+		if($gameMap.cpevt(4,self.x,self.y-1,1,1)) $gameMap._events.back._exp=(self.x>>1)-1;
+		if((self._funcMvrIdx&15)^15) self._wc=12;
+		else self._wc=113;
+	}break;
+	}
+	++self._funcMvrIdx;
+};
+let filterBalls=evt=>evt.getData().meta.ctrBall;
+list.ko_lab_checkBalls=(self,argv)=>{
+	let w=$gameMap.width(),rtv=0;
+	for(let x=2,yw=w*5;x!==18;x+=2){
+		let idx=yw+x;
+		if($dataMap.coordTbl_strtByAny_P1[idx].some(filterBalls)) rtv|=(x>>1)-1;
+	}
+	let cnt=0;
+	for(let x=w-1,y=0,h=$gameMap.height();y!==h;++y) if($dataMap.coordTbl_strtByAny_P1[y*w+x].some(filterBalls)) ++cnt;
+	rtv|=(cnt!==1)<<8;
+	return rtv;
+};
+
+list.addClone=(self,argv)=>{ // id , use template name , not copy equips , 
+	if(!argv) return;
+	let actor=$gameParty.addActor(argv[0],true);
+	if(!actor) return;
+	actor.noRefresh=true;
+	const src=$gameActors.actor(argv[0]);
+	
+	const namePrefix=(argv[1]?actor:src).name();
+	const id=actor._actorId;
+	// add '-'number if not first
+	if(id.toId()!==id) actor.setName(namePrefix+id.slice(id.indexOf('-')));
+	
+	if(!argv[2]){
+		for(let i=0,sarr=src._equips,darr=actor._equips;i!==sarr.length;++i){
+			const d=darr[i];
+			if(d.constructor!==Array) Object.assign(d,sarr[i]);
+			else{ const s=sarr[i]; for(let i2=0;i2!==s.length;++i2){
+				if(d[i2]) Object.assign(d[i2],s[i2]);
+				else d[i2]=Object.toType(s[i2],s[i2].constructor);
+			} d.length=s.length; }
+		}
+		actor._equips_delCache();
+		//actor.equips(true); // refresh cache
+	}
+	
+	actor.noRefresh=0;
+	if(actor._needRefresh){
+		delete actor._needRefresh;
+		actor.refresh();
+	}
+	return actor;
+};
+list.addCloneLeader=(self,argv)=>list.addClone(self,argv?[$gameParty.leader()._actorId].concat(argv):[$gameParty.leader()._actorId]);
+list.addClone_battle=(self,argv)=>{
+	// id , use template name , not copy equips , 
+	const rtv=list.addClone(self,argv);
+	if(rtv){
+		rtv._meta.leaveAtBattleEnd=true;
+	}
+	return rtv;
+};
+
+list.rndmazepasses=()=>{
+	const rtv=[],meta=$dataMap.meta;
+	if(!meta.random) return rtv;
+	const tilepass=meta.tilepass.split(',').map(Number); tilepass[0]=3-tilepass[0];
+	const tileblock=meta.tileblock.split(',').map(Number); tileblock[0]=3-tileblock[0];
+	for(let y=0,w=$gameMap.width(),h=$gameMap.height();y!==h;++y){ for(let x=0;x!==w;++x){ let curr=$gameMap.allTiles(x,y);
+		if(curr[tilepass[0]]===tilepass[1]&&curr[tileblock[0]]!==tileblock[1]) rtv.push(y*w+x);
+	} }
+	return rtv;
+};
+
+})();
