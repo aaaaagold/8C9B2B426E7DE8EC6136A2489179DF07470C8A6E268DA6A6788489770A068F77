@@ -1426,6 +1426,7 @@ $dddd$=$aaaa$.prototype.initialize = function f(txtinfos,kargs) {
 	kargs=kargs||{};
 	let x=kargs[  'x'  ]||        0        ,y=kargs[   'y'  ]||        0         ;
 	let w=kargs['width']||Graphics.boxWidth,h=kargs['height']||Graphics.boxHeight;
+	this.raw=kargs.raw; // no parsing
 	let scrollable=!kargs.noScroll;
 	let rtv=f.ori.call(this,x,y,w,h);
  if(scrollable){
@@ -1516,7 +1517,7 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 			continue;
 		}
 		if(!measuringHeight && curry>=ye) break; // overflow-y
-		let txt=f.toMyColor(
+		let txt=this.raw?arr[s].txt:f.toMyColor(
 			f.parseitem(
 				f.parsekeyword(
 					f.parseUTF8(
@@ -1579,7 +1580,7 @@ $dddd$.parseCODE.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 "",'g');
 $dddd$.parsekeyword=function f(txt){
 	return txt.replace(f.re,function(){
-		return (arguments[1]||"")+(arguments[2]||"")+"\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+eval(arguments[3])+"\\RGB["+$dataCustom.textcolor.default+"]";
+		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+eval(arguments[3])+"\\RGB["+$dataCustom.textcolor.default+"]";
 		let item=$dataItems[Number(arguments[1])];
 		return "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
@@ -1589,11 +1590,11 @@ $dddd$.parsekeyword.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 "",'g');
 $dddd$.parseitem=function f(txt){
 	return txt.replace(f.re,function(){
-		let item=$dataItems[Number(arguments[1])];
-		return "\\RGB["+$dataCustom.textcolor.item.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
+		let item=$dataItems[Number(arguments[3])];
+		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.item.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
 };
-$dddd$.parseitem.re=new RegExp("\\\\"+
+$dddd$.parseitem.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_item.toString().slice(5,-2)+
 "",'g');
 $dddd$.toMyColor=function f(txt){ return txt.replace(f.re,"$1$2_$3"); };
