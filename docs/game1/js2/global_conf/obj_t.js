@@ -5043,7 +5043,7 @@ $dddd$=$aaaa$.prototype.startMessage=function f(){
 		if(w<Window_Base._faceWidth) w=Window_Base._faceWidth;
 		w+=((this.standardPadding()+this.textPadding())<<1)+1;
 		if(this.width<w) w=this.width;
-		this.addChild(this._nameField=new Window_CustomTextBoard([{txt:$gameMessage._nameField,align:"center"}],{noScroll:1,y:-80,width:w,height:80}));
+		this.addChild(this._nameField=new Window_CustomTextBoard([{txt:$gameMessage._nameField,align:"center"}],{noScroll:1,raw:1,y:-80,width:w,height:80}));
 		//this._nameFieldTxt=$gameMessage._nameField; this.addChild(this._nameField=new Window_CustomRealtimeMsg(this,_nameFieldTxt,{updateItvl:"no",noScroll:1,y:-80,width:w,height:80}));
 		this._nameField.alpha=0;
 		this._nameField.downArrowVisible=false;
