@@ -2474,13 +2474,15 @@ $aaaa$.prototype.setDisplayPos = function(x, y) {
 $aaaa$.prototype.canvasToMapX=function(x) {
 	//let tileWidth = this.tileWidth();
 	//let originX = this._displayX_tw;
-	return ((this._displayX_tw + x) / this.tileWidth()^0)%$gameMap.width();
+	let rtv=((this._displayX_tw + x) / this.tileWidth()^0);
+	return this.roundX(rtv);
 	//return this.roundX(mapX);
 };
 $aaaa$.prototype.canvasToMapY=function(y){
 	//let tileHeight = this.tileHeight();
 	//let originY = this._displayY_th;
-	return ((this._displayY_th + y) / this.tileHeight()^0)%$gameMap.height();
+	let rtv=((this._displayY_th + y) / this.tileHeight()^0);
+	return this.roundY(rtv);
 	//return this.roundY(mapY);
 };
 $rrrr$=$aaaa$.prototype.setup;
