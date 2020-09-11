@@ -3927,7 +3927,16 @@ $aaaa$.prototype.addOnlineSaveId=function(id){
 		//if(!$gameParty._apps) $gameParty._apps={};
 		//$gameParty._apps.onlineSaves=1;
 	}
-	return this._onlineSaveIds.push([id,Date.now()]);
+	let data=[id,Date.now()];
+	this._onlineSaveIds.push(data);
+	
+	let ids=localStorage.getItem('onlineSaveIds');
+	if(ids===null){
+		localStorage.setItem('onlineSaveIds','');
+		ids='';
+	}
+	if(ids!=='') ids+=',';
+	ids+=JSON.stringify(data);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 

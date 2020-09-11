@@ -864,7 +864,7 @@ $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_SaveOnline.prototype.createOptionsWindow');
-	let toClipBoard=s=>{
+	if(!f.toClipBoard) f.toClipBoard=s=>{
 		let txt;
 		d.body.ac(txt=d.ce("input").sa("class","outofscreen"));
 		txt.value=""+s;
@@ -873,17 +873,8 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		d.execCommand("copy");
 		txt.parentNode.removeChild(txt);
 		$gameMessage.popup("已複製:"+s);
-	},flist=[["選擇下列id後按下確認，可複製到剪貼簿",";;func",0]].concat(deepcopy(
-		($gamePlayer._onlineSaveIds||[]).sort((a,b)=>a[1]-b[1])
-	));
-	flist.forEach((e,i)=>{
-		if(i===0) return;
-		let id=e[0];
-		e[0]+=" , "+Scene_CustomMenu.prototype.toLocalISO(e[1]);
-		e[1]=";;func;call";
-		e[2]=1;
-		e[3]=()=>{toClipBoard(id);};
-	});
+	};
+	let toClipBoard=f.toClipBoard;
 	this._window = new Window_CustomMenu_main(0,0,[
 		[$dataCustom.saveOnlineSave,";;func;call",1,()=>{
 			let gStat=window.gasStat;
@@ -905,7 +896,21 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 			DataManager.saveGame('online');
 			$gameMessage.popup("已送出封包。等待中，玩家可先做其他事",1);
 		}],
-		[$dataCustom.saveOnlineList,";idList;func",1,flist],
+		[$dataCustom.saveOnlineList,";idList;func;list",1,()=>{
+			let arr=[["選擇下列id後按下確認，可複製到剪貼簿",";;func",0]].concat(deepcopy(
+				($gamePlayer._onlineSaveIds||[]).concat( JSON.parse('['+(localStorage.getItem('onlineSaveIds')||'')+']') ).sort((a,b)=>a[1]-b[1])
+			)),rtv=[arr[0]];
+			if(arr.length) for(let x=1;x!==arr.length;++x) if(arr[x][0]!==arr[x-1][0]) rtv.push(arr[x]);
+			rtv.forEach((e,i)=>{
+				if(i===0) return;
+				let id=e[0];
+				e[0]+=" , "+Scene_CustomMenu.prototype.toLocalISO(e[1]);
+				e[1]=";;func;call";
+				e[2]=1;
+				e[3]=()=>{toClipBoard(id);};
+			});
+			return rtv;
+		}],
 	]);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
 	let mh=$gamePlayer.menuHistory,key='Scene_SaveOnline';
