@@ -2317,6 +2317,19 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._hth^=0;
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.zaWarudo=function(){ return this._zaWarudo; };
+$aaaa$.prototype.zaWarudo_waitToStart=function(evtid){
+	if(!this._zaWarudo_waits) this._zaWarudo_waits=[];
+	this._zaWarudo_waits.push(evtid);
+};
+$aaaa$.prototype.setZaWarudo=function(val){
+	let arr=this._zaWarudo_waits;
+	this._zaWarudo=val;
+	if(arr&&!val){
+		arr.forEach( (evtid)=>this._events[evtid].start() );
+		delete this._zaWarudo_waits;
+	}
+};
 $aaaa$.prototype.deltaX = function(x1, x2) {
 	let result=x1-x2,w;
 	if(this.isLoopHorizontal() && (w=this.width())<(Math.abs(result)<<1)){
@@ -3852,6 +3865,7 @@ $aaaa$.prototype.jumpAbs=function(x,y){
 $rrrr$=$aaaa$.prototype.reserveTransfer;
 $dddd$=$aaaa$.prototype.reserveTransfer=function f(){
 	debug.log('Game_Player.prototype.reserveTransfer');
+	$gameMap.setZaWarudo(0); // clear waits
 	f.ori.apply(this,arguments); // it just do preparation for new map
 	debug.log('',$gameMap&&$gameMap._mapId,this._newMapId);
 	if($gameMap._mapId===0||this._newMapId===$gameMap._mapId) return;
@@ -4390,6 +4404,10 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	this.refresh=none;
 	let rtv=f.ori.apply(this,arguments);
 	
+	let evtd=this.event();
+	let meta=evtd.meta;
+	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
+	
 	let x=this._x;
 	let y=this._y;
 	delete this._y;
@@ -4457,6 +4475,19 @@ Object.defineProperties($aaaa$.prototype,{
 		this._addToCoordTbl();
 	},configurable:false}
 });
+$rrrr$=$aaaa$.prototype.update;
+$dddd$=$aaaa$.prototype.update=function f(){
+	if(this.canUpdate()) return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.canUpdate=function(){
+	return !$gameMap.zaWarudo()||this.preventZaWarudo();
+};
+$aaaa$.prototype.preventZaWarudo=function(){
+	return this._preventZaWarudo||this._trigger===1; // player touch
+};
+$aaaa$.prototype.setPreventZaWarudo=function(val){
+	this._preventZaWarudo=val;
+};
 $aaaa$.prototype.event=function(){ return $dataMap.events[this._eventId.toId()]; };
 $aaaa$.prototype.hasStrtType=function(key){
 	// strtType will be clear when 'this.start'
@@ -4469,6 +4500,10 @@ $aaaa$.prototype.addStrtType=function(key){
 };
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(custom){ // fit $dataMap.strtEvts
+	if($gameMap.zaWarudo()&&!this.preventZaWarudo()){
+		$gameMap.zaWarudo_waitToStart(this._eventId);
+		return;
+	}
 	// custom: started from 'customEvtStrt'
 	//debug.log2('Game_Event.prototype.start');
 	//debug.log2('',this._eventId);

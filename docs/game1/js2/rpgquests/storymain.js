@@ -38,8 +38,8 @@ list.easy_collectLeaves={
 	rank:4,
 	txt:[
 		{txt:"在浮游城中央下方有座噴水池，噴水池上方有光圈。"},"\n",
-		{txt:"從這個光圈前往"+color.keyword+"林圍"+color.default+"，每棵樹第1次被燒時可以獲得"+color.keyword+items[34].name},
-		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在"+color.keyword+"選單"+color.default+"->"+color.keyword+"其他設定"+color.default+"把"+color.keyword+$dataCustom.noGainMsg+color.default+"設定為"+color.keyword+"ON"},
+		{txt:"從這個光圈前往\\key'\"林圍\"'，每棵樹第1次被燒時可以獲得\\item[34]"},
+		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'"},
 	],
 	info:{
 		type:"collectItems",
@@ -82,7 +82,7 @@ list.easy_tangerine={
 	rank:2,
 	txt:[
 		{txt:"不管哪裡的冰鎮橘子都好，可以蒐集50個給我嗎？"},
-		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在"+color.keyword+"選單"+color.default+"->"+color.keyword+"其他設定"+color.default+"把"+color.keyword+$dataCustom.noGainMsg+color.default+"設定為"+color.keyword+"ON"},
+		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'"},
 	],
 	info:{
 		type:"collectItems",
@@ -104,8 +104,8 @@ $qqqq$=list.normal_finalTest={
 	limit:1,
 	txt:[
 		{txt:"達成下列條件。"},
-		"\n",{txt:"  p.s. 中級任務可以從"+color.keyword+"新手訓練的大叔"+color.default+"旁的任務堆拿",sizeRate:0.75},
-		"\n",{txt:"  p.s.2 "+color.keyword+"木亥村莊"+color.default+"可由中央噴水池前的傳送點，選擇"+color.keyword+"通道"+color.default+"抵達"+color.keyword+"綠意窪地"+color.default+"後，往地圖最下方一直走，途中會遇到迷宮。",sizeRate:0.75},
+		"\n",{txt:"  p.s. 中級任務可以從\\key'\"新手訓練的大叔\"'旁的任務堆拿",sizeRate:0.75},
+		"\n",{txt:"  p.s.2 \\key'\"木亥村莊\"'可由中央噴水池前的傳送點，選擇\\key'\"通道\"'抵達\\key'\"綠意窪地\"'後，往地圖最下方一直走，途中會遇到迷宮。",sizeRate:0.75},
 		"\n\n",{txt:"完成任務後可以找NPC升級焚木工證",sizeRate:1},
 	],
 	info:{
@@ -137,7 +137,7 @@ $qqqq$.info.codes.push(tmp);
 (()=>{ let tmp={},reqCnt=5;
 tmp[0]="!!$gameParty.mapChanges[73]";
 Object.defineProperties(tmp,{ 1: { get:(()=>{
-	let rtv="抵達"+color.keyword+"木亥村莊"+color.default,currStat=!!$gameParty.mapChanges[73];
+	let rtv="抵達\\key'\"木亥村莊\"'",currStat=!!$gameParty.mapChanges[73];
 	return rtv;
 }), configurable: false } });
 $qqqq$.info.codes.push(tmp);

@@ -2,6 +2,17 @@
 
 (()=>{ // strt
 let list=rpgevts.item;
+const backToMap=()=>{
+	if(SceneManager._scene.constructor!==Scene_Map){
+		do{
+			if(SceneManager._stack.length) SceneManager.pop();
+			else{
+				SceneManager.push(Scene_Map);
+				break;
+			}
+		}while(SceneManager._nextScene.constructor!==Scene_Map);
+	}
+};
 
 list.manual=(action)=>{
 	let txtarr=[];
@@ -104,10 +115,7 @@ list.returnFloatCity=(action)=>{
 	let to=32;
 	if($gameMap.getRoot(to)!==$gameMap.getRoot()){ // no decrease for unlimited item
 		$gamePlayer.reserveTransfer(to,25,34,8,0);
-		if(SceneManager._scene.constructor!==Scene_Map){
-			do SceneManager.pop();
-			while(SceneManager._nextScene.constructor!==Scene_Map);
-		}
+		backToMap();
 	}else{
 		let id=action._item._itemId;
 		$gameParty._items[id]^=0;
@@ -121,10 +129,7 @@ list.returnCore=(action)=>{
 	let to=73;
 	if($gameMap.getRoot(to)!==$gameMap.getRoot()){ // no decrease for unlimited item
 		$gamePlayer.reserveTransfer(to,14,37,8,0);
-		if(SceneManager._scene.constructor!==Scene_Map){
-			do SceneManager.pop();
-			while(SceneManager._nextScene.constructor!==Scene_Map);
-		}
+		backToMap();
 	}else{
 		let id=action._item._itemId;
 		$gameParty._items[id]^=0;
@@ -158,13 +163,16 @@ list.leafJuice=(action)=>{
 		delete $gameParty._leafJuiceCnt;
 	}
 };
+let tbl_fireCrystal=[]; tbl_fireCrystal[96]=2; tbl_fireCrystal[102]=3;
 list.fireCrystal=(action)=>{
-	if(SceneManager._scene.constructor!==Scene_Map){
-		do SceneManager.pop();
-		while(SceneManager._nextScene.constructor!==Scene_Map);
-	}
-	$gameParty.gainItem(action.item(),-1);
-	$gameMap.cpevt($dataMap.templateStrt_item+2,$gamePlayer.x,$gamePlayer.y,1,1,1);
+	backToMap();
+	let item=action.item();
+	$gameParty.gainItem(item,-1);
+	$gameMap.cpevt($dataMap.templateStrt_item+tbl_fireCrystal[item.id],$gamePlayer.x,$gamePlayer.y,1,1,1);
+};
+list.activationFlute=(action)=>{
+	backToMap();
+	$gameMap._events.filter((evt)=>$gameMap.isValid(evt.x,evt.y)&&evt.event().meta.name==="火焰水晶").forEach(evt=>evt.ssStateSet("C"));
 };
 list.lottery=(action)=>{
 	let dataitem=action.item();
