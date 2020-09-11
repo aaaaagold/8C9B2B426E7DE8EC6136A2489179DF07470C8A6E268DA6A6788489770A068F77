@@ -2538,31 +2538,7 @@ Graphics._paintUpperCanvas = function() {
  * @method _createRenderer
  * @private
  */
-Graphics._createRenderer = function() {
-    PIXI.dontSayHello = true;
-    var width = this._width;
-    var height = this._height;
-    var options = { view: this._canvas };
-    try {
-        switch (this._rendererType) {
-        case 'canvas':
-            this._renderer = new PIXI.CanvasRenderer(width, height, options);
-            break;
-        case 'webgl':
-            this._renderer = new PIXI.WebGLRenderer(width, height, options);
-            break;
-        default:
-            this._renderer = PIXI.autoDetectRenderer(width, height, options);
-            break;
-        }
-
-        if(this._renderer && this._renderer.textureGC)
-            this._renderer.textureGC.maxIdle = 1;
-
-    } catch (e) {
-        this._renderer = null;
-    }
-};
+Graphics._createRenderer;
 
 /**
  * @static

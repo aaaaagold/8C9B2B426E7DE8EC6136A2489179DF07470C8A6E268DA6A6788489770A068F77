@@ -212,6 +212,30 @@ $dddd$=$aaaa$._onKeyDown=function f(){
 	//debug.keydown('Graphics._onKeyDown');
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
+$aaaa$._createRenderer=function(){
+	PIXI.dontSayHello=true;
+	let width=this._width;
+	let height=this._height;
+	let options={ view: this._canvas, transparent: true };
+	try{
+		switch(this._rendererType){
+		case 'canvas':{
+			this._renderer = new PIXI.CanvasRenderer(width, height, options);
+		}break;
+		case 'webgl':{
+			this._renderer = new PIXI.WebGLRenderer(width, height, options);
+		}break;
+		default:{
+			this._renderer = PIXI.autoDetectRenderer(width, height, options);
+		}break;
+		}
+
+		if(this._renderer && this._renderer.textureGC) this._renderer.textureGC.maxIdle=1;
+
+	}catch(e){
+		this._renderer=null;
+	}
+};
 $aaaa$._createGameFontLoader=none;
 $rrrr$=$aaaa$.isFontLoaded=function(name){
 	if(Graphics._cssFontLoading){
@@ -673,21 +697,21 @@ $aaaa$.prototype.updateTransform=function(forced) {
 	return this.updateTransform_tail();
 };
 $aaaa$.prototype._paintAllTiles=function(startX, startY) {
-	for (let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
-		for (let x=0;x!==xs;++x){
+	for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
+		for(let x=0;x!==xs;++x){
 			this._paintTiles(startX, startY, x, y);
 		}
 	}
 };
-$aaaa$.prototype._paintTiles = function(startX, startY, x, y) {
+$aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	//debug.log("Tilemap.prototype._paintTiles");
-	let tableEdgeVirtualId = 10000;
+	let tableEdgeVirtualId = 1<<14;
 	let mx = startX + x;
 	let my = startY + y;
-	let dx = (mx * this._tileWidth).mod(this._layerWidth);
-	let dy = (my * this._tileHeight).mod(this._layerHeight);
-	let lx = dx / this._tileWidth;
-	let ly = dy / this._tileHeight;
+	let lx = mx.mod(this._tileCols)^0;
+	let ly = my.mod(this._tileRows)^0;
+	let dx = lx * this._tileWidth;
+	let dy = ly * this._tileHeight;
 	let tileId0 = this._readMapData(mx, my, 0);
 	let tileId1 = this._readMapData(mx, my, 1);
 	let tileId2 = this._readMapData(mx, my, 2);
@@ -751,9 +775,9 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawNormalTile');
 	let setNumber = 0;
 	
-	if (Tilemap.isTileA5(tileId)) {
+	if(Tilemap.isTileA5(tileId)){
 		setNumber = 4;
-	} else {
+	}else{
 		setNumber = 5 + (tileId>>8);
 	}
 	
@@ -763,7 +787,7 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 	let sy = ((tileId>>3)&15) * h;
 	
 	let source = this.bitmaps[setNumber];
-	if (source) {
+	if(source){
 		bitmap.bltImage(source, sx, sy, w, h, dx, dy, w, h);
 	}
 };
@@ -887,13 +911,14 @@ $aaaa$.prototype.renderCanvas = function renderCanvas(renderer) {
 	//debug.log('Tilemap.prototype.renderCanvas');
 	// if not visible or the alpha is 0 then no need to render this
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
-	if(this._mask) renderer.maskManager.pushMask(this._mask);
-	//this._renderCanvas(renderer);
+	//if(this._mask) renderer.maskManager.pushMask(this._mask);
+	//if(this._mask) console.log("?");
+	//this._renderCanvas(renderer); // empty function
 	let pad=64^0,w=Graphics.width+(pad<<1)^0,h=Graphics.height+(pad<<1)^0;
 	this.children.forEach(c=>(c.constructor===Sprite_Character&&(
 		Math.floor((c.x+pad)/w)!==0||Math.floor((c.y+pad)/h)!==0
 	))||c.renderCanvas(renderer)); // do not render if a child is 'Sprite_Character' and out of screen
-	if(this._mask) renderer.maskManager.popMask(renderer);
+	//if(this._mask) renderer.maskManager.popMask(renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
