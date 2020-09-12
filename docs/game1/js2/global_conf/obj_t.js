@@ -436,6 +436,29 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
+// - ScreenSprite
+$aaaa$=ScreenSprite;
+$aaaa$.prototype.setColor=function(r, g, b){
+	//debug.log('ScreenSprite.prototype.setColor');
+	if (this._red !== r || this._green !== g || this._blue !== b) {
+		r = Math.round(r || 0).clamp(0, 255);
+		g = Math.round(g || 0).clamp(0, 255);
+		b = Math.round(b || 0).clamp(0, 255);
+		this._red = r;
+		this._green = g;
+		this._blue = b;
+		this._colorText = Utils.rgbToCssColor(r, g, b);
+
+		let graphics = this._graphics;
+		graphics.clear();
+		let intColor = (r << 16) | (g << 8) | b;
+		graphics.beginFill(intColor, 1);
+		//whole screen with zoom. BWAHAHAHAHA
+		graphics.drawRect(0,0, Graphics.width , Graphics.height );
+	}
+};
+$rrrr$=$dddd$=$aaaa$=undef;
+
 // - sprite
 $aaaa$=Sprite;
 // notify parent:Tilemap
@@ -2303,6 +2326,16 @@ $dddd$=$aaaa$.prototype.start=function f(){
 	return this._mapNameWindow.open();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
+
+// - gameover
+$aaaa$=Scene_Gameover;
+$rrrr$=$aaaa$.prototype.start;
+$dddd$=$aaaa$.prototype.start=function f(){
+	f.ori.call(this);
+	let bs=this._backSprite;
+	bs.x=(this.width -bs.width )>>1;
+	bs.y=(this.height-bs.height)>>1;
+}; $dddd$.ori=$rrrr$;
 
 // objects
 
