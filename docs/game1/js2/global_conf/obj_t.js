@@ -1702,14 +1702,24 @@ $aaaa$._screenWidth  = SceneManager._defaultWidth; // refer by Graphics // set b
 $aaaa$._screenHeight = SceneManager._defaultHeight; // refer by Graphics // set by plugin
 $aaaa$._boxWidth     = SceneManager._defaultWidth; // refer by Graphics // no use? // set by plugin
 $aaaa$._boxHeight    = SceneManager._defaultHeight; // refer by Graphics // no use? // set by plugin
-$aaaa$.preloadMedia=function f(sceneClass){
-	if(sceneClass===Scene_Map){ for(let x=2;x--;){ // put in cache
-		ImageManager.loadAnimation("Fire2");
-		AudioManager.createBuffer("se","Fire2");
-		AudioManager.createBuffer("se","Jump1");
-		AudioManager.createBuffer("se","Fall");
-		AudioManager.createBuffer("se","Blow3");
-	} }
+$dddd$=$aaaa$.preloadMedia=function f(sceneClass){
+	let list=f.list[sceneClass&&sceneClass.constructor.name];
+	if(list){
+		for(let _=2;_--;){
+			for(let x=0,arr=list.img;x!==arr.length;++x)
+				ImageManager.loadAnimation(arr[x]);
+		}
+		for(let _=2;_--;){
+			for(let x=0,arr=list.audio;x!==arr.length;++x)
+				AudioManager.createBuffer(arr[x][0],arr[x][1]);
+		}
+	}
+};
+$dddd$.list={
+	Scene_Map:{
+		img:["Fire2",],
+		audio:[ ["se","Fire2"], ["se","Jump1"], ["se","Fall"], ["se","Blow3"], ["se","Door1"] ],
+	},
 };
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
