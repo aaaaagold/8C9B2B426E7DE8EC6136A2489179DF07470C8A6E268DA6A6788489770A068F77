@@ -1703,7 +1703,7 @@ $aaaa$._screenHeight = SceneManager._defaultHeight; // refer by Graphics // set 
 $aaaa$._boxWidth     = SceneManager._defaultWidth; // refer by Graphics // no use? // set by plugin
 $aaaa$._boxHeight    = SceneManager._defaultHeight; // refer by Graphics // no use? // set by plugin
 $aaaa$.preloadMedia=function f(sceneClass){
-	if(sceneClass===SceneMap){ for(let x=2;x--;){ // put in cache
+	if(sceneClass===Scene_Map){ for(let x=2;x--;){ // put in cache
 		ImageManager.loadAnimation("Fire2");
 		AudioManager.createBuffer("se","Fire2");
 		AudioManager.createBuffer("se","Jump1");
