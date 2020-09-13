@@ -3042,7 +3042,8 @@ $aaaa$.prototype.command101=function(){
 			if(txt[0]==="\\"){ //debug.log(txt);
 				if(txt[1]==="F"){
 					txt=txt.slice(2); let evt=this.getEvt(); evt.setFace();
-					if($gameMap.ss(evt._eventId,"knowName")) $gameMessage._nameField=this._nameField||evt.event().meta.name;
+					$gameMessage._evtName=evt.event().meta.name; // only needed when its face is set.
+					if($gameMap.ss(evt._eventId,"knowName")) $gameMessage._nameField=this._nameField||$gameMessage._evtName;
 				} // evt face
 				else if(txt[1]==="L"){
 					txt=txt.slice(2); $gameParty.setFace();
@@ -3069,7 +3070,7 @@ $aaaa$.prototype.command101=function(){
 	}
 	return false;
 };
-$aaaa$.prototype.ssKey=function(){
+$aaaa$.prototype.ssKey=function(){ // not used ?
 	return [this._mapId, this._eventId, this._params[1]];
 };
 $aaaa$.prototype.command111=function(){ // cond branch
@@ -3212,6 +3213,7 @@ $aaaa$.prototype.command214=function(){ // erase evt
 	return true;
 };
 if(0&&0)$aaaa$.prototype.command230=function(){ // wait
+	// no need to rewrite
 	// in script, 60 means 1 sec, no matter how much fps.
 	this.wait(this._params[0]>>(_global_conf.halfFps^0));
 	return true;
@@ -3566,6 +3568,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Game_Message;
 $rrrr$=$aaaa$.prototype.clear;
 $dddd$=$aaaa$.prototype.clear=function f(){
+	this._evtName=undef;
 	this._nameField=undef;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
@@ -5051,6 +5054,7 @@ $aaaa$.prototype.drawActorSimpleStatus=function(actor, x, y, width) {
 	this.drawActorMp(actor, x2, y + (lineHeight<<1), width2);
 };
 $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
+	//let self=this;
 	text = text.replace(/\\/g, '\x1b');
 	text = text.replace(/\x1b\x1b/g, '\\');
 	text = text.replace(f.re_utf8, function() {
@@ -5068,8 +5072,13 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	text = text.replace(/\x1bV\[(\d+)\]/gi, function() {
 		return $gameVariables.value(arguments[1]);
 	}.bind(this));
-	text = text.replace(/\x1bN\[(\d+)\]/gi, function() {
-		return this.actorName(parseInt(arguments[1]));
+	text = text.replace(/\x1bN\[([^\]]+)\]/gi, function() {
+		let arg1=arguments[1],h="\x1bRGB["+$dataCustom.textcolor.keyword+"]",t="\x1bRGB["+$dataCustom.textcolor.default+"]";
+		if(arg1==="my") return h+this._evtName+t;
+		if(arg1.match(/evt-[0-9]+/g)) return h+$gameMap._events[parseInt(arg1.slice(4))].event().meta.name+t;
+		let val=parseInt(arg1);
+		if(!isNaN(val)) return this.actorName(val);
+		return '';
 	}.bind(this));
 	text = text.replace(/\x1bP\[(\d+)\]/gi, function() {
 		return this.partyMemberName(parseInt(arguments[1]));
@@ -5140,15 +5149,24 @@ $dddd$=$aaaa$.prototype.onEndOfText=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.startMessage;
 $dddd$=$aaaa$.prototype.startMessage=function f(){
+	if($gameMessage._evtName!==undef) this._evtName=$gameMessage._evtName;
 	if($gameMessage._nameField!==undef){
 		let w=this.textWidth($gameMessage._nameField);
-		if(w<Window_Base._faceWidth) w=Window_Base._faceWidth;
 		w+=((this.standardPadding()+this.textPadding())<<1)+1;
+		if(w<Window_Base._faceWidth) w=Window_Base._faceWidth;
 		if(this.width<w) w=this.width;
-		this.addChild(this._nameField=new Window_CustomTextBoard([{txt:$gameMessage._nameField,align:"center"}],{noScroll:1,raw:1,y:-80,width:w,height:80}));
-		//this._nameFieldTxt=$gameMessage._nameField; this.addChild(this._nameField=new Window_CustomRealtimeMsg(this,_nameFieldTxt,{updateItvl:"no",noScroll:1,y:-80,width:w,height:80}));
-		this._nameField.alpha=0;
-		this._nameField.downArrowVisible=false;
+		let arg0=[{txt:$gameMessage._nameField,align:"center"}];
+		if(this._nameField){
+			//this._nameField.initialize(arg0,arg1);
+			this._nameField.width=w;
+			this._nameField.updateInfos(arg0);
+		}else{
+			this._nameField=new Window_CustomTextBoard(arg0,{noScroll:1,raw:1,y:-80,width:w,height:80});
+			this._nameField.alpha=0;
+			this._nameField.downArrowVisible=false;
+		}
+		this.addChild(this._nameField);
+			// this._nameField will be 'removeChild' from 'this' @terminateMessage
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
@@ -5414,6 +5432,17 @@ $aaaa$.prototype.updatePlacement = function() {
 	y+=(y<<1)>=Graphics.boxHeight?-this.height:this._messageWindow.height;
 	this.y=y;
 };
+$rrrr$=$aaaa$.prototype.start;
+$dddd$=$aaaa$.prototype.start=function f(){
+	let rtv=f.ori.call(this),nf=SceneManager._scene._messageWindow._nameField;
+	if(nf&&nf.parent){
+		if((this.y-=nf.height)<0){
+			this.height+=this.y;
+			this.y=0;
+		}
+	}
+	return rtv;
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - savefilelist

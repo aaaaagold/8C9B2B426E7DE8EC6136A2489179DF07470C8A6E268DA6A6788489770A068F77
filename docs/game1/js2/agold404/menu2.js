@@ -898,7 +898,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		}],
 		[$dataCustom.saveOnlineList,";idList;func;list",1,()=>{
 			let arr=[["選擇下列id後按下確認，可複製到剪貼簿",";;func",0]].concat(deepcopy(
-				($gamePlayer._onlineSaveIds||[]).concat( JSON.parse('['+(localStorage.getItem('onlineSaveIds')||'')+']') ).sort((a,b)=>a[1]-b[1])
+				($gamePlayer._onlineSaveIds||[]).concat(JSON.parse('['+(localStorage.getItem('onlineSaveIds')||'')+']') ).sort((a,b)=>a[1]-b[1])
 			)),rtv=[arr[0]];
 			if(arr.length) for(let x=1;x!==arr.length;++x) if(arr[x][0]!==arr[x-1][0]) rtv.push(arr[x]);
 			rtv.forEach((e,i)=>{
@@ -1502,10 +1502,18 @@ $aaaa$.prototype._redrawtxt_parseColor=function(txt,strt){
 	}
 	return rtv;
 };
+$aaaa$.prototype.updateInfos=function(txtinfos){
+	// re-cal. this.contents 's size
+		// re-create this.contents
+	this.createContents();
+	this.txtinfos=txtinfos; if(!this.txtinfos.length) this.txtinfos=[];
+	this.redrawtxt(1); // will define 'this._canScroll'
+	this.redrawtxt();
+};
 $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 	this.contents.clear();
 	let pad=this.textPadding(),LH_ori=this.lineHeight(),LH_last=LH_ori,xe=this.contents.width-(pad<<1),ye=this.contents.height+this.scrolly;
-	let currx=0,curry=this.textPadding(),currLine=0;
+	let currx=0,curry=pad,currLine=0;
 	let font_ori={
 		fontSize:this.contents.fontSize,
 		textColor:this.contents.textColor
@@ -1548,7 +1556,7 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 		case 'center':
 		case 'right': { // I'll hate you if you put "\n" or colors in string in these two cases
 			// no auto newline
-			this.drawText(txt,0,curry-this.scrolly,xe,align);
+			this.drawText(txt,pad,curry-this.scrolly,xe,align);
 		}break;
 		default:
 			for(let i=0;i!==txt.length;++i){
