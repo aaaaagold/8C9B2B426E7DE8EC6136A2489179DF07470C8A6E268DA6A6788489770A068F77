@@ -1702,6 +1702,15 @@ $aaaa$._screenWidth  = SceneManager._defaultWidth; // refer by Graphics // set b
 $aaaa$._screenHeight = SceneManager._defaultHeight; // refer by Graphics // set by plugin
 $aaaa$._boxWidth     = SceneManager._defaultWidth; // refer by Graphics // no use? // set by plugin
 $aaaa$._boxHeight    = SceneManager._defaultHeight; // refer by Graphics // no use? // set by plugin
+$aaaa$.preloadMedia=function f(sceneClass){
+	if(sceneClass===SceneMap){ for(let x=2;x--;){ // put in cache
+		ImageManager.loadAnimation("Fire2");
+		AudioManager.createBuffer("se","Fire2");
+		AudioManager.createBuffer("se","Jump1");
+		AudioManager.createBuffer("se","Fall");
+		AudioManager.createBuffer("se","Blow3");
+	} }
+};
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
 	if(this._resuming) return;
@@ -1794,6 +1803,7 @@ $dddd$=$aaaa$.tickEnd=function f(){
 $rrrr$=$aaaa$.goto;
 $dddd$=$aaaa$.goto=function f(sceneClass){
 	debug.log('SceneManager.goto');
+	this.preloadMedia(sceneClass);
 	let sc=this._scene;
 	if(sc) debug.log(1,this._scene.constructor);
 	//if(sceneClass===Scene_Gameover||this._nextScene===null)
