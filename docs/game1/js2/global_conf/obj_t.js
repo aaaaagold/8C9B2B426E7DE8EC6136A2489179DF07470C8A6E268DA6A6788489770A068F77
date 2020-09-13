@@ -1703,23 +1703,37 @@ $aaaa$._screenHeight = SceneManager._defaultHeight; // refer by Graphics // set 
 $aaaa$._boxWidth     = SceneManager._defaultWidth; // refer by Graphics // no use? // set by plugin
 $aaaa$._boxHeight    = SceneManager._defaultHeight; // refer by Graphics // no use? // set by plugin
 $dddd$=$aaaa$.preloadMedia=function f(sceneClass){
-	let list=f.list[sceneClass&&sceneClass.constructor.name];
-	if(list){
-		for(let _=2;_--;){
-			for(let x=0,arr=list.img;x!==arr.length;++x)
-				ImageManager.loadAnimation(arr[x]);
-		}
-		for(let _=2;_--;){
-			for(let x=0,arr=list.audio;x!==arr.length;++x)
-				AudioManager.createBuffer(arr[x][0],arr[x][1]);
-		}
-	}
+	f.load(f.list.any);
+	f.load(f.list[sceneClass&&sceneClass.name]);
 };
 $dddd$.list={
 	Scene_Map:{
 		img:["Fire2",],
-		audio:[ ["se","Fire2"], ["se","Jump1"], ["se","Fall"], ["se","Blow3"], ["se","Door1"] ],
+		audio:[ ["se","Fire2"], ],
 	},
+	Scene_Menu:{
+		img:[],
+		audio:[ ["se","Equip1"], ],
+	},
+	any:{
+		img:[],
+		audio:[ 
+			["se","Load"], ["se","Save"], ["se","Item3"], 
+			["se","Door1"], ["se","Jump1"], ["se","Fall"], ["se","Blow3"], 
+		],
+	},
+};
+$dddd$.load=function(list){
+	if(list){
+		for(let _=2;_--;){
+			for(let x=0,arr=list.img||[];x!==arr.length;++x)
+				ImageManager.loadAnimation(arr[x]);
+		}
+		for(let _=2;_--;){
+			for(let x=0,arr=list.audio||[];x!==arr.length;++x)
+				AudioManager.createBuffer(arr[x][0],arr[x][1]);
+		}
+	}
 };
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
