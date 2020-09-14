@@ -2197,6 +2197,7 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 		// from New Game: 0 -> init_map_id
 		// from Continue: same
 		// from scenePush and then scenePop (e.g. open menu then close it): same
+	if(!$gameTemp.clearedWhenNewMap) $gameTemp.clearedWhenNewMap={};
 	if(lastMapId!==$gameMap._mapId){ // map changed
 		// clear temp:clearedWhenNewMap to '{}'
 		$gameTemp.clearedWhenNewMap={};
