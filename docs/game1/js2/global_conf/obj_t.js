@@ -1723,7 +1723,7 @@ $dddd$.list={
 		],
 	},
 };
-$dddd$.load=function(list){
+$dddd$.load=(list)=>{
 	if(list){
 		for(let _=2;_--;){
 			for(let x=0,arr=list.img||[];x!==arr.length;++x)
