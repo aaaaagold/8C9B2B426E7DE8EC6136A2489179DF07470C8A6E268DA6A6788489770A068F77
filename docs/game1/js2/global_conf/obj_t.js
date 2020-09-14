@@ -2198,6 +2198,8 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 		// from Continue: same
 		// from scenePush and then scenePop (e.g. open menu then close it): same
 	if(lastMapId!==$gameMap._mapId){ // map changed
+		// clear temp:clearedWhenNewMap to '{}'
+		$gameTemp.clearedWhenNewMap={};
 		// active initialization events: turn on its switch "A"
 		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){ let evt=arr[x];
 			if(evt&&evt.note==="init") $gameSelfSwitches.setValue([$gameMap._mapId,x,"A"],1);
@@ -2422,7 +2424,7 @@ $aaaa$.prototype.setZaWarudo=function(val){
 		delete this._zaWarudo_waits;
 	}
 };
-$aaaa$.prototype.deltaX = function(x1, x2) {
+$aaaa$.prototype.deltaX=function(x1, x2){
 	let result=x1-x2,w;
 	if(this.isLoopHorizontal() && (w=this.width())<(Math.abs(result)<<1)){
 		if(result<0) result+=w;
