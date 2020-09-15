@@ -54,8 +54,10 @@ list.manual=(action)=>{
 	txtarr.push({txt:"監視FPS: F2"});
 	txtarr.push("\n");
 	txtarr.push({txt:"自動調整遊戲畫面大小至看得見整個遊戲畫面的最大大小: F3"});
+	//txtarr.push("\n");
+	txtarr.push({txt:"  (可能會模糊)",sizeRate:0.75});
 	txtarr.push("\n");
-	txtarr.push({txt:"(可能會模糊)",sizeRate:0.75});
+	txtarr.push({txt:"遊戲暫停 (FPS=0, 可避免CPU浪費電): P"});
 	txtarr.push("\n");
 	txtarr.push("\n");
 	txtarr.push({txt:"焚木技巧:"});
@@ -172,7 +174,7 @@ list.fireCrystal=(action)=>{
 };
 list.activationFlute=(action)=>{
 	backToMap();
-	$gameMap._events.filter((evt)=>$gameMap.isValid(evt.x,evt.y)&&evt.event().meta.name==="火焰水晶").forEach(evt=>evt.ssStateSet("C"));
+	$gameMap._events.filter((evt)=>evt&&$gameMap.isValid(evt.x,evt.y)&&evt.event().meta.name==="火焰水晶").forEach(evt=>evt.ssStateSet("C"));
 };
 list.lottery=(action)=>{
 	let dataitem=action.item();

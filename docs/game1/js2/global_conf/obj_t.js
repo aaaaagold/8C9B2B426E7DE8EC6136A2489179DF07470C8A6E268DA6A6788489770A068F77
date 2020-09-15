@@ -1708,8 +1708,8 @@ $dddd$=$aaaa$.preloadMedia=function f(sceneClass){
 };
 $dddd$.list={
 	Scene_Map:{
-		img:["Fire2",],
-		audio:[ ["se","Fire2"], ],
+		img:[ ["ani","Fire2"], ["ani","Slash"], ],
+		audio:[ ["se","Fire2"], ["se","Slash1"], ],
 	},
 	Scene_Menu:{
 		img:[],
@@ -1723,17 +1723,20 @@ $dddd$.list={
 		],
 	},
 };
-$dddd$.load=(list)=>{
+$dddd$.load=function f(list){
 	if(list){
 		for(let _=2;_--;){
 			for(let x=0,arr=list.img||[];x!==arr.length;++x)
-				ImageManager.loadAnimation(arr[x]);
+				ImageManager[f.tbl[arr[x][0]]](arr[x][1]);
 		}
 		for(let _=2;_--;){
 			for(let x=0,arr=list.audio||[];x!==arr.length;++x)
 				AudioManager.createBuffer(arr[x][0],arr[x][1]);
 		}
 	}
+};
+$dddd$.load.tbl={
+	ani:"loadAnimation",
 };
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
