@@ -5,10 +5,10 @@
 	"locLogMgr": "位置紀錄",
 	"onlineSaveIdMgr": "已知的網路存檔id列表",
 	"gainApps":{
-		"locLogMgr":"在\\RGB[\\CODE'$dataCustom.textcolor.keyword']Apps\\RGB[\\CODE'$dataCustom.textcolor.default']中新增了\\RGB[\\CODE'$dataCustom.textcolor.keyword']\\CODE'$dataCustom.locLogMgr'\\RGB[\\CODE'$dataCustom.textcolor.default']",
-		"achievementMgr":"在\\RGB[\\CODE'$dataCustom.textcolor.keyword']Apps\\RGB[\\CODE'$dataCustom.textcolor.default']中新增了\\RGB[\\CODE'$dataCustom.textcolor.keyword']\\CODE'$dataCustom.achievementMgr'\\RGB[\\CODE'$dataCustom.textcolor.default']",
-		"onlineSaveIdMgr":"在\\RGB[\\CODE'$dataCustom.textcolor.keyword']Apps\\RGB[\\CODE'$dataCustom.textcolor.default']中新增了\\RGB[\\CODE'$dataCustom.textcolor.keyword']\\CODE'$dataCustom.onlineSaveIdMgr'\\RGB[\\CODE'$dataCustom.textcolor.default']",
-		"questMgr":"在\\RGB[\\CODE'$dataCustom.textcolor.keyword']Apps\\RGB[\\CODE'$dataCustom.textcolor.default']中新增了\\RGB[\\CODE'$dataCustom.textcolor.keyword']\\CODE'$dataCustom.questMgr'\\RGB[\\CODE'$dataCustom.textcolor.default']",
+		"locLogMgr":"在\\key'\"Apps\"'中新增了\\key'$dataCustom.locLogMgr'",
+		"achievementMgr":"在\\key'\"Apps\"'中新增了\\key'$dataCustom.achievementMgr'",
+		"onlineSaveIdMgr":"在\\key'\"Apps\"'中新增了\\key'$dataCustom.onlineSaveIdMgr'",
+		"questMgr":"在\\key'\"Apps\"'中新增了\\key'$dataCustom.questMgr'",
 		"__dummy":0
 	},
 	"noGainMsg": "不在對話窗中顯示得到與失去物品或金錢",
@@ -31,7 +31,7 @@
 	"saveOnlineSave": "儲存到作者提供的google drive上",
 	"saveOnlineList": "查看獲得的id清單",
 	"usrSwitch": "其他設定",
-	"toDust": "\\RGB[\\CODE'$dataCustom.textcolor.keyword']可燃物\\RGB[\\CODE'$dataCustom.textcolor.default']化成灰了",
+	"toDust": "\\key'\"可燃物\"'化成灰了",
 	"textcolor":{
 		"use": "#AA77FF",
 		"gain": "#77AAFF",
