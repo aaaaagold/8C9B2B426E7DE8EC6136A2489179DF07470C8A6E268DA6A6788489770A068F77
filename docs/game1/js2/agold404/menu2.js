@@ -153,6 +153,8 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 			for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
 			let placing=[96,];
 			for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
+			let consume=[103,];
+			for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
 			
 			let rings=[6,12,];
 			for(let x=0,arr=rings;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1);
@@ -168,6 +170,25 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 			["original display name", "$dataMap;displayName;text", 0],
 			["custom display name", "$gameParty.mapChanges[$gameMap._mapId];name;text;currently no effect on changes", 1],
 			["change to other map", ";chMap;func", 1, mapList],
+			["change tile at player's location", ";chTile;func;list", 1, ()=>{
+				let rtv=[
+					["x", "$gamePlayer;x;real;"+ms.x, 0],
+					["y", "$gamePlayer;y;real;"+ms.y, 0],
+				],ch=function(obj,key){
+					// suppose map size is fixed
+					if(!$gameParty.mapChanges[$gameMap._mapId]) $gameParty.mapChanges[$gameMap._mapId]={};
+					let target=$gameParty.mapChanges[$gameMap._mapId];
+					if(!target.tile) target.tile={};
+					target.tile[key]=obj[key];
+					return;
+				};
+				for(let lv=0;lv!==6;++lv){
+					rtv.push(["lv"+lv+" tile",
+						"$gameMap.data();"+$gamePlayer.xy2idx(lv)+";real;0::", 
+					1, {final:ch}]);
+				}
+				return rtv;
+			}],
 			["change tile in front of player", ";chTile;func;list", 1, ()=>{
 				let rtv=[
 					["front x", "$gamePlayer;frontx;real;"+ms.x, 0],

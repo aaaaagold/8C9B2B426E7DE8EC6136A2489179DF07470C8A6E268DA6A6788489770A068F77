@@ -57,7 +57,7 @@ list.manual=(action)=>{
 	//txtarr.push("\n");
 	txtarr.push({txt:"  (可能會模糊)",sizeRate:0.75});
 	txtarr.push("\n");
-	txtarr.push({txt:"遊戲暫停 (FPS=0, 可避免CPU浪費電): P"});
+	txtarr.push({txt:"遊戲暫停 (不更新遊戲畫面, FPS=0, 可避免CPU浪費電): P"});
 	txtarr.push("\n");
 	txtarr.push("\n");
 	txtarr.push({txt:"焚木技巧:"});
@@ -112,6 +112,7 @@ list.coreAdmin=(action)=>{
 list.fireTrigger=(action)=>{ $gameParty.canburn=$dataItems[action._item._itemId.toId()].name; };
 list.slashTrigger=(action)=>{ $gameParty.canslash=action.item().name; };
 list.plantTrigger=(action)=>{ $gameParty.canplant=action.item().id; };
+list.bombTrigger=(action)=>{ $gameParty.canBomb=action.item().id; };
 list.returnFloatCity=(action)=>{
 	debug.log('rpgevts.item.returnFloatCity');
 	let to=32;

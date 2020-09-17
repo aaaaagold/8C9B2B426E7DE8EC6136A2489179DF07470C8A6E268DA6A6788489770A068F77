@@ -2,6 +2,9 @@
 // after rpg_*
 let $aaaa$,$dddd$,$rrrr$;
 
+// rewrite ugly lib
+String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
+
 // fit 'when children is AVLTree'
 PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=function updateAccessibleObjects(displayObject) {
 	if(!displayObject.visible) return;
@@ -816,57 +819,33 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 };
 $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawAutotile');
-	let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
-	let kind = Tilemap.getAutotileKind(tileId);
-	let shape = Tilemap.getAutotileShape(tileId);
-	let tx = kind&7;
-	let ty = kind>>3;
-	let bx = 0;
-	let by = 0;
-	let setNumber = 0;
-	let isTable = false;
 	
-	if(Tilemap.isTileA1(tileId)){
-		let waterSurfaceIndex = f.tbl[this.animationFrame&3];
-		setNumber^=0;
-		if(kind>=0&&kind<4){
-			let bit0=kind&1,bit1=kind&2;
-			bx=(kind<2)?waterSurfaceIndex<<1:((bit1<<1)|bit1);
-			by=(bit0<<1)|bit0;
-		}else{
-			bx=(tx>>2)<<3;
-			by=((ty<<1) + ((tx>>1)&1) )*3;
-			if((kind&1)===0) bx += waterSurfaceIndex<<1;
-			else{
-				bx += 6;
-				autotileTable = Tilemap.WATERFALL_AUTOTILE_TABLE;
-				by += this.animationFrame % 3;
-			}
-		}
-	}else if(Tilemap.isTileA2(tileId)){
-		setNumber^=1;
-		bx = tx<<1;
-		by = (ty - 2) * 3;
-		isTable = this._isTableTile(tileId);
-	}else if(Tilemap.isTileA3(tileId)){
-		setNumber^=2;
-		bx = tx<<1;
-		by = (ty - 6)<<1;
-		autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
-	}else if(Tilemap.isTileA4(tileId)){
-		setNumber^=3;
-		bx = tx<<1;
-		by = Math.floor((ty - 10) * 2.5 + ((ty&1) ? 0.5 : 0));
-		if(ty&1) autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
-	}
+	// const
+	const shape = Tilemap.getAutotileShape(tileId);
+	f.kind = Tilemap.getAutotileKind(tileId);
+	f.tx = f.kind&7;
+	f.ty = f.kind>>3;
+	f.tid=tileId;
+	f.flags=this.flags;
+	f.aniFrm=this.animationFrame;
 	
-	let table = autotileTable[shape];
+	// will be edited
+	f.autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
+	f.bx = 0;
+	f.by = 0;
+	f.isTable = false;
+	
+	let setNumber=0; for(let arr=f.tiletbl;setNumber!==arr.length;++setNumber) if(tileId<arr[setNumber]) break;
+	f.an[setNumber]();
+	setNumber-=setNumber!==0;
+	
+	let table = f.autotileTable[shape];
 	let source = this.bitmaps[setNumber];
 	
 	if (table && source) {
 		let w1 = this._tileWidth_;
 		let h1 = this._tileHeight_;
-		for (let i=0,bx2=bx<<1,by2=by<<1,h1_=h1>>1;i!==4;++i) {
+		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=h1>>1,isTable=f.isTable;i!==4;++i) {
 			let qsx = table[i][0];
 			let qsy = table[i][1];
 			let sx1 = (bx2 + qsx) * w1;
@@ -878,14 +857,51 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 				let qsy2 = 3;
 				let sx2 = (bx2 + qsx2) * w1;
 				let sy2 = (by2 + qsy2) * h1;
-				bitmap.bltImage(source, sx2, sy2, w1, h1, dx1, dy1, w1, h1);
-				dy1 += h1_;
-				bitmap.bltImage(source, sx1, sy1, w1, h1_, dx1, dy1, w1, h1_);
+				bitmap.bltImage(source, sx2, sy2, w1, h1,  dx1, dy1,     w1, h1);
+				bitmap.bltImage(source, sx1, sy1, w1, h1_, dx1, dy1+h1_, w1, h1_);
 			}else bitmap.bltImage(source, sx1, sy1, w1, h1, dx1, dy1, w1, h1);
 		}
 	}
 };
 $dddd$.tbl=[0,1,2,1];
+$dddd$.tiletbl=[Tilemap.TILE_ID_A1,Tilemap.TILE_ID_A2,Tilemap.TILE_ID_A3,Tilemap.TILE_ID_A4,Tilemap.TILE_ID_MAX,inf];
+$dddd$.an=[ // functions here, 'this' === $dddd$
+	none,
+	function(){ // A1
+		const kind=this.kind;
+		let waterSurfaceIndex = this.tbl[this.aniFrm&3];
+		if(kind>=0&&kind<4){
+			let bit0=kind&1,bit1=kind&2;
+			this.bx=(kind<2)?waterSurfaceIndex<<1:((bit1<<1)|bit1);
+			this.by=(bit0<<1)|bit0;
+		}else{
+			this.bx=(this.tx>>2)<<3;
+			this.by=((this.ty<<1) + ((this.tx>>1)&1) )*3;
+			if((kind&1)===0) this.bx += waterSurfaceIndex<<1;
+			else{
+				this.bx += 6;
+				this.autotileTable = Tilemap.WATERFALL_AUTOTILE_TABLE;
+				this.by += this.aniFrm % 3;
+			}
+		}
+	}.bind($dddd$),
+	function(){ // A2
+		this.bx = this.tx<<1;
+		this.by = (this.ty - 2) * 3;
+		this.isTable = this.flags[this.tileId] & 0x80; // this._isTableTile(tileId);
+	}.bind($dddd$),
+	function(){ // A3
+		this.bx = this.tx<<1;
+		this.by = (this.ty - 6)<<1;
+		this.autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
+	}.bind($dddd$),
+	function(){ // A4
+		this.bx = this.tx<<1;
+		this.by = Math.floor((this.ty - 10) * 2.5 + ((this.ty&1) ? 0.5 : 0));
+		if(this.ty&1) this.autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
+	}.bind($dddd$),
+	none,
+];
 $aaaa$.prototype._drawTableEdge=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawTableEdge');
 	if (Tilemap.isTileA2(tileId)) {
@@ -1978,7 +1994,14 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 		// print info
 		case "T".charCodeAt(): if($gamePlayer && $gameMap){ // tiles
 			let p=$gamePlayer,mp=$gameMap;
-			for(let lv=6;lv--;) $gameMessage.popup(lv+": "+$dataMap.data[mp.xy2idx(p.x,p.y,lv)]);
+			let msgs=[];
+			for(let lv=6;lv--;){
+				let t=$dataMap.data[mp.xy2idx(p.x,p.y,lv)];
+				msgs.push(t+" ("+t.toString(2).padZero(12)+")");
+				//$gameMessage.popup(lv+": ");
+			}
+			let maxLen=msgs.map(x=>x.length).sort().back;
+			msgs.forEach( (e,lv_)=>$gameMessage.popup(5-lv_+": "+e.padStart(maxLen)) );
 		}break;
 		case "I".charCodeAt(): { // player x,y
 			let p=$gamePlayer;
@@ -2210,7 +2233,7 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 		}
 		// random map
 		if($dataMap.meta.random){
-			delete $gameParty.mch().tile; // clear before maze generation
+			delete $gameParty.mch().randmaze; // clear before maze generation
 			f.genRandMaze();
 		}
 	}
@@ -2257,7 +2280,8 @@ $dddd$.genRandMaze=function f(){
 	let loopH=$gameMap.isLoopHorizontal(),loopV=$gameMap.isLoopVertical();
 	
 	let tiles=[undef,tileentry,tileblock,tilepass];
-	let B=0,e=1,b=2,p=3,data=$dataMap.data,mark=[]; mark.length=sz;
+	// 'mch().randmaze' is deleted before calling this function
+	let B=0,e=1,b=2,p=3,data=$gameMap.data(),mark=[]; mark.length=sz;
 	let entries=[];
 	
 	// init 'mark'
@@ -2354,8 +2378,8 @@ $dddd$.genRandMaze=function f(){
 				case p: break;
 			}
 		}
-		$gameParty.changeMap('tile',chMapData);
-		$gameParty.mch().tile.rand=true; // mark it
+		$gameParty.changeMap('randmaze',chMapData);
+		//$gameParty.mch().tile.rand=true; // mark it
 		return;
 	}
 };
@@ -2815,14 +2839,17 @@ $rrrr$=$aaaa$.prototype.data;
 $dddd$=$aaaa$.prototype.data=function f(idx){
 	//debug.log('Game_Map.prototype.data');
 	let tmp=$gameParty.mapChanges,id=$gameMap._mapId;
-	let delta=tmp&&tmp[id]&&tmp[id].tile;
+	let delta=tmp&&tmp[id];
+	let rm=delta&&delta.randmaze;
+	delta=delta&&delta.tile;
 	let rtv=f.ori.call(this);
 	if(idx===undef){
 		if(delta) for(let i in delta) rtv[i]=delta[i];
+		if(rm){ for(let i in rm) rtv[i]=rm[i]; }
 		return rtv;
-	}else return rtv[idx]=(delta && (idx in delta))?delta[idx]:rtv[idx];
+	}else return rtv[idx]=(delta && (idx in delta))?((rm&&(idx in rm))?rm[idx]:delta[idx]):rtv[idx];
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.toBroken=function(){
+$aaaa$.prototype.toBroken=function(permanent){
 	let sz=$gameMap.size;
 	let brokenLvs=$dataMap.meta.brokenLvs.split(',');
 	let brokenChs=[];
@@ -2830,16 +2857,28 @@ $aaaa$.prototype.toBroken=function(){
 		brokenChs.push( JSON.parse($dataMap.meta['broken'+brokenLvs[L]]) );
 	} // maybe can be cached or pre-cal.
 	brokenLvs=brokenLvs.map(x=>Number(x));
-	for(let L=0;L!==brokenLvs.length;++L){
-		let strt=sz*brokenLvs[L];
-		for(let x=0,arr=brokenChs[L];x!==arr.length;++x){
-			if(arr[x]<0) continue;
-			$dataMap.data[strt+x]=arr[x];
+	if(permanent){
+		let data={};
+		for(let L=0;L!==brokenLvs.length;++L){
+			let strt=sz*brokenLvs[L];
+			for(let x=0,arr=brokenChs[L];x!==arr.length;++x){
+				if(arr[x]<0) continue;
+				data[strt+x]=arr[x];
+			}
 		}
+		$gameParty.changeMap('tile',data);
+	}else{
+		for(let L=0;L!==brokenLvs.length;++L){
+			let strt=sz*brokenLvs[L];
+			for(let x=0,arr=brokenChs[L];x!==arr.length;++x){
+				if(arr[x]<0) continue;
+				$dataMap.data[strt+x]=arr[x];
+			}
+		}
+		// refresh
+		let sc=SceneManager._scene;
+		if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
 	}
-	// refresh
-	let sc=SceneManager._scene;
-	if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
 };
 $aaaa$.prototype.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate){
 	debug.log('Game_Map.prototype.cpevt');
@@ -3972,7 +4011,7 @@ $dddd$=$aaaa$.prototype.reserveTransfer=function f(){
 	if($gameMap._mapId===0||this._newMapId===$gameMap._mapId) return;
 	let mc=$gameParty.mch();
 	// rand maze (current map, not new map)
-	if(mc.tile && mc.tile.rand) delete mc.tile;
+	delete mc.randmaze;
 	// dynamic evt
 	$gameParty.saveDynamicEvents(1);
 	// save 'meta.recordLoc' s
@@ -4164,11 +4203,13 @@ $aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
 		case 'name': {
 			if(!noupdate) target.name=data;
 		}break;
+		case 'randmaze':
 		case 'tile': {
-			if(target.tile===undef) target.tile={};
+			if(target[type]===undef) target[type]={};
+			let tdata=target[type];
 			for(let i in data){
-				if(data[i]===undef) delete target.tile[i];
-				else target.tile[i]=data[i];
+				if(data[i]===undef) delete tdata[i];
+				else tdata[i]=data[i];
 			}
 			if(!noupdate){ $gameMap.data();
 				let sc=SceneManager._scene;
@@ -4764,6 +4805,10 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 	if(nevtid) $gameMap._events[nevtid].start();
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+// <erasedBy:{"key":evtid}> ; when 'by' provided to 'Game_Event.erase(by)' exists in 'erasedBy', corresponding event will start
+$aaaa$.prototype.parent=function(){
+	return (this.parentId)?$gameMap._event[this.parentId]:this;
+};
 $aaaa$.prototype._constructChildren=function(tm,ssStates){
 	//debug.log('Game_Event.prototype._constructChildren');
 	let meta=this.event().meta;

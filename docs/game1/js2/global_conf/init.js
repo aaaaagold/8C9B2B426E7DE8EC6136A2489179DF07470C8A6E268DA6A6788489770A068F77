@@ -274,6 +274,7 @@ const debug=function f(){
 
 let setShorthand = (w)=>{
 	let undef=undefined,d=w.document||{},$rrrr$,$dddd$;
+	w.isNone=(a)=>a===undef||a===null;
 	w.sum=(a,b)=>{return a+b};
 	w.d=d;
 	d.ge=function ge(id){return d.getElementById(id)};
@@ -376,6 +377,10 @@ let setShorthand = (w)=>{
 			},
 		configurable: false}
 	});
+	$dddd$=w.Array.prototype.sortn=function f(){
+		return this.sort(f.cmp);
+	};
+	$dddd$.cmp=(a,b)=>a-b;
 	w.Array.prototype.sum=function(){
 		let rtv=this.length&&this[0].constructor===String?'':0;
 		for(let x=0,xs=this.length;x!==xs;++x) rtv+=this[x];

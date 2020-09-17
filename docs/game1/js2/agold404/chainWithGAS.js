@@ -1,5 +1,6 @@
 ﻿"use strict";
-{
+
+if(location.protocol==="https:"){
 	let i=d.ce('iframe').sa('class',"outofscreen tiny");
 	i.onload=function(e){
 		window.gasStat='ok';
