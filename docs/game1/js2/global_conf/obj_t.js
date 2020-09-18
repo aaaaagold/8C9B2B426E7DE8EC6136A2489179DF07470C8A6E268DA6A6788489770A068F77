@@ -298,16 +298,55 @@ $dddd$=$aaaa$._updateAllElements=function f(){
 	}
 	this._preCalScreenTileCoord();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.printLoadingError;
-$dddd$=$aaaa$.printLoadingError=function f(url){
+$aaaa$._centerElement=function(element){
+	let maxW=Graphics._width*this._realScale; // sth like "111.11px"
+	let maxH=Graphics._height*this._realScale;
+	let w=element.width*this._realScale;
+	let h=element.height*this._realScale;
+	let w2=(maxW-element.width)/2;
+	let h2=(maxH-element.height)/2;
+	element.style.position = 'absolute';
+	element.style.margin = 'auto';
+	element.style.top = h2+'px';
+	element.style.left = w2+'px';
+	element.style.right = w2+'px';
+	element.style.bottom = h2+'px';
+	element.style.width = w+'px';
+	element.style.height = h+'px';
+	return element;
+};
+$aaaa$._makeErrorHtml=(name, message)=>d.ce("div").sa("style","background-color:rgba(0,0,0,0.5);").ac(
+	d.ce("font").sa("color","yellow").ac(
+		d.ce("b").at(name)
+	)
+).ac(d.ce("br")).ac(
+	d.ce("font").sa("color","white").at(message)
+).ac(d.ce("br"));
+$aaaa$.printError=function(name, message){
+	this._errorShowed=true;
+	if(this._errorPrinter) this._errorPrinter.rf(0).ac(this._makeErrorHtml(name, message));
+	this._applyCanvasFilter();
+	this._clearUpperCanvas();
+};
+$aaaa$.printLoadingError=function f(url){
 	console.log("Graphics.printLoadingError");
-	let rtv=f.ori.call(this,url);
+	let rtv=this._errorPrinter;
 	if (this._errorPrinter && !this._errorShowed) {
+		// create error board
+		this._errorPrinter.rf(0).ac(this._makeErrorHtml("Loading Error", "Failed to load: " + url));
+		
+		// retry?
+		let button = document.createElement('button').at("Retry");
+		button.onmousedown = button.ontouchstart = function(event) {
+			ResourceHandler.retry();
+			event.stopPropagation();
+		};
+		this._errorPrinter.appendChild(button);
+		this._loadingCount = -Infinity;
+		
+		// using transparent image?
 		let btn = d.ce('button');
 		btn.ac(d.ce('div').at('Give up')).ac(d.ce('div').at('(use 1x1 transparent image)'));
-		btn.style.fontSize = '24px';
-		btn.style.color = '#ffffff';
-		//btn.style.backgroundColor = '#000000';
 		btn.onmousedown = btn.ontouchstart = function(event) {
 			ResourceHandler.retry(1);
 			event.stopPropagation();
@@ -315,23 +354,25 @@ $dddd$=$aaaa$.printLoadingError=function f(url){
 		this._errorPrinter.ac(d.ce('br')).ac(btn);
 		this._loadingCount = -Infinity;
 		
-		let arr=d.querySelectorAll('#ErrorPrinter>button');
+		let arr=this._errorPrinter.querySelectorAll("button"); //let arr=d.querySelectorAll('#ErrorPrinter>button');
 		// clear btn.style.backgroundColor so they can use style sheet
-		for(let x=0;x!==arr.length;++x) if(arr[x].style) arr[x].style.backgroundColor='';
+		//for(let x=0;x!==arr.length;++x) if(arr[x].style) arr[x].style.backgroundColor='';
 		// adjust width,height to the same
 		let w=0,h=0;
 		for(let x=0;x!==arr.length;++x){
 			if(w<arr[x].offsetWidth ) w=arr[x].offsetWidth ;
 			if(h<arr[x].offsetHeight) h=arr[x].offsetHeight;
 		}
-		++w;++h; // offset width/height are integer measurements
-		for(let x=0;x!==arr.length;++x){
-			arr[x].style.width =w+'px';
-			arr[x].style.height=h+'px';
+		if(w&&h){ // both none zero
+			++w;++h; // offset width/height are integer "measurements"
+			for(let x=0;x!==arr.length;++x){
+				arr[x].style.width =w+'px';
+				arr[x].style.height=h+'px';
+			}
 		}
 	}
 	return rtv;
-}; $dddd$.ori=$rrrr$;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Bitmap
@@ -1758,7 +1799,7 @@ $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
 	if(this._resuming) return;
 	this._resuming=true;
-	if(this._pauseInfo.paused) this._pauseToResume();
+	if(this._pauseInfo&&this._pauseInfo.paused) this._pauseToResume();
 	let rtv=f.ori.call(this);
 	this._resuming=false;
 	return rtv;

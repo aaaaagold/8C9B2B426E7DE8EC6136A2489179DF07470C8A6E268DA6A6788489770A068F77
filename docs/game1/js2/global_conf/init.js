@@ -280,6 +280,7 @@ let setShorthand = (w)=>{
 	d.ge=function ge(id){return d.getElementById(id)};
 	d.ce=function ce(tag){return d.createElement(tag)};
 	w.HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+	w.HTMLElement.prototype.acarr=function(arr){arr.forEach(c=>this.appendChild(c));return this;};
 	w.HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
 	w.HTMLElement.prototype.at=function(t){this.ac(d.createTextNode(t));return this;};
 	w.HTMLElement.prototype.si=function(i){this.innerHTML=i;return this;};
