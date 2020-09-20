@@ -1970,22 +1970,7 @@ Graphics.endLoading = function() {
  * @method printLoadingError
  * @param {String} url The url of the resource failed to load
  */
-Graphics.printLoadingError = function(url) {
-    if (this._errorPrinter && !this._errorShowed) {
-        this._errorPrinter.innerHTML = this._makeErrorHtml('Loading Error', 'Failed to load: ' + url);
-        var button = document.createElement('button');
-        button.innerHTML = 'Retry';
-        button.style.fontSize = '24px';
-        button.style.color = '#ffffff';
-        button.style.backgroundColor = '#000000';
-        button.onmousedown = button.ontouchstart = function(event) {
-            ResourceHandler.retry();
-            event.stopPropagation();
-        };
-        this._errorPrinter.appendChild(button);
-        this._loadingCount = -Infinity;
-    }
-};
+Graphics.printLoadingError;
 
 /**
  * Erases the loading error text.
@@ -2633,18 +2618,7 @@ Graphics._createFontLoader = function(name) {
  * @param {HTMLElement} element
  * @private
  */
-Graphics._centerElement = function(element) {
-    var width = element.width * this._realScale;
-    var height = element.height * this._realScale;
-    element.style.position = 'absolute';
-    element.style.margin = 'auto';
-    element.style.top = 0;
-    element.style.left = 0;
-    element.style.right = 0;
-    element.style.bottom = 0;
-    element.style.width = width + 'px';
-    element.style.height = height + 'px';
-};
+Graphics._centerElement;
 
 /**
  * @static

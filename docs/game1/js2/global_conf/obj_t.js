@@ -241,8 +241,8 @@ $aaaa$._createRenderer=function(){
 };
 $aaaa$._createGameFontLoader=none;
 $rrrr$=$aaaa$.isFontLoaded=function(name){
-	if(Graphics._cssFontLoading){
-		if(Graphics._fontLoaded) return Graphics._fontLoaded.check('10px '+name);
+	if(this._cssFontLoading){
+		if(this._fontLoaded) return this._fontLoaded.check('10px '+name);
 		return false;
 	}else{
 		if(!this._hiddenCanvas) this._hiddenCanvas = document.createElement('canvas');
@@ -299,8 +299,9 @@ $dddd$=$aaaa$._updateAllElements=function f(){
 	this._preCalScreenTileCoord();
 }; $dddd$.ori=$rrrr$;
 $aaaa$._centerElement=function(element){
-	let maxW=Graphics._width*this._realScale; // sth like "111.11px"
-	let maxH=Graphics._height*this._realScale;
+	//debug.log('Graphics._centerElement');
+	let maxW=this._width*this._realScale; // sth like "111.11px"
+	let maxH=this._height*this._realScale;
 	let w=element.width*this._realScale;
 	let h=element.height*this._realScale;
 	let w2=(maxW-element.width)/2;
@@ -886,7 +887,7 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	if (table && source) {
 		let w1 = this._tileWidth_;
 		let h1 = this._tileHeight_;
-		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=(h1>>1),isTable=f.isTable;i!==4;++i) {
+		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=h1>>1,isTable=f.isTable;i!==4;++i) {
 			let qsx = table[i][0];
 			let qsy = table[i][1];
 			let sx1 = (bx2 + qsx) * w1;
@@ -2206,14 +2207,15 @@ $aaaa$.prototype.addCustomCommands.setCancel=(w,f)=>{w.setHandler('cancel');retu
 // - menu: V_I_M
 $aaaa$.prototype.addV_I_M=function(){
 	return this._commandWindow.setHandler('gifts', ()=>{
+		let cw=this._commandWindow;
 		if(!window['/tmp/']) window['/tmp/']={};
 		if(window['/tmp/'].V_I_M){
 			delete window['/tmp/'].V_I_M;
 			Scene_DebugMenu2.prototype.createOptionsWindow.debugPack(1);
+			cw._list=this._commandWindow._list.filter(x=>!x||x.symbol!=="gifts");
+			cw.height=cw.windowHeight();
+			for(let x=0,arr=cw._list;x!==arr.length;++x) cw.redrawItem(x);
 		}else SoundManager.playBuzzer();
-		let cw=this._commandWindow;
-		cw._list=this._commandWindow._list.filter(x=>!x||x.symbol!=="gifts");
-		for(let x=0,arr=cw._list;x!==arr.length;++x) cw.redrawItem(x);
 		cw.activate();
 		//SceneManager.goto(this.constructor);
 	});
@@ -5486,6 +5488,14 @@ $aaaa$.prototype.windowHeight = function() {
 	let defaultVal=this.fittingHeight(this.numVisibleRows());
 	return Math.min(defaultVal,this.maxHeight||defaultVal);
 };
+$aaaa$.prototype.drawItem=function(index) {
+	let rect=this.itemRectForText(index);
+	let align = this.itemTextAlign();
+	if(this._list[index] && this._list[index].once) this.contents.textColor=$dataCustom.textcolor.keyword;
+	else this.resetTextColor();
+	this.changePaintOpacity(this.isCommandEnabled(index));
+	this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
+};
 
 // - titleCommand
 $aaaa$=Window_TitleCommand;
@@ -5522,7 +5532,10 @@ $dddd$=$aaaa$.prototype.addSaveCommand=function f(){ // overwrite for efficiency
 	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.addOnceCommand=function(){
-	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED") this.addCommand('Visit It', 'gifts');
+	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED"){
+		this.addCommand('Visit It', 'gifts');
+		this._list.back.once=1;
+	}
 };
 $aaaa$.prototype.makeCommandList = function() {
 	this.addOnceCommand();

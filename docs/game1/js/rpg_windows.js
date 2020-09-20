@@ -1262,14 +1262,6 @@ Window_Command.prototype.selectExt = function(ext) {
     }
 };
 
-Window_Command.prototype.drawItem = function(index) {
-    var rect = this.itemRectForText(index);
-    var align = this.itemTextAlign();
-    this.resetTextColor();
-    this.changePaintOpacity(this.isCommandEnabled(index));
-    this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
-};
-
 Window_Command.prototype.itemTextAlign = function() {
     return 'left';
 };
