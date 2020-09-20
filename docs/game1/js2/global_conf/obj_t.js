@@ -1275,7 +1275,7 @@ $dddd$=Input._onKeyUp=function f(e){
 		if(SceneManager._scene!==Scene_Map && SceneManager._stack.indexOf(Scene_Map)===-1){
 			$gameMessage.popup("Visit It Mode",1);
 			window['/tmp/'].V_I_M=JSON.stringify(this.secret_input);
-		}else Scene_DebugMenu2.prototype.createOptionsWindow.debugPack();
+		}else Scene_DebugMenu2.prototype.createOptionsWindow.debugPack(1);
 		this.secret_input.length=0;
 	}
 	this.kstat[e.keyCode]=false;
