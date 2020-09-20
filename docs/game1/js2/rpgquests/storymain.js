@@ -147,7 +147,7 @@ list.normal_fireflower={
 	title:"蒐集火焰花",
 	rank:5,
 	txt:[
-		{txt:"透過"+color.keyword+"通道"+color.default+"到達地面，地面有一種紅紅的花，點火後可以摘下，據說可以燒很久。"},"\n\n",
+		{txt:"透過\\key'\"通道\"'到達地面，地面有一種紅紅的花，點火後可以摘下，據說可以燒很久。"},"\n\n",
 		{txt:"可以蒐集一大堆來嗎？"},
 	],
 	info:{
@@ -167,7 +167,7 @@ list.normal_branchCrossing={
 	titleMinor:"聽說現在這個遊戲很紅",
 	rank:7,
 	txt:[
-		{txt:"透過"+color.keyword+"通道"+color.default+"到達地面，地面偶爾可以看到倒塌的大樹幹"},"\n\n",
+		{txt:"透過\\key'\"通道\"'到達地面，地面偶爾可以看到倒塌的大樹幹"},"\n\n",
 		{txt:"把它燒一燒後帶回來"},"\n",
 		{txt:"  p.s. 燒地面的樹時也可以獲得",sizeRate:0.75},
 	],

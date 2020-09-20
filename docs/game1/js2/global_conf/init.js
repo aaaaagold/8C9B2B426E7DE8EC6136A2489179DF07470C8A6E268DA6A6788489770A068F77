@@ -1201,7 +1201,7 @@ let setShorthand = (w)=>{
 		}
 		return rtv;
 	};
-	w.sha256=function sha256(input_str,encode){
+	w.sha256=function sha256(input_str_orOthersTreatedAsArrayOfBytes,encode){
 		// https://en.wikipedia.org/wiki/SHA-2#Pseudocode
 		let h0 = 0x6a09e667;
 		let h1 = 0xbb67ae85;
@@ -1211,26 +1211,29 @@ let setShorthand = (w)=>{
 		let h5 = 0x9b05688c;
 		let h6 = 0x1f83d9ab;
 		let h7 = 0x5be0cd19;
+		let input_str=input_str_orOthersTreatedAsArrayOfBytes;
 		input_str=input_str||"";
 		let arr=[];
-		// to byte string
-		for(let mask=0x7FFFFFFF,x=0;x!==input_str.length;++x){
-			let c=input_str.charCodeAt(x)&mask; // make sure to be unsigned
-			if(c>0x7F){ // 2 bytes or more
-				let rev_arr=[c&0x3F|0x80],r=(c>>6);
-				if(c>0x7FF){ // 3 bytes or more
-					rev_arr.push(r&0x3F|0x80); r>>=6;
-					if(c>0xFFFF){ // 4 bytes
+		if(typeof input_str==='string'){
+			// to byte string
+			for(let mask=0x7FFFFFFF,x=0;x!==input_str.length;++x){
+				let c=input_str.charCodeAt(x)&mask; // make sure to be unsigned
+				if(c>0x7F){ // 2 bytes or more
+					let rev_arr=[c&0x3F|0x80],r=(c>>6);
+					if(c>0x7FF){ // 3 bytes or more
 						rev_arr.push(r&0x3F|0x80); r>>=6;
-						if(c>0x10FFFF){ // wtf
-							rev_arr.push(r&0x3F); r>>=6;
-							rev_arr.push(r|0xF8); // &0x3
-						}else rev_arr.push(r|0xF); // &0x7
-					}else rev_arr.push(r|0xE0); // &0xF
-				}else rev_arr.push(r|0xC0); // &0x1F
-				for(let z=rev_arr.length;z--;) arr.push(rev_arr[z]);
-			}else arr.push(c);
-		}
+						if(c>0xFFFF){ // 4 bytes
+							rev_arr.push(r&0x3F|0x80); r>>=6;
+							if(c>0x10FFFF){ // wtf
+								rev_arr.push(r&0x3F); r>>=6;
+								rev_arr.push(r|0xF8); // &0x3
+							}else rev_arr.push(r|0xF); // &0x7
+						}else rev_arr.push(r|0xE0); // &0xF
+					}else rev_arr.push(r|0xC0); // &0x1F
+					for(let z=rev_arr.length;z--;) arr.push(rev_arr[z]);
+				}else arr.push(c);
+			}
+		}else for(let x=0;x!==input_str.length;++x) arr.push(input_str[x]&0xFF);
 		let trueStrLen=arr.length;
 		// padding K
 		let K=(512-((arr.length*8)+1+64)%512)%512; // L +1 +64

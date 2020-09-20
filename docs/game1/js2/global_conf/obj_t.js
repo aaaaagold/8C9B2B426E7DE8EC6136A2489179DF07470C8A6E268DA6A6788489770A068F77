@@ -886,7 +886,7 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	if (table && source) {
 		let w1 = this._tileWidth_;
 		let h1 = this._tileHeight_;
-		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=h1>>1,isTable=f.isTable;i!==4;++i) {
+		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=(h1>>1),isTable=f.isTable;i!==4;++i) {
 			let qsx = table[i][0];
 			let qsy = table[i][1];
 			let sx1 = (bx2 + qsx) * w1;
@@ -894,12 +894,13 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 			let dx1 = dx + (i&1) * w1;
 			let dy1 = dy + (i>>1) * h1;
 			if(isTable && (qsy === 1 || qsy === 5)){
-				let qsx2 = (qsy === 1)?(4-qsx)&3:qsx; // if qsx===1: qsx2 = [0, 3, 2, 1][qsx];
+				let qsx2 = (qsy === 1)?(4-qsx)&3:qsx; // if qsy===1: qsx2 = [0, 3, 2, 1][qsx];
 				let qsy2 = 3;
 				let sx2 = (bx2 + qsx2) * w1;
 				let sy2 = (by2 + qsy2) * h1;
-				bitmap.bltImage(source, sx2, sy2, w1, h1,  dx1, dy1,     w1, h1);
-				bitmap.bltImage(source, sx1, sy1, w1, h1_, dx1, dy1+h1_, w1, h1_);
+				bitmap.bltImage(source, sx2, sy2, w1, h1,  dx1, dy1, w1, h1);
+				dy1+=h1_;
+				bitmap.bltImage(source, sx1, sy1, w1, h1_, dx1, dy1, w1, h1_);
 			}else bitmap.bltImage(source, sx1, sy1, w1, h1, dx1, dy1, w1, h1);
 		}
 	}
@@ -929,7 +930,7 @@ $dddd$.an=[ // functions here, 'this' === $dddd$
 	function(){ // A2
 		this.bx = this.tx<<1;
 		this.by = (this.ty - 2) * 3;
-		this.isTable = this.flags[this.tileId] & 0x80; // this._isTableTile(tileId);
+		this.isTable = this.flags[this.tid] & 0x80; // this._isTableTile(tileId);
 	}.bind($dddd$),
 	function(){ // A3
 		this.bx = this.tx<<1;
@@ -1170,7 +1171,7 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 		let dx1 = dx + (i&1) * w1;
 		let dy1 = dy + (i>>1) * h1;
 		if(isTable && (qsy === 1 || qsy === 5)){
-			let qsx2 = qsy===1?(4-qsx)&3:qsx; // if qsx===1: qsx2 = [0, 3, 2, 1][qsx];
+			let qsx2 = qsy===1?(4-qsx)&3:qsx; // if qsy===1: qsx2 = [0, 3, 2, 1][qsx];
 			let qsy2 = 3;
 			let sx2 = (bx2 + qsx2) * w1;
 			let sy2 = (by2 + qsy2) * h1;
@@ -1228,8 +1229,9 @@ Input.keyMapper[68]="right";
 Input.keyMapper[83]="down";
 Input.keyMapper[87]="up";
 $rrrr$=Input.clear;
-$dddd$=Input.clear=function f(){
-	debug.log('Input.clear');
+$dddd$=Input.clear=function f(keyOnly){
+	//debug.log('Input.clear');
+	if(!keyOnly) TouchInput.clear();
 	if(this.kstat){ this.kstat.length=0; this.kstat.length=256; }
 	else this.kstat=[];
 	return f.ori.call(this);
@@ -1246,8 +1248,36 @@ Input._onKeyDown=function(event) {
 		this._currentState[buttonName] = true;
 	}
 };
+Input.secret=[
+	"0xF5CA38F748A1D6EAF726B8A42FB575C3C71F1864A8143301782DE13DA2D9202B",
+	"0xF5CA38F748A1D6EAF726B8A42FB575C3C71F1864A8143301782DE13DA2D9202B",
+	"0xAEA92132C4CBEB263E6AC2BF6C183B5D81737F179F21EFDC5863739672F0F470",
+	"0xAEA92132C4CBEB263E6AC2BF6C183B5D81737F179F21EFDC5863739672F0F470",
+	"0xD59ECED1DED07F84C145592F65BDF854358E009C5CD705F5215BF18697FED103",
+	"0xD59ECED1DED07F84C145592F65BDF854358E009C5CD705F5215BF18697FED103",
+	"0x7A61B53701BEFDAE0EEEFFAECC73F14E20B537BB0F8B91AD7C2936DC63562B25",
+	"0x0B918943DF0962BC7A1824C0555A389347B4FEBDC7CF9D1254406D80CE44E3F9",
+	"0x7A61B53701BEFDAE0EEEFFAECC73F14E20B537BB0F8B91AD7C2936DC63562B25",
+	"0x0B918943DF0962BC7A1824C0555A389347B4FEBDC7CF9D1254406D80CE44E3F9",
+	"0x3ADA92F28B4CEDA38562EBF047C6FF05400D4C572352A1142EEDFEF67D21E662",
+	"0x108C995B953C8A35561103E2014CF828EB654A99E310F87FAB94C2F4B7D2A04F",
+	"0x3FDBA35F04DC8C462986C992BCF875546257113072A909C162F7E470E581E278",
+];
+Input.secret_it=0;
+Input.secret_input=[];
 $rrrr$=Input._onKeyUp;
 $dddd$=Input._onKeyUp=function f(e){
+	let h=sha256(''+e.keyCode);
+	if(h===this.secret[this.secret_input.length]){
+		this.secret_input.push(e.keyCode);
+	}else this.secret_input.length=(this.secret[0]===h)+(this.secret_input.length===2);
+	if(this.secret_input.length===Input.secret.length && Scene_DebugMenu2){
+		if(SceneManager._scene!==Scene_Map && SceneManager._stack.indexOf(Scene_Map)===-1){
+			$gameMessage.popup("Visit It Mode",1);
+			window['/tmp/'].V_I_M=JSON.stringify(this.secret_input);
+		}else Scene_DebugMenu2.prototype.createOptionsWindow.debugPack();
+		this.secret_input.length=0;
+	}
 	this.kstat[e.keyCode]=false;
 	return f.ori.call(this,e);
 }; $dddd$.ori=$rrrr$;
@@ -1843,10 +1873,12 @@ $aaaa$._pauseToResume=function(){
 };
 $rrrr$=$aaaa$.update;
 $dddd$=$aaaa$.update=function f(){
-	//console.warn("?");
-	//return f.ori.call(this);
+	//debug.log('SceneManager.update');
 	if(!(_global_conf&&_global_conf.halfFps) || (this._half_do^=1)) return f.ori.call(this);
-	else return this.requestUpdate();
+	else{
+		++Graphics.frameCount;
+		return this.requestUpdate();
+	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.isMap=function(){return this._scene && this._scene.constructor===Scene_Map};
 $aaaa$._alphas=[];
@@ -2157,12 +2189,12 @@ $aaaa$.prototype.createCommandWindow=function(){
 	this._commandWindow.setHandler('save',	 this.commandSave.bind(this));
 	this._commandWindow.setHandler('gameEnd', this.commandGameEnd.bind(this));
 	this._commandWindow.setHandler('cancel', this.popScene.bind(this));
-	if(debug.isdebug() && this.adddebug) this.adddebug();
 	if(this.addCustomCommands) this.addCustomCommands();
 	this.addWindow(this._commandWindow);
 };
 $aaaa$.prototype.addCustomCommands=function f(){
 	this._commandWindow.setHandler('debugMenu2', ()=>{SceneManager.push(Scene_DebugMenu2);} );
+	if(this.addV_I_M) this.addV_I_M();
 	this._commandWindow.setHandler('apps', ()=>{SceneManager.push(Scene_Apps);} );
 		//this._commandWindow.setHandler('questMgr', ()=>{SceneManager.push(Scene_Quest);} );
 		//this._commandWindow.setHandler('achievement', ()=>{SceneManager.push(Scene_Achievement);} );
@@ -2171,9 +2203,20 @@ $aaaa$.prototype.addCustomCommands=function f(){
 	return this._commandWindow.setHandler('saveOnline', ()=>{SceneManager.push(Scene_SaveOnline);} );
 };
 $aaaa$.prototype.addCustomCommands.setCancel=(w,f)=>{w.setHandler('cancel');return w;};
-// - menu: debugger
-$aaaa$.prototype.adddebug=function(){
-	return this._commandWindow.setHandler('debugMenu2', ()=>{SceneManager.push(Scene_DebugMenu2);} );
+// - menu: V_I_M
+$aaaa$.prototype.addV_I_M=function(){
+	return this._commandWindow.setHandler('gifts', ()=>{
+		if(!window['/tmp/']) window['/tmp/']={};
+		if(window['/tmp/'].V_I_M){
+			delete window['/tmp/'].V_I_M;
+			Scene_DebugMenu2.prototype.createOptionsWindow.debugPack(1);
+		}else SoundManager.playBuzzer();
+		let cw=this._commandWindow;
+		cw._list=this._commandWindow._list.filter(x=>!x||x.symbol!=="gifts");
+		for(let x=0,arr=cw._list;x!==arr.length;++x) cw.redrawItem(x);
+		cw.activate();
+		//SceneManager.goto(this.constructor);
+	});
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -5478,7 +5521,11 @@ $dddd$=$aaaa$.prototype.addSaveCommand=function f(){ // overwrite for efficiency
 		this.addCommand($dataCustom.saveOnline, 'saveOnline', enabled);
 	}
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.addOnceCommand=function(){
+	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED") this.addCommand('Visit It', 'gifts');
+};
 $aaaa$.prototype.makeCommandList = function() {
+	this.addOnceCommand();
 	if(debug.isdepress()) this.addCommand("debug2",'debugMenu2');
 	this.addMainCommands();
 	this.addFormationCommand();

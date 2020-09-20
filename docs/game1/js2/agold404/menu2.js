@@ -103,7 +103,7 @@ $aaaa$=Scene_DebugMenu2;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 
-$aaaa$.prototype.createOptionsWindow=function f(){
+$dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_DebugMenu2.prototype.createOptionsWindow');
 	let lg10f=this.log10Floor;
 	let loct=this.toLocalISO;
@@ -130,37 +130,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		.filter(x=>x!==null)
 		.map(x=>[x.id+": "+x.name,";;func;list",1,()=>{return mapList_setting(x);$gamePlayer.reserveTransfer(x.id,0,0);}])
 	this._window = new Window_CustomMenu_main(0,0,[
-		["debug pack",";;func;call", 1, ()=>{
-			let p=$gamePlayer;
-			p._halfFps=1;
-			p._noGainMsg=1;
-			p._noGainSound=1;
-			let pt=$gameParty,itds=$dataItems,armds=$dataArmors;
-			
-			pt.gainGold(1e11);
-			pt.gainItem(itds[32],1); // nooby card
-			itds.forEach(evt=>{ // quests
-				if(!evt||!evt.meta.quest)return;
-				pt.gainItem(evt,1);
-			});
-			let collects=[34,36,37,39,46,47,51,52,53,54,60,98,99,100];
-			for(let x=0,arr=collects;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
-			let switches=[58,44,64,65,66,67,68,70,74,75,79,80,81,82,83,84];
-			for(let x=0,arr=switches;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
-			let addons=[76,77,];
-			for(let x=0,arr=addons;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
-			let returns=[42,93,];
-			for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
-			let placing=[96,];
-			for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
-			let consume=[103,];
-			for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
-			
-			let rings=[6,12,];
-			for(let x=0,arr=rings;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1);
-			let necklaces=[15,];
-			for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1);
-		}],
+		["debug pack",";;func;call", 1, f.debugPack],
 		// functions
 		["map", ";map;func", 1, [
 			["id", "$gameMap;_mapId;real;::", 0],
@@ -438,6 +408,43 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	}
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
+};
+$dddd$.debugPack=(notDev)=>{
+	let dev=!notDev;
+	let p=$gamePlayer;
+	if(dev) p._halfFps=1;
+	p._noGainMsg=1;
+	p._noGainSound=1;
+	let pt=$gameParty,itds=$dataItems,armds=$dataArmors;
+	if(dev && SceneManager._scene.constructor!==Scene_DebugMenu2){
+		pt.gainItem(itds[78],1);
+		return;
+	}
+	
+	pt.gainGold(1e11);
+	pt.gainItem(itds[32],1); // nooby card
+	if(dev) itds.forEach(evt=>{ // quests
+		if(!evt||!evt.meta.quest)return;
+		pt.gainItem(evt,1);
+	});
+	let collects=[34,36,37,39,46,47,51,52,53,54,60,98,99,100];
+	for(let x=0,arr=collects;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
+	let switches=[58,44,64,65,66,67,68,70,74,75,79,80,81,82,83,84];
+	for(let x=0,arr=switches;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
+	let addons=[76,77,];
+	for(let x=0,arr=addons;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
+	let returns=[42,93,];
+	for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
+	let placing=[96,];
+	for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
+	let consume=[103,];
+	for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
+	
+	let rings=[6,12,];
+	for(let x=0,arr=rings;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e1);
+	let necklaces=[15,];
+	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e1);
+	
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_DebugMenu2
 
@@ -1666,6 +1673,7 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 	if(0&&SceneManager.isMap() && msg && msg._windowCnt){
 		msg._windowCnt^=0; msg._windowCnt+=1;
 	}
+	window.inputting=0;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.initialize;
