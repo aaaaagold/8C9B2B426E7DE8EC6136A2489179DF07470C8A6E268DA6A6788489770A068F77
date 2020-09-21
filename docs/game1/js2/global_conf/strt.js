@@ -35,11 +35,11 @@ if(Utils.isMobileDevice()) _global_conf.halfFps=1;
 		return f.ori.call(this,sha256(arg));
 	}; dddd.ori=rrrr;
 	debug.isdebug=()=>{
-		return geturlargs("0x0B8E9E995D8D77F1E4770F0F79665AEE6F3F70247B3735422DABA73DF4C3096F");
+		return geturlargs.ori("0x0B8E9E995D8D77F1E4770F0F79665AEE6F3F70247B3735422DABA73DF4C3096F");
 	};
 	rrrr=debug.isdepress;
 	dddd=debug.isdepress=function f(){
-		return f.ori() || geturlargs("0xF7D680F4AA63059CA89D4FF8FF95BBF741C3413F4790034F41586384A7F23690");
+		return f.ori() || geturlargs.ori("0xF7D680F4AA63059CA89D4FF8FF95BBF741C3413F4790034F41586384A7F23690");
 	}; dddd.ori=rrrr;
 	rrrr=window.onhashchange;
 	dddd=window.onhashchange=function f(){

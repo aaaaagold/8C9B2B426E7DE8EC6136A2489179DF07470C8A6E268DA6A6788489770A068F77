@@ -415,7 +415,7 @@ $dddd$.debugPack=(notDev)=>{
 	if(dev) p._halfFps=1;
 	p._noGainMsg=1;
 	p._noGainSound=1;
-	let pt=$gameParty,itds=$dataItems,armds=$dataArmors;
+	let pt=$gameParty,itds=$dataItems,armds=$dataArmors,wpnds=$dataWeapons;
 	if(dev && SceneManager._scene.constructor!==Scene_DebugMenu2){
 		pt.gainItem(itds[78],1);
 		return;
@@ -429,7 +429,8 @@ $dddd$.debugPack=(notDev)=>{
 	});
 	let collects=[34,36,37,39,46,47,51,52,53,54,60,98,99,100];
 	for(let x=0,arr=collects;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
-	let switches=[58,44,64,65,66,67,68,70,74,75,79,80,81,82,83,84];
+	let switches=[58,64,65,66,67,68,70,74,75,80,81,82,83,84];
+	if(dev) switches=switches.concat([44,79,]);
 	for(let x=0,arr=switches;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
 	let addons=[76,77,];
 	for(let x=0,arr=addons;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
@@ -445,6 +446,8 @@ $dddd$.debugPack=(notDev)=>{
 	let necklaces=[15,];
 	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e1);
 	
+	let ws=[16,];
+	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(wpnds[arr[x]],1e1);
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_DebugMenu2
 

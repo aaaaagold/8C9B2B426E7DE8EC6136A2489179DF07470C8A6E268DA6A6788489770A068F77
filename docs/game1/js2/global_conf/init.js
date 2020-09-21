@@ -141,8 +141,10 @@ if(window && window.location){
 		_global_conf._url_parse(window.location.search.slice(1)):
 		{};
 	if(window.onhashchange!==undef){
+		let inited=0;
 		let updateUrlHash=()=>{
-			console.log("urlHash changed");
+			if(inited) console.log("urlHash changed");
+			else inited|=1;
 			_global_conf["url hash"]=(window.location.hash)?
 				_global_conf._url_parse(window.location.hash.slice(1)):
 				{};

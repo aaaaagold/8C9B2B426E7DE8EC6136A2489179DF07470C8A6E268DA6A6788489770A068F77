@@ -708,7 +708,7 @@ $aaaa$.prototype.addc_tree=function(key,data){
 };
 $rrrr$=$aaaa$.prototype.addChild;
 $dddd$=$aaaa$.prototype.addChild=function f(c){
-	if(c.parent) c.parent.removeChild(c);
+	if(c.parent && c.parent!==this) c.parent.removeChild(c);
 	c.parent=this;
 	
 	c.transform._parentID=-1;
@@ -1367,7 +1367,8 @@ $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(forced) return f.ori.call(this);
 	let c=this._character;
-	let playing=c&&(c.isAnimationPlaying()||c.isBalloonPlaying());
+	if(!c) return f.ori.call(this);
+	let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
 	if(!playing){
 		if(c._erased) return this.parent&&this.parent.removeChild(this);
 		else if(Math.floor((this.x+f.pad)/(Graphics.boxWidth+f.pad2))!==0||Math.floor((this.y+f.pad)/(Graphics.boxHeight+f.pad2))!==0){
@@ -1443,12 +1444,26 @@ $aaaa$.prototype.updatePosition = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
-$rrrr$=$aaaa$.prototype.createCharacters;
-$dddd$=$aaaa$.prototype.createCharacters=function f(){
-	f.ori.call(this);
-	this._tilemap.player=this._characterSprites.back;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.createCharacters=$rrrr$; // use the original one
+$aaaa$.prototype.createCharacters=function(){
+	if(this._characterSprites) this._characterSprites.length=0;
+	else this._characterSprites = [];
+	$gameMap.events().forEach(function(event){
+		this._characterSprites.push(new Sprite_Character(event));
+	}, this);
+	$gameMap.vehicles().forEach(function(vehicle){
+		this._characterSprites.push(new Sprite_Character(vehicle));
+	}, this);
+	if(0)$gamePlayer.followers().reverseEach(function(follower) {
+		this._characterSprites.push(new Sprite_Character(follower));
+	}, this);
+	let cnt=$gameParty._actors.length-1; if(cnt===-1) cnt=0;
+	$gamePlayer._followers._data.slice(0,cnt).forEach( flr=>this._characterSprites.push(new Sprite_Character(flr)) );
+	this._characterSprites.push(new Sprite_Character($gamePlayer));
+	for(let i=0;i!==this._characterSprites.length;++i){
+		this._tilemap.addChild(this._characterSprites[i]);
+	}
+	//this._tilemap.player=this._characterSprites.back;
+};
 $aaaa$.prototype.updateTilemap = function() {
 	this._tilemap.origin.x = $gameMap._displayX_tw;
 	this._tilemap.origin.y = $gameMap._displayY_th;
@@ -1465,6 +1480,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - DataManager
 $aaaa$=DataManager;
+$aaaa$._globalId="agold404";
 $dddd$=$aaaa$._databaseFiles;
 $dddd$.reverse(); [
 	{ name: '$dataCustom',       src: 'custom.json'       },
@@ -1474,6 +1490,16 @@ $dddd$.reverse(); [
 	{ name: '$dataTemplateEvt_move', src: 'Map089.json'   },
 	{ name: '$dataTemplateEvt_item', src: 'Map114.json'   },
 ].reverse().forEach(x=>$dddd$.push(x)); $dddd$.reverse();
+$aaaa$.isThisGameFile=function(savefileId){
+	let globalInfo=this.loadGlobalInfo();
+	if(globalInfo && globalInfo[savefileId]){
+		if(StorageManager.isLocalMode()) return true;
+		else{
+			let savefile = globalInfo[savefileId];
+			return true; // (savefile.globalId === this._globalId && savefile.title === $dataSystem.gameTitle);
+		}
+	}else return false;
+};
 $aaaa$.loadDataFile=function f(name, src ,changesCallback,changesKArgs) {
 	//debug.log('DataManager.loadDataFile');
 	//console.log(name, src, f.cache);
@@ -4564,6 +4590,7 @@ $aaaa$.prototype.logLoc_load=function(id){
 	$gamePlayer.reserveTransfer(t[1],t[2],t[3],t[4],1);
 };
 $aaaa$.prototype.addActor = function(actorId) { // neednotice
+	//debug.log('Game_Party.prototype.addActor');
 	let tmp=_global_conf["id-cntTemplateToCustom"](actorId,this._actors);
 	let cnt=tmp[0],id=tmp[1];
 	if (cnt<_global_conf["default allowRepeatedMembers"]) {
@@ -4574,6 +4601,17 @@ $aaaa$.prototype.addActor = function(actorId) { // neednotice
 			// Game_Actor.prototype.actor() will find _global_conf["get-customActors"](), then $dataActors
 			_global_conf["get-customActors"]()[id]=new Game_Actor(id);
 			this._actors.push(id);
+		}
+		let flrs=$gamePlayer._followers._data,len=this._actors.length-1;
+		if(len!==0&&flrs.length>=len){
+			let sc=SceneManager._scene;
+			let sps=sc&&sc._spriteset;
+			let tm=sps&&sps._tilemap; //debug.log(tm);
+			if(tm){
+				let arr=sps._characterSprites;
+				arr.push(new Sprite_Character( flrs[len-1] )); debug.log(arr.back);
+				tm.addChild(arr.back);
+			}
 		}
 		$gamePlayer.refresh();
 		$gameMap.requestRefresh();
@@ -4712,6 +4750,16 @@ Object.defineProperties($aaaa$.prototype,{
 		this._addToCoordTbl();
 	},configurable:false}
 });
+$aaaa$.prototype.resetDir=function(alsoSetupPage){
+	let p=this.findProperPageIndex();
+	if(p<0) return;
+	let img=this.event().pages[p].image;
+	this._direction=img.direction;
+	if(alsoSetupPage){
+		this._pageIndex=p;
+		this.setupPage();
+	}
+};
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
 	if(this.canUpdate()) return f.ori.call(this);
@@ -4886,9 +4934,16 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 		}
 	}
 	this._rmFromCoordTbl();
-	let rtv=f.ori.call(this);
-	let next=JSON.parse(this.event().meta.erasedBy||"{}"),nevtid=next&&next[by];
-	if(nevtid) $gameMap._events[nevtid].start();
+	let rtv=this._erased;
+	f.ori.call(this);
+	rtv^=this._erased;
+	if(rtv){
+		let meta=this.event().meta;
+		let vars=$gameParty.mch().vars;
+		if(vars.tree) vars.tree-=meta.dectree^0;
+		let next=JSON.parse(meta.erasedBy||"{}"),nevtid=next&&next[by];
+		if(nevtid) $gameMap._events[nevtid].start();
+	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 // <erasedBy:{"key":evtid}> ; when 'by' provided to 'Game_Event.erase(by)' exists in 'erasedBy', corresponding event will start

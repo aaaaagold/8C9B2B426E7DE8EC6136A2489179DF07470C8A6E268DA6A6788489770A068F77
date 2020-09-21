@@ -170,6 +170,10 @@ let tbl_fireCrystal=[]; tbl_fireCrystal[96]=2; tbl_fireCrystal[102]=3;
 list.fireCrystal=(action)=>{
 	backToMap();
 	let item=action.item();
+	if($dataMap.meta.disableBomb){
+		$gameMessage.add("\\L在這裡放\\item["+item.id+"]似乎不太好。");
+		return;
+	}
 	$gameParty.gainItem(item,-1);
 	$gameMap.cpevt($dataMap.templateStrt_item+tbl_fireCrystal[item.id],$gamePlayer.x,$gamePlayer.y,1,1,1);
 };
