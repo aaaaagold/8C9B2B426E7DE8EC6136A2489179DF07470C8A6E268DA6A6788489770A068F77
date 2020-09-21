@@ -447,7 +447,7 @@ $dddd$.debugPack=(notDev)=>{
 	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e1);
 	
 	let ws=[16,];
-	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(wpnds[arr[x]],1e1);
+	for(let x=0,arr=ws;x!==arr.length;++x) pt.gainItem(wpnds[arr[x]],1e1);
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_DebugMenu2
 
