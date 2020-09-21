@@ -2226,24 +2226,6 @@ Spriteset_Map.prototype.loadTileset = function() {
     }
 };
 
-Spriteset_Map.prototype.createCharacters = function() {
-    this._characterSprites = [];
-    $gameMap.events().forEach(function(event) {
-        this._characterSprites.push(new Sprite_Character(event));
-    }, this);
-    $gameMap.vehicles().forEach(function(vehicle) {
-        this._characterSprites.push(new Sprite_Character(vehicle));
-    }, this);
-    $gamePlayer.followers().reverseEach(function(follower) {
-        this._characterSprites.push(new Sprite_Character(follower));
-    }, this);
-    this._characterSprites.push(new Sprite_Character($gamePlayer));
-    for (var i = 0; i < this._characterSprites.length; i++) {
-        this._tilemap.addChild(this._characterSprites[i]);
-    }
-	//delete this._characterSprites; // no error if no 'Spriteset_Map.prototype.hideCharacters'
-};
-
 Spriteset_Map.prototype.createShadow = function() {
     this._shadowSprite = new Sprite();
     this._shadowSprite.bitmap = ImageManager.loadSystem('Shadow1');

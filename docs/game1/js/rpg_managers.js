@@ -219,21 +219,6 @@ DataManager.saveGlobalInfo = function(info) {
     StorageManager.save(0, JSON.stringify(info));
 };
 
-DataManager.isThisGameFile = function(savefileId) {
-    var globalInfo = this.loadGlobalInfo();
-    if (globalInfo && globalInfo[savefileId]) {
-        if (StorageManager.isLocalMode()) {
-            return true;
-        } else {
-            var savefile = globalInfo[savefileId];
-            return (savefile.globalId === this._globalId &&
-                    savefile.title === $dataSystem.gameTitle);
-        }
-    } else {
-        return false;
-    }
-};
-
 DataManager.isAnySavefileExists = function() {
     var globalInfo = this.loadGlobalInfo();
     if (globalInfo) {
