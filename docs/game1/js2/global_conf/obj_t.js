@@ -4821,7 +4821,7 @@ $dddd$=$aaaa$.prototype.start=function f(custom){ // fit $dataMap.strtEvts
 			}
 			let vars=$gameParty.mch().vars;
 			if(vars){
-				if(vars.tree) vars.tree-=meta.dectree^0;
+				//if(vars.tree) vars.tree-=meta.dectree^0; // in 'this.erase'
 				vars.burnPlanted^=0;
 				vars.burnPlanted+=meta.burnPlanted^0;
 				$gameParty.burned+=meta.dectree|meta.burnPlanted;
