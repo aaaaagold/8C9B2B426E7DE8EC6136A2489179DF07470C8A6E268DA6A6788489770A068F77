@@ -1273,6 +1273,7 @@ $dddd$=Input._onKeyUp=function f(e){
 		this.secret_input.push(e.keyCode);
 	}else this.secret_input.length=(this.secret[0]===h)+(this.secret_input.length===2);
 	if(this.secret_input.length===Input.secret.length && Scene_DebugMenu2){
+		AudioManager.playMe({name: "Victory1", volume: 90, pitch: 150, pan: 0});
 		if(SceneManager._scene!==Scene_Map && SceneManager._stack.indexOf(Scene_Map)===-1){
 			$gameMessage.popup("Visit It Mode",1);
 			window['/tmp/'].V_I_M=JSON.stringify(this.secret_input);
@@ -2893,13 +2894,9 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	let tiles=this.allTiles(x, y);
 	let i,flag;
 	for(i=0;i!==tiles.length;++i){ if(tiles[i]>=8176){
-		flag=flags[tiles[i]];
-		if ((flag & 0x10) !== 0)  // [*] No effect on passage
-			continue;
-		if ((flag & bit) === 0)   // [o] Passable
-			return true;
-		if ((flag & bit) === bit) // [x] Impassable
-			return false;
+		flag=tiles[i];
+		if((flag & bit) === 0)   return true;  // [o] Passable
+		if((flag & bit) === bit) return false; // [x] Impassable
 	}}
 	for(i=0;i!==tiles.length;++i){
 		flag = flags[tiles[i]];
@@ -2914,7 +2911,7 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	return false; // No effect ALL
 };
 $aaaa$.prototype.isPassable=function(x,y,d){
-	return this.checkPassage(x,y,( 1<<((d>>1)-1) )&0x0f );
+	return this.checkPassage(x,y,( 1<<((d>>1)-1) )&15 );
 };
 $rrrr$=$aaaa$.prototype.isDamageFloor;
 $dddd$=$aaaa$.prototype.isDamageFloor=function f(X,Y){

@@ -2,6 +2,7 @@
 
 setShorthand(window);
 let zInit=11;
+_global_conf["newDiv"]("backDiv",-1);
 _global_conf["newDiv"]("LowerDiv",zInit+1);
 _global_conf["newDiv"]("LowerDiv-s",zInit+2);
 _global_conf["newDiv"]("UpperDiv",zInit+23);

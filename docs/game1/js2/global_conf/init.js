@@ -294,9 +294,9 @@ let setShorthand = (w)=>{
 		return rtv;
 	};
 	w.HTMLElement.prototype.centerize=function(){
-		if(this==d.body) return this;
+		if(this===d.body) return this;
 		let prng=this.parentNode.range(),orng=this.range();
-		this.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+		this.sa('style','position:absolute;left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
 		return this;
 	};
 	w.HTMLElement.prototype.ae=function(e,f){

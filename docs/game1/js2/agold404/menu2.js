@@ -422,7 +422,7 @@ $dddd$.debugPack=(notDev)=>{
 	}
 	
 	pt.gainGold(1e11);
-	pt.gainItem(itds[32],1); // nooby card
+	if(dev) pt.gainItem(itds[32],1); // nooby card
 	if(dev) itds.forEach(evt=>{ // quests
 		if(!evt||!evt.meta.quest)return;
 		pt.gainItem(evt,1);
@@ -497,6 +497,7 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 					DataManager.loadGame('callback',0,data);
 					delete DataManager.onlineOk;
 					delete self.ref.fileReader;
+					self.value=''; // will NOT goto line: 'this.files.length===0' above.
 				}catch(e){
 					SoundManager.playBuzzer();
 					$gameMessage.popup($dataCustom.fromLocalSaveLoadingImproper,1);
