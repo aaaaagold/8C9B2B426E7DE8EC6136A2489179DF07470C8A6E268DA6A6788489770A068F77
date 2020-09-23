@@ -3758,6 +3758,7 @@ $rrrr$=$aaaa$.prototype.clear;
 $dddd$=$aaaa$.prototype.clear=function f(){
 	this._evtName=undef;
 	this._nameField=undef;
+	this._lastFinish=undef;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.isBusy;
@@ -3765,9 +3766,23 @@ $dddd$=$aaaa$.prototype.isBusy=function f(){
 	return f.ori.call(this)||this._windowCnt;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.add;
-$dddd$=$aaaa$.prototype.add=function f(){
-	return f.ori.call(this,arguments[0]);
+$dddd$=$aaaa$.prototype.add=function f(txt){
+	return f.ori.call(this,txt);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.add_finishQuest=function f(qname){
+	if(f.prefix===undef) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
+	let txt=f.prefix+qname;
+	if(qname!==undef&&qname!==null&&qname===this._lastFinish){
+		//this._lastFinish_cnt^=0; // no need
+		++this._lastFinish_cnt;
+		this._texts.pop();
+		txt+="\\RGB["+$dataCustom.textcolor.default+"] * "+this._lastFinish_cnt;
+	}else{
+		this._lastFinish=qname;
+		this._lastFinish_cnt=1;
+	}
+	return this.add(txt);
+};
 $aaaa$.prototype.addWindow=function(w){
 	this._windowCnt^=0; this._windowCnt+=1;
 	w.setHandler('cancel',()=>{this._windowCnt-=1;w.parent.removeChild(w);});
@@ -4535,8 +4550,7 @@ $aaaa$.prototype.completeQuest=function(itemId,q){
 		SoundManager.playUseItem();
 			q.finish();
 			rpgquests.func.reward(q);
-			//this.gainItem(item,-1,undef,1);
-			$gameMessage.add("\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"+item.name);
+			$gameMessage.add_finishQuest(item.name);
 		canComplete(this,item,q,obj);
 	}
 	$gamePlayer._noGainMsg=noGainMsg;
