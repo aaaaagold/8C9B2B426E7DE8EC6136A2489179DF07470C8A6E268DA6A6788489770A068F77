@@ -2873,6 +2873,9 @@ $aaaa$.prototype.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 $aaaa$.prototype.xy2idx=function(x,y,lv=0){
 	return this.isValid(x,y) && $dataMap ? x+$gameMap.width()*y+lv*this.size : undefined;
 };
+$aaaa$.prototype.getAllTileByRef=function(r){
+	return this.getAllTileByPos(r.x,r.y);
+};
 $aaaa$.prototype.getAllTileByPos=function(x,y){
 	let i=this.xy2idx(x,y); if(i===undefined) return [];
 	let rtv=[],arr=$gameMap.data();
@@ -4103,9 +4106,9 @@ $dddd$=$aaaa$.prototype.triggerAction=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.checkEventTriggerHere;
 $dddd$=$aaaa$.prototype.checkEventTriggerHere=function f(){
-	//debug.log('Game_Player.prototype.checkEventTriggerHere');
-	//debug.log($gamePlayer.x,$gamePlayer.y);
-	//debug.log(arguments[0]);
+	debug.log('Game_Player.prototype.checkEventTriggerHere');
+	debug.log($gamePlayer.x,$gamePlayer.y);
+	debug.log(arguments[0]);
 	if(($dataMap.triggerHere0touch=TouchInput.isTriggered()&&arguments[0][0]===0)&&this.customEvtStrt()) return;
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
@@ -4462,7 +4465,7 @@ $rrrr$=$aaaa$.prototype.gainItem;
 $dddd$=$aaaa$.prototype.gainItem=function f(item, amount, includeEquip, noSound){
 	//debug.log('Game_Party.prototype.gainItem');
 	if(!item) return '';
-	f.ori.apply(this,arguments);
+	f.ori.call(this, item, amount, includeEquip, noSound);
 	let cnt=arguments[1]; if(!cnt) return '';
 	let head=this.gain_amountHead(cnt,noSound),color=$dataCustom.textcolor;
 	if(item.meta){
@@ -4477,15 +4480,16 @@ $dddd$=$aaaa$.prototype.gainItem=function f(item, amount, includeEquip, noSound)
 	let txt=head+(arguments[0].name.replace(/\\/g,"\\\\"))+"\\RGB["+color.default+"] * "+Math.abs(cnt);
 	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt);
 	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
-	let re=Window_Base.prototype.processEscapeCharacter.re.toString();
-	re=new RegExp("(^|[^\\\\\])((\\\\\\\\)+|[^\\\\]+)*\\\\RGBA?("+re.slice(2,-1)+")","g");
-		// \RGB[#000000] -> _RGB[#000000]
-			// \\\\ in str -> \\ 
-			// RegExp get \\ -> match \ 
-			//   =>  \\\\ -> \ 
-	if(debug.isdebug()){
+	if(0&&debug.isdebug()){
+		let re=Window_Base.prototype.processEscapeCharacter.re.toString();
+		re=new RegExp("(^|[^\\\\\])((\\\\\\\\)+|[^\\\\]+)*\\\\RGBA?("+re.slice(2,-1)+")","g");
+			// \RGB[#000000] -> _RGB[#000000]
+				// \\\\ in str -> \\ 
+				// RegExp get \\ -> match \ 
+				//   =>  \\\\ -> \ 
 		if(!window['/tmp/']['debug']) window['/tmp/']['debug']="";
 		//debug.log(window['/tmp/']['debug']+=txt.replace(re,"$1$2_$4")+"\n");
+
 	}
 	return txt;
 }; $dddd$.ori=$rrrr$;
@@ -4933,6 +4937,25 @@ $dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(){
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.checkEventTriggerTouch=$rrrr$; // not changed
+$aaaa$.prototype.erase_inv=function(){
+	let arr=this._sameStatEvts;
+	if(arr&&0<arr.length){
+		for(let x=0,dict={};x!==arr.length;++x){ let evtid=arr[x];
+			if(dict[evtid]) continue; // check cycle
+			dict[evtid]=1;
+			$gameMap._events[evtid].erase_inv();
+		}
+	}
+	let rtv=this._erased;
+	rtv^=(this._erased=false);
+	this._addToCoordTbl();
+	if(rtv){
+		let meta=this.event().meta;
+		let vars=$gameParty.mch().vars;
+		if(vars.tree) vars.tree+=meta.dectree^0;
+	}
+	return rtv;
+};
 $rrrr$=$aaaa$.prototype.erase;
 $dddd$=$aaaa$.prototype.erase=function f(by){
 	//debug.log('Game_Event.prototype.erase');
@@ -4952,8 +4975,10 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 		let meta=this.event().meta;
 		let vars=$gameParty.mch().vars;
 		if(vars.tree) vars.tree-=meta.dectree^0;
-		let next=JSON.parse(meta.erasedBy||"{}"),nevtid=next&&next[by];
-		if(nevtid) $gameMap._events[nevtid].start();
+		if(meta.erasedBy){
+			let next=JSON.parse(meta.erasedBy||"{}"),nevtid=next&&next[by];
+			if(nevtid) $gameMap._events[nevtid].start();
+		}
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
