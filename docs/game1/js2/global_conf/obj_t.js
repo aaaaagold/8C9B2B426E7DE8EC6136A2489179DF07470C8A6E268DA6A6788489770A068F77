@@ -192,9 +192,8 @@ $aaaa$.prototype._load=function f(url){
 			return self._onXhrLoad({response:f.cache.get(url_ori).slice(0)}); // .slice(0) : https://stackoverflow.com/questions/10100798/#10101213
 		};
 		let xhr = new XMLHttpRequest();
-		let callbacks={send:()=>{xhr.send();},useCache:useCache};
+		let callbacks={send:()=>{xhr.open('GET', url);xhr.send();},useCache:useCache};
 		if(Decrypter.hasEncryptedAudio) url = Decrypter.extToEncryptExt(url);
-		xhr.open('GET', url);
 		xhr.responseType = 'arraybuffer';
 		xhr.onload = function() {
 			if (xhr.status < 400) {
@@ -204,6 +203,7 @@ $aaaa$.prototype._load=function f(url){
 			}else return f.cache.xhrq_fail(url_ori,callbacks);
 		}.bind(this);
 		xhr.onerror = this._loader || function(){this._hasError = true;}.bind(this);
+		xhr.open('GET', url);
 		return f.cache.xhrq_regist(url_ori,callbacks); // xhr.send();
 	}
 };
