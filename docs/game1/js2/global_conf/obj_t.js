@@ -1578,7 +1578,11 @@ $aaaa$.loadMapData = function f(mapId) {
 			for(let p=0,arr=evt.pages;p!==arr.length;++p){
 				let img=arr[p].image;
 				let cname=img.characterName;
-				if(img.tileId===0&&!ImageManager.isObjectCharacter(cname)&&!ImageManager.isBigCharacter(cname)){
+				if(img.tileId===0&&
+					!ImageManager.isObjectCharacter(cname)&&
+					!ImageManager.isBigCharacter(cname)&&
+					cname.slice(0,6)!=="Damage"
+				){
 					faceSet.add(img.characterName);
 					img.hasFaceImg=true;
 				}
