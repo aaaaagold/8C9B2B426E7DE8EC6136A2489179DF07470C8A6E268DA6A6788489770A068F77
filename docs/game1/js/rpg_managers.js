@@ -792,7 +792,6 @@ ImageManager.isBigCharacter = function(filename) {
 };
 
 ImageManager.isZeroParallax = function(filename) {
-//	return !!filename; // edit: using "!" at front cause error because loading /img/parallaxes/'filename'.png will be loaded and it does not exist.
     return filename.charAt(0) === '!';
 };
 
