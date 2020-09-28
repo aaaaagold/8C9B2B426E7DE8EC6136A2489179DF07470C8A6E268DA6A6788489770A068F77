@@ -727,6 +727,12 @@ let setShorthand = (w)=>{
 		this._arbKey=arbKey; // (bool) use arbitary keys, no type checking on keys. use at your own risk.
 		this._root=undef; // root node
 	};
+	w.AVLTree._testcode=()=>{
+		var sz=1e5,t=new AVLTree(); for(let x=sz^0;x--;){ let n=Math.random(); t.add(n,n); }
+		(arr=t.forEach().map(x=>x.data)).forEach((e,i,a)=>{if(i===0)return;if(a[i]<a[i-1])console.log("!");});
+		for(let x=sz>>3;x--;) t.del(arr[parseInt(Math.random()*arr.length)]);
+		t.forEach().map(x=>x.data).forEach((e,i,a)=>{if(i===0)return;if(a[i]<a[i-1])console.log("!");});
+	}
 	Object.defineProperties(w.AVLTree.prototype,{
 		length: {
 			get:function(){
@@ -808,7 +814,9 @@ let setShorthand = (w)=>{
 	// 
 	w.AVLTree.prototype._updateCnt=(curr)=>{
 		let meta=curr.meta;
-		meta.cnt=((meta.L&&meta.L.meta.cnt)^0)+((meta.R&&meta.R.meta.cnt)^0)+1;
+		meta.cnt=1;
+		if(meta.L) meta.cnt+=meta.L.meta.cnt^0;
+		if(meta.R) meta.cnt+=meta.R.meta.cnt^0;
 	};
 	w.AVLTree.prototype._updateLv=function(node){
 		let meta=node.meta;
@@ -831,7 +839,7 @@ let setShorthand = (w)=>{
 			// L<R
 			let tnode=meta.R;
 			let tmeta=tnode.meta;
-			if(tmeta.Rlv<tmeta.Llv){ // TODO: confirm this
+			if(tmeta.Rlv<tmeta.Llv){
 				// node
 				//  \ 
 				//   \ 
@@ -917,23 +925,45 @@ let setShorthand = (w)=>{
 	};	
 	w.AVLTree.prototype._add_r=function(curr,newNode){
 		// return #lv of this subtree (root=curr)
-		curr.meta.cnt+=(newNode&&newNode.meta.cnt)^0;
-		let dir=(this._keyEqu(newNode.key,curr.key)?(curr.meta.Llv<curr.meta.Rlv):this._keyLt(newNode.key,curr.key))?"L":"R";
-		if(curr.meta[dir]){
-			curr.meta[dir+"lv"]=this._add_r(curr.meta[dir],newNode);
-			this._rot(curr.meta[dir],curr,dir);
-			//this._updateCnt(curr.meta[dir]);
+		curr.meta.cnt+=(newNode.meta.cnt)^0;
+		//let dir01=this._keyEqu(newNode.key,curr.key)?(curr.meta.Rlv<curr.meta.Llv):this._keyLt(curr.key,newNode.key);
+		if(this._keyEqu(newNode.key,curr.key)?(curr.meta.Rlv<curr.meta.Llv):this._keyLt(curr.key,newNode.key)){
+			if(curr.meta.R){
+				curr.meta.Rlv=this._add_r(curr.meta.R,newNode);
+				this._rot(curr.meta.R,curr,"R");
+			}else{
+				let meta=newNode.meta;
+				curr.meta.Rlv=Math.max(meta.Llv,meta.Rlv)+1;
+				curr.meta.R=newNode;
+			}
 		}else{
-			let meta=newNode.meta;
-			curr.meta[dir+"lv"]=Math.max(meta.Llv,meta.Rlv)+1;
-			curr.meta[dir]=newNode;
+			if(curr.meta.L){
+				curr.meta.Llv=this._add_r(curr.meta.L,newNode);
+				this._rot(curr.meta.L,curr,"L");
+			}else{
+				let meta=newNode.meta;
+				curr.meta.Llv=Math.max(meta.Llv,meta.Rlv)+1;
+				curr.meta.L=newNode;
+			}
 		}
 		return Math.max(curr.meta.Llv,curr.meta.Rlv)+1;
+		// // slow: constructing new string
+		//let dir=(this._keyEqu(newNode.key,curr.key)?(curr.meta.Llv<curr.meta.Rlv):this._keyLt(newNode.key,curr.key))?"L":"R";
+		//if(curr.meta[dir]){
+		//	curr.meta[dir+"lv"]=this._add_r(curr.meta[dir],newNode);
+		//	this._rot(curr.meta[dir],curr,dir);
+		//	//this._updateCnt(curr.meta[dir]);
+		//}else{
+		//	let meta=newNode.meta;
+		//	curr.meta[dir+"lv"]=Math.max(meta.Llv,meta.Rlv)+1;
+		//	curr.meta[dir]=newNode;
+		//}
+		//return Math.max(curr.meta.Llv,curr.meta.Rlv)+1;
 	};
 	w.AVLTree.prototype.add=function(key,data){
 		// dup keys are allowed
 		if(!this.keyOk(key)) throw new w.Error("add: 'key' provided is not a Number or is not an Array of Number: "+(key&&key.toString()));
-		if(key.length===undef) key=[key];
+		if(!(key instanceof Array)) key=[key];
 		let newNode=new w.TreeNode(key,data,{L:undef,R:undef,Llv:0,Rlv:0,cnt:1});
 		// lv: amount of levels of a subtree
 		// Lcnt: amount of nodes of left subtree // TODO
@@ -941,10 +971,6 @@ let setShorthand = (w)=>{
 		else{
 			this._add_r(this._root,newNode);
 			this._rot(this._root); // this._root might be changed
-			//let meta=this._root.meta;
-			//if(meta.L) this._updateCnt(meta.L);
-			//if(meta.R) this._updateCnt(meta.R);
-			//return this._updateCnt(this._root);
 		}
 	};
 	w.AVLTree.prototype.adds=function(key_data_arr){ for(let x=0,arr=key_data_arr;x!==arr.length;++x) this.add(arr[x].key,arr[x].data); };
@@ -956,9 +982,20 @@ let setShorthand = (w)=>{
 			rtv=this._del_btm_r(tmp,dir);
 			if(rtv===tmp){
 				let meta=curr.meta;
-				meta[dir]=rtv.meta[dir==="L"?"R":"L"];
-				let meta_=meta[dir]&&meta[dir].meta;
-				meta[dir+"lv"]=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
+				if(dir==="R"){
+					meta.R=rtv.meta.L;
+					let meta_=meta.R&&meta.R.meta;
+					meta.Rlv=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
+				}else{
+					meta.L=rtv.meta.R;
+					let meta_=meta.L&&meta.L.meta;
+					meta.Llv=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
+				}
+				// // slow: constructing new string
+				//let meta=curr.meta;
+				//meta[dir]=rtv.meta[dir==="L"?"R":"L"];
+				//let meta_=meta[dir]&&meta[dir].meta;
+				//meta[dir+"lv"]=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
 			}else{
 				this._rot(tmp,curr,dir);
 			}
@@ -984,13 +1021,31 @@ let setShorthand = (w)=>{
 						if(cmeta.L!==node) node.meta.L=cmeta.L; // lv>1
 					}else pmeta[dir]=cmeta.R;
 				}
-				let n=pmeta[dir];
-				if(n){
-					this._updateLv(n);
-					pmeta[dir+"lv"]=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
-					this._updateCnt(n);
-					this._rot(n,parent,dir);
-				}else pmeta[dir+"lv"]=0;
+				if(dir==="R"){
+					let n=pmeta.R;
+					if(n){
+						this._updateLv(n);
+						pmeta.Rlv=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
+						this._updateCnt(n);
+						this._rot(n,parent,dir);
+					}else pmeta.Rlv=0;
+				}else{
+					let n=pmeta.L;
+					if(n){
+						this._updateLv(n);
+						pmeta.Llv=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
+						this._updateCnt(n);
+						this._rot(n,parent,dir);
+					}else pmeta.Llv=0;
+				}
+				// // slow: constructing new string
+				//let n=pmeta[dir];
+				//if(n){
+				//	this._updateLv(n);
+				//	pmeta[dir+"lv"]=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
+				//	this._updateCnt(n);
+				//	this._rot(n,parent,dir);
+				//}else pmeta[dir+"lv"]=0;
 			}else{ // root
 				let cmeta=curr.meta;
 				let lt=cmeta.Llv<cmeta.Rlv;
@@ -1038,33 +1093,33 @@ let setShorthand = (w)=>{
 		}
 		return rtv;
 	};
-	w.AVLTree.prototype._keyOk_number=(key)=>((key instanceof Number)||(typeof key==='number'));
+	w.AVLTree.prototype._keyOk_number=key=>((key instanceof Number)||(typeof key==='number'));
 	w.AVLTree.prototype._keyOk_arr=function(key){
 		return key&&key.constructor===Array&&key.map(x=>!this._keyOk_number(x)).sum()===0;
 	};
+	w.AVLTree.prototype._keyOk_arr_=key=>key&&key.constructor===Array;
 	w.AVLTree.prototype.keyOk=function(key){
 		return this._arbKey||this._keyOk_number(key)||this._keyOk_arr(key);
 	};
 	w.AVLTree.prototype._keyLt=(lhs,rhs)=>{
 		let rtv=lhs.length<rhs.length;
-		let minLen=rtv?lhs.length:rhs.length;
-		for(let x=0;x!==minLen;++x) if(lhs[x]!==rhs[x]) return lhs[x]<rhs[x];
+		for(let x=0,minLen=rtv?lhs.length:rhs.length;x!==minLen;++x) if(lhs[x]!==rhs[x]) return lhs[x]<rhs[x];
 		return rtv;
 	};
 	w.AVLTree.prototype.keyLt=function(lhs,rhs){
-		if(this._keyOk_number(lhs)) lhs=[lhs];
-		if(this._keyOk_number(rhs)) lhs=[rhs];
+		if(!this._keyOk_arr_(lhs)) lhs=[lhs];
+		if(!this._keyOk_arr_(rhs)) rhs=[rhs];
 		return this._keyLt(lhs,rhs);
 	};
 	w.AVLTree.prototype._keyEqu=function(lhs,rhs){
 		let Llen=lhs.length;
-		let rtv=Llen===rhs.length;
-		for(let x=0;rtv&&x!==Llen;++x) rtv&=lhs[x]===rhs[x];
-		return rtv;
+		if(Llen!==rhs.length) return false;
+		for(let x=0;x!==Llen;++x) if(lhs[x]!==rhs[x]) return false;
+		return true;
 	};
 	w.AVLTree.prototype.keyEqu=function(lhs,rhs){
-		if(this._keyOk_number(lhs)) lhs=[lhs];
-		if(this._keyOk_number(rhs)) lhs=[rhs];
+		if(!this._keyOk_arr_(lhs)) lhs=[lhs];
+		if(!this._keyOk_arr_(rhs)) rhs=[rhs];
 		return this._keyEqu(lhs,rhs);
 	};
 	w.AVLTree.prototype.forEach=function(callback){
@@ -1106,6 +1161,59 @@ let setShorthand = (w)=>{
 			}
 		}
 		return arr;
+	};
+	w.AVLTree.it=function(){ this.initialize.apply(this,arguments); };
+	w.AVLTree.it.prototype.constructor=w.AVLTree.it;
+	w.AVLTree.it.prototype.initialize=function(tree){
+		this._stack=[];
+		if(tree) this._begin(tree._root);
+	};
+	Object.defineProperties(w.AVLTree.it.prototype,{
+		curr: {
+			get:function(){
+				return this._stack.back;
+			},
+		configurable: false}
+	});
+	w.AVLTree.it.prototype.now=function(){
+		return this._stack.back;
+	};
+	w.AVLTree.it.prototype.copy=function(){
+		let rtv=new this.constructor;
+		rtv._stack=this._stack.slice(0);
+		return rtv;
+	};
+	w.AVLTree.it.prototype.next=function(){
+		let arr=this._stack,tmp=this._stack.back;
+		if(!tmp) return;
+		if(tmp=tmp.meta.R) return this._begin(tmp);
+		let curr;
+		// to parent R
+		do{
+			curr=arr.pop();
+			if(arr.length===0) return;
+			tmp=arr.back.meta.R;
+		}while(tmp===curr||!tmp);
+		return this._begin(tmp);
+	};
+	w.AVLTree.it.prototype._begin=function(node){
+		for(let curr=node;curr;curr=curr.meta.L) this._stack.push(curr);
+		return this._stack.back;
+	};
+	w.AVLTree.it.prototype.begin=function(tree){
+		return this._begin(tree._root);
+	};
+	w.AVLTree.it.prototype.lower_bound=function(tree,key){
+		if(key===null||key===undef) return this.begin(tree);
+		if(key.constructor!==Array) key=[key];
+		let arr=this._stack,curr; arr.length=0;
+		for(curr=tree._root;curr;){
+			arr.push(curr);
+			if(tree._keyLt(curr.key,key)) curr=curr.meta.R;
+			else curr=curr.meta.L;
+		}
+		if(curr=arr.back) if(tree._keyLt(curr.key,key)) return this.next();
+		return curr;
 	};
 	
 	w.hash=function(input_str){
@@ -1197,8 +1305,8 @@ let setShorthand = (w)=>{
 			for(let h=rtvtmp[x],sh=32;sh;){
 				sh-=8;
 				let tmp=(h.sh_r(sh)&0xFF).toHexInt();
-				if(tmp.length===2) rtv+=tmp;
-				else rtv+="0"+tmp;
+				if(tmp.length===1) rtv+="0";
+				rtv+=tmp;
 			}
 		}
 		return rtv;

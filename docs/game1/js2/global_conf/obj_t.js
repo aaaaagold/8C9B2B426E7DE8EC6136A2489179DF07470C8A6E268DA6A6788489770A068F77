@@ -4,6 +4,7 @@ let $aaaa$,$dddd$,$rrrr$;
 
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
+String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 
 // fit 'when children is AVLTree'
 PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=function updateAccessibleObjects(displayObject) {
@@ -1562,15 +1563,30 @@ $aaaa$.loadMapData = function f(mapId) {
 		//debug.log('DataManager.loadMapData -> playerChanges');
 		//debug.log('$gameMap._mapId',$gameMap._mapId,'kargs.mapid',kargs.mapid);
 		// test
-		if(debug.isdebug()){
-			if(window['/tmp/'].tmpevt){
-				$dataMap.events[999]=(window['/tmp/'].tmpevt);
-			}
-		}
+		//if(debug.isdebug()){
+		//	if(window['/tmp/'].tmpevt){
+		//		$dataMap.events[999]=(window['/tmp/'].tmpevt);
+		//	}
+		//}
 		// defaults
 		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
+		// preload face image according to events' character image
+		let faceSet=new Set(),faces=[];
+		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
+			let evt=arr[x]; if(!evt) continue;
+			for(let p=0,arr=evt.pages;p!==arr.length;++p){
+				let img=arr[p].image;
+				let cname=img.characterName;
+				if(img.tileId===0&&!ImageManager.isObjectCharacter(cname)&&!ImageManager.isBigCharacter(cname)){
+					faceSet.add(img.characterName);
+					img.hasFaceImg=true;
+				}
+			}
+		}
+		faceSet.forEach(x=>faces.push(["face",x]));
+		SceneManager.preloadMedia.load({img:faces});
 		// extended map data
-		//   tileEvtTemplate
+		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
 		if(tmp=$dataTemplateEvtFromMaps[$dataMap.tilesetId]){
 			tmp=deepcopy(tmp); // need a copy for following use // 'tmp.tilesetId' is gone. it doesn't matter though
@@ -1585,7 +1601,7 @@ $aaaa$.loadMapData = function f(mapId) {
 			});
 			for(let x=0;x!==childList.length;++x) if(evts[childList[x]]) evts[childList[x]].isChild=1;
 		}
-		//   othersEvtTemplate
+		// - othersEvtTemplate
 		if(!$dataTemplateEvtFromMaps.others_sorted){
 			console.log('sorted @',mapId);
 			$dataTemplateEvtFromMaps.others_sorted=true;
@@ -1841,8 +1857,11 @@ $dddd$.list={
 $dddd$.load=function f(list){
 	if(list){
 		for(let _=2;_--;){
-			for(let x=0,arr=list.img||[];x!==arr.length;++x)
-				ImageManager[f.tbl[arr[x][0]]](arr[x][1]);
+			for(let x=0,arr=list.img||[];x!==arr.length;++x){
+				let ldr=ImageManager[f.tbl[arr[x][0]]];
+				if(ldr) ldr.call(ImageManager,(arr[x][1]));
+				else debug.warn("no such loader:",arr[x][0]);
+			}
 		}
 		for(let _=2;_--;){
 			for(let x=0,arr=list.audio||[];x!==arr.length;++x)
@@ -1852,6 +1871,7 @@ $dddd$.load=function f(list){
 };
 $dddd$.load.tbl={
 	ani:"loadAnimation",
+	face:"loadFace",
 };
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
@@ -5052,6 +5072,7 @@ $aaaa$.prototype.refresh=function(forced) {
 };
 $aaaa$.prototype.setFace=function(idx){
 	if(this._isObjectCharacter){
+		// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 		// Sprite_Character.prototype.patternWidth
 		// Sprite_Character.prototype.patternHeight
 		let c=SceneManager._scene._spriteset._tilemap.children.find(this._tilemapKey).data;
