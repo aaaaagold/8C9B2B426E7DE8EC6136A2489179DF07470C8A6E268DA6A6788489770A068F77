@@ -1534,10 +1534,14 @@ $aaaa$.prototype._redrawtxt_parseColor=function(txt,strt){
 	}
 	return rtv;
 };
-$aaaa$.prototype.updateInfos=function(txtinfos){
+$aaaa$.prototype.updateInfos=function(txtinfos,kargs){
 	// re-cal. this.contents 's size
 		// re-create this.contents
-	this.createContents();
+	let old=[this.width,this.height];
+	for(let i in kargs) this[i]=kargs[i];
+	if(old[0]!==this.width || old[1]!==this.height){ // window size changed -> canvas size changed
+		this.createContents();
+	}else this.contents.clear();
 	this.txtinfos=txtinfos; if(!this.txtinfos.length) this.txtinfos=[];
 	this.redrawtxt(1); // will define 'this._canScroll'
 	this.redrawtxt();

@@ -5450,24 +5450,22 @@ $dddd$=$aaaa$.prototype.startMessage=function f(){
 		if(w<Window_Base._faceWidth) w=Window_Base._faceWidth;
 		if(this.width<w) w=this.width;
 		let arg0=[{txt:$gameMessage._nameField,align:"center"}];
-		if(this._nameField){
-			//this._nameField.initialize(arg0,arg1);
-			this._nameField.width=w;
-			this._nameField.updateInfos(arg0);
-		}else{
+		if(this._nameField) this._nameField.updateInfos(arg0,{width:w});
+		else{
 			this._nameField=new Window_CustomTextBoard(arg0,{noScroll:1,raw:1,y:-80,width:w,height:80});
 			this._nameField.alpha=0;
 			this._nameField.downArrowVisible=false;
 		}
+		this._nameField.enabled=1;
 		this.addChild(this._nameField);
 			// this._nameField will be 'removeChild' from 'this' @terminateMessage
-	}
+	}else if(this._nameField) this._nameField.enabled=this._nameField.alpha=0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updateOpen;
 $dddd$=$aaaa$.prototype.updateOpen=function f(){
 	f.ori.call(this);
-	if(this._opening===false && this._nameField) this._nameField.alpha=1;
+	if(this._opening===false && this._nameField && this._nameField.enabled) this._nameField.alpha=1;
 	return this._opening;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updateClose;
@@ -5479,7 +5477,9 @@ $dddd$=$aaaa$.prototype.updateClose=function f(){
 $rrrr$=$aaaa$.prototype.terminateMessage;
 $dddd$=$aaaa$.prototype.terminateMessage=function f(){
 	if(this._nameField!==undef){
-		this.removeChild(this._nameField);
+		//this.removeChild(this._nameField);
+		//this._nameField.contents.clear();
+		this._nameField.enabled=0;
 	}
 	return f.ori.call(this);
 	//delete Input._currentState['ok'];
@@ -5744,7 +5744,7 @@ $aaaa$.prototype.updatePlacement = function() {
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){
 	let rtv=f.ori.call(this),nf=SceneManager._scene._messageWindow._nameField;
-	if(nf&&nf.parent){
+	if(nf&&nf.enabled){
 		if((this.y-=nf.height)<0){
 			this.height+=this.y;
 			this.y=0;
