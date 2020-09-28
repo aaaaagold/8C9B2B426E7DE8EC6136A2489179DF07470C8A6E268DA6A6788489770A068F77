@@ -1570,7 +1570,8 @@ $aaaa$.loadMapData = function f(mapId) {
 		//}
 		// defaults
 		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
-		// preload face image according to events' character image
+		// preload
+		// - preload face image according to events' character image
 		let faceSet=new Set(),faces=[];
 		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
 			let evt=arr[x]; if(!evt) continue;
@@ -1584,7 +1585,12 @@ $aaaa$.loadMapData = function f(mapId) {
 			}
 		}
 		faceSet.forEach(x=>faces.push(["face",x]));
-		SceneManager.preloadMedia.load({img:faces});
+		// - preload bgm,bgs
+		let audios=[];
+		if($dataMap.bgm && $dataMap.bgm.name) audios.push(["bgm",$dataMap.bgm.name]);
+		if($dataMap.bgs && $dataMap.bgs.name) audios.push(["bgs",$dataMap.bgs.name]);
+		// - actually request media
+		SceneManager.preloadMedia.load({img:faces,audio:audios});
 		// extended map data
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
