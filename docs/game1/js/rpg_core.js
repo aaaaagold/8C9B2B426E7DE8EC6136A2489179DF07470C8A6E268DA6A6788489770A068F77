@@ -751,25 +751,7 @@ Bitmap._reuseImages = [];
  */
 
 
-Bitmap.prototype._createCanvas = function(width, height){
-    this.__canvas = this.__canvas || document.createElement('canvas');
-    this.__context = this.__canvas.getContext('2d');
-
-    this.__canvas.width = Math.max(width || 0, 1);
-    this.__canvas.height = Math.max(height || 0, 1);
-
-    if(this._image){
-        var w = Math.max(this._image.width || 0, 1);
-        var h = Math.max(this._image.height || 0, 1);
-        this.__canvas.width = w;
-        this.__canvas.height = h;
-        this._createBaseTexture(this._canvas);
-
-        this.__context.drawImage(this._image, 0, 0);
-    }
-
-    this._setDirty();
-};
+Bitmap.prototype._createCanvas;
 
 Bitmap.prototype._createBaseTexture = function(source){
     this.__baseTexture = new PIXI.BaseTexture(source);

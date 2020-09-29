@@ -5,6 +5,7 @@ let $aaaa$,$dddd$,$rrrr$;
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
+Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t; };
 
 // fit 'when children is AVLTree'
 PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=function updateAccessibleObjects(displayObject) {
@@ -211,6 +212,13 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Graphics
 $aaaa$=Graphics;
+$rrrr$=$aaaa$.initialize;
+$dddd$=$aaaa$.initialize=function f(w,h,type){
+	f.ori.call(this,w,h,type);
+	this._pad=Math.max(Game_Map.prototype.tileWidth(),Game_Map.prototype.tileHeight())<<1;
+	this._boxWidth_pad2=this._boxWidth+(this._pad<<1);
+	this._boxHeight_pad2=this._boxHeight+(this._pad<<1);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$._onKeyDown;
 $dddd$=$aaaa$._onKeyDown=function f(){
 	//debug.keydown('Graphics._onKeyDown');
@@ -418,6 +426,16 @@ $aaaa$.prototype._createCanvas=function(width, height){
 		this.__context.drawImage(this._image, 0, 0);
 	}
 	this._setDirty();
+};
+// not sure
+if(0&&0)$aaaa$.prototype.bltImage=function(source, sx, sy, sw, sh, dx, dy, dw, dh){ // rewrite: can use/draw on out-of-bound pixels
+	dw = dw || sw;
+	dh = dh || sh;
+	if ( sw > 0 && sh > 0 && dw > 0 && dh > 0 ) {
+		this._context.globalCompositeOperation = 'source-over';
+		this._context.drawImage(source._image, sx, sy, sw, sh, dx, dy, dw, dh);
+		this._setDirty();
+	}
 };
 $rrrr$=$aaaa$.prototype.decode;
 $dddd$=$aaaa$.prototype.decode=function f(){
@@ -656,7 +674,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._layerWidth = 0;
 	this._layerHeight = 0;
 	this._lastTiles = [];
-
+	
 	/**
 	 * The bitmaps used as a tileset.
 	 *
@@ -664,27 +682,27 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	 * @type Array
 	 */
 	this.bitmaps = [];
-
+	
 	/**
 	 * The origin point of the tilemap for scrolling.
 	 */
 	this.origin = new Point();
-
+	
 	/**
 	 * The tileset flags.
 	 */
 	this.flags = [];
-
+	
 	/**
 	 * The animation count for autotiles.
 	 */
 	this.animationCount = 0^0;
-
+	
 	/**
 	 * Whether the tilemap loops horizontal.
 	 */
 	this.horizontalWrap = false;
-
+	
 	/**
 	 * Whether the tilemap loops vertical.
 	 */
@@ -694,7 +712,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	// first '+' then '^'
 	this._tileCols=0^Math.ceil(this._width/this._tileWidth)+1;
 	this._tileRows=0^Math.ceil(this._height/this._tileHeight)+1;
-
+	
 	this._createLayers();
 	this.refresh(); // ShaderTilemap access children
 }; $dddd$.ori=$rrrr$;
@@ -746,7 +764,7 @@ $aaaa$.prototype.updateTransform_tail=function(){
 	
 	return this.children.forEach(c=>c.visible&&c.updateTransform());
 };
-$aaaa$.prototype.updateTransform=function(forced) {
+$aaaa$.prototype.updateTransform=function(forced){
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
 	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
@@ -990,18 +1008,20 @@ $aaaa$.prototype._drawShadow=function(bitmap, shadowBits, dx, dy){
 		}
 	}
 };
-$aaaa$.prototype.renderCanvas = function renderCanvas(renderer) {
+$dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
 	//debug.log('Tilemap.prototype.renderCanvas');
 	// if not visible or the alpha is 0 then no need to render this
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
 	//if(this._mask) renderer.maskManager.pushMask(this._mask);
 	//if(this._mask) console.log("?");
 	//this._renderCanvas(renderer); // empty function
-	let pad=64^0,w=Graphics.width+(pad<<1)^0,h=Graphics.height+(pad<<1)^0;
-	this.children.forEach(c=>(c.constructor===Sprite_Character&&(
-		Math.floor((c.x+pad)/w)!==0||Math.floor((c.y+pad)/h)!==0
-	))||c.renderCanvas(renderer)); // do not render if a child is 'Sprite_Character' and out of screen
+	f.forEach.renderer=renderer;
+	this.children.forEach(f.forEach); // do not render if a child is 'Sprite_Character' and out of screen
 	//if(this._mask) renderer.maskManager.popMask(renderer);
+};
+$dddd$.forEach=function f(c){
+	if(c.constructor!==Sprite_Character) c.renderCanvas(f.renderer);
+	else if(parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2)===0&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2)===0) c._renderCanvas(f.renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -1372,14 +1392,23 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(!c) return f.ori.call(this);
 	let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
 	if(!playing){
-		if(c._erased) return this.parent&&this.parent.removeChild(this);
-		else if(Math.floor((this.x+f.pad)/(Graphics.boxWidth+f.pad2))!==0||Math.floor((this.y+f.pad)/(Graphics.boxHeight+f.pad2))!==0){
+		if(c._erased){
+			if(this.parent) this.parent.removeChild(this);
+			return;
+		}else if(parseInt((this.x+Graphics._pad)/Graphics._boxWidth_pad2)!==0||parseInt((this.y+Graphics._pad)/Graphics._boxHeight_pad2)!==0){
 			return this.updatePosition(); // give up update if too far
 		}
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.pad=64^0; $dddd$.pad2=$dddd$.pad<<1;
+$rrrr$=$aaaa$.prototype.updateBitmap;
+$dddd$=$aaaa$.prototype.updateBitmap=function f(){
+	f.ori.call(this);
+	this._character.imgModded=false;
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.isImageChanged=function(){ // rewrite
+	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
+};
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
 	let pw = ~~this.patternWidth();
 	let ph = this.patternHeight();
@@ -4722,6 +4751,7 @@ $aaaa$=Game_Event;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	//debug.log2('Game_Event.prototype.initialize');
+	this.imgModded=true;
 	this.refresh=none;
 	let rtv=f.ori.apply(this,arguments);
 	
@@ -4729,12 +4759,21 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	let meta=evtd.meta;
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
 	
-	let x=this._x;
-	let y=this._y;
-	delete this._y;
-	delete this._x;
-	this.__x=x; // ensure objdef called
-	this.__y=y; // ensure objdef called
+	let x=this._x,y=this._y; // will be used later
+	// correcting old-format saved files
+	if(0&&0) // not working
+	{
+		delete this._y; delete this._x;
+		this.__x=x; this.__y=y;
+		
+		let cidx=this._characterIndex,cname=this._characterName;
+		delete this._characterIndex; delete this._characterName;
+		this._chrIdx=cidx; this._chrName=cname;
+		
+		let tid=this._tileId;
+		delete this._tileId;
+		this._tid=tid;
+	}
 	
 	// init $dataMap // $dataMap must exist because 'f.ori' calls 'this.event()'
 	let mapd=$dataMap;
@@ -4794,7 +4833,19 @@ Object.defineProperties($aaaa$.prototype,{
 		this._rmFromCoordTbl();
 		this.__y=rhs;
 		this._addToCoordTbl();
-	},configurable:false}
+	},configurable:false},
+	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
+		if(this._chrIdx!==rhs) this.imgModded=true;
+		this._chrIdx=rhs;
+	},configurable:false},
+	_characterName:{ get:function(){return this._chrName;},set:function(rhs){
+		if(this._chrName!==rhs) this.imgModded=true;
+		this._chrName=rhs;
+	},configurable:false},
+	_tileId:{ get:function(){return this._tid;},set:function(rhs){
+		if(this._tid!==rhs) this.imgModded=true;
+		this._tid=rhs;
+	},configurable:false},
 });
 $aaaa$.prototype.resetDir=function(alsoSetupPage){
 	let p=this.findProperPageIndex();

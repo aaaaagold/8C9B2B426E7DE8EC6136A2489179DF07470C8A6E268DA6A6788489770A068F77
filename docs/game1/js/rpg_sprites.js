@@ -228,13 +228,6 @@ Sprite_Character.prototype.updateBitmap = function() {
     }
 };
 
-Sprite_Character.prototype.isImageChanged = function() {
-    return (this._tilesetId !== $gameMap.tilesetId() ||
-            this._tileId !== this._character.tileId() ||
-            this._characterName !== this._character.characterName() ||
-            this._characterIndex !== this._character.characterIndex());
-};
-
 Sprite_Character.prototype.setTileBitmap = function() {
     this.bitmap = this.tilesetBitmap(this._tileId);
 };
