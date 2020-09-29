@@ -1020,8 +1020,8 @@ $dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
 	//if(this._mask) renderer.maskManager.popMask(renderer);
 };
 $dddd$.forEach=function f(c){
-	if(c.constructor!==Sprite_Character) c.renderCanvas(f.renderer);
-	else if(parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2)===0&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2)===0) c._renderCanvas(f.renderer);
+	if(c.constructor!==Sprite_Character) return c.renderCanvas(f.renderer);
+	else if(parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2)===0&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2)===0) return c._renderCanvas(f.renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -3507,6 +3507,13 @@ $aaaa$.prototype.scrolledX_tw=function() {
 };
 $aaaa$.prototype.scrolledY_th=function() {
 	return $gameMap.adjustY_th(this._realY);
+};
+$aaaa$.prototype.isNearTheScreen = function() {
+	let gw = Graphics.width;
+	let gh = Graphics.height;
+	let px = this.scrolledX_tw() + ($gameMap.tileWidth()>>1) - (gw>>1);
+	let py = this.scrolledY_th() + ($gameMap.tileHeight()>>1) - (gh>>1);
+	return px >= -gw && px <= gw && py >= -gh && py <= gh;
 };
 $aaaa$.prototype.screenX=function() {
 	return this.scrolledX_tw()+($gameMap.tileWidth()>>1);

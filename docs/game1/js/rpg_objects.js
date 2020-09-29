@@ -6119,16 +6119,6 @@ Game_CharacterBase.prototype.scrolledY = function() {
     return $gameMap.adjustY(this._realY);
 };
 
-Game_CharacterBase.prototype.isNearTheScreen = function() {
-    var gw = Graphics.width;
-    var gh = Graphics.height;
-    var tw = $gameMap.tileWidth();
-    var th = $gameMap.tileHeight();
-    var px = this.scrolledX() * tw + tw / 2 - gw / 2;
-    var py = this.scrolledY() * th + th / 2 - gh / 2;
-    return px >= -gw && px <= gw && py >= -gh && py <= gh;
-};
-
 Game_CharacterBase.prototype.update = function() {
     if (this.isStopping()) {
         this.updateStop();

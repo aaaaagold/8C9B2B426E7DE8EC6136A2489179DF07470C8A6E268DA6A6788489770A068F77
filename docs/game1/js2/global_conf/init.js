@@ -1162,6 +1162,11 @@ let setShorthand = (w)=>{
 		}
 		return arr;
 	};
+	w.AVLTree.prototype.lower_bound=function(key){
+		let rtv=new this.constructor.it;
+		rtv.lower_bound(this,key);
+		return rtv;
+	};
 	w.AVLTree.it=function(){ this.initialize.apply(this,arguments); };
 	w.AVLTree.it.prototype.constructor=w.AVLTree.it;
 	w.AVLTree.it.prototype.initialize=function(tree){
@@ -1193,8 +1198,8 @@ let setShorthand = (w)=>{
 			curr=arr.pop();
 			if(arr.length===0) return;
 			tmp=arr.back.meta.R;
-		}while(tmp===curr||!tmp);
-		return this._begin(tmp);
+		}while(tmp===curr);
+		return arr.back;
 	};
 	w.AVLTree.it.prototype._begin=function(node){
 		for(let curr=node;curr;curr=curr.meta.L) this._stack.push(curr);
