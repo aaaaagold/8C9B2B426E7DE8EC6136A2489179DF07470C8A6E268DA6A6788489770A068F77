@@ -1173,6 +1173,11 @@ let setShorthand = (w)=>{
 		this._stack=[];
 		if(tree) this._begin(tree._root);
 	};
+	w.AVLTree.it._testcode=()=>{ // testcode
+		var t=new AVLTree(); for(let x=1024;x--;) t.add(x,x); var it=new AVLTree.it(); it.lower_bound(t,0); res=[it.curr.data]; while(tmp=it.next()) res.push(tmp.data);
+		var res_=res.map((e,i,a)=>i!==0&&a[i]-a[i-1]).sort((a,b)=>a-b);
+		console.log(res_[0],res_.back);
+	};
 	Object.defineProperties(w.AVLTree.it.prototype,{
 		curr: {
 			get:function(){

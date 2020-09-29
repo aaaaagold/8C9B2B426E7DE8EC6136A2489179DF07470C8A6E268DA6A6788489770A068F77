@@ -1020,8 +1020,7 @@ $dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
 	//if(this._mask) renderer.maskManager.popMask(renderer);
 };
 $dddd$.forEach=function f(c){
-	if(c.constructor!==Sprite_Character) return c.renderCanvas(f.renderer);
-	else if(parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2)===0&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2)===0) return c._renderCanvas(f.renderer);
+	if(c.constructor!==Sprite_Character || (parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2+1)===1&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2+1)===1)) return c.renderCanvas(f.renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -1395,7 +1394,7 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 		if(c._erased){
 			if(this.parent) this.parent.removeChild(this);
 			return;
-		}else if(parseInt((this.x+Graphics._pad)/Graphics._boxWidth_pad2)!==0||parseInt((this.y+Graphics._pad)/Graphics._boxHeight_pad2)!==0){
+		}else if(!(parseInt((this.x+Graphics._pad)/Graphics._boxWidth_pad2+1)===1&&parseInt((this.y+Graphics._pad)/Graphics._boxHeight_pad2+1)===1)){
 			return this.updatePosition(); // give up update if too far
 		}
 	}
@@ -4442,7 +4441,7 @@ $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 		}
 	}
 	mc.events=deepcopy(mc.events); // remain only json data
-	let delAttrs=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter",]; 
+	let delAttrs=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","imgModded",]; 
 	for(let i in mc.events){ // remove un-used||unchanged attrs
 		let evt=mc.events[i];
 		for(let x=0;x!==delAttrs.length;++x) delete evt[delAttrs[x]];

@@ -2024,7 +2024,7 @@ $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	let self=this;
 	kargs=kargs||{};
-	let updateTimeInterval_ms=kargs['t_updateItvl']||50,remainedTime_ms=kargs['t_remained']||2000;
+	let updateTimeInterval_ms=kargs['t_updateItvl']||88,remainedTime_ms=kargs['t_remained']||2000;
 	this.txt=txt;
 	this.align=kargs['align']||'left';
 	this.ctr=64+parseInt(remainedTime_ms/updateTimeInterval_ms).clamp(0,inf);
@@ -2116,9 +2116,8 @@ $aaaa$.prototype.redrawtxt=function(){
 	
 	this.contents.clear();
 	
-	let maxWidth=this.contents.width-(this.textPadding()<<1);
 	let strtx=0,strty=0*this.lineHeight();
-	this.drawText(this._lastVal=text,strtx,strty,maxWidth,this._align);
+	this.drawText(this._lastVal=text,strtx,strty,this.contents.width,this._align);
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsg
 
