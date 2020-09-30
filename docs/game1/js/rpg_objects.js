@@ -5590,13 +5590,6 @@ Game_Map.prototype.layeredTiles = function(x, y) {
     return tiles;
 };
 
-Game_Map.prototype.allTiles = function(x, y) {
-    var tiles = this.tileEventsXy(x, y).map(function(event) {
-        return event.tileId();
-    });
-    return tiles.concat(this.layeredTiles(x, y));
-};
-
 Game_Map.prototype.autotileType = function(x, y, z) {
     var tileId = this.tileId(x, y, z);
     return tileId >= 2048 ? Math.floor((tileId - 2048) / 48) : -1;

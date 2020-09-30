@@ -530,7 +530,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs^=0; // this.y=rhs;
-		if(this.y!==rhs){
+		if(this._character===$gamePlayer||this.y!==rhs){
 			if(this._lastKey){
 				let p=this.parent,y=rhs+$gameMap._displayY_th;
 				if(this._lastKey[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
@@ -1415,6 +1415,48 @@ $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' 
 	let sy = ( (this._tileId>>3)&15 ) * ph;
 	return this.setFrame(sx, sy, pw, ph);
 };
+$aaaa$.prototype.updateCharacterFrame_sit=function(){
+	if(0<this._bushDepth){
+		this.updateCharacterFrame.ori.call(this);
+		this._lowerBody.visible=false;
+	}else{
+		let ph = this.patternHeight();
+		let newPh=parseInt(ph*0.9);
+		if(this._frame.height!==newPh){
+			let pw = this.patternWidth();
+			let sx = (this.characterBlockX() + 1) * pw;
+			let sy = (this.characterBlockY() + this.characterPatternY()) * ph;
+			this._isNormalSit=true;
+			this._old_anchor_y=this._anchor.y;
+			this._anchor._y=ph/newPh+0.25;
+			this.setFrame(sx, sy, pw, newPh);
+		}
+	}
+};
+$rrrr$=$aaaa$.prototype.updateCharacterFrame;
+$dddd$=$aaaa$.prototype.updateCharacterFrame=function f(){ // add on chair facing up
+	//debug.log('Sprite_Character.prototype.updateCharacterFrame');
+	if(this._characterName){ // not tiles
+		let c=this._character;
+		if(c===$gamePlayer||c.page && c.page().image.hasFaceImg){ // has walking frames
+			if(c._direction===8 && $gameMap.isChair(c._realX,c._realY)){
+				let lastX=this._last_realX , lastY=this._last_realY;
+				this._last_realX=c._realX; this._last_realY=c._realY;
+				if(lastX===c._realX && lastY===c._realY){ // state:sit
+					this.updateCharacterFrame_sit();
+					return;
+				}
+			}else if(this._isNormalSit){
+				this._isNormalSit=false;
+				if(this._old_anchor_y!==undef){
+					this._anchor.y=this._old_anchor_y;
+					this._old_anchor_y=undef;
+				}
+			}
+		} // else maybe it is a vehicle
+	}
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.characterBlockX=function(){ // overwrite: ori use '/' , '%'
 	return this._isBigCharacter?0:(this._character.characterIndex()&3)*3;
 };
@@ -1530,33 +1572,8 @@ $aaaa$.isThisGameFile=function(savefileId){
 		}
 	}else return false;
 };
-$aaaa$.loadDataFile=function f(name, src ,changesCallback,changesKArgs) {
+$dddd$=$aaaa$.loadDataFile=function f(name, src ,changesCallback,changesKArgs) {
 	//debug.log('DataManager.loadDataFile');
-	//console.log(name, src, f.cache);
-	//console.log(changesCallback,changesKArgs); console.log(typeof changesCallback); console.log(typeof changesKArgs);
-	if(f.cache===undefined) f.cache=new CacheSystem(3);
-	if(f.set===undefined) f.set=(name,txt ,changesCallback,changesKArgs)=>{
-		window[name] = JSON.parse(txt);
-		{
-			let prefix='$dataTemplateEvtFromMap_';
-			if(name.slice(0,prefix.length)===prefix){
-				let tilesetId=window[name].tilesetId;
-				window[name]=window[name].events;
-				window[name].tilesetId=tilesetId;
-				$dataTemplateEvtFromMaps[tilesetId]=window[name];
-			}
-		}
-		{
-			let prefix='$dataTemplateEvt_';
-			if(name.slice(0,prefix.length)===prefix){
-				if(!$dataTemplateEvtFromMaps.others) $dataTemplateEvtFromMaps.others={};
-				window[name]=window[name].events;
-				$dataTemplateEvtFromMaps.others[name.slice(prefix.length)]=window[name]; // sorted after first map-loading
-			}
-		}
-		DataManager.onLoad(window[name]);
-		if(changesCallback&&changesCallback.constructor===Function) changesCallback(changesKArgs);
-	};
 	let cache=f.cache.get(src);
 	if(cache!==undefined){ f.set(name,cache ,changesCallback,changesKArgs); return; }
 	let onSucc=(src,xhr,name,changesCallback,changesKArgs)=>{
@@ -1584,6 +1601,64 @@ $aaaa$.loadDataFile=function f(name, src ,changesCallback,changesKArgs) {
 	};
 	window[name] = null;
 	xhr.send();
+};
+$dddd$.cache=new CacheSystem(3);
+$dddd$.set=function f(name,txt ,changesCallback,changesKArgs){
+	window[name] = JSON.parse(txt);
+	let prefix=name.slice(0,name.indexOf("_")+1);
+	let tuner=f.tuning[prefix];
+	if(tuner) tuner(name,prefix);
+	DataManager.onLoad(window[name]);
+	tuner=f.tuning[name];
+	if(tuner) tuner(window[name]);
+	if(changesCallback&&changesCallback.constructor===Function) changesCallback(changesKArgs);
+};
+$dddd$.set.tuning={
+	'$dataTemplateEvtFromMap_':(name,prefix)=>{
+		let tilesetId=window[name].tilesetId;
+		window[name]=window[name].events;
+		window[name].tilesetId=tilesetId;
+		$dataTemplateEvtFromMaps[tilesetId]=window[name];
+	},
+	'$dataTemplateEvt_':(name,prefix)=>{
+		if(!$dataTemplateEvtFromMaps.others) $dataTemplateEvtFromMaps.others={};
+		window[name]=window[name].events;
+		$dataTemplateEvtFromMaps.others[name.slice(prefix.length)]=window[name]; // sorted after first map-loading
+	},
+	'$dataTilesets':(arr)=>{
+		if(!arr) return;
+		for(let x=1;x!==arr.length;++x){
+			let t=arr[x].meta;
+			let s=t.chairThatCanSitUp;
+			if(s){
+				let arr=s.split(',').map(Number);
+				t.chairThatCanSitUp=new Set(arr);
+				if(!t.chair) t.chair=new Set(arr);
+				else for(let x=0,s=t.chair;x!==arr.length;++x) s.add(arr[x]);
+			}
+		}
+	},
+};
+$aaaa$.resetData3d=(idx)=>{ // - to 3d data [[x,y],3-z] // 0<=z<=3, z larger -> higher(or upper)
+	//debug.log('DataManager.resetData3d');
+	if(!$dataMap) return;
+	if(!$dataMap.data3d) $dataMap.data3d=[];
+	if(idx!==undef){ idx|=0;
+		let dst=$dataMap.data3d[idx]=[],sz=$dataMap.width*$dataMap.height;
+		for(let lv=sz<<2;lv;){
+			lv-=sz;
+			dst.push(data[idx+lv]);
+		}
+	}else{
+		for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data,data3d=$dataMap.data3d ;y!==ys;++y){ for(let x=0;x!==xs;++x){
+			let idx=$dataMap.width*y+x;
+			let dst=data3d[idx]=[];
+			for(let lv=sz<<2;lv;){
+				lv-=sz;
+				dst.push(data[idx+lv]);
+			}
+		} }
+	}
 };
 $aaaa$.loadMapData = function f(mapId) {
 	debug.log('DataManager.loadMapData');
@@ -1620,11 +1695,31 @@ $aaaa$.loadMapData = function f(mapId) {
 		faceSet.forEach(x=>faces.push(["face",x]));
 		// - preload bgm,bgs
 		let audios=[];
-		if($dataMap.bgm && $dataMap.bgm.name) audios.push(["bgm",$dataMap.bgm.name]);
-		if($dataMap.bgs && $dataMap.bgs.name) audios.push(["bgs",$dataMap.bgs.name]);
+		{
+			let dbgm = $dataMap.bgm && $dataMap.bgm.name;
+			let dbgs = $dataMap.bgs && $dataMap.bgs.name;
+			let abgm = AudioManager._currentBgm && AudioManager._currentBgm.name;
+			let abgs = AudioManager._currentBgs && AudioManager._currentBgs.name;
+			if(dbgm && dbgm!==abgm) audios.push(["bgm",dbgm]);
+			if(dbgs && dbgs!==abgs) audios.push(["bgs",dbgs]);
+		}
 		// - actually request media
 		SceneManager.preloadMedia.load({img:faces,audio:audios});
-		// extended map data
+		// pre-cal isChair
+		$dataMap.isChair=[];
+		let chair=$dataTilesets[$dataMap.tilesetId].meta.chair;
+		if(chair){ for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data ;y!==ys;++y){ for(let x=0;x!==xs;++x){
+			let idx=$dataMap.width*y+x;
+			for(let lv=sz<<2;lv;){
+				lv-=sz;
+				if(chair.has(data[idx+lv])){
+					$dataMap.isChair[idx]=true;
+					break;
+				}
+			}
+		} } }
+		// extended map data (including events)
+		this.resetData3d();
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
 		if(tmp=$dataTemplateEvtFromMaps[$dataMap.tilesetId]){
@@ -1680,7 +1775,7 @@ $aaaa$.loadMapData = function f(mapId) {
 		}
 	};
 	if (mapId > 0) {
-		var filename = 'Map%1.json'.format(mapId.padZero(3));
+		let filename = 'Map%1.json'.format(mapId.padZero(3));
 		this._mapLoader = ResourceHandler.createLoader('data/' + filename, this.loadDataFile.bind(this, '$dataMap', filename));
 		this.loadDataFile('$dataMap', filename ,f.playerChanges, {mapid:mapId});
 	} else {
@@ -1726,12 +1821,23 @@ $aaaa$.saveGameWithoutRescue = function(savefileId) {
 	this.saveGlobalInfo(globalInfo);
 	return true;
 };
+$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","imgModded",]; 
 $rrrr$=$aaaa$.makeSaveContents;
 $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
 	$gameParty.saveDynamicEvents();
-	return f.ori.call(this);
+	let rtv=f.ori.call(this);
+	f.delAttrs_chr(rtv.player);
+	for(let x=0,arr=rtv.map._events;x!==arr.length;++x){
+		let evt=arr[x]; if(!evt) continue;
+		f.delAttrs_chr(evt);
+	}
+	return rtv;
 }; $dddd$.ori=$rrrr$;
+$dddd$.delAttrs_chr=function f(chr){
+	for(let x=0,arr=f.list;x!==arr.length;++x) delete chr[arr[x]];
+};
+$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","imgModded"];
 $rrrr$=$aaaa$.extractSaveContents;
 $dddd$=$aaaa$.extractSaveContents=function f(){
 	debug.log('DataManager.extractSaveContents');
@@ -2972,6 +3078,10 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	//return debug.isdebug();
 	return false; // No effect ALL
 };
+$aaaa$.prototype.allTiles=function(x,y){ // rewrite for efficiency
+	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat($dataMap.data3d[$dataMap.width*y+x]||[]);
+	return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
+};
 $aaaa$.prototype.isPassable=function(x,y,d){
 	return this.checkPassage(x,y,( 1<<((d>>1)-1) )&15 );
 };
@@ -3000,6 +3110,11 @@ $dddd$=$aaaa$.prototype.isDamageFloor=function f(X,Y){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.prototype.isChair=function f(x,y){
+	if(parseInt(x)!==x||parseInt(y)!==y) return false;
+	return $dataMap.isChair[y*$dataMap.width+x];
+};
+$dddd$.tbl=[];
 $rrrr$=$aaaa$.prototype.displayName;
 $dddd$=$aaaa$.prototype.displayName=function f(){
 	debug.log('Game_Map.prototype.displayName');
@@ -3014,11 +3129,25 @@ $dddd$=$aaaa$.prototype.data=function f(idx){
 	let rm=delta&&delta.randmaze;
 	delta=delta&&delta.tile;
 	let rtv=f.ori.call(this);
+	if($dataMap.dataCustomized) return rtv;
+	$dataMap.dataCustomized=true;
 	if(idx===undef){
-		if(delta) for(let i in delta) rtv[i]=delta[i];
-		if(rm){ for(let i in rm) rtv[i]=rm[i]; }
+		let idxset=new Set(),sz=this.size;
+		if(delta){ for(let i in delta){
+			idxset.add(i%sz);
+			rtv[i]=delta[i];
+		} }
+		if(rm){ for(let i in rm){
+			idxset.add(i%sz);
+			rtv[i]=rm[i];
+		} }
+		for(let it=idxset.values();it.done===false;it.next()) DataManager.resetData3d(it.value);
 		return rtv;
-	}else return rtv[idx]=(delta && (idx in delta))?((rm&&(idx in rm))?rm[idx]:delta[idx]):rtv[idx];
+	}else{
+		rtv=rtv[idx]=(delta && (idx in delta))?((rm&&(idx in rm))?rm[idx]:delta[idx]):rtv[idx];
+		DataManager.resetData3d(idx%this.size);
+		return rtv;
+	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.toBroken=function(permanent){
 	let sz=$gameMap.size;
@@ -4398,12 +4527,16 @@ $aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
 		}break;
 		case 'randmaze':
 		case 'tile': {
+			$dataMap.dataCustomized=false;
 			if(target[type]===undef) target[type]={};
 			let tdata=target[type];
+			let idxset=new Set(),sz=$gameMap.size;
 			for(let i in data){
+				idxset.add(i%sz);
 				if(data[i]===undef) delete tdata[i];
 				else tdata[i]=data[i];
 			}
+			for(let it=idxset.values();it.done===false;it.next()) DataManager.resetData3d(it.value);
 			if(!noupdate){ $gameMap.data();
 				let sc=SceneManager._scene;
 				if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
@@ -4441,10 +4574,10 @@ $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 		}
 	}
 	mc.events=deepcopy(mc.events); // remain only json data
-	let delAttrs=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","imgModded",]; 
+	let arr=DataManager._delAttrs_dynamicEvt;
 	for(let i in mc.events){ // remove un-used||unchanged attrs
 		let evt=mc.events[i];
-		for(let x=0;x!==delAttrs.length;++x) delete evt[delAttrs[x]];
+		for(let x=0;x!==arr.length;++x) delete evt[arr[x]];
 	}
 };
 $aaaa$.prototype.burnLvOutput=function(parents){

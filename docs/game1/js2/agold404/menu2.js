@@ -1777,6 +1777,7 @@ $dddd$=$aaaa$.prototype.initialize = function f(dstObj,dstKey,txtdetail,kargs) {
 				// no effect
 				// if press 'enter' and then destruct this window
 				// parent will get 'enter' and then go back to here
+				this.ref._choice_=this.ref._choice;
 				this.ref._choice=1;
 				Input.clear();
 			}break;
@@ -1982,8 +1983,11 @@ $aaaa$.prototype.doChoice=function(ch){
 $aaaa$.prototype.doOk=function(){
 	debug.log('Window_CustomTextInput.prototype.doOk');
 	// input text ok: save back to 'this._dstObj[this._dstKey]'
+	let lastCh=this._choice_;
+	if(lastCh!==undef) delete this._choice_;
 	if(this._dstValid&&!this._dstValid(this.node_input.value)){
 		SoundManager.playBuzzer();
+		this._choice=lastCh;
 		return;
 	}
 	if(this.parent.constructor===Window_CustomMenu_main){
