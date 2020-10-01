@@ -621,9 +621,9 @@ $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_Quest.prototype.createOptionsWindow');
 	let wt=window['/tmp/'];
-	let rnkMin=wt.rnkMin,rnkMax=wt.rnkMax;
-	delete wt.rnkMin; delete wt.rnkMax; 
-	this._window = $gameParty.genQuestReportWindow(rnkMin,rnkMax,1);
+	let rnkMin=wt.rnkMin,rnkMax=wt.rnkMax,rnkNan=wt.rnkNan;
+	delete wt.rnkMin; delete wt.rnkMax; delete wt.rnkNan; 
+	this._window = $gameParty.genQuestReportWindow(rnkMin,rnkMax,rnkNan);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
 	let mh=$gamePlayer.menuHistory,key='Scene_Quest';
 	if(mh[key]){
