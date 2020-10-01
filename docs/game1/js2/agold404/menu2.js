@@ -620,7 +620,10 @@ $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_Quest.prototype.createOptionsWindow');
-	this._window = $gameParty.genQuestReportWindow(undef,undef,1);
+	let wt=window['/tmp/'];
+	let rnkMin=wt.rnkMin,rnkMax=wt.rnkMax;
+	delete wt.rnkMin; delete wt.rnkMax; 
+	this._window = $gameParty.genQuestReportWindow(rnkMin,rnkMax,1);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
 	let mh=$gamePlayer.menuHistory,key='Scene_Quest';
 	if(mh[key]){

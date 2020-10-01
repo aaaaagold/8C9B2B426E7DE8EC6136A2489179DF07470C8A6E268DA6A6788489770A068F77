@@ -181,6 +181,7 @@ list.fireCrystal=(action)=>{
 list.activationFlute=(action)=>{
 	backToMap();
 	$gameMap._events.filter((evt)=>evt&&$gameMap.isValid(evt.x,evt.y)&&evt.event().meta.name==="火焰水晶").forEach(evt=>evt.ssStateSet("C"));
+	setTimeout(()=>AudioManager.playMe({name:"Musical2",volume:75,pitch:200}),1);
 };
 list.lottery=(action)=>{
 	let dataitem=action.item();
