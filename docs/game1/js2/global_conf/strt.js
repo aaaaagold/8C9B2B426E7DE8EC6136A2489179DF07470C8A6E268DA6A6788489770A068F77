@@ -49,4 +49,8 @@ if(Utils.isMobileDevice()) _global_conf.halfFps=1;
 	}; dddd.ori=rrrr;
 }
 
+window['/tmp/'].__note=[
+"window['/tmp/'].clearedWhenNewScene -> {}",
+"$gameTemp.clearedWhenNewMap -> {}",
+];
 console.log("strt");

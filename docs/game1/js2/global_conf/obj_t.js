@@ -2114,16 +2114,19 @@ $dddd$=$aaaa$.goto=function f(sceneClass){
 	debug.log('SceneManager.goto');
 	this.preloadMedia(sceneClass);
 	let sc=this._scene;
-	if(sc) debug.log(1,this._scene.constructor);
-	//if(sceneClass===Scene_Gameover||this._nextScene===null)
-		f.ori.call(this,sceneClass);
-	if(debug.isdebug() && screenShots && sc && sceneClass!==Scene_Base){
+	//if(sc) debug.log(1,this._scene.constructor);
+	if(!window['/tmp/'].clearedWhenNewScene || sc && sc.constructor!==sceneClass) window['/tmp/'].clearedWhenNewScene={};
+	f.ori.call(this,sceneClass);
+	if(0&& debug.isdebug() && screenShots && sc && sceneClass!==Scene_Base){
 		if(sc) debug.log(2,this._scene.constructor);
 		screenShots[sc.constructor.name]=d.ge("GameCanvas").toDataURL();
 	}
 	if(sceneClass===Scene_Gameover && sc.constructor===Scene_Map){
+		// Scene_Map -> Scene_Gameover
 		let p=$gamePlayer; $dataMap.data[$gameMap.xy2idx(p.x,p.y,3)]=599;
 	}
+	let foo=window['/tmp/'].nextSceneCallback;
+	if(foo&&foo.constructor===Function) foo();
 }; $dddd$.ori=$rrrr$;
 if(!$aaaa$.refresh) $aaaa$.refresh=function(){
 	this.push(Scene_Base); this.pop();
@@ -4596,6 +4599,7 @@ $aaaa$.prototype.gainAchievement=function(id){
 	$gameMessage.add("獲得成就：\\RGB["+color.achievement+"]"+ac[0]+"\\RGB["+color.default+"]");
 	if(ac[1]!==undef) $gameMessage.add(ac[1]);
 	if(ac[2]!==undef) $gameMessage.add(ac[2]);
+	$gameMessage.add("\f"); // 0xC
 	let last=this._achievement_lastMaxId;
 	if(last===undef){
 		$gameMessage.popup($dataCustom.gainApps.achievementMgr,1,{t_remained:5000});
@@ -5620,7 +5624,7 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 		this.makeFontSmaller();
 		break;
 	}
-}; $dddd$.ori=$rrrr$;
+};
 $dddd$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
 $rrrr$=$dddd$=$aaaa$=undef;
 

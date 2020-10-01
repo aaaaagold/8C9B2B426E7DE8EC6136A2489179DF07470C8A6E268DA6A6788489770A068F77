@@ -697,6 +697,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 			for(let x=0,arr=$gameParty._locLog||[];x!==arr.length;++x){
 				let t=arr[x],i=x;
 				rtv.push([t[0],";;func;call",1,()=>{
+					$gameTemp.clearedWhenNewMap.transferViaLogloc=1;
 					$gameParty.logLoc_load(i);
 					SceneManager.push(Scene_Map);
 				}]);
