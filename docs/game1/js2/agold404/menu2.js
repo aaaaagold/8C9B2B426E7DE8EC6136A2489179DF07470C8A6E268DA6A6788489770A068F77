@@ -550,7 +550,7 @@ $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_LoadOnline.prototype.createOptionsWindow');
 	this._window = new Window_CustomMenu_main(0,0,[
-		["輸入檔案id讀取紀錄"+(window.gasPropagate===undef?" (未完成載入google apps script)":""),"window['/tmp/'];fileId;text;輸入檔案id",window.gasPropagate!==undef,{
+		["輸入檔案id讀取紀錄"+(window.gasPropagate===undefined?" (未完成載入google apps script)":""),"window['/tmp/'];fileId;text;輸入檔案id",window.gasPropagate!==undefined,{
 			title:"輸入檔案id",
 			final:(o,k)=>{
 				DataManager.loadGame('online',o[k]);
@@ -623,7 +623,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	let wt=window['/tmp/'];
 	let rnkMin=wt.rnkMin,rnkMax=wt.rnkMax,rnkNan=wt.rnkNan;
 	delete wt.rnkMin; delete wt.rnkMax; delete wt.rnkNan; 
-	this._window = $gameParty.genQuestReportWindow(rnkMin,rnkMax,rnkNan);
+	this._window = $gameParty.genQuestReportWindow(rnkMin,rnkMax,rnkNan===undefined?true:rnkNan);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
 	let mh=$gamePlayer.menuHistory,key='Scene_Quest';
 	if(mh[key]){
@@ -923,7 +923,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 				SoundManager.playBuzzer();
 				return;
 			}
-			if(window.gasPropagate===undef){
+			if(window.gasPropagate===undefined){
 				$gameMessage.popup("等待google apps script完成設定",1);
 				SoundManager.playBuzzer();
 				return;
@@ -1081,7 +1081,7 @@ $aaaa$.prototype.selItem=function(idx,symbol){ // exe by child
 	let arr=this._selItem;
 	arr.pop();
 	let key=JSON.stringify(arr);
-	arr.push(symbol===undef?idx:symbol);
+	arr.push(symbol===undefined?idx:symbol);
 	this._lastSelItem[key]=idx;
 };
 $aaaa$.prototype.lastSelItem=function(){
@@ -1410,9 +1410,9 @@ $aaaa$.prototype.drawlinetext=function(text,line,align){
 $rrrr$=$aaaa$.prototype.textWidth;
 $dddd$=$aaaa$.prototype.textWidth=function f(txt,ende){
 	// ende must be int>=0 or undefined
-	if(this.contents.fontSize!==this._textWidthCache.size) return f.ori.call(this,ende!==undef?txt.slice(0,ende):txt);
+	if(this.contents.fontSize!==this._textWidthCache.size) return f.ori.call(this,ende!==undefined?txt.slice(0,ende):txt);
 	let rtv=0;
-	for(let x=0,xs=(ende===undef)?txt.length:Math.min(ende,txt.length);x!==xs;++x){
+	for(let x=0,xs=(ende===undefined)?txt.length:Math.min(ende,txt.length);x!==xs;++x){
 		let cc=txt.charCodeAt(x);
 		if(!this._textWidthCache[cc]) this._textWidthCache[cc]=f.ori.call(this,txt[x]);
 		rtv+=this._textWidthCache[cc];
@@ -1455,7 +1455,7 @@ $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
 $dddd$=$aaaa$.prototype.destructor=function f(){
 	//debug.log('Window_CustomTextBoard.prototype.destructor');
-	if(this._oribodykeydown!==undef) d.body.onkeydown=this._oribodykeydown;
+	if(this._oribodykeydown!==undefined) d.body.onkeydown=this._oribodykeydown;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -1468,8 +1468,9 @@ $dddd$=$aaaa$.prototype.initialize = function f(txtinfos,kargs) {
 	let x=kargs[  'x'  ]||        0        ,y=kargs[   'y'  ]||        0         ;
 	let w=kargs['width']||Graphics.boxWidth,h=kargs['height']||Graphics.boxHeight;
 	this.raw=kargs.raw; // no parsing
-	let scrollable=!kargs.noScroll;
 	let rtv=f.ori.call(this,x,y,w,h);
+	let scrollable=!(this.noScroll=kargs.noScroll);
+ // onkeydown callback
  if(scrollable){
 	let onkeydown=function f(e){
 		if(!f.ref.active) return;
@@ -1518,6 +1519,8 @@ $dddd$=$aaaa$.prototype.initialize = function f(txtinfos,kargs) {
 	if(debug.isdebug()) window['????']=this;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.lineHeight=Window_Base.prototype.lineHeight;
+$aaaa$.prototype.standardFontSize=Window_Base.prototype.standardFontSize;
 
 $aaaa$.prototype.processWheel=function(){
 	if(!TouchInput.wheelY) return;
@@ -1551,6 +1554,7 @@ $aaaa$.prototype.updateInfos=function(txtinfos,kargs){
 	this.redrawtxt();
 };
 $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
+	if(measuringHeight && this.noScroll) return this._canScroll=0;
 	this.contents.clear();
 	let pad=this.textPadding(),LH_ori=this.lineHeight(),LH_last=LH_ori,xe=this.contents.width-(pad<<1),ye=this.contents.height+this.scrolly;
 	let currx=0,curry=pad,currLine=0;
@@ -1786,8 +1790,7 @@ $dddd$=$aaaa$.prototype.initialize = function f(dstObj,dstKey,txtdetail,kargs) {
 				Input.clear();
 			}break;
 			case 27: { // esc Input.clear(); 
-				//this.ref.doCancel(1);
-				this.ref._choice=2;
+				this.ref.doCancel(1); // Either parent is Window_CustomMenu_main or not
 			}break;
 			case 35: { // end
 				let ende=this.value.length;
@@ -1926,7 +1929,7 @@ $aaaa$.prototype.processTouch=function(){
 	if(this.active===0) return;
 	if(TouchInput.isCancelled()) this.doCancel(1);
 	if(TouchInput.isMoved()){
-		if(this._lastTouchI!==undef){
+		if(this._lastTouchI!==undefined){
 			this.node_input.custom_setSelRange(this.processTouch2I(),this._lastTouchI);
 		}else if(Input.isPressed('shift')){
 			let tailAt=(this._textCursorAt_d==='backward'?this._textCursorAt_e:this._textCursorAt_s);
@@ -1934,7 +1937,7 @@ $aaaa$.prototype.processTouch=function(){
 		}
 	}
 	if(TouchInput.isReleased()){
-		if(this._lastTouchI!==undef){
+		if(this._lastTouchI!==undefined){
 			this.node_input.custom_setSelRange(this.processTouch2I(),this._lastTouchI);
 		}
 	}
@@ -1969,8 +1972,8 @@ $dddd$=$aaaa$.prototype.processHandling=function f(){
 	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.doChoice=function(ch){
-	debug.log('Window_CustomTextInput.prototype.doChoice');
-	switch(ch||this._choice){
+	//debug.log('Window_CustomTextInput.prototype.doChoice');
+	switch(ch===undefined?this._choice:ch){
 		case 0:
 			// handled by keydown
 			this.node_input.focus();
@@ -1988,7 +1991,7 @@ $aaaa$.prototype.doOk=function(){
 	debug.log('Window_CustomTextInput.prototype.doOk');
 	// input text ok: save back to 'this._dstObj[this._dstKey]'
 	let lastCh=this._choice_;
-	if(lastCh!==undef) delete this._choice_;
+	if(lastCh!==undefined) this._choice_=undefined;
 	if(this._dstValid&&!this._dstValid(this.node_input.value)){
 		SoundManager.playBuzzer();
 		this._choice=lastCh;
@@ -2061,7 +2064,7 @@ $aaaa$.prototype.redrawtxt=function(forced){
 	//this.contents.clear(); // will measure text width, later clear
 	
 	//this.drawlinetext(this.txt,0);
-	if(forced||this.strt===undef){ switch(this.align){
+	if(forced||this.strt===undefined){ switch(this.align){
 		default:
 		case 'left':
 			this.strt=0;
@@ -2088,7 +2091,7 @@ $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
 $dddd$=$aaaa$.prototype.destructor=function f(){
-	if(this._itvl!==undef) clearInterval(this._itvl);
+	if(this._itvl!==undefined) clearInterval(this._itvl);
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.destructor=function(){ if(this._itvl) clearInterval(this._itvl); };
@@ -2153,12 +2156,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(kargs){
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.add=function(obj,key_or_getter,kargs){
 	kargs=kargs||{};
-	if(kargs.x===undef) kargs.x=23;
+	if(kargs.x===undefined) kargs.x=23;
 	kargs.updateItvl=kargs.updateItvl||"no"; 
 	let child=new Window_CustomRealtimeMsg(obj,key_or_getter,kargs);
 	if(this._windows.length){
 		let back=this._windows.back;
-		if(kargs.y===undef) child.y=back.y+back.height;
+		if(kargs.y===undefined) child.y=back.y+back.height;
 	}else child.y=55;
 	this._windows.push(child);
 	this.addChild(child);

@@ -90,17 +90,17 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Utils
 Utils.isAndroidChrome=function() {
-	if(this._isAndroidChrome!==undef) return this._isAndroidChrome;
+	if(this._isAndroidChrome!==undefined) return this._isAndroidChrome;
 	let agent = navigator.userAgent;
 	return this._isAndroidChrome=!!(agent.indexOf('Android') && agent.indexOf('Chrome'));
 };
 Utils.isMobileDevice=function(){
-	if(this._isMobileDevice!==undef) this._isMobileDevice;
+	if(this._isMobileDevice!==undefined) this._isMobileDevice;
 	let r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 	return this._isMobileDevice=!!navigator.userAgent.match(r);
 };
 Utils.isMobileSafari=function(){
-	if(this._isMobileSafari!==undef) return this._isMobileSafari;
+	if(this._isMobileSafari!==undefined) return this._isMobileSafari;
 	let agent = navigator.userAgent;
 	return this._isMobileSafari=( !!(agent.match(/iPhone|iPad|iPod/) && agent.indexOf('AppleWebKit') && !agent.indexOf('CriOS')) );
 };
@@ -113,7 +113,7 @@ $dddd$=$aaaa$.createLoader=function(url, retryMethod, resignMethod, retryInterva
 	let reloaders = this._reloaders;
 	let retryCount = 0;
 	return function(setCurrRetryCnt) {
-		if(setCurrRetryCnt!==undef) retryCount=setCurrRetryCnt;
+		if(setCurrRetryCnt!==undefined) retryCount=setCurrRetryCnt;
 		if (retryCount < retryInterval.length) {
 			setTimeout(()=>retryMethod(url), retryInterval[retryCount]);
 			retryCount++;
@@ -484,7 +484,7 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 							// too slow
 							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
 							this._image.src="data:image/png;base64," + btoa(s);
-							if(this._cacheKey!==undef && url===blank_1x1) delete ImageManager._imageCache._items[this._cacheKey]; // this is blank_1x1, coded in 'init.js'
+							if(this._cacheKey!==undefined && url===blank_1x1) delete ImageManager._imageCache._items[this._cacheKey]; // this is blank_1x1, coded in 'init.js'
 						}break;
 						case '4': // fail
 							this._errorListener(inf);
@@ -733,7 +733,7 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	c.transform._parentID=-1;
 	
 	let key=[c.z^0,c.y^0,c.spriteId^0];
-	if(c.spriteId===undef) key.push(this._boundsID);
+	if(c.spriteId===undefined) key.push(this._boundsID);
 	this.addc_tree(key,c);
 	
 	++this._boundsID;
@@ -1117,7 +1117,7 @@ $aaaa$.prototype._paintTiles = function(startX, startY, x, y) {
 		}
 	}
 };
-$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
+$aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawNormalTile');
 	let setNumber = 0;
 	
@@ -1351,7 +1351,7 @@ $dddd$=$aaaa$._onTouchMove=function(event) {
 	}
 	avgx/=arr.length;
 	avgy/=arr.length;
-	if(arr.length===1 && this._lastAvgX!==undef && this._lastAvgY!==undef){
+	if(arr.length===1 && this._lastAvgX!==undefined && this._lastAvgY!==undefined){
 		this._events.wheelX -= avgx-this._lastAvgX;
 		this._events.wheelY -= avgy-this._lastAvgY;
 	}
@@ -1448,7 +1448,7 @@ $dddd$=$aaaa$.prototype.updateCharacterFrame=function f(){ // add on chair facin
 				}
 			}else if(this._isNormalSit){
 				this._isNormalSit=false;
-				if(this._old_anchor_y!==undef){
+				if(this._old_anchor_y!==undefined){
 					this._anchor.y=this._old_anchor_y;
 					this._old_anchor_y=undef;
 				}
@@ -1642,14 +1642,16 @@ $dddd$.set.tuning={
 $aaaa$.resetData3d=(idx)=>{ // - to 3d data [[x,y],3-z] // 0<=z<=3, z larger -> higher(or upper)
 	//debug.log('DataManager.resetData3d');
 	if(!$dataMap) return;
-	if(!$dataMap.data3d) $dataMap.data3d=[];
-	if(idx!==undef){ idx|=0;
-		let dst=$dataMap.data3d[idx]=[],sz=$dataMap.width*$dataMap.height;
-		for(let lv=sz<<2;lv;){
+	if(idx!==undefined){ idx|=0;
+		// supposed 'data3d' is inited before: '$dataMap.data3d[idx]' is an array
+		let dst=$dataMap.data3d[idx],sz=$dataMap.width*$dataMap.height,data=$dataMap.data;
+		dst.length=0;
+		for(let lv=sz<<2;lv!==0;){
 			lv-=sz;
 			dst.push(data[idx+lv]);
 		}
 	}else{
+		if(!$dataMap.data3d) $dataMap.data3d=[];
 		for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data,data3d=$dataMap.data3d ;y!==ys;++y){ for(let x=0;x!==xs;++x){
 			let idx=$dataMap.width*y+x;
 			let dst=data3d[idx]=[];
@@ -1671,6 +1673,9 @@ $aaaa$.loadMapData = function f(mapId) {
 		//		$dataMap.events[999]=(window['/tmp/'].tmpevt);
 		//	}
 		//}
+		// backup
+		// - '.data'
+		$dataMap.data_bak=$dataMap.data.slice(0);
 		// defaults
 		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
 		// preload
@@ -1764,7 +1769,7 @@ $aaaa$.loadMapData = function f(mapId) {
 			// init vars
 			if(!store[kargs.mapid].vars) store[kargs.mapid].vars={};
 			// put map name
-			//if(store[kargs.mapid].name!==undef) $dataMap.displayName=store[kargs.mapid].name; // change $gameMap.displayName() to achieve same result
+			//if(store[kargs.mapid].name!==undefined) $dataMap.displayName=store[kargs.mapid].name; // change $gameMap.displayName() to achieve same result
 			// put events to $gameMap
 			// // Game_Map.prototype.setup @ obj_t.js
 		}
@@ -1795,7 +1800,7 @@ $aaaa$.isArmor=function(item){
 	return item&&$dataArmors[item.id]===item;
 };
 $aaaa$.titleAddName=function(info){
-	return (info.name===undef?"":(info.name+" @ ")) + info.title;
+	return (info.name===undefined?"":(info.name+" @ ")) + info.title;
 };
 $dddd$=$aaaa$.class=function f(item){
 	if(item&&item.constructor===Game_Item) return f.attr.indexOf(item._dataClass);
@@ -1855,7 +1860,7 @@ $rrrr$=$aaaa$.saveGame;
 $dddd$=$aaaa$.saveGame=function f(sfid){
 	debug.log('DataManager.saveGame');
 	if(sfid==='online'){
-		if(window.gasPropagate===undef) return false;
+		if(window.gasPropagate===undefined) return false;
 		let data_raw=JsonEx.stringify(this.makeSaveContents());
 		let data_compressed=LZString.compressToBase64(data_raw);
 		debug.log('',"raw size",data_raw.length,"compressed",data_compressed.length);
@@ -1865,7 +1870,7 @@ $dddd$=$aaaa$.saveGame=function f(sfid){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.loadGame;
 $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data){
-	if(f.cache===undef) f.cache=new CacheSystem();
+	if(f.cache===undefined) f.cache=new CacheSystem();
 	if(sfid==='callback'){
 		// set data
 		this.createGameObjects();
@@ -1878,7 +1883,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data){
 		return true;
 	}else if(sfid==='online'){
 		// check gas
-		if(window.gasPropagate===undef) return false;
+		if(window.gasPropagate===undefined) return false;
 		// reserve bgm
 		$gameSystem.onBeforeSave();
 		// display effects
@@ -1887,7 +1892,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data){
 		SceneManager.push(Scene_Black);
 		// find cache
 		let tmp;
-		if((tmp=f.cache.get(onlineId))!==undef){
+		if((tmp=f.cache.get(onlineId))!==undefined){
 			this.onlineOk=this.loadGame('callback',onlineId,tmp);
 			if(this.onlineOk) return true;
 			f.cache.del(onlineId);
@@ -2140,7 +2145,7 @@ $aaaa$.addWindowB=function(w,noblocking,idx){
 		let r=w.processHandling;
 		w.processHandling=()=>{
 			if(this.parent===null) return;
-			if(arr[0]===undef){
+			if(arr[0]===undefined){
 				for(let x=0;x!==arr.length;++x) arr[x]=ws[x].active;
 				for(let x=0;x!==arr.length;++x) ws[x].active=false;
 			}
@@ -2470,6 +2475,22 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 			tbl[evt.x+evt.y*w].push(evt);
 		}
 		tbl.mapid=$gameMap._mapId;
+		
+		// _Nt ( prevent creation of arrays )
+		tbl=$dataMap.coordTblNt=[];
+		tbl.length=$dataMap.height*w; for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue(); // .coordTblNt
+		for(let x=0,evts=$gameMap._events;x!==evts.length;++x){ let evt=evts[x];
+			if(!evt || !$gameMap.isValid(evt.x,evt.y) || evt.isThrough()) continue;
+			tbl[evt.x+evt.y*w].push(evt);
+		}
+		
+		// _NtP1 ( prevent creation of arrays )
+		tbl=$dataMap.coordTblNtP1=[];
+		tbl.length=$dataMap.height*w; for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue(); // .coordTblNt
+		for(let x=0,evts=$gameMap._events;x!==evts.length;++x){ let evt=evts[x];
+			if(!evt || !$gameMap.isValid(evt.x,evt.y) || evt.isThrough() || evt._pri!==1) continue;
+			tbl[evt.x+evt.y*w].push(evt);
+		}
 	}
 	// - $dataMap.strtEvts : a list of starting events
 	if(!($dataMap.strtEvts&&$dataMap.strtEvts.mapid===$gameMap._mapId)){
@@ -2483,7 +2504,7 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
 			let evt=arr[x]; if(!evt) continue;
 			for(let key in evt.meta){ if(evt.meta[key]!==true) continue;
-				if(ebm[key]===undef) ebm[key]=[];
+				if(ebm[key]===undefined) ebm[key]=[];
 				ebm[key].push(x);
 			}
 		}
@@ -2606,7 +2627,7 @@ $dddd$.genRandMaze=function f(){
 					let newidx=newy*w+newx;
 					if(newx<0||newx>=w||newy<0||newy>=h || mark[newidx]!==b) return;
 					let dist2=0;
-					if(entries[1]!==undef){
+					if(entries[1]!==undefined){
 						//dist2+=f.calDist2(entries[1],newidx);
 						//dist2-=168; dist2*=0<dist2;
 						//dist2*=Math.random()+goldenRate;
@@ -2630,7 +2651,7 @@ $dddd$.genRandMaze=function f(){
 				}
 			}
 			// search test
-			if(ende===undef) break; // no needed testing
+			if(ende===undefined) break; // no needed testing
 			visited.length=0;
 			let q=new Queue(mark.length<<1); q.push(strt);
 			while(q.length){
@@ -2935,7 +2956,7 @@ $aaaa$.prototype.load_recordLoc=function(){
 	// load 'meta.recordLoc' s
 	debug.log('Game_Map.prototype.load_recordLoc');
 	let mc=$gameParty.mch(),recordLoc=mc.recordLoc;
-	if(recordLoc!==undef){
+	if(recordLoc!==undefined){
 		for(let i in recordLoc){
 			let evt=this._events[i];
 			if(!evt || evt._erased) continue;
@@ -2997,7 +3018,7 @@ $aaaa$.prototype.loadDynamicEvents=function f(fromLoadFile,noUpdate){
 				f.relatedSelfSwitches(evt);
 				// construct children
 				let sses=newevt._sameStatEvts;
-				let needRebuild=sses?sses.map(x=>evts[x]===undef).sum()!==0:(newevt.event().meta.child);
+				let needRebuild=sses?sses.map(x=>evts[x]===undefined).sum()!==0:(newevt.event().meta.child);
 				if(needRebuild){
 					if(sses){
 						delList=delList.concat(sses);
@@ -3081,9 +3102,17 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	//return debug.isdebug();
 	return false; // No effect ALL
 };
+$aaaa$.prototype.layeredTiles=function(x,y){ // rewrite for efficiency
+	//let idx=this.width()*y+x;
+	//let rtv=$dataMap.data3d[idx];
+	//if(rtv.length!==4) DataManager.resetData3d(idx); // for future use: reduce mem usage
+	//return rtv;
+	return $dataMap.data3d[$dataMap.width*y+x];
+};
 $aaaa$.prototype.allTiles=function(x,y){ // rewrite for efficiency
-	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat($dataMap.data3d[$dataMap.width*y+x]||[]);
-	return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
+	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
+	// discard tileEvents // 'this.tileEvents' is mostly empty
+	return this.layeredTiles(x, y);
 };
 $aaaa$.prototype.isPassable=function(x,y,d){
 	return this.checkPassage(x,y,( 1<<((d>>1)-1) )&15 );
@@ -3097,11 +3126,11 @@ $dddd$=$aaaa$.prototype.isDamageFloor=function f(X,Y){
 			default: break;
 			case 'i':{
 				let items=$gameParty._items,t=arr[x][1];
-				let cost=arr[x][2]===undef?0:arr[x][2]^0;
+				let cost=arr[x][2]===undefined?0:arr[x][2]^0;
 				if(items[t]>=cost){
 					if((items[t]-=cost)===0) delete items[t];
 					let t3=arr[x][3];
-					if(t3!==undef && t3!=="" && t3!=="-1"){
+					if(t3!==undefined && t3!=="" && t3!=="-1"){
 						let data={}; data[this.xy2idx(X,Y)]=t3;
 						$gameParty.changeMap('tile',data,this._mapId,1);
 						this.data();
@@ -3132,22 +3161,54 @@ $dddd$=$aaaa$.prototype.data=function f(idx){
 	let rm=delta&&delta.randmaze;
 	delta=delta&&delta.tile;
 	let rtv=f.ori.call(this);
-	if($dataMap.dataCustomized) return rtv;
-	$dataMap.dataCustomized=true;
-	if(idx===undef){
+	if(idx===undefined){
+		if($dataMap.dataCustomized) return rtv;
+		$dataMap.dataCustomized=true;
 		let idxset=new Set(),sz=this.size;
-		if(delta){ for(let i in delta){
-			idxset.add(i%sz);
-			rtv[i]=delta[i];
-		} }
+		// reset ori
+		if(rm){
+			let target=rm;
+			let delList=[];
+			for(let i in target) if(target[i]===null) delList.push(i);
+			for(let x=delList.length;x--;){ let i=delList[x];
+				delete target[i];
+				$dataMap.data[i]=$dataMap.data_bak[i];
+				idxset.add(i%sz);
+			}
+		}
+		// reset ori and set new
+		if(delta){
+			let target=delta;
+			let delList=[];
+			for(let i in target){
+				idxset.add(i%sz);
+				if(target[i]===null) delList.push(i);
+				else rtv[i]=target[i];
+			}
+			for(let x=delList.length;x--;){ let i=delList[x];
+				delete target[i];
+				$dataMap.data[i]=$dataMap.data_bak[i];
+			}
+		}
+		// set new
 		if(rm){ for(let i in rm){
-			idxset.add(i%sz);
 			rtv[i]=rm[i];
+			idxset.add(i%sz);
 		} }
-		for(let it=idxset.values();it.done===false;it.next()) DataManager.resetData3d(it.value);
+		for(let it=idxset.values(),t;(t=it.next()).done===false;) DataManager.resetData3d(t.value);
 		return rtv;
 	}else{
-		rtv=rtv[idx]=(delta && (idx in delta))?((rm&&(idx in rm))?rm[idx]:delta[idx]):rtv[idx];
+		rtv[idx]=$dataMap.data_bak[idx];
+		if(delta&&(idx in delta)){
+			if(delta[idx]===null) delete delta[idx];
+			else rtv[idx]=delta[idx];
+		}
+		if(rm&&(idx in rm)){
+			if(rm[idx]===null) delete rm[idx];
+			else rtv[idx]=rm[idx];
+		}
+		rtv=rtv[idx];
+		//rtv=rtv[idx]=(delta && (idx in delta))?((rm&&(idx in rm))?rm[idx]:delta[idx]):rtv[idx];
 		DataManager.resetData3d(idx%this.size);
 		return rtv;
 	}
@@ -3244,8 +3305,8 @@ $aaaa$.prototype.adjMtx=function(strtx,strty,canPassOnEvts){
 	// use player.x if strtx not defined
 	// use player.y if strty not defined
 	let w=this.width();
-	if(strtx===undef) strtx=$gamePlayer.x;
-	if(strty===undef) strty=$gamePlayer.y;
+	if(strtx===undefined) strtx=$gamePlayer.x;
+	if(strty===undefined) strty=$gamePlayer.y;
 	if($dataMap._adjMtx && $dataMap._adjMtx[strtx+strty*w]) return $dataMap._adjMtx;
 	let rtv=[]; rtv.length=this.size;
 	let q=new Queue(rtv.length<<1); q.push([strtx,strty]); // [[strtx,strty]]; 
@@ -3258,6 +3319,7 @@ $aaaa$.prototype.adjMtx=function(strtx,strty,canPassOnEvts){
 			if(!$gamePlayer.canPass(curr[0],curr[1],dir)) continue;
 			let newx=this.roundXWithDirection(curr[0],dir);
 			let newy=this.roundYWithDirection(curr[1],dir);
+			// can overlap on some evts or all evts if 'canPassOnEvts'
 			if(canPassOnEvts || $dataMap.coordTbl[this.xy2idx(newx,newy)].map(e=>{let evtd=e.event(); return !evtd.meta.passable&&(!evtd.isChild||evtd.meta.isOnLand)^0;}).sum()===0)
 				q.push([newx,newy]);
 		}
@@ -3275,7 +3337,7 @@ $aaaa$.prototype.ss=function(evtid,sname){
 $aaaa$.prototype.events=function(){ // overwrite
 	//debug.log('Game_Map.prototype.events');
 	let arr=this._events,rtv=[];
-	if($dataMap.templateStrt===undef){
+	if($dataMap.templateStrt===undefined){
 		for(let x=0;x!==arr.length;++x){ let evt=arr[x];
 			if(evt) rtv.push(evt);
 		}
@@ -3304,8 +3366,9 @@ $aaaa$.prototype.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwww
 };
 $aaaa$.prototype.eventsXyNt=function(posx,posy){ // overwrite.
 	if(!this.isValid(posx,posy)) return [];
-	let mapd=$dataMap;
-	return (mapd&&mapd.coordTbl&&mapd.coordTbl[posx+posy*mapd.width]||this._events).filter(evt=>evt&&evt.posNt(posx,posy));
+	let mapd=$dataMap,tbl;
+	if(tbl=mapd&&mapd.coordTblNt&&mapd.coordTblNt[mapd.width*posy+posx]) return tbl;
+	return (mapd&&mapd.coordTbl&&mapd.coordTbl[mapd.width*posy+posx]||this._events).filter(evt=>evt&&evt.posNt(posx,posy));
 };
 $aaaa$.prototype.isAnyEventStarting=function(){ // overwrite. Array.some is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.isAnyEventStarting'); // this is polling
@@ -3317,7 +3380,7 @@ $aaaa$.prototype.isAnyEventStarting=function(){ // overwrite. Array.some is slow
 };
 $aaaa$.prototype.updateEvents=function(){ // overwrite. forEach is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.updateEvents');
-	if($dataMap.templateStrt===undef){
+	if($dataMap.templateStrt===undefined){
 		for(let x=0,arr=this._events;x!==arr.length;++x){ let evt=arr[x];
 			if(evt) evt.update();
 		}
@@ -3716,8 +3779,9 @@ $dddd$=$aaaa$.prototype.jump=function f(dx,dy){
 $aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is making a new array and then search
 	//debug.log('Game_CharacterBase.prototype.isCollidedWithEvents');
 	if(!$gameMap.isValid(posx,posy)) return false;
-	let mapd=$dataMap;
-	return (mapd&&mapd.coordTbl&&mapd.coordTbl[posx+posy*mapd.width]||this._events).some(evt=>evt&&evt.posNt(posx,posy)&&evt.isNormalPriority());
+	let mapd=$dataMap,tbl;
+	if(tbl=mapd&&mapd.coordTblNtP1&&mapd.coordTblNtP1[mapd.width*posy+posx]) return tbl.length!==0;
+	return (mapd&&mapd.coordTbl&&mapd.coordTbl[mapd.width*posy+posx]||this._events).some(evt=>evt&&evt.posNt(posx,posy)&&evt.isNormalPriority());
 	// note: why normal?
 };
 $aaaa$.prototype.genBlood=function(permanent){ // tile
@@ -3971,9 +4035,9 @@ $dddd$=$aaaa$.prototype.add=function f(txt){
 	return f.ori.call(this,txt);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.add_finishQuest=function f(qname){
-	if(f.prefix===undef) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
+	if(f.prefix===undefined) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
 	let txt=f.prefix+qname;
-	if(qname!==undef&&qname!==null&&qname===this._lastFinish){
+	if(qname!==undefined && qname!==null&&qname===this._lastFinish){
 		//this._lastFinish_cnt^=0; // no need
 		++this._lastFinish_cnt;
 		this._texts.pop();
@@ -4030,7 +4094,7 @@ Object.defineProperties($aaaa$.prototype, {
 			return this._ItemListMaxCol=rhs;
 	}, configurable: false },
 	name: { get: function(){
-			return this._name===undef?this.savefilename:this._name;
+			return this._name===undefined?this.savefilename:this._name;
 		}, set: function(rhs){
 			return this._name=rhs;
 	}, configurable: false },
@@ -4361,7 +4425,7 @@ $aaaa$.prototype.adjDecRate=function(what,rate,useMax){
 	
 };
 $aaaa$.prototype.addOnlineSaveId=function(id){
-	if(this._onlineSaveIds===undef){
+	if(this._onlineSaveIds===undefined){
 		this._onlineSaveIds=[];
 		//$gameMessage.popup($dataCustom.gainApps.onlineSaveIdMgr,1,{t_remained:5000});
 		//if(!$gameParty._apps) $gameParty._apps={};
@@ -4514,10 +4578,10 @@ $aaaa$.prototype.speak=function(txt,n,kargs){
 	return $gameMessage.add(txt);
 };
 $aaaa$.prototype.mch=function(mapid){
-	if(this.mapChanges===undef) this.mapChanges={};
+	if(this.mapChanges===undefined) this.mapChanges={};
 	let mchs=this.mapChanges;
-	if(mapid===undef) mapid=$gameMap._mapId;
-	if(mchs[mapid]===undef) mchs[mapid]={};
+	if(mapid===undefined) mapid=$gameMap._mapId;
+	if(mchs[mapid]===undefined) mchs[mapid]={};
 	return mchs[mapid];
 };
 $aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
@@ -4531,16 +4595,15 @@ $aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
 		case 'randmaze':
 		case 'tile': {
 			$dataMap.dataCustomized=false;
-			if(target[type]===undef) target[type]={};
+			if(target[type]===undefined) target[type]={};
 			let tdata=target[type];
 			let idxset=new Set(),sz=$gameMap.size;
 			for(let i in data){
 				idxset.add(i%sz);
-				if(data[i]===undef) delete tdata[i];
+				if(data[i]===undefined) tdata[i]=null;
 				else tdata[i]=data[i];
 			}
-			for(let it=idxset.values();it.done===false;it.next()) DataManager.resetData3d(it.value);
-			if(!noupdate){ $gameMap.data();
+			if(!noupdate){ $gameMap.data(); for(let it=idxset.values(),t;(t=it.next()).done===false;) DataManager.resetData3d(t.value);
 				let sc=SceneManager._scene;
 				if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
 			}
@@ -4590,18 +4653,18 @@ $aaaa$.prototype.burnLvOutput=function(parents){
 	return 0;
 };
 $aaaa$.prototype.gainAchievement=function(id){
-	if(this._achievement===undef) this._achievement=[''];
+	if(this._achievement===undefined) this._achievement=[''];
 	if(this._achievement[id]) return;
 	this._achievement[id]=1;
 	let ac=$dataCustom.achievement[id],color=$dataCustom.textcolor;
-	if(ac===undef || ac.constructor!==Array) return;
+	if(ac===undefined||ac.constructor!==Array) return;
 	this.burnLv^=0; ++this.burnLv;
+	if($gameMessage._texts.length) $gameMessage.add("\f"); // 0xC
 	$gameMessage.add("獲得成就：\\RGB["+color.achievement+"]"+ac[0]+"\\RGB["+color.default+"]");
-	if(ac[1]!==undef) $gameMessage.add(ac[1]);
-	if(ac[2]!==undef) $gameMessage.add(ac[2]);
-	$gameMessage.add("\f"); // 0xC
+	if(ac[1]!==undefined) $gameMessage.add(ac[1]);
+	if(ac[2]!==undefined) $gameMessage.add(ac[2]);
 	let last=this._achievement_lastMaxId;
-	if(last===undef){
+	if(last===undefined){
 		$gameMessage.popup($dataCustom.gainApps.achievementMgr,1,{t_remained:5000});
 		if(!this._apps) this._apps={};
 		this._apps.achievement=1;
@@ -4896,6 +4959,23 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	//debug.log2('Game_Event.prototype.initialize');
 	this.imgModded=true;
 	this.refresh=none;
+	
+	// init $dataMap // $dataMap must exist because 'f.ori' calls 'this.event()'
+	let mapd=$dataMap;
+	// - $dataMap.coordTbl
+	if(!mapd.coordTbl){
+		let tbl=mapd.coordTbl=[]; tbl.length=mapd.height*mapd.width;
+		for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue();
+		
+		// _Nt
+		tbl=mapd.coordTblNt=[];  tbl.length=mapd.coordTbl.length;
+		for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue();
+		
+		// _NtP1
+		tbl=mapd.coordTblNtP1=[];  tbl.length=mapd.coordTbl.length;
+		for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue();
+	}
+	
 	let rtv=f.ori.apply(this,arguments);
 	
 	let evtd=this.event();
@@ -4904,7 +4984,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	
 	let x=this._x,y=this._y; // will be used later
 	// correcting old-format saved files
-	if(0&&0) // not working
+	if(0&&0) // not working on existing savefiles
 	{
 		delete this._y; delete this._x;
 		this.__x=x; this.__y=y;
@@ -4916,16 +4996,21 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 		let tid=this._tileId;
 		delete this._tileId;
 		this._tid=tid;
+		
+		let thru=this._through;
+		delete this._through;
+		this._thru=thru;
 	}
 	
-	// init $dataMap // $dataMap must exist because 'f.ori' calls 'this.event()'
-	let mapd=$dataMap;
-	// - $dataMap.coordTbl
-	if(!mapd.coordTbl){
-		let tbl=mapd.coordTbl=[]; tbl.length=mapd.height*mapd.width;
-		for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue();
+	// put coordTbl
+	if($gameMap.isValid(x,y)){
+		let idx=mapd.width*y+x;
+		mapd.coordTbl[idx].push(this);
+		if(!this._through){
+			mapd.coordTblNt[idx].push(this);
+			if(this._priorityType===1) mapd.coordTblNtP1[idx].push(this);
+		}
 	}
-	if($gameMap.isValid(x,y)) mapd.coordTbl[x+y*mapd.width].push(this);
 	// - $dataMap.strtEvts
 	if(!mapd.strtEvts) mapd.strtEvts=new Queue();
 	this._addedCnt_strtEvts=0;
@@ -4937,13 +5022,23 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._rmFromCoordTbl=function(){
+	if(this._rmFromCoordTbl_1()!==undefined){ // valid add
+		if(!this._through){
+			this._rmFromCoordTbl_1($dataMap.coordTblNt);
+			if(this._priorityType===1) this._rmFromCoordTbl_1($dataMap.coordTblNtP1);
+		}
+	}
+};
+$aaaa$.prototype._rmFromCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._rmFromCoordTbl');
 	//if(debug.islog2()){
 	//	console.log('',this.x,this.y);
 	//	if($dataMap.coordTbl) console.log(deepcopy($dataMap.coordTbl));
 	//}
-	let mapd=$dataMap,tbl;
-	if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.__x+this.__y*mapd.width])) return;
+	let mapd=$dataMap;
+	// x,y may be out of bound
+	if(tbl){ if(!(tbl=tbl[this.__x+this.__y*mapd.width])) return; }
+	else if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.__x+this.__y*mapd.width])) return;
 	let idx=tbl.indexOf(this); // .coordTbl
 	//debug.log(idx);
 	if(idx===-1) return;
@@ -4956,15 +5051,25 @@ $aaaa$.prototype._rmFromCoordTbl=function(){
 	}
 };
 $aaaa$.prototype._addToCoordTbl=function(){
+	if(this._addToCoordTbl_1()!==undefined){ // valid remove
+		if(!this._through){
+			this._addToCoordTbl_1($dataMap.coordTblNt);
+			if(this._priorityType===1) this._addToCoordTbl_1($dataMap.coordTblNtP1);
+		}
+	}
+};
+$aaaa$.prototype._addToCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._addToCoordTbl');
 	if(this.refresh===none) return; // constructing
 	//if(debug.islog2()){
 	//	console.log('',this.x,this.y);
 	//	if($dataMap.coordTbl) console.log(deepcopy($dataMap.coordTbl));
 	//}
-	let mapd=$dataMap,tbl;
-	if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.__x+this.__y*mapd.width])) return;
-	return tbl.push(this);
+	let mapd=$dataMap;
+	// x,y may be out of bound
+	if(tbl){ if(!(tbl=tbl[this.__x+this.__y*mapd.width])) return; }
+	else if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.__x+this.__y*mapd.width])) return;
+	return 1+tbl.push(this);
 };
 Object.defineProperties($aaaa$.prototype,{
 	_x:{ get:function(){return this.__x;},set:function(rhs){
@@ -4976,6 +5081,29 @@ Object.defineProperties($aaaa$.prototype,{
 		this._rmFromCoordTbl();
 		this.__y=rhs;
 		this._addToCoordTbl();
+	},configurable:false},
+	_through:{ get:function(){return this._thru;},set:function(rhs){
+		let tblNt=$dataMap.coordTblNt;
+		if(tblNt && this._thru^rhs){
+			if(rhs){
+				if(this._rmFromCoordTbl_1(tblNt) && this._priorityType===1){
+					this._rmFromCoordTbl_1($dataMap.coordTblNtP1);
+				}
+			}else{
+				if(this._addToCoordTbl_1(tblNt) && this._priorityType===1){
+					this._addToCoordTbl_1($dataMap.coordTblNtP1);
+				}
+			}
+		}
+		this._thru=rhs;
+	},configurable:false},
+	_priorityType:{ get:function(){return this._pri},set:function(rhs){
+		let tblNtP1=$dataMap.coordTblNtP1;
+		if(tblNtP1 && !this._through && this._pri!==rhs && (this._pri===1 || rhs===1)){
+			if(rhs!==1) this._rmFromCoordTbl_1(tblNtP1);
+			else this._addToCoordTbl_1(tblNtP1);
+		}
+		this._pri=rhs;
 	},configurable:false},
 	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
 		if(this._chrIdx!==rhs) this.imgModded=true;
@@ -5291,7 +5419,7 @@ $aaaa$.prototype.setFace=function(idx){
 			(Window_Base._faceWidth-w)>>1,(Window_Base._faceHeight-h)>>1,w,h,
 		],"data");
 	}else if(this._characterName){
-		if(idx===undef) idx=this._characterIndex;
+		if(idx===undefined) idx=this._characterIndex;
 		$gameMessage.setFaceImage(this._characterName,idx);
 	}
 };
@@ -5364,6 +5492,18 @@ $aaaa$.prototype.setValue=function f(switchId,value,noUpdate){
 		if(!noUpdate) this.onChange();
 	}
 };
+
+// - vars
+$aaaa$=Game_Variables;
+$rrrr$=$aaaa$.prototype.setValue;
+$dddd$=$aaaa$.prototype.setValue=function f(varId,val){
+	let strt=window['/tmp/'].gameVarTrimStrt^=0;
+	if(strt<varId){
+		for(;strt!==varId;++strt) this._data[strt]^=0;
+		window['/tmp/'].gameVarTrimStrt=varId;
+	}
+	return f.ori.call(this,varId,val);
+}; $dddd$.ori=$rrrr$;
 
 // - item
 $aaaa$=Game_Item;
@@ -5637,8 +5777,8 @@ $dddd$=$aaaa$.prototype.onEndOfText=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.startMessage;
 $dddd$=$aaaa$.prototype.startMessage=function f(){
-	if($gameMessage._evtName!==undef) this._evtName=$gameMessage._evtName;
-	if($gameMessage._nameField!==undef){
+	if($gameMessage._evtName!==undefined) this._evtName=$gameMessage._evtName;
+	if($gameMessage._nameField!==undefined){
 		let w=this.textWidth($gameMessage._nameField);
 		w+=((this.standardPadding()+this.textPadding())<<1)+1;
 		if(w<Window_Base._faceWidth) w=Window_Base._faceWidth;
@@ -5648,8 +5788,8 @@ $dddd$=$aaaa$.prototype.startMessage=function f(){
 		else{
 			this._nameField=new Window_CustomTextBoard(arg0,{noScroll:1,raw:1,y:-80,width:w,height:80});
 			this._nameField.alpha=0;
-			this._nameField.downArrowVisible=false;
 		}
+		this._nameField.downArrowVisible=false;
 		this._nameField.enabled=1;
 		this.addChild(this._nameField);
 			// this._nameField will be 'removeChild' from 'this' @terminateMessage
@@ -5670,7 +5810,7 @@ $dddd$=$aaaa$.prototype.updateClose=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.terminateMessage;
 $dddd$=$aaaa$.prototype.terminateMessage=function f(){
-	if(this._nameField!==undef){
+	if(this._nameField!==undefined){
 		//this.removeChild(this._nameField);
 		//this._nameField.contents.clear();
 		this._nameField.enabled=0;

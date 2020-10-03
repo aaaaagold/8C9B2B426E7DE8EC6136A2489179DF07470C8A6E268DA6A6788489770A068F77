@@ -5582,14 +5582,6 @@ Game_Map.prototype.tileId = function(x, y, z) {
     return $dataMap.data[(z * height + y) * width + x] || 0;
 };
 
-Game_Map.prototype.layeredTiles = function(x, y) {
-    var tiles = [];
-    for (var i = 0; i < 4; i++) {
-        tiles.push(this.tileId(x, y, 3 - i));
-    }
-    return tiles;
-};
-
 Game_Map.prototype.autotileType = function(x, y, z) {
     var tileId = this.tileId(x, y, z);
     return tileId >= 2048 ? Math.floor((tileId - 2048) / 48) : -1;
