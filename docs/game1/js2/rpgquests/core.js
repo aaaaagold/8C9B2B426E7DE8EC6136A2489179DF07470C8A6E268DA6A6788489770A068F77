@@ -13,7 +13,7 @@ $qqqq$=list.core_notifymeeting={
 	limit:1,
 	txt:[
 		{txt:"通知在村外遊蕩的村民們要開會了"},"\n\n",
-		{txt:"你必須完成此任務我才會知道",sizeRate:0.75},
+		{txt:"你必須\\key'\"完成\"'此任務我才會知道",sizeRate:0.75},
 	],
 	info:{
 		type:"evaltrue",
