@@ -35,11 +35,11 @@ $qqqq$=list.core_collectwoods={
 	title:"蒐集大木材",
 	limit:1,
 	txt:[
-		{txt:"在道具欄中使用"+color.item+"鋸子"+color.default+"後對著樹按確認鍵可以將樹砍倒。並可獲得依樹種，數量不等的"+color.item+"大木材"+color.default+"。"},
+		{txt:"在道具欄中使用\\item[79]後對著樹按確認鍵可以將樹砍倒。並可獲得依樹種，數量不等的\\item[61]。"},
 		"\n",{txt:"生火用需100個；製作物品用需200個；修補房屋用需100個"},
-		"\n",{txt:"與村民一同蒐集"+color.item+"大木材"+color.default+"400個"},
+		"\n",{txt:"與村民一同蒐集\\item[61]400個"},
 		"\n",{txt:"附註：請留下至少1棵樹，以利未來可以持續利用森林",sizeRate:0.75},
-		"\n\n",{txt:"蒐集後，或完成任務後，回到"+color.keyword+"管理之家"+color.default+"找我對話就行了"},
+		"\n\n",{txt:"蒐集後，或完成任務後，回到\\key'\"管理之家\"'找我對話就行了"},
 	],
 	info:{
 		type:"evaltrue",

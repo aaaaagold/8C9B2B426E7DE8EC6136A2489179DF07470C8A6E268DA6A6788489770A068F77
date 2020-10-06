@@ -655,22 +655,49 @@ let setShorthand = (w)=>{
 	w.Heap=function(){ this.initialize.apply(this,arguments); };
 	w.Heap.prototype.constructor=w.Heap;
 	w.Heap.prototype.initialize=function(func_cmp3,arr,inPlace){
-		let lt=func_cmp3;
-		this._lt=(lt&&lt.constructor===Function)?(a,b)=>lt(a,b)<0:((a,b)=>a<b);
+		{
+			let lt=func_cmp3;
+			this._lt=(lt&&lt.constructor===Function)?(a,b)=>lt(a,b)<0:((a,b)=>a<b);
+		}
+		this._searchTbl=new Map();
 		if(arr&&arr.constructor===Array){
 			if(inPlace){
 				arr.push(arr[0]);
-				arr[0]=undef;
+				arr[0]=undefined;
 				this._data=arr;
-			}else this._data=[undef].concat(arr);
+			}else this._data=[undefined].concat(arr);
 			this.makeHeap();
-		}else this._data=[undef];
+		}else this._data=[undefined];
 	};
-	w.Heap.prototype.clear=function(){ this._data.length=1; };
+	w.Heap.prototype.clear=function(){
+		this._data.length=1;
+		this._searchTbl.clear();
+	};
+	w.Heap.prototype.remove=function(ele){
+		// do not use when 'ele' is basic type: undefined,null,Boolean,Number,String
+		let st=this._searchTbl;
+		let idx=st.get(ele);
+		if(idx===undefined){ debugger; return; }
+		st.delete(ele);
+		let arr=this._data;
+		let rtv=arr[idx];
+		arr[idx]=arr.back;
+		st.set(arr[idx],idx);
+		arr.pop();
+		this._sink(idx);
+		return rtv;
+	};
 	Object.defineProperties(w.Heap.prototype,{
 		top: {
 			get:function(){return this._data[1];},
-			set:function(rhs){return this._data[1]=rhs;},
+			set:function(rhs){
+				let arr=this._data,st=this._searchTbl;
+				st.delete(arr[1]);
+				arr[1]=rhs;
+				st.set(arr[1],1);
+				this._sink();
+				return rhs;
+			},
 		configurable: false},
 		length: {
 			get:function(){return this._data.length-1;},
@@ -683,8 +710,11 @@ let setShorthand = (w)=>{
 		while(idx<arr.length){
 			let offset=((idx|1)<arr.length&&lt(arr[idx],arr[idx|1]))^0; // larger
 			if(lt(arr[idx>>1],arr[idx|offset])){ // less than larger one
-				let tmp=arr[idx>>1]; arr[idx>>1]=arr[idx|offset]; arr[idx|offset]=tmp;
-			}
+				let idx1=idx>>1,idx2=idx|offset,st=this._searchTbl;
+				let tmp=arr[idx1]; arr[idx1]=arr[idx2]; arr[idx2]=tmp;
+				st.set(arr[idx1],idx1);
+				st.set(arr[idx2],idx2);
+			}else break;
 			idx|=offset;
 			idx<<=1;
 		}
@@ -695,22 +725,44 @@ let setShorthand = (w)=>{
 		if(arr.length===1) return;
 		let idx=strt||(arr.length-1),lt=this._lt;
 		while(idx!==1 && lt(arr[idx>>1],arr[idx])){
-			let tmp=arr[idx]; arr[idx]=arr[idx>>1]; arr[idx>>1]=tmp;
+			let st=this._searchTbl,idx0=idx;
 			idx>>=1;
+			let tmp=arr[idx]; arr[idx]=arr[idx0]; arr[idx0]=tmp;
+			st.set(arr[idx0],idx0);
+			st.set(arr[idx ],idx );
 		}
 		return idx;
 	};
-	w.Heap.prototype.makeHeap=function(){ for(let x=this._data.length;--x;) this._sink(x); };
+	w.Heap.prototype.makeHeap=function(){
+		let arr=this._data;
+		for(let x=arr.length;--x;) this._sink(x);
+		for(let x=arr.length;--x;) this._searchTbl.set(arr[x],x);
+	};
 	w.Heap.prototype.push=function(rhs){
-		this._data.push(rhs);
+		let arr=this._data;
+		arr.push(rhs);
+		this._searchTbl.set(arr.back,arr.length-1);
 		this._float();
 	};
 	w.Heap.prototype.pop=function(){
 		let arr=this._data;
 		if(arr.length===1) return;
+		let st=this._searchTbl;
+		st.delete(arr[1]);
 		arr[1]=arr.back;
+		st.set(arr[1],1);
 		arr.pop();
 		this._sink();
+	};
+	w.Heap.prototype.toArr=function(){return this._data.slice(1);};
+	w.Heap.prototype.rsrvTop=function(){
+		let arr=this._data;
+		if(arr.length===1) return;
+		let st=this._searchTbl;
+		st.clear();
+		arr.length=2;
+		st.set(arr[1],1);
+		return this.top;
 	};
 	
 	w.TreeNode=function(){ this.initialize.apply(this,arguments); };

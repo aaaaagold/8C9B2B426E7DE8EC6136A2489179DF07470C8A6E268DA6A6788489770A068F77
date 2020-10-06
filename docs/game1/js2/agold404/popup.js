@@ -29,15 +29,24 @@ $dddd$=$aaaa$.prototype.initialize = function f(kargs) {
 	this.min_heap=new Heap(gt); // smallest one may out-of-view
 	return;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.update=function(){
+	let arr=(this._alignV==='top'?this.max_heap:this.min_heap)._data;
+	for(let x=arr.length;--x;) arr[x].byeIfBye();
+	for(let x=1,ct=Date.now();x!==arr.length;++x) arr[x]._update(ct);
+	for(let x=arr.length;--x;) arr[x].byeIfBye(); // reduce mem. use
+};
 $rrrr$=$aaaa$.prototype.removeChild;
 $dddd$=$aaaa$.prototype.removeChild=function f(c){
-	let h=(this._alignV==='bottom')?this.min_heap:this.max_heap;
-	let hidx=h._data.indexOf(c);
-	if(hidx>0){
-		h._data[hidx]=h._data.back;
-		h._data.pop();
-		h._sink(hidx);
-	}
+	let h=(this._alignV==='top')?this.max_heap:this.min_heap;
+	h.remove(c);
+	//	if(0&&0){
+	//let hidx=h._data.indexOf(c);
+	//if(hidx>0){
+	//	h._data[hidx]=h._data.back;
+	//	h._data.pop();
+	//	h._sink(hidx);
+	//}
+	//}
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.add=function(txt,align,kargs){
@@ -57,6 +66,7 @@ $aaaa$.prototype.add=function(txt,align,kargs){
 		default: break;
 		case 'bottom': {
 			// not using max_hexp
+			for(let x=1,arr=this.max_heap._data;x!==arr.length;++x) this.removeChild.ori.call(this,arr[x]);
 			this.max_heap.clear();
 			// max_heap as out-view (not used)
 			// min_heap as in-view
@@ -78,6 +88,7 @@ $aaaa$.prototype.add=function(txt,align,kargs){
 		break;
 		case 'top':
 			// not using min_hexp
+			for(let x=1,arr=this.min_heap._data;x!==arr.length;++x) this.removeChild.ori.call(this,arr[x]);
 			this.min_heap.clear();
 			// max_heap as in-view
 			// min_heap as out-view (not used)

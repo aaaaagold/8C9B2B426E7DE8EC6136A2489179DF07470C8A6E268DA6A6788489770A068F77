@@ -9,6 +9,7 @@ function Scene_CustomMenu2(){
 $aaaa$=Scene_CustomMenu2;
 $aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
+$aaaa$.prototype.createOptionsWindow=none;
 $rrrr$=$aaaa$.prototype.create;
 $dddd$=$aaaa$.prototype.create = function f() {
 	f.ori.call(this);
@@ -48,7 +49,6 @@ $aaaa$.prototype.loadFileById=function(id,noSound){
 		SceneManager.goto(Scene_Map);
 	}else if(!noSound) SoundManager.playBuzzer();
 };
-$aaaa$.prototype.createOptionsWindow=none;
 let Scene_CustomMenu=$aaaa$;
 $dddd$=$rrrr$=$aaaa$=undef;
 
@@ -497,16 +497,17 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 					DataManager.loadGame('callback',0,data);
 					delete DataManager.onlineOk;
 					delete self.ref.fileReader;
-					self.value=''; // will NOT goto line: 'this.files.length===0' above.
 				}catch(e){
 					SoundManager.playBuzzer();
 					$gameMessage.popup($dataCustom.fromLocalSaveLoadingImproper,1);
 				}
+				self.value=''; // will NOT goto line: 'this.files.length===0' above.
 			};
 			this.ref.fileReader=reader;
 			reader.readAsDataURL(this.files[0]);
 		};
 		htmlele.onclick=function(){
+			//this.value=''; // clear previous selection
 			let reader=this.ref.fileReader;
 			console.log("?");
 		};
@@ -984,6 +985,8 @@ $aaaa$.prototype.destructor = function(){
 	debug.log('Window_CustomMenu_main.prototype.destructor');
 	for(let x=0,arr=this._windows;x!==arr.length;++x) if(arr[x].parent) this.removeChild(arr[x]);
 };
+$aaaa$.prototype.makeCommandList=none;
+$aaaa$.prototype.processOk=none;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(x,y,commandLayers,kargs) {
 	// source of commandLayers should not be edited
@@ -1055,7 +1058,6 @@ $aaaa$.prototype.newWindow=function(commandLayers,x,y,kargs){
 	return rtv;
 };
 
-$aaaa$.prototype.processOk=none;
 $rrrr$=$aaaa$.prototype.processCancel;
 $dddd$=$aaaa$.prototype.processCancel=function f(noSound){
 	//debug.log('Window_CustomMenu_main.prototype.processCancel');
@@ -1091,7 +1093,6 @@ $aaaa$.prototype.lastSelItem=function(){
 	arr.push(tmp);
 	return rtv;
 };
-$aaaa$.prototype.makeCommandList=none;
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomMenu_main
 
 
@@ -1378,6 +1379,8 @@ $aaaa$.prototype.destructor=function(){
 	delete this._lastKeyStat;
 	if(!textWidthCache) this._textWidthCache.length=0;
 };
+//$aaaa$.prototype.update=none; // needed
+$aaaa$.prototype.updateArrows=none;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(x,y,w,h) {
 	this._textWidthCache=textWidthCache||[]; this._textWidthCache.length=65536;
@@ -1528,7 +1531,6 @@ $aaaa$.prototype.processWheel=function(){
 	this.redrawtxt();
 };
 
-$aaaa$.prototype.updateArrows=none;
 $aaaa$.prototype._redrawtxt_parseColor=function(txt,strt){
 	let rtv={txt:"",go:0};
 	if(txt[strt^=0]!=="_") return rtv;
@@ -2031,6 +2033,7 @@ $aaaa$=Window_CustomPopupMsg;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.destructor=none;
+$aaaa$.prototype.update=none;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	let self=this;
@@ -2038,28 +2041,45 @@ $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	let updateTimeInterval_ms=kargs['t_updateItvl']||88,remainedTime_ms=kargs['t_remained']||2000;
 	this.txt=txt;
 	this.align=kargs['align']||'left';
-	this.ctr=64+parseInt(remainedTime_ms/updateTimeInterval_ms).clamp(0,inf);
+	//this.ctr=64+parseInt(remainedTime_ms/updateTimeInterval_ms).clamp(0,inf);
 	let w=kargs['width']              ||(Graphics.boxWidth>>1),h=kargs['height']             ||this.fittingHeight(1);
 	let x=kargs['x']===0?0:(kargs['x']|| Graphics.boxWidth-w ),y=kargs['y']===0?0:(kargs['y']||Graphics.boxHeight-h);
 	
 	let rtv=f.ori.call(this,x,y,w,h);
+	// //this.redrawtxt();
+	//this._itvl=setInterval(()=>{ if(self.redrawtxt()===0) clearInterval(self._itvl); },updateTimeInterval_ms);
+	this.endTime=Date.now()+(kargs['t_remained']||2000);
+	this.updateItvl=kargs['t_updateItvl']^0;
+	this.ctr=0x7FFFFFFF;
+	this._lastUpdateTime=0;
 	//this.redrawtxt();
-	this._itvl=setInterval(()=>{ if(self.redrawtxt()===0) clearInterval(self._itvl); },updateTimeInterval_ms);
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype._update=function(t){
+	// called by 'Window_CustomPopupMsgs'
+	if(this.updateItvl==="no") return;
+	if(t-this._lastUpdateTime>=this.updateItvl){
+		if(t>=this.endTime) this.ctr=64;
+		this.redrawtxt();
+		this._lastUpdateTime+=this.updateItvl;
+	}
+};
 $aaaa$.prototype.bye=function(){
 	this.alpha=0;
-	clearInterval(this._itvl);
+	//clearInterval(this._itvl);
 	if(this.parent) this.parent.removeChild(this);
 	return 0;
 };
+$aaaa$.prototype.byeIfBye=function(){
+	if(this.parent===null) return 0;
+	if(this.alpha<0.015625 || 0>=this.y+this.height || this.y>=Graphics.boxHeight){
+		return this.bye();
+	}
+};
 $aaaa$.prototype.redrawtxt=function(forced){
 	// rtv: 0:done_of_work, not going to do it again
-	if(this.parent===null) return 0;
-	if(this.alpha<0.015625 || 0>=this.y+this.height || this.y>=Graphics.boxHeight) return this.bye();
-	if(this.alpha===0) return; // ensurance
-	if(this.ctr<64) this.alpha*=0.875;
-	--this.ctr;
+	//if(this.byeIfBye()===0) return 0; // handled by 'Window_CustomPopupMsgs'
+	if(--this.ctr<64) this.alpha*=0.875;
 	
 	//this.contents.clear(); // will measure text width, later clear
 	
@@ -2094,10 +2114,13 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 	if(this._itvl!==undefined) clearInterval(this._itvl);
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.destructor=function(){ if(this._itvl) clearInterval(this._itvl); };
+//$aaaa$.prototype.destructor=function(){ if(this._itvl) clearInterval(this._itvl); };
+$aaaa$.prototype.update=none;
+$aaaa$.prototype.processHandling=none;
+$aaaa$.prototype.processTouch=none;
+$aaaa$.prototype.processKey=none;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(srcObj,srcKey,kargs) {
-	let self=this;
 	kargs=kargs||{};
 	
 	this._obj=srcObj;
@@ -2106,16 +2129,21 @@ $dddd$=$aaaa$.prototype.initialize = function f(srcObj,srcKey,kargs) {
 	this._align=kargs.align||'right';
 	let w=kargs['width']||       127         ,h=kargs['height']||(this.fittingHeight(1));
 	let x=kargs[  'x'  ]||Graphics.boxWidth-w,y=kargs[   'y'  ]||    0              ;
-	let updateItvl=kargs['updateItvl']||40;
 	f.ori.call(this,x,y,w,h);
 	for(let i in kargs) this[i]=kargs[i];
-	self.redrawtxt();
-	if(updateItvl!=="no") this._itvl=setInterval(()=>{ if(self.parent===null){ clearInterval(self._itvl); self._itvl=0; } else self.redrawtxt(); },updateItvl);
-	if(debug.isdebug()) window['????']=this;
+	this.updateItvl^=0;
+	this.redrawtxt();
+	this._lastUpdateTime=Date.now();
+	//if(debug.isdebug()) window['????']=this;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processHandling=none;
-$aaaa$.prototype.processTouch=none;
-$aaaa$.prototype.processKey=none;
+$aaaa$.prototype._update=function(){
+	// called by 'Window_CustomRealtimeMsgs'
+	if(this.updateItvl==="no") return;
+	if(Date.now()-this._lastUpdateTime>=this.updateItvl){
+		this.redrawtxt();
+		this._lastUpdateTime+=this.updateItvl;
+	}
+};
 
 $aaaa$.prototype.check=function(last,curr){ return last===curr; };
 $aaaa$.prototype.getstr=function(){
@@ -2154,6 +2182,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(kargs){
 	this.x=this.y=this.w=0;
 	this._windows=[];
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.update=function(){ for(let x=0,arr=this._windows;x!==arr.length;++x) arr[x]._update(); };
 $aaaa$.prototype.add=function(obj,key_or_getter,kargs){
 	kargs=kargs||{};
 	if(kargs.x===undefined) kargs.x=23;
@@ -2167,7 +2196,6 @@ $aaaa$.prototype.add=function(obj,key_or_getter,kargs){
 	this.addChild(child);
 	return child;
 };
-$aaaa$.prototype.redrawtxt=function(){ for(let x=0,arr=this._windows;x!==arr.length;++x) arr[x].redrawtxt(); };
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsgs
 
 

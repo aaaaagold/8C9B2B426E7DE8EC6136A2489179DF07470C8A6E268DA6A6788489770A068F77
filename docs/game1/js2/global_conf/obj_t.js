@@ -3102,13 +3102,14 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	//return debug.isdebug();
 	return false; // No effect ALL
 };
-$aaaa$.prototype.layeredTiles=function(x,y){ // rewrite for efficiency
+$dddd$=$aaaa$.prototype.layeredTiles=function f(x,y){ // rewrite for efficiency
 	//let idx=this.width()*y+x;
 	//let rtv=$dataMap.data3d[idx];
 	//if(rtv.length!==4) DataManager.resetData3d(idx); // for future use: reduce mem usage
 	//return rtv;
-	return $dataMap.data3d[$dataMap.width*y+x];
+	return $dataMap.data3d[$dataMap.width*y+x]||f._dummy;
 };
+$dddd$._dummy=[];
 $aaaa$.prototype.allTiles=function(x,y){ // rewrite for efficiency
 	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
 	// discard tileEvents // 'this.tileEvents' is mostly empty
@@ -5959,25 +5960,25 @@ $aaaa$=Window_TitleCommand;
 $aaaa$.prototype.makeCommandList = function() {
 	this.addCommand(TextManager.newGame,   'newGame');
 	this.addCommand(TextManager.continue_, 'continue', this.isContinueEnabled());
-	if(this.addCustomCommands) this.addCustomCommands();
 	this.addCommand(TextManager.options,   'options');
+	if(this.addCustomCommands) this.addCustomCommands();
 };
 $aaaa$.prototype.addCustomCommands=function(){
+	this.addCommand($dataCustom.usrSwitch,   'usrSwitch_global');
 	this.addCommand($dataCustom.fromLocalSave,   'loadLocalSave');
 	this.addCommand($dataCustom.fromOnlineSave,   'loadOnlineSave');
 	//this.addCommand(TextManager.testObjKey+":D",   'customTitleCmd'); // reserve this line for deleting 'TextManager.testObjKey' in the '.json' file
-	this.addCommand($dataCustom.usrSwitch,   'usrSwitch_global');
 };
 
 // - menuCommand
 $aaaa$=Window_MenuCommand;
+delete $aaaa$.prototype.windowWidth; // use 'Window_Command.prototype.windowWidth'
 $aaaa$.prototype.initialize = function(x, y ,kargs) {
 	Window_Command.prototype.initialize.call(this, x, y ,kargs);
 	this.selectLast();
 };
 $aaaa$.prototype.addCustomCommands=function(){
 	this.addCommand("Apps",'apps');
-	this.addCommand($dataCustom.usrSwitch,'usrSwitch');
 };
 $rrrr$=$aaaa$.prototype.addSaveCommand;
 $dddd$=$aaaa$.prototype.addSaveCommand=function f(){ // overwrite for efficiency
@@ -6000,7 +6001,9 @@ $aaaa$.prototype.makeCommandList = function() {
 	this.addMainCommands();
 	this.addFormationCommand();
 	this.addCustomCommands();
+	this.addCommand("-".repeat(64),'',0);
 	this.addOptionsCommand();
+	this.addCommand($dataCustom.usrSwitch,'usrSwitch');
 	this.addSaveCommand();
 	this.addGameEndCommand();
 };
