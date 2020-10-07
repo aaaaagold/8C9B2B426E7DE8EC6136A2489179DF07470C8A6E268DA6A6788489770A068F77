@@ -5144,6 +5144,13 @@ $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
 	if(this.canUpdate()) return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.updateParallel;
+$dddd$=$aaaa$.prototype.updateParallel=function f(){
+	if(this._trigger===4){ // parallel
+		if(!this._interpreter) this._interpreter=new Game_Interpreter();
+		return f.ori.call(this);
+	}else return;
+};
 $aaaa$.prototype.canUpdate=function(){
 	return !$gameMap.zaWarudo()||this.preventZaWarudo();
 };
