@@ -1174,45 +1174,67 @@ let setShorthand = (w)=>{
 		if(!this._keyOk_arr_(rhs)) rhs=[rhs];
 		return this._keyEqu(lhs,rhs);
 	};
-	w.AVLTree.prototype.forEach=function(callback){
+	w.AVLTree.prototype.forEach=function(callback,noNewArr){
 		// callback(data,key,tree,node);
-		let cnt=0,arr=[]; arr.length=this.length;
-		let stack=[];
-		for(let curr=this._root;curr;curr=curr.meta.L) stack.push(curr);
-		while(stack.length){
-			let tmp=stack.pop();
-			arr[cnt++]=tmp;
-			//callback(tmp.data,tmp.key,this);
-			let meta=tmp.meta;
-			for(let curr=meta.R;curr;curr=curr.meta.L) stack.push(curr);
-		}
-		if(callback&&callback.constructor===Function){
-			for(let x=0;x!==arr.length;++x){
-				let tmp=arr[x];
+		if(noNewArr){
+			let stack=[];
+			for(let curr=this._root;curr;curr=curr.meta.L) stack.push(curr);
+			while(stack.length){
+				let tmp=stack.pop();
 				callback(tmp.data,tmp.key,this,tmp);
+				let meta=tmp.meta;
+				for(let curr=meta.R;curr;curr=curr.meta.L) stack.push(curr);
 			}
+		}else{
+			let cnt=0,arr=[]; arr.length=this.length;
+			let stack=[];
+			for(let curr=this._root;curr;curr=curr.meta.L) stack.push(curr);
+			while(stack.length){
+				let tmp=stack.pop();
+				arr[cnt++]=tmp;
+				let meta=tmp.meta;
+				for(let curr=meta.R;curr;curr=curr.meta.L) stack.push(curr);
+			}
+			if(callback&&callback.constructor===Function){
+				for(let x=0;x!==arr.length;++x){
+					let tmp=arr[x];
+					callback(tmp.data,tmp.key,this,tmp);
+				}
+			}
+			return arr;
 		}
-		return arr;
 	};
-	w.AVLTree.prototype.forEach_r=function(callback){
+	w.AVLTree.prototype.forEach_r=function(callback,noNewArr){
 		// callback(data,key,tree,node);
-		let cnt=0,arr=[]; arr.length=this.length;
-		let stack=[];
-		for(let curr=this._root;curr;curr=curr.meta.R) stack.push(curr);
-		while(stack.length){
-			let tmp=stack.pop();
-			arr[cnt++]=tmp;
-			//callback(tmp.data,tmp.key,this);
-			let meta=tmp.meta;
-			for(let curr=meta.L;curr;curr=curr.meta.R) stack.push(curr);
-		}
-		if(callback&&callback.constructor===Function){
-			for(let x=0;x!==arr.length;++x){
-				let tmp=arr[x];
+		if(noNewArr){
+			let cnt=0;
+			let stack=[];
+			for(let curr=this._root;curr;curr=curr.meta.R) stack.push(curr);
+			while(stack.length){
+				let tmp=stack.pop();
 				callback(tmp.data,tmp.key,this,tmp);
+				let meta=tmp.meta;
+				for(let curr=meta.L;curr;curr=curr.meta.R) stack.push(curr);
 			}
+		}else{
+			let cnt=0,arr=[]; arr.length=this.length;
+			let stack=[];
+			for(let curr=this._root;curr;curr=curr.meta.R) stack.push(curr);
+			while(stack.length){
+				let tmp=stack.pop();
+				arr[cnt++]=tmp;
+				let meta=tmp.meta;
+				for(let curr=meta.L;curr;curr=curr.meta.R) stack.push(curr);
+			}
+			if(callback&&callback.constructor===Function){
+				for(let x=0;x!==arr.length;++x){
+					let tmp=arr[x];
+					callback(tmp.data,tmp.key,this,tmp);
+				}
+			}
+			return arr;
 		}
-		return arr;
+		
 	};
 	w.AVLTree.prototype.lower_bound=function(key){
 		let rtv=new this.constructor.it;

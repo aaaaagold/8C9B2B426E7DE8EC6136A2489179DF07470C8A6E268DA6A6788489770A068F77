@@ -4036,47 +4036,7 @@ Sprite.prototype._onBitmapLoad = function(bitmapLoaded) {
  * @method _refresh
  * @private
  */
-Sprite.prototype._refresh = function() {
-    var frameX = Math.floor(this._frame.x);
-    var frameY = Math.floor(this._frame.y);
-    var frameW = Math.floor(this._frame.width);
-    var frameH = Math.floor(this._frame.height);
-    var bitmapW = this._bitmap ? this._bitmap.width : 0;
-    var bitmapH = this._bitmap ? this._bitmap.height : 0;
-    var realX = frameX.clamp(0, bitmapW);
-    var realY = frameY.clamp(0, bitmapH);
-    var realW = (frameW - realX + frameX).clamp(0, bitmapW - realX);
-    var realH = (frameH - realY + frameY).clamp(0, bitmapH - realY);
-
-    this._realFrame.x = realX;
-    this._realFrame.y = realY;
-    this._realFrame.width = realW;
-    this._realFrame.height = realH;
-    this.pivot.x = frameX - realX;
-    this.pivot.y = frameY - realY;
-
-    if (realW > 0 && realH > 0) {
-        if (this._needsTint()) {
-            this._createTinter(realW, realH);
-            this._executeTint(realX, realY, realW, realH);
-            this._tintTexture.update();
-            this.texture.baseTexture = this._tintTexture;
-            this.texture.frame = new Rectangle(0, 0, realW, realH);
-        } else {
-            if (this._bitmap) {
-                this.texture.baseTexture = this._bitmap.baseTexture;
-            }
-            this.texture.frame = this._realFrame;
-        }
-    } else if (this._bitmap) {
-        this.texture.frame = Rectangle.emptyRectangle;
-    } else {
-        this.texture.baseTexture.width = Math.max(this.texture.baseTexture.width, this._frame.x + this._frame.width);
-        this.texture.baseTexture.height = Math.max(this.texture.baseTexture.height, this._frame.y + this._frame.height);
-        this.texture.frame = this._frame;
-    }
-    this.texture._updateID++;
-};
+Sprite.prototype._refresh;
 
 /**
  * @method _isInBitmapRect

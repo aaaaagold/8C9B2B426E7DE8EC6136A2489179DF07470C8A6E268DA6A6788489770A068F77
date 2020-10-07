@@ -216,8 +216,8 @@ $rrrr$=$aaaa$.initialize;
 $dddd$=$aaaa$.initialize=function f(w,h,type){
 	f.ori.call(this,w,h,type);
 	this._pad=Math.max(Game_Map.prototype.tileWidth(),Game_Map.prototype.tileHeight())<<1;
-	this._boxWidth_pad2=this._boxWidth+(this._pad<<1);
-	this._boxHeight_pad2=this._boxHeight+(this._pad<<1);
+	this._boxWidth_pad3=(this._boxWidth_pad2=this._boxWidth+(this._pad<<1))+this._pad;
+	this._boxHeight_pad3=(this._boxHeight_pad2=this._boxHeight+(this._pad<<1))+this._pad;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$._onKeyDown;
 $dddd$=$aaaa$._onKeyDown=function f(){
@@ -270,22 +270,21 @@ $dddd$=$aaaa$.isFontLoaded=function f(name){
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.render=function(stage){
-	this._skipCount^=0; this._skipCount*=0<this._skipCount;
+	if(0<this._skipCount) this._skipCount^=0;
+	else this._skipCount&=0;
 	if(this._skipCount === 0){
-		let startTime = Date.now();
+		let t0 = Date.now();
 		if(stage){
 			this._renderer.render(stage);
 			if (this._renderer.gl && this._renderer.gl.flush) this._renderer.gl.flush();
 		}
-		let endTime = Date.now();
-		let elapsed = endTime - startTime;
-		this._skipCount = Math.min(~~(elapsed / 15), this._maxSkip);
+		this._skipCount = Math.min((Date.now()-t0)>>4, this._maxSkip);
 		this._rendered = true;
 	} else {
-		this._skipCount--;
+		--this._skipCount;
 		this._rendered = false;
 	}
-	this.frameCount++;
+	++this.frameCount;
 };
 $aaaa$._preCalScreenTileCoord=function(){
 	// pre-cal. _screenTileX,_screenTileY
@@ -564,8 +563,7 @@ $dddd$=$aaaa$.prototype.update=function(){ // overwrite, forEach is slowwwwwwwww
 		child && child.update && child.update();
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype._refresh;
-$dddd$=$aaaa$.prototype._refresh=function(){
+$aaaa$.prototype._refresh=function(){
 	//debug.log2("Sprite.prototype._refresh");
 	let frameX = ~~this._frame.x;
 	let frameY = ~~this._frame.y;
@@ -603,7 +601,7 @@ $dddd$=$aaaa$.prototype._refresh=function(){
 		this.texture.frame = this._frame;
 	}
 	this.texture._updateID++;
-}; $dddd$.ori=$rrrr$;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Tilemap
@@ -615,11 +613,10 @@ $aaaa$.prototype.refresh=function(){
 	}
 	this._lastTiles.length=0;
 };
-$aaaa$.prototype.usetree=none;
-$aaaa$.prototype.rmc_tree=function(key){
+$aaaa$.prototype.usetree=none; // prepare
+$aaaa$.prototype.rmc_tree=function(key){ // prepare
 };
-$aaaa$.prototype.addc_tree=function(key,data){
-	data._lastKey=key;
+$aaaa$.prototype.addc_tree=function(key,data){ // prepare
 };
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
@@ -657,7 +654,7 @@ $aaaa$.prototype._sortChildren=none;
 $aaaa$.prototype.usetree=function(){ this.children=new AVLTree(); };
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
-	//debug.log("Tilemap.prototype.initialize");
+	//debug.log("Tilemap.prototype.initialize"); // also ShaderTilemap;
 	PIXI.Container.call(this);
 	this.usetree(); // tilemap refreshed at the end of 'initialize'
 	
@@ -713,6 +710,9 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._tileCols=0^Math.ceil(this._width/this._tileWidth)+1;
 	this._tileRows=0^Math.ceil(this._height/this._tileHeight)+1;
 	
+	// fast search
+	this._tileId2setNumber=[]; this._tileId2setNumber.length=4096;
+	
 	this._createLayers();
 	this.refresh(); // ShaderTilemap access children
 }; $dddd$.ori=$rrrr$;
@@ -754,7 +754,7 @@ $dddd$=$aaaa$.prototype.removeChild=function f(c){
 	c.emit('removed', this);
 	return c;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateTransform_tail=function(){
+$dddd$=$aaaa$.prototype.updateTransform_tail=function f(){
 	this._boundsID++;
 	
 	this.transform.updateTransform(this.parent.transform);
@@ -762,8 +762,9 @@ $aaaa$.prototype.updateTransform_tail=function(){
 	// TODO: check render flags, how to process stuff here
 	this.worldAlpha = this.alpha * this.parent.worldAlpha;
 	
-	return this.children.forEach(c=>c.visible&&c.updateTransform());
+	return this.children.forEach(f.forEach);
 };
+$dddd$.forEach=c=>c.visible&&c.updateTransform();
 $aaaa$.prototype.updateTransform=function(forced){
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
 	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
@@ -837,7 +838,7 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	}
 	
 	let lastLowerTiles = this._readLastTiles(0, lx, ly);
-	if(!lowerTiles.equals(lastLowerTiles) || (Tilemap.isTileA1(tileId0) && this._frameUpdated)){
+	if(!lowerTiles.equals(lastLowerTiles) || (Tilemap.tileAn[tileId0]===1 && this._frameUpdated)){
 		this._lowerBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
 		for(let i=0;i!==lowerTiles.length;++i){
 			let lowerTileId = lowerTiles[i];
@@ -860,23 +861,13 @@ $aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
 };
 $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawNormalTile');
-	let setNumber = 0;
-	
-	if(Tilemap.isTileA5(tileId)){
-		setNumber = 4;
-	}else{
-		setNumber = 5 + (tileId>>8);
-	}
-	
 	let w = this._tileWidth;
 	let h = this._tileHeight;
-	let sx = ( ((tileId>>4)&8) + (tileId&7) ) * w;
-	let sy = ((tileId>>3)&15) * h;
-	
-	let source = this.bitmaps[setNumber];
-	if(source){
-		bitmap.bltImage(source, sx, sy, w, h, dx, dy, w, h);
-	}
+	//let sx = ( ((tileId>>4)&8)+(tileId&7) )*w;
+	//let sy = ((tileId>>3)&15)*h;
+	//let setNumber = Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8));
+	let source = this.bitmaps[ Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8)) ];
+	if(source) bitmap.bltImage(source, ( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, w, h, dx, dy, w, h);
 };
 $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawAutotile');
@@ -896,7 +887,9 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	f.by = 0;
 	f.isTable = false;
 	
-	let setNumber=0; for(let arr=f.tiletbl;setNumber!==arr.length;++setNumber) if(tileId<arr[setNumber]) break;
+	//let setNumber=this._tileId2setNumber[tileId];
+	//if(setNumber===undefined) setNumber=this._tileId2setNumber[tileId]=f.toAn(tileId);
+	let setNumber=Tilemap.tileAn[tileId]^0;
 	f.an[setNumber]();
 	setNumber-=setNumber!==0;
 	
@@ -927,6 +920,18 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 };
 $dddd$.tbl=[0,1,2,1];
 $dddd$.tiletbl=[Tilemap.TILE_ID_A1,Tilemap.TILE_ID_A2,Tilemap.TILE_ID_A3,Tilemap.TILE_ID_A4,Tilemap.TILE_ID_MAX,inf];
+$dddd$.toAn=function(tileId){
+	let rtv=0;
+	for(let arr=this.tiletbl;rtv!==arr.length;++rtv) if(tileId<arr[rtv]) break;
+	return rtv;
+};
+// Tilemap.tileAn=[];
+{
+	let arr=$aaaa$.tileAn=[]; arr.length=Tilemap.TILE_ID_MAX;
+	for(let x=0;x!==Tilemap.TILE_ID_A5;++x) arr[x]=0;
+	for(let x=Tilemap.TILE_ID_A5;x!==Tilemap.TILE_ID_A1;++x) arr[x]=5;
+	for(let x=Tilemap.TILE_ID_A1;x!==arr.length;++x) arr[x]=$dddd$.toAn(x);
+}
 $dddd$.an=[ // functions here, 'this' === $dddd$
 	none,
 	function(){ // A1
@@ -966,7 +971,7 @@ $dddd$.an=[ // functions here, 'this' === $dddd$
 ];
 $aaaa$.prototype._drawTableEdge=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawTableEdge');
-	if (Tilemap.isTileA2(tileId)) {
+	if (Tilemap.tileAn[tileId]===2) {
 		let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
 		let kind = Tilemap.getAutotileKind(tileId);
 		let shape = Tilemap.getAutotileShape(tileId);
@@ -1016,11 +1021,13 @@ $dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
 	//if(this._mask) console.log("?");
 	//this._renderCanvas(renderer); // empty function
 	f.forEach.renderer=renderer;
-	this.children.forEach(f.forEach); // do not render if a child is 'Sprite_Character' and out of screen
+	// do not render if a child is: 'Sprite_Character' and out of screen
+	//this.children.forEach(f.forEach);
+	this.children.forEach(f.forEach,true); // faster
 	//if(this._mask) renderer.maskManager.popMask(renderer);
 };
 $dddd$.forEach=function f(c){
-	if(c.constructor!==Sprite_Character || (parseInt((c.x+Graphics._pad)/Graphics._boxWidth_pad2+1)===1&&parseInt((c.y+Graphics._pad)/Graphics._boxHeight_pad2+1)===1)) return c.renderCanvas(f.renderer);
+	if(c.constructor!==Sprite_Character || c.isInView()) return c.renderCanvas(f.renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -1036,7 +1043,7 @@ $aaaa$.prototype.renderCanvas=function(renderer){
 	this._hackRenderer(renderer);
 	Tilemap.prototype.renderCanvas.call(this,renderer);
 };
-$aaaa$.prototype.renderWebGL=function(renderer) {
+$dddd$=$aaaa$.prototype.renderWebGL=function f(renderer) {
 	this._hackRenderer(renderer);
 	//PIXI.Container.prototype.renderWebGL.call(this, renderer);
 	// if the object is not visible or the alpha is 0 then no need to render this element
@@ -1046,8 +1053,12 @@ $aaaa$.prototype.renderWebGL=function(renderer) {
 	else {
 		this._renderWebGL(renderer);
 		// simple render children!
-		return this.children.forEach(c=>c.renderWebGL(renderer));
+		f.forEach.renderer=renderer;
+		return this.children.forEach(f.forEach,true);
 	}
+};
+$dddd$.forEach=function f(c){
+	c.renderWebGL(f.renderer);
 };
 $aaaa$.prototype.updateTransform=function() {
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
@@ -1119,20 +1130,16 @@ $aaaa$.prototype._paintTiles = function(startX, startY, x, y) {
 };
 $aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawNormalTile');
-	let setNumber = 0;
-	
-	if (Tilemap.isTileA5(tileId)) {
-		setNumber = 4;
-	} else {
-		setNumber = 5 + (tileId>>8);
-	}
 	
 	let w = this._tileWidth;
 	let h = this._tileHeight;
-	let sx = ( ((tileId>>4)&8) + (tileId&7)) * w;
-	let sy = ((tileId>>3)&15) * h;
-
-	layer.addRect(setNumber, sx, sy, dx, dy, w, h);
+	//let sx = ( ((tileId>>4)&8)+(tileId&7) )*w;
+	//let sy = ((tileId>>3)&15)*h;
+	//let setNumber=Tilemap.isTileA5(tileId)?4:( 5+(tileId>>8) );
+	layer.addRect( Tilemap.tileAn[tileId]===5?4:( 5+(tileId>>8) ), 
+		( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, 
+		dx, dy, w, h
+	);
 };
 $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 	//debug.log('ShaderTilemap.prototype._drawAutotile');
@@ -1203,7 +1210,7 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 };
 $aaaa$.prototype._drawTableEdge=function(layer, tileId, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawTableEdge');
-	if (Tilemap.isTileA2(tileId)) {
+	if (Tilemap.tileAn[tileId]===2) {
 		let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
 		let kind = Tilemap.getAutotileKind(tileId);
 		let shape = Tilemap.getAutotileShape(tileId);
@@ -1384,6 +1391,9 @@ $aaaa$.prototype.updateAnimationSprites = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
+$aaaa$.prototype.isInView=function(){
+	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
+};
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(forced) return f.ori.call(this);
@@ -1394,7 +1404,7 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 		if(c._erased){
 			if(this.parent) this.parent.removeChild(this);
 			return;
-		}else if(!(parseInt((this.x+Graphics._pad)/Graphics._boxWidth_pad2+1)===1&&parseInt((this.y+Graphics._pad)/Graphics._boxHeight_pad2+1)===1)){
+		}else if(this.isInView()===false){
 			return this.updatePosition(); // give up update if too far
 		}
 	}
@@ -1467,6 +1477,7 @@ $aaaa$.prototype.characterPatternY=function(){ // overwrite: ori use '/' , '%'
 	return (this._character.direction()>>1)-1;
 };
 $aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
+	// fast enough
 	if(this._tileId>0) return $gameMap.tileHeight();
 	else return this.bitmap.height>>(2+!this._isBigCharacter);
 };

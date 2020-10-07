@@ -2115,7 +2115,6 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
 //$aaaa$.prototype.destructor=function(){ if(this._itvl) clearInterval(this._itvl); };
-$aaaa$.prototype.update=none;
 $aaaa$.prototype.processHandling=none;
 $aaaa$.prototype.processTouch=none;
 $aaaa$.prototype.processKey=none;
@@ -2134,10 +2133,14 @@ $dddd$=$aaaa$.prototype.initialize = function f(srcObj,srcKey,kargs) {
 	this.updateItvl^=0;
 	this.redrawtxt();
 	this._lastUpdateTime=Date.now();
+	this._lastVal_min=this;
 	//if(debug.isdebug()) window['????']=this;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.update=function(){
+	if(this.parent.constructor!==Window_CustomRealtimeMsgs) return this._update();
+};
 $aaaa$.prototype._update=function(){
-	// called by 'Window_CustomRealtimeMsgs'
+	// called by 'Window_CustomRealtimeMsgs' which is 'this.parent'
 	if(this.updateItvl==="no") return;
 	if(Date.now()-this._lastUpdateTime>=this.updateItvl){
 		this.redrawtxt();
@@ -2146,17 +2149,22 @@ $aaaa$.prototype._update=function(){
 };
 
 $aaaa$.prototype.check=function(last,curr){ return last===curr; };
-$aaaa$.prototype.getstr=function(){
-	let val=(this._key.constructor===Function)?this._key(this._obj):this._obj[this._key];
+$aaaa$.prototype.getstr_min=function(){
+	return (this._key.constructor===Function)?this._key(this._obj):this._obj[this._key];
+};
+$aaaa$.prototype.getstr=function(val){
+	if(val===undefined) val=this.getstr_min();
 	return (this.head||"")+val.toString()+(this.tail||"");
 };
 $aaaa$.prototype.redrawtxt=function(){
-	let text=this.getstr(); if(this._lastVal===text) return;
+	let txt_min=this.getstr_min();
+	if(this._lastVal_min===txt_min) return;
+	this._lastVal_min=txt_min;
 	
 	this.contents.clear();
 	
 	let strtx=0,strty=0*this.lineHeight();
-	this.drawText(this._lastVal=text,strtx,strty,this.contents.width,this._align);
+	this.drawText(this._lastVal=this.getstr(this._lastVal_min),strtx,strty,this.contents.width,this._align);
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsg
 
