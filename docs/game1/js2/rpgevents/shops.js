@@ -1,5 +1,7 @@
 "use strict";
-
+// used for edit a shop
+// call '*_strt' before open a shopCommand
+// call *_ende after the shopCommand
 (()=>{ // strt
 let list=rpgevts.shop;
 

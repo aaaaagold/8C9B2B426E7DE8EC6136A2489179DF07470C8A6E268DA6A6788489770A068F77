@@ -5347,7 +5347,7 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 		let meta=this.event().meta;
 		let vars=$gameParty.mch().vars;
 		if(vars.tree) vars.tree-=meta.dectree^0;
-		if(meta.erasedBy){
+		if(meta.erasedBy){ // erased by 'by' then start event with id='meta.erasedBy[by]'
 			let next=JSON.parse(meta.erasedBy||"{}"),nevtid=next&&next[by];
 			if(nevtid) $gameMap._events[nevtid].start();
 		}
@@ -5356,7 +5356,7 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 }; $dddd$.ori=$rrrr$;
 // <erasedBy:{"key":evtid}> ; when 'by' provided to 'Game_Event.erase(by)' exists in 'erasedBy', corresponding event will start
 $aaaa$.prototype.parent=function(){
-	return (this.parentId)?$gameMap._event[this.parentId]:this;
+	return (this.parentId)?$gameMap._events[this.parentId]:this;
 };
 $aaaa$.prototype._constructChildren=function(tm,ssStates){
 	//debug.log('Game_Event.prototype._constructChildren');

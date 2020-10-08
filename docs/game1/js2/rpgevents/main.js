@@ -1,6 +1,6 @@
 "use strict";
 
-const rpgevts={func:{},list:{},item:{},shop:{}};
+const rpgevts={func:{},list:{},item:{},shop:{},interact:{}};
 
 (()=>{ // strt
 let arr=[1];
@@ -15,5 +15,6 @@ const add=(src)=>{
 
 add("items");
 add("shops");
+add("interact");
 // end
 })();
