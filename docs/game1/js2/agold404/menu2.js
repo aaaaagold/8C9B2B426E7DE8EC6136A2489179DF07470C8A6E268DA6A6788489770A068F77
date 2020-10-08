@@ -2011,12 +2011,21 @@ $aaaa$.prototype.doOk=function(){
 		this.processCancel(1);
 	}
 };
+$rrrr$=$aaaa$.prototype.update;
+$dddd$=$aaaa$.prototype.update=function f(){
+	let closing=this.isClosing();
+	f.ori.call(this); // return undefined
+	if(closing && !this.isClosing()) this.processCancel(1);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.doCancel=function(noParent){
 	// input text cancel: don't save back to 'this._dstObj[this._dstKey]'
 	debug.log('Window_CustomTextInput.prototype.doCancel');
 		this._choice=2; // cancel
-	if(this.isCancelEnabled()) this.processCancel();
-	else if(this.parent&&this.parent.constructor===Window_CustomMenu_main){
+	if(this.isCancelEnabled()){
+		//this.processCancel();
+		SoundManager.playCancel();
+		this.close(); // prevent triggering keydown after cancel
+	}else if(this.parent&&this.parent.constructor===Window_CustomMenu_main){
 		if(!noParent){ this.parent.processCancel(); } // will call 'this.destructor'
 	}
 };

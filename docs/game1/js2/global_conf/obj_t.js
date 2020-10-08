@@ -4061,8 +4061,8 @@ $aaaa$.prototype.add_finishQuest=function f(qname){
 	return this.add(txt);
 };
 $aaaa$.prototype.addWindow=function(w){
-	this._windowCnt^=0; this._windowCnt+=1;
-	w.setHandler('cancel',()=>{this._windowCnt-=1;w.parent.removeChild(w);});
+	this._windowCnt^=0; ++this._windowCnt;
+	w.setHandler('cancel',()=>{ --this._windowCnt; w.parent.removeChild(w); });
 	SceneManager._scene.addWindow(w);
 };
 $dddd$=$aaaa$.prototype.addGameoverMsg=(txt,kargs)=>{
@@ -5812,13 +5812,35 @@ $dddd$=$aaaa$.prototype.startMessage=function f(){
 		this._nameField.enabled=1;
 		this.addChild(this._nameField);
 			// this._nameField will be 'removeChild' from 'this' @terminateMessage
+		//this._moveTxtInput(); // not yet added to 'SceneManager._scene._windowLayer'
 	}else if(this._nameField) this._nameField.enabled=this._nameField.alpha=0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype._moveTxtInput=function(){ // if 'this._nameField' is presented
+	let wl=SceneManager._scene._windowLayer;
+	if(wl){
+		let txtIn=wl.children.back;
+		if(txtIn&&txtIn.constructor===Window_CustomTextInput){
+			// position of txtIn
+			let newy=this.y+this._nameField.y-txtIn.height;
+			if(newy<txtIn.y) txtIn.y=newy;
+			if(txtIn.y<0){
+				txtIn.y=-txtIn.lineHeight();
+				txtIn.y-=txtIn.standardPadding();
+			}
+			return txtIn;
+		}
+	}
+};
 $rrrr$=$aaaa$.prototype.updateOpen;
 $dddd$=$aaaa$.prototype.updateOpen=function f(){
-	f.ori.call(this);
-	if(this._opening===false && this._nameField && this._nameField.enabled) this._nameField.alpha=1;
+	if(this._opening){
+		f.ori.call(this);
+		if(this._opening===false && this._nameField && this._nameField.enabled){
+			this._nameField.alpha=1;
+			this._moveTxtInput();
+		}
+	}
 	return this._opening;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updateClose;
@@ -6075,7 +6097,33 @@ $aaaa$.prototype.maxChoiceWidth = function() {
 	}
 	return maxWidth;
 };
-$aaaa$.prototype.updatePlacement = function() {
+$aaaa$.prototype._moveTxtInput=function(){
+	let wl=SceneManager._scene._windowLayer;
+	if(wl){
+		let txtIn=wl.children.back;
+		if(txtIn&&txtIn.constructor===Window_CustomTextInput){
+			// position of txtIn
+			let newy=this.y-txtIn.height;
+			if(newy<txtIn.y) txtIn.y=newy;
+			if(this._opening) txtIn.y+=(this.height>>1)*(1-this.openness/256); // 'WindowLayer.prototype._maskWindow'
+			//debug.log(txtIn.y);
+			if(txtIn.y<0){
+				txtIn.y=-txtIn.lineHeight();
+				txtIn.y-=txtIn.standardPadding();
+			}
+			return txtIn;
+		}
+	}
+};
+$rrrr$=$aaaa$.prototype.updateOpen;
+$dddd$=$aaaa$.prototype.updateOpen=function f(){
+	if(this._opening){
+		f.ori.call(this); // return undefined
+		let txtIn=this._moveTxtInput();
+		if(this._opening===false && txtIn && txtIn.y>=0) txtIn.y=this.y-txtIn.height;
+	}
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.updatePlacement = function() { // called in 'this.start' ; then no called
 	let positionType = $gameMessage.choicePositionType();
 	let messageY = this._messageWindow.y;
 	this.width = this.windowWidth();
@@ -6095,6 +6143,24 @@ $aaaa$.prototype.updatePlacement = function() {
 	let y=messageY;
 	y+=(y<<1)>=Graphics.boxHeight?-this.height:this._messageWindow.height;
 	this.y=y;
+	
+	// window-txtinput
+	let txtIn=this._moveTxtInput();
+	if(txtIn){
+		let rrrr=this.update;
+		let dddd=this.update=function f(){
+			if(this.isOpening()){ f.ori.call(this); }
+		}; dddd.ori=rrrr; // update until is open
+		rrrr=txtIn.destructor;
+		dddd=txtIn.destructor=function f(){
+			f.ch.update=f.ch.update.ori;
+			f.ch.active=false;
+			f.ch.close();
+			delete this.destructor;
+			f.ori.call(this);
+		}; dddd.ori=rrrr;
+		dddd.ch=this;
+	}
 };
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){
