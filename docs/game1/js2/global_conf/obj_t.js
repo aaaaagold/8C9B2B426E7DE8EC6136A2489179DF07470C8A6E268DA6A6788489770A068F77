@@ -5834,12 +5834,11 @@ $aaaa$.prototype._moveTxtInput=function(){ // if 'this._nameField' is presented
 };
 $rrrr$=$aaaa$.prototype.updateOpen;
 $dddd$=$aaaa$.prototype.updateOpen=function f(){
-	if(this._opening){
-		f.ori.call(this);
-		if(this._opening===false && this._nameField && this._nameField.enabled){
-			this._nameField.alpha=1;
-			this._moveTxtInput();
-		}
+	let op=this._opening;
+	f.ori.call(this);
+	if(this._opening===false && this._nameField && this._nameField.enabled){
+		this._nameField.alpha=1; // must be run: when it is another person talking in the seq. of msg.
+		if(op) this._moveTxtInput();
 	}
 	return this._opening;
 }; $dddd$.ori=$rrrr$;
