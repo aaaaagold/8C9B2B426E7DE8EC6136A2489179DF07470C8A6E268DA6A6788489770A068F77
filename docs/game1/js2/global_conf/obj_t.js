@@ -3488,7 +3488,7 @@ $dddd$=$aaaa$.prototype.clear=function f(){
 	this._strtMeta=undef;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.command101=function(){
+$dddd$=$aaaa$.prototype.command101=function f(){
 	if(!$gameMessage.isBusy()){
 		$gameMessage.setFaceImage(this._params[0], this._params[1]);
 		$gameMessage.setBackground(this._params[2]);
@@ -3498,8 +3498,10 @@ $aaaa$.prototype.command101=function(){
 			let txt=this.currentCommand().parameters[0];
 			if(txt[0]==="\\"){ //debug.log(txt);
 				if(txt[1]==="F"){
-					txt=txt.slice(2); let evt=this.getEvt(); evt.setFace();
-					$gameMessage._evtName=evt.event().meta.name; // only needed when its face is set.
+					txt=txt.slice(2); let m=txt.match(f.re_faceExt),evt; 
+					if(m){ evt=$gameMap._events[m[1]]; txt=txt.slice(m[1].length+2); }
+					else evt=this.getEvt();
+					evt.setFace(); $gameMessage._evtName=evt.event().meta.name; // only needed when its face is set.
 					if($gameMap.ss(evt._eventId,"knowName")) $gameMessage._nameField=this._nameField||$gameMessage._evtName;
 				} // evt face
 				else if(txt[1]==="L"){
@@ -3527,6 +3529,7 @@ $aaaa$.prototype.command101=function(){
 	}
 	return false;
 };
+$dddd$.re_faceExt=/^\[([0-9]+)\]/;
 $aaaa$.prototype.ssKey=function(){ // not used ?
 	return [this._mapId, this._eventId, this._params[1]];
 };
