@@ -6,13 +6,12 @@ let list=rpgevts.interact;
 
 list.core_cutWoods=function(kargs){ // thisFunction.call(some_evt,kargs);
 	let xy=this.frontPos();
-	let tevt=$gameMap.eventsXy(xy.x,xy.y).getnth(0);
-	if(tevt && tevt.event().meta.burnable){
+	let tevt=$gameMap.eventsXy(xy.x,xy.y).getnth(0),vars=$gameParty.mch().vars;
+	if(tevt && tevt.event().meta.burnable && 1<vars.tree){
 		tevt=tevt.parent();
 		let wood=tevt.event().meta.wood;
 		if(wood){
-			let vars=$gameParty.mapChanges[74].vars;
-			if(wood=parseInt(wood)){
+			if(wood=parseInt(wood)){ // parseInt(true)===NaN
 				vars.woods^=0;
 				vars.woods+=wood^=0;
 				$gameMessage.popup("村民取得 \\item[61] * "+wood,1);
