@@ -1577,7 +1577,7 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 		}
 		if(!measuringHeight && curry>=ye) break; // overflow-y
 		let txt=this.raw?arr[s].txt:f.toMyColor(
-			f.parseitem(
+			f.parsequest(f.parseitem(
 				f.parsekeyword(
 					f.parseUTF8(
 						f.parseCODE(
@@ -1585,7 +1585,7 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 						)
 					)
 				)
-			)
+			))
 		);
 		let size=font_ori.fontSize*(arr[s].sizeRate===0?0:(arr[s].sizeRate||1));
 			this.contents.fontSize=size;
@@ -1655,6 +1655,15 @@ $dddd$.parseitem=function f(txt){
 };
 $dddd$.parseitem.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_item.toString().slice(5,-2)+
+"",'g');
+$dddd$.parsequest=function f(txt){
+	return txt.replace(f.re,function(){
+		let item=$dataItems[Number(arguments[3])];
+		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.quest.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
+	});
+};
+$dddd$.parsequest.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+	Window_Base.prototype.convertEscapeCharacters.re_quest.toString().slice(5,-2)+
 "",'g');
 $dddd$.toMyColor=function f(txt){ return txt.replace(f.re,"$1$2_$3"); };
 $dddd$.toMyColor.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\RGBA?("+

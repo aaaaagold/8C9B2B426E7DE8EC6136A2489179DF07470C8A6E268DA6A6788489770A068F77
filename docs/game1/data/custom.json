@@ -60,5 +60,9 @@
 		["空間支配者","使用app:位置紀錄得到成就\\RGB[\\CODE'$dataCustom.textcolor.achievement']\\CODE'$dataCustom.achievement[6][0]'\\RGB[\\CODE'$dataCustom.textcolor.default']","SO EASY!"],
 		"_END"
 	],
+	"_code":{
+		"getBurnLicenceLv":"()=>{let items=$gameParty._items,rtv=0;  if(items[32])rtv=1;if(items[41])rtv=2;if(items[43])rtv=3;  return rtv;}",
+		"__dummy": 0
+	},
 	"__dummy": 0
 }

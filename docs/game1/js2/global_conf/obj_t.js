@@ -3376,12 +3376,14 @@ $aaaa$.prototype.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwww
 	}
 	return rtv;
 };
+$aaaa$.prototype.eventsXyRef=function(xy){ return this.eventsXy(xy.x,xy.y); };
 $aaaa$.prototype.eventsXyNt=function(posx,posy){ // overwrite.
 	if(!this.isValid(posx,posy)) return [];
 	let mapd=$dataMap,tbl;
 	if(tbl=mapd&&mapd.coordTblNt&&mapd.coordTblNt[mapd.width*posy+posx]) return tbl;
 	return (mapd&&mapd.coordTbl&&mapd.coordTbl[mapd.width*posy+posx]||this._events).filter(evt=>evt&&evt.posNt(posx,posy));
 };
+$aaaa$.prototype.eventsXyRefNt=function(xy){ return this.eventsXyNt(xy.x,xy.y); };
 $aaaa$.prototype.isAnyEventStarting=function(){ // overwrite. Array.some is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.isAnyEventStarting'); // this is polling
 	if($dataMap.strtEvts) return $dataMap.strtEvts.length!==0;
@@ -3432,7 +3434,7 @@ $dddd$=$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. lookin
 		let evt=evtStrt[0],strtMeta=evtStrt[1];
 		if(evt._starting){
 			evt.clearStartingFlag();
-			this._interpreter.setup(evt.page().list, evt._eventId,strtMeta);
+			this._interpreter.setup(evt.list(), evt._eventId,strtMeta);
 			rtv=true;
 			break;
 		}
@@ -5425,6 +5427,35 @@ $aaaa$.prototype.refresh=function(forced) {
 		this.setupPage();
 	}
 };
+$rrrr$=$aaaa$.prototype.list;
+$dddd$=$aaaa$.prototype.list=function f(){
+	let olist=f.ori.call(this),rtv=[];
+	for(let x=0;x!==olist.length;++x){
+		let curr=olist[x];
+		if(curr.code===108 && curr.parameters[0]==="<meta>"){ // comments with starting line="<meta>" is not presented in list
+			let c=x+1,cmt="";
+			for(;c!==olist.length;++c){
+				if(olist[c].code===408){
+					cmt+="\n";
+					cmt+=olist[c].parameters[0];
+				}else break;
+			}
+			let tmp={note:cmt};
+			DataManager.extractMetadata(tmp);
+			tmp=tmp.meta;
+			if(tmp.cond!==undefined){
+				let cond=eval(tmp.cond);
+				if(tmp.skipNLine){
+					let skipNLine=eval(tmp.skipNLine);
+					let line=(skipNLine && skipNLine.constructor===Function)?skipNLine(olist,c,rtv):skipNLine;
+					if(!cond) c+=line;
+				}
+			}
+			x=c-1; // for-loop: ++x
+		}else rtv.push(olist[x]);
+	}
+	return rtv;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setFace=function(idx){
 	if(this._isObjectCharacter){
 		// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
@@ -5719,6 +5750,9 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	text = text.replace(f.re_item, function(){
 		return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]";
 	}.bind(this));
+	text = text.replace(f.re_quest, function(){
+		return "\x1bRGB["+$dataCustom.textcolor.quest+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]";
+	}.bind(this));
 	text = text.replace(/\x1bV\[(\d+)\]/gi, function() {
 		return $gameVariables.value(arguments[1]);
 	}.bind(this));
@@ -5739,6 +5773,7 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 $dddd$.re_utf8=/\x1bUTF8\[([^\]]+)\]/g;
 $dddd$.re_code=/\x1bCODE'([^']+)'/g;
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;
+$dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
 $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $aaaa$.prototype.processNormalCharacter = function(textState) {
 	let c = textState.text[textState.index++];

@@ -193,6 +193,8 @@ $qqqq$=list.high_burnCore={
 	txt:[
 		{txt:"展現身為高級焚木工的榮譽吧\n清光木亥村莊"},
 		{txt:"的樹",sizeRate:0.5},
+		"\n","\n",{txt:"首先完成\\quest[97]取得\\item[101]後，回到\\key'\"焚木工辦事處\"'找我兌換\\item[56]"},
+		"\n","\n",{txt:"再到\\key'\"木亥村莊\"'焚木吧！"},
 	],
 	info:{
 		type:"evaltrue",
