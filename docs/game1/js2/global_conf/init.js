@@ -330,6 +330,17 @@ let setShorthand = (w)=>{
 		return rtv;
 	};
 	w.HTMLImageElement.prototype.ptcp=w.HTMLCanvasElement.prototype.ptcp;
+	w.HTMLImageElement.prototype.setLoadingTimeout=function f(ms){
+		// this function will overwrite 'onload' and 'onloadstart'
+		ms^=0;
+		if(0>=ms) return;
+		this._timeoutMs=ms;
+		this.onloadstart=f.onloadstart;
+		this.onload=f.onload;
+		console.log("set img timeout =",ms,"ms");
+	};
+	w.HTMLImageElement.prototype.setLoadingTimeout.onloadstart=function(){ setTimeout(()=>{if(!this._loaded){this.abort();console.warn("the server is not strong enough");}},this._timeoutMs); };
+	w.HTMLImageElement.prototype.setLoadingTimeout.onload=function(){ this._loaded=true; };
 	if(!w.NodeList.prototype.forEach){ w.NodeList.prototype.forEach=function(f){
 		for(let x=0,xs=this.length;x!==xs;++x) f(this[x],x,this);
 	}; }

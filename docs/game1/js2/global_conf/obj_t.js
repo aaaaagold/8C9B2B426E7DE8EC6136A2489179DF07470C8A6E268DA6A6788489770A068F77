@@ -477,8 +477,9 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 						break;
 						case '2':{ // ok
 							let img=this._image; img.addEventListener('error', function(){this.src="";this.src=url});
-							img.onloadeddata=function(){this._done=1;console.log('onloadeddata');};
-							img.onloadstart=function(){console.log('onloadstart');setTimeout(()=>(!this._done)&&this.abort(),8763);};
+							img.setLoadingTimeout(8763);
+							//img.onload=function(){this._done=1;console.log('onloadeddata');};
+							//img.onloadstart=function(){console.log('onloadstart');setTimeout(()=>(!this._done)&&this.abort(),8763);};
 							img.src=url; break;
 							// too slow
 							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
