@@ -294,6 +294,17 @@ $aaaa$.prototype.renderWebGL=function(renderer, useSquare){
 	else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
+// - TileRenderer
+PIXI.tilemap.TileRenderer.prototype.getVb = function (id) {
+	// 雷ㄛ 變數名稱寫錯是在衝三小
+	this.checkLeaks();
+	let vb=this.vbs[id];
+	if(vb){
+		vb.lastTimeAccess=Date.now();
+		return vb;
+	}
+	return null;
+};
 
 // core
 
@@ -1147,9 +1158,11 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	let addUpper=(idx===undefined)?f._dummy_arr:$dataMap.addUpper[idx];
 	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
 	let lastUpperTiles = this._readLastTiles(4, lx, ly);
-	if(flag_drawAddUpper || !upperTiles.equals(lastUpperTiles)){
+	upperTiles.playerNearby=$gamePlayer.dist2({x:mx,y:my,dist2:true})===0;
+	if(flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby || !upperTiles.equals(lastUpperTiles)){
+		flag_drawAddUpper=true;
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
-		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy);
+		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , upperTiles.playerNearby?0.25:undefined);
 		this._writeLastTiles(4, lx, ly, upperTiles);
 	}
 	if(flag_drawAddUpper){
@@ -4597,7 +4610,22 @@ $aaaa$.prototype.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
 $aaaa$.prototype.executeMove = function(direction) {
-	return this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
+	let last_x=this.x,last_y=this.y;
+	this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
+	let sc=SceneManager._scene;
+	if(sc.constructor===Scene_Map){
+		let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
+		sc._spriteset._tilemap._paintTiles(sx,sy,$gamePlayer.scrolledX()+this.x-last_x,$gamePlayer.scrolledY()+this.y-last_y);
+		sc._spriteset._tilemap._paintTiles(sx,sy,$gamePlayer.scrolledX()              ,$gamePlayer.scrolledY()              );
+			// display top-left anchor + player offset of display
+	}
+//		if(sc.constructor===Scene_Map){
+//			let x1=Math.floor(this._realX),x2=Math.ceil(this._realX);
+//			let y1=Math.floor(this._realY),y2=Math.ceil(this._realY);
+//			x,y??sc._spriteset._tilemap._paintTiles($gameMap.roundX(x1),$gameMap.roundY(y1),0,0);
+//			x,y??sc._spriteset._tilemap._paintTiles($gameMap.roundX(x2),$gameMap.roundY(y2),0,0);
+//		}
+	// -> this.update // this.updateNonmoving
 };
 $aaaa$.prototype.updateDashing=function(){
 	if(this.isMoving()) return;
@@ -4610,13 +4638,13 @@ $aaaa$.prototype.update = function(sceneActive) {
 	let lastScrolledY_th = this.scrolledY_th();
 	let wasMoving = this.isMoving();
 	this.updateDashing();
-	if (sceneActive) {
+	if(sceneActive){
 		this.moveByInput();
 	}
 	Game_Character.prototype.update.call(this);
 	this.updateScroll_t(lastScrolledX_tw, lastScrolledY_th);
 	this.updateVehicle();
-	if (!this.isMoving()) {
+	if(!this.isMoving()){
 		this.updateNonmoving(wasMoving);
 	}
 	this._followers.update();
