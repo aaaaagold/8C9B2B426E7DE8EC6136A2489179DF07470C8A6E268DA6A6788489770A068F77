@@ -1569,31 +1569,7 @@ Bitmap.prototype._onLoad = function() {
     }
 };
 
-Bitmap.prototype.decode = function(){
-    switch(this._loadingState){
-        case 'requestCompleted': case 'decryptCompleted':
-            this._loadingState = 'loaded';
-
-            if(!this.__canvas) this._createBaseTexture(this._image);
-            this._setDirty();
-            this._callLoadListeners();
-            break;
-
-        case 'requesting': case 'decrypting':
-            this._decodeAfterRequest = true;
-            if (!this._loader) {
-                this._loader = ResourceHandler.createLoader(this._url, this._requestImage.bind(this, this._url), this._onError.bind(this));
-                this._image.removeEventListener('error', this._errorListener);
-                this._image.addEventListener('error', this._errorListener = this._loader);
-            }
-            break;
-
-        case 'pending': case 'purged': case 'error':
-            this._decodeAfterRequest = true;
-            this._requestImage(this._url);
-            break;
-    }
-};
+Bitmap.prototype.decode;
 
 /**
  * @method _callLoadListeners
@@ -1646,31 +1622,7 @@ Bitmap.request = function(url){
     return bitmap;
 };
 
-Bitmap.prototype._requestImage = function(url){
-    if(Bitmap._reuseImages.length !== 0){
-        this._image = Bitmap._reuseImages.pop();
-    }else{
-        this._image = new Image();
-    }
-
-    if (this._decodeAfterRequest && !this._loader) {
-        this._loader = ResourceHandler.createLoader(url, this._requestImage.bind(this, url), this._onError.bind(this));
-    }
-
-    this._image = new Image();
-    this._url = url;
-    this._loadingState = 'requesting';
-
-    if(!Decrypter.checkImgIgnore(url) && Decrypter.hasEncryptedImages) {
-        this._loadingState = 'decrypting';
-        Decrypter.decryptImg(url, this);
-    } else {
-        this._image.src = url;
-
-        this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
-        this._image.addEventListener('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
-    }
-};
+Bitmap.prototype._requestImage;
 
 Bitmap.prototype.isRequestOnly = function(){
     return !(this._decodeAfterRequest || this.isReady());
@@ -2045,10 +1997,7 @@ Graphics.isFontLoaded;
  * @method playVideo
  * @param {String} src
  */
-Graphics.playVideo = function(src) {
-    this._videoLoader = ResourceHandler.createLoader(null, this._playVideo.bind(this, src), this._onVideoError.bind(this));
-    this._playVideo(src);
-};
+Graphics.playVideo;
 
 /**
  * @static
@@ -4640,62 +4589,10 @@ Tilemap.prototype._writeLastTiles = function(i, x, y, tiles) {
     array2[x] = tiles;
 };
 
-/**
- * @method _drawTile
- * @param {Bitmap} bitmap
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
-Tilemap.prototype._drawTile = function(bitmap, tileId, dx, dy) {
-    if (Tilemap.isVisibleTile(tileId)) {
-        if (Tilemap.isAutotile(tileId)) {
-            this._drawAutotile(bitmap, tileId, dx, dy);
-        } else {
-            this._drawNormalTile(bitmap, tileId, dx, dy);
-        }
-    }
-};
-
-/**
- * @method _drawNormalTile
- * @param {Bitmap} bitmap
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
+Tilemap.prototype._drawTile;
 Tilemap.prototype._drawNormalTile;
-
-/**
- * @method _drawAutotile
- * @param {Bitmap} bitmap
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 Tilemap.prototype._drawAutotile;
-
-/**
- * @method _drawTableEdge
- * @param {Bitmap} bitmap
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 Tilemap.prototype._drawTableEdge;
-
-/**
- * @method _drawShadow
- * @param {Bitmap} bitmap
- * @param {Number} shadowBits
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 Tilemap.prototype._drawShadow;
 
 /**
@@ -5134,22 +5031,7 @@ ShaderTilemap.prototype._updateLayerPositions = function(startX, startY) {
     this.upperZLayer.position.y = startY * this._tileHeight - oy;
 };
 
-/**
- * @method _paintAllTiles
- * @param {Number} startX
- * @param {Number} startY
- * @private
- */
 ShaderTilemap.prototype._paintAllTiles;
-
-/**
- * @method _paintTiles
- * @param {Number} startX
- * @param {Number} startY
- * @param {Number} x
- * @param {Number} y
- * @private
- */
 ShaderTilemap.prototype._paintTiles;
 
 /**
@@ -5170,43 +5052,9 @@ ShaderTilemap.prototype._drawTile = function(layer, tileId, dx, dy) {
     }
 };
 
-/**
- * @method _drawNormalTile
- * @param {Array} layers
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 ShaderTilemap.prototype._drawNormalTile;
-
-/**
- * @method _drawAutotile
- * @param {Array} layers
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 ShaderTilemap.prototype._drawAutotile;
-
-/**
- * @method _drawTableEdge
- * @param {Array} layers
- * @param {Number} tileId
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 ShaderTilemap.prototype._drawTableEdge;
-
-/**
- * @method _drawShadow
- * @param {Number} shadowBits
- * @param {Number} dx
- * @param {Number} dy
- * @private
- */
 ShaderTilemap.prototype._drawShadow;
 //-----------------------------------------------------------------------------
 /**
@@ -6988,20 +6836,7 @@ WebAudio._standAlone = (function(top){
     return !top.ResourceHandler;
 })(this);
 
-WebAudio.prototype.initialize = function(url) {
-    if (!WebAudio._initialized) {
-        WebAudio.initialize();
-    }
-    this.clear();
-
-    if(!WebAudio._standAlone){
-        this._loader = ResourceHandler.createLoader(url, this._load.bind(this, url), function() {
-            this._hasError = true;
-        }.bind(this));
-    }
-    this._load(url);
-    this._url = url;
-};
+WebAudio.prototype.initialize;
 
 WebAudio._masterVolume   = 1;
 WebAudio._context        = null;
@@ -7460,21 +7295,7 @@ WebAudio.prototype.addStopListener = function(listner) {
  * @param {String} url
  * @private
  */
-WebAudio.prototype._load = function(url) {
-    if (WebAudio._context) {
-        var xhr = new XMLHttpRequest();
-        if(Decrypter.hasEncryptedAudio) url = Decrypter.extToEncryptExt(url);
-        xhr.open('GET', url);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = function() {
-            if (xhr.status < 400) {
-                this._onXhrLoad(xhr);
-            }
-        }.bind(this);
-        xhr.onerror = this._loader || function(){this._hasError = true;}.bind(this);
-        xhr.send();
-    }
-};
+WebAudio.prototype._load;
 
 /**
  * @method _onXhrLoad
@@ -8579,43 +8400,10 @@ function ResourceHandler() {
 ResourceHandler._reloaders = [];
 ResourceHandler._defaultRetryInterval = [500, 1000, 3000];
 
-ResourceHandler.createLoader = function(url, retryMethod, resignMethod, retryInterval) {
-    retryInterval = retryInterval || this._defaultRetryInterval;
-    var reloaders = this._reloaders;
-    var retryCount = 0;
-    return function() {
-        if (retryCount < retryInterval.length) {
-            setTimeout(retryMethod, retryInterval[retryCount]);
-            retryCount++;
-        } else {
-            if (resignMethod) {
-                resignMethod();
-            }
-            if (url) {
-                if (reloaders.length === 0) {
-                    Graphics.printLoadingError(url);
-                    SceneManager.stop();
-                }
-                reloaders.push(function() {
-                    retryCount = 0;
-                    retryMethod();
-                });
-            }
-        }
-    };
-};
+ResourceHandler.createLoader;
 
 ResourceHandler.exists = function() {
     return this._reloaders.length > 0;
 };
 
-ResourceHandler.retry = function() {
-    if (this._reloaders.length > 0) {
-        Graphics.eraseLoadingError();
-        SceneManager.resume();
-        this._reloaders.forEach(function(reloader) {
-            reloader();
-        });
-        this._reloaders.length = 0;
-    }
-};
+ResourceHandler.retry;

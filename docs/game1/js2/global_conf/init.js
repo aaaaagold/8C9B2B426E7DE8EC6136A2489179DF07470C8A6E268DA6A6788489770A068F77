@@ -167,16 +167,19 @@ _global_conf["scene strts"]={};
 
 _global_conf["jurl"] = (url, method, header, data, resType, callback, callback_all_h, timeout_ms) => {
 	resType=resType||'';
-	let xhttp = new XMLHttpRequest();
+	let xhttp=new XMLHttpRequest();
 	if(0<timeout_ms) xhttp.timeout=timeout_ms;
-	xhttp.onreadystatechange = function() {
-		if(typeof (callback_all_h) == "function"){
+	xhttp.onreadystatechange=function(){
+		//if(callback_all_h&&callback_all_h.constructor===Function) ; // wtf
+		if(typeof (callback_all_h)==="function"){
 			callback_all_h(this);
 		}
-		if (typeof (callback) == "function") {
-			if (this.readyState == 4) {
-				let s = this.status.toString();
-				if (s.length == 3 && s.slice(0, 1) == '2') {
+		//if(callback&&callback.constructor===Function) ; // wtf
+		if(typeof (callback)==="function"){
+			if(this.readyState===4){
+				console.log(callback,callback.constructor,callback.constructor===Function);
+				let s=this.status.toString();
+				if (s.length===3 && s.slice(0, 1)==='2'){
 					callback(this.responseText);
 				}
 			}
@@ -302,7 +305,7 @@ let setShorthand = (w)=>{
 	w.HTMLElement.prototype.ae=function(e,f){
 		if(this.attachEvent) this.attachEvent("on"+e,f);
 		else if(this.addEventListener) this.addEventListener(e,f);
-		else console.log("not support");
+		else console.warn("not support");
 		return this;
 	};
 	w.HTMLElement.prototype.rf=function(n){
@@ -330,17 +333,19 @@ let setShorthand = (w)=>{
 		return rtv;
 	};
 	w.HTMLImageElement.prototype.ptcp=w.HTMLCanvasElement.prototype.ptcp;
-	w.HTMLImageElement.prototype.setLoadingTimeout=function f(ms){
-		// this function will overwrite 'onload' and 'onloadstart'
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout=function f(src,ms){
+		// this function will overwrite 'onload'
+		// note: onloadstart is not working in chrome but standard spec.
 		ms^=0;
-		if(0>=ms) return;
-		this._timeoutMs=ms;
-		this.onloadstart=f.onloadstart;
+		this._loaded=false;
 		this.onload=f.onload;
-		console.log("set img timeout =",ms,"ms");
+		this.src=src;
+		if(0<(ms^=0)){ setTimeout(()=>{
+			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); }
+		},ms); }
+		//debug.log("set img  src,timeout =",[src,ms],"ms");
 	};
-	w.HTMLImageElement.prototype.setLoadingTimeout.onloadstart=function(){ setTimeout(()=>{if(!this._loaded){this.abort();console.warn("the server is not strong enough");}},this._timeoutMs); };
-	w.HTMLImageElement.prototype.setLoadingTimeout.onload=function(){ this._loaded=true; };
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.onload=function(){ this._loaded=true; };
 	if(!w.NodeList.prototype.forEach){ w.NodeList.prototype.forEach=function(f){
 		for(let x=0,xs=this.length;x!==xs;++x) f(this[x],x,this);
 	}; }
@@ -395,10 +400,17 @@ let setShorthand = (w)=>{
 		return this.sort(f.cmp);
 	};
 	$dddd$.cmp=(a,b)=>a-b;
-	w.Array.prototype.sum=function(){
-		let rtv=this.length&&this[0].constructor===String?'':0;
-		for(let x=0,xs=this.length;x!==xs;++x) rtv+=this[x];
-		return rtv;
+	w.Array.prototype.sum=function(mapFunc){
+		if(this.length===0) return undefined;
+		if(mapFunc && mapFunc.constructor===Function){
+			let rtv=mapFunc(this[0]);
+			for(let x=1,xs=this.length;x!==xs;++x) rtv+=this[x];
+			return rtv;
+		}else{
+			let rtv=this[0].constructor===String?'':0;
+			for(let x=0,xs=this.length;x!==xs;++x) rtv+=this[x];
+			return rtv;
+		}
 	};
 	w.Array.prototype.join=function(sep){
 		sep=sep===undef?',':sep;
@@ -1310,6 +1322,8 @@ let setShorthand = (w)=>{
 		if(curr=arr.back) if(tree._keyLt(curr.key,key)) return this.next();
 		return curr;
 	};
+	
+	w.Function.prototype._dummy_arr=[];
 	
 	w.hash=function(input_str){
 		// https://en.wikipedia.org/wiki/SHA-2#Pseudocode

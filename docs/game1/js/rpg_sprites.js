@@ -2203,21 +2203,7 @@ Spriteset_Map.prototype.createTilemap = function() {
     this._baseSprite.addChild(this._tilemap);
 };
 
-Spriteset_Map.prototype.loadTileset = function() {
-    this._tileset = $gameMap.tileset();
-    if (this._tileset) {
-        var tilesetNames = this._tileset.tilesetNames;
-        for (var i = 0; i < tilesetNames.length; i++) {
-            this._tilemap.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
-        }
-        var newTilesetFlags = $gameMap.tilesetFlags();
-        this._tilemap.refreshTileset();
-        if (!this._tilemap.flags.equals(newTilesetFlags)) {
-            this._tilemap.refresh();
-        }
-        this._tilemap.flags = newTilesetFlags;
-    }
-};
+Spriteset_Map.prototype.loadTileset;
 
 Spriteset_Map.prototype.createShadow = function() {
     this._shadowSprite = new Sprite();

@@ -1443,21 +1443,7 @@ Window_MenuCommand.prototype.makeCommandList = function() {
     this.addGameEndCommand();
 };
 
-Window_MenuCommand.prototype.addMainCommands = function() {
-    var enabled = this.areMainCommandsEnabled();
-    if (this.needsCommand('item')) {
-        this.addCommand(TextManager.item, 'item', enabled);
-    }
-    if (this.needsCommand('skill')) {
-        this.addCommand(TextManager.skill, 'skill', enabled);
-    }
-    if (this.needsCommand('equip')) {
-        this.addCommand(TextManager.equip, 'equip', enabled);
-    }
-    if (this.needsCommand('status')) {
-        this.addCommand(TextManager.status, 'status', enabled);
-    }
-};
+Window_MenuCommand.prototype.addMainCommands;
 
 Window_MenuCommand.prototype.addFormationCommand = function() {
     if (this.needsCommand('formation')) {

@@ -507,9 +507,8 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 			reader.readAsDataURL(this.files[0]);
 		};
 		htmlele.onclick=function(){
-			//this.value=''; // clear previous selection
+			//this.value=''; // clear previous selection when 'FileReader.onload'
 			let reader=this.ref.fileReader;
-			console.log("?");
 		};
 		this.htmlele=htmlele;
 	}

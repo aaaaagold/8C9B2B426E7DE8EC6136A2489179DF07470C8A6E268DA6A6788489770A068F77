@@ -67,6 +67,233 @@ $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1,
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
+// - RectTileLayer
+$aaaa$=PIXI.tilemap.RectTileLayer;
+$aaaa$.prototype.renderCanvas=function(renderer){
+	if(this.textures.length===0) return;
+	let points=this.pointsBuf;
+	renderer.context.fillStyle = '#000000';
+	for(let i=0,n=points.length;i!==n;i+=10) {
+		let x1 = points[i], y1 = points[i + 1];
+		let x2 = points[i + 2], y2 = points[i + 3];
+		let w = points[i + 4];
+		let h = points[i + 5];
+		x1 += points[i + 6] * renderer.plugins.tilemap.tileAnim[0];
+		y1 += points[i + 7] * renderer.plugins.tilemap.tileAnim[1];
+		let textureId = points[i + 8];
+		let tp=points[i + 8];
+		if (textureId >= 0) {
+			let ga=renderer.context.globalAlpha;
+			renderer.context.globalAlpha=1-tp;
+			renderer.context.drawImage(this.textures[textureId].baseTexture.source, x1, y1, w, h, x2, y2, w, h);
+			renderer.context.globalAlpha=ga;
+		}
+		else {
+			renderer.context.globalAlpha = 0.5;
+			renderer.context.fillRect(x2, y2, w, h);
+			renderer.context.globalAlpha = 1;
+		}
+	}
+};
+$aaaa$.prototype.addRect = function (textureId, u, v, x, y, tileWidth, tileHeight, animX, animY , tp) {
+	if (animX === void 0) { animX = 0; }
+	if (animY === void 0) { animY = 0; }
+	let pb=this.pointsBuf;
+	this.hasAnim = this.hasAnim || animX > 0 || animY > 0;
+	if (tileWidth === tileHeight) {
+		pb.push(u);
+		pb.push(v);
+		pb.push(x);
+		pb.push(y);
+		pb.push(tileWidth);
+		pb.push(tileHeight);
+		pb.push(animX | 0);
+		pb.push(animY | 0);
+		pb.push(textureId);
+		pb.push(tp|0);
+	}
+	else {
+		if( tileWidth % tileHeight === 0 ){
+			for(let i=0,e=~~(tileWidth/tileHeight);i!==e;++i){
+				pb.push(u + i * tileHeight);
+				pb.push(v);
+				pb.push(x + i * tileHeight);
+				pb.push(y);
+				pb.push(tileHeight);
+				pb.push(tileHeight);
+				pb.push(animX | 0);
+				pb.push(animY | 0);
+				pb.push(textureId);
+				pb.push(tp|0);
+			}
+		}
+		else if( tileHeight % tileWidth === 0 ){
+			for(let i=0,e=~~(tileHeight / tileWidth);i!==e;++i) {
+				pb.push(u);
+				pb.push(v + i * tileWidth);
+				pb.push(x);
+				pb.push(y + i * tileWidth);
+				pb.push(tileWidth);
+				pb.push(tileWidth);
+				pb.push(animX | 0);
+				pb.push(animY | 0);
+				pb.push(textureId);
+				pb.push(tp|0);
+			}
+		}
+		else {
+			pb.push(u);
+			pb.push(v);
+			pb.push(x);
+			pb.push(y);
+			pb.push(tileWidth);
+			pb.push(tileHeight);
+			pb.push(animX | 0);
+			pb.push(animY | 0);
+			pb.push(textureId);
+			pb.push(tp|0);
+		}
+	}
+};
+$aaaa$.prototype.renderWebGL=function(renderer, useSquare){
+	if (useSquare === void 0) { useSquare = false; }
+	let points = this.pointsBuf;
+	if (points.length === 0)
+		return;
+	let rectsCount = ~~(points.length / 10); // <--
+	let tile = renderer.plugins.tilemap;
+	let gl = renderer.gl;
+	if (!useSquare) {
+		tile.checkIndexBuffer(rectsCount);
+	}
+	let shader = tile.getShader(useSquare);
+	let textures = this.textures;
+	if (textures.length === 0)
+		return;
+	let len = textures.length;
+	if (this._tempTexSize < shader.maxTextures) {
+		this._tempTexSize = shader.maxTextures;
+		this._tempSize = new Float32Array(2 * shader.maxTextures);
+	}
+	for (let i = 0; i < len; i++) {
+		if (!textures[i] || !textures[i].valid)
+			return;
+		let texture = textures[i].baseTexture;
+	}
+	tile.bindTextures(renderer, shader, textures);
+	let vb = tile.getVb(this.vbId);
+	if (!vb) {
+		vb = tile.createVb(useSquare);
+		this.vbId = vb.id;
+		this.vbBuffer = null;
+		this.modificationMarker = 0;
+	}
+	let vao = vb.vao;
+	renderer.bindVao(vao);
+	let vertexBuf = vb.vb;
+	vertexBuf.bind();
+	let vertices = rectsCount * shader.vertPerQuad;
+	if (vertices === 0)
+		return;
+	if (this.modificationMarker != vertices) {
+		this.modificationMarker = vertices;
+		let vs = shader.stride * vertices;
+		if (!this.vbBuffer || this.vbBuffer.byteLength < vs) {
+			let bk = shader.stride;
+			while (bk < vs) {
+				bk *= 2;
+			}
+			this.vbBuffer = new ArrayBuffer(bk);
+			this.vbArray = new Float32Array(this.vbBuffer);
+			this.vbInts = new Uint32Array(this.vbBuffer);
+			vertexBuf.upload(this.vbBuffer, 0, true);
+		}
+		let arr = this.vbArray, ints = this.vbInts;
+		let sz = 0;
+		let textureId, shiftU, shiftV;
+		if (useSquare) {
+			for(let i=0;i!==points.length;i+=10){ // <--
+				textureId = (points[i + 8] >> 2);
+				shiftU = 1024 * (points[i + 8] & 1);
+				shiftV = 1024 * ((points[i + 8] >> 1) & 1);
+				arr[sz++] = points[i + 2];
+				arr[sz++] = points[i + 3];
+				arr[sz++] = points[i + 0] + shiftU;
+				arr[sz++] = points[i + 1] + shiftV;
+				arr[sz++] = points[i + 4];
+				arr[sz++] = points[i + 6];
+				arr[sz++] = points[i + 7];
+				arr[sz++] = textureId;
+				//arr[sz++] = points[i + 9]; // <--
+			}
+		}
+		else {
+			let tint = -1;
+			for (let i=0;i!==points.length;i+=10){ // <--
+				let eps = 0.5;
+				textureId = (points[i + 8] >> 2);
+				shiftU = 1024 * (points[i + 8] & 1);
+				shiftV = 1024 * ((points[i + 8] >> 1) & 1);
+				let x = points[i + 2], y = points[i + 3];
+				let w = points[i + 4], h = points[i + 5];
+				let u = points[i] + shiftU, v = points[i + 1] + shiftV;
+				let animX = points[i + 6], animY = points[i + 7];
+				arr[sz++] = x;
+				arr[sz++] = y;
+				arr[sz++] = u;
+				arr[sz++] = v;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				//arr[sz++] = points[i + 9]; // <--
+				arr[sz++] = x + w;
+				arr[sz++] = y;
+				arr[sz++] = u + w;
+				arr[sz++] = v;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				//arr[sz++] = points[i + 9]; // <--
+				arr[sz++] = x + w;
+				arr[sz++] = y + h;
+				arr[sz++] = u + w;
+				arr[sz++] = v + h;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				//arr[sz++] = points[i + 9]; // <--
+				arr[sz++] = x;
+				arr[sz++] = y + h;
+				arr[sz++] = u;
+				arr[sz++] = v + h;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				//arr[sz++] = points[i + 9]; // <--
+			}
+		}
+		vertexBuf.upload(arr, 0, true);
+	}
+	if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
+	else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
+};
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // core
 
@@ -108,23 +335,33 @@ Utils.isMobileSafari=function(){
 // - ResourceHandler
 $aaaa$=ResourceHandler;
 $rrrr$=$aaaa$.createLoader;
-$dddd$=$aaaa$.createLoader=function(url, retryMethod, resignMethod, retryInterval) {
+$dddd$=$aaaa$.createLoader=function(type,url, retryMethod, resignMethod, retryInterval) {
+	//debug.log('ResourceHandler.createLoader');
 	retryInterval = retryInterval || this._defaultRetryInterval;
 	let reloaders = this._reloaders;
 	let retryCount = 0;
 	return function(setCurrRetryCnt) {
 		if(setCurrRetryCnt!==undefined) retryCount=setCurrRetryCnt;
 		if (retryCount < retryInterval.length) {
-			setTimeout(()=>retryMethod(url), retryInterval[retryCount]);
+			setTimeout( ()=>retryMethod(url) ,retryInterval[retryCount]);
 			retryCount++;
 		} else {
 			if (resignMethod) resignMethod();
 			if (url) {
 				if (reloaders.length === 0) {
-					Graphics.printLoadingError(url);
+					Graphics.printLoadingError(type,url);
 					SceneManager.stop();
 				}
-				reloaders.push(function(giveUp) { retryCount=0; retryMethod(giveUp?blank_1x1:url); });
+				let foo=none;
+				switch(type){
+				default:
+					foo=()=>{ retryCount=0; retryMethod(url); }
+					break;
+				case 'img':
+					foo=giveUp=>{ retryCount=0; retryMethod(giveUp?blank_1x1:url); }
+					break;
+				}
+				reloaders.push(foo);
 			}
 		}
 	};
@@ -179,9 +416,21 @@ Object.defineProperty($aaaa$.prototype, 'pitch', {
 	},
 	configurable: true
 });
+$aaaa$.prototype.initialize=function(url){
+	if (!WebAudio._initialized) {
+		WebAudio.initialize();
+	}
+	this.clear();
+	
+	if(!WebAudio._standAlone){
+		this._loader = ResourceHandler.createLoader('audio',url, this._load.bind(this, url), function(){ this._hasError=true; }.bind(this) );
+	}
+	this._load(url);
+	this._url = url;
+};
 $aaaa$.prototype._load=function f(url){
 	if(f.cache===undefined) f.cache=new CacheSystem(2);
-	if (WebAudio._context) {
+	if(WebAudio._context){
 		let self=this,url_ori=url;
 		let cache=f.cache.get(url_ori);
 		if(cache!==undefined){
@@ -269,6 +518,10 @@ $dddd$=$aaaa$.isFontLoaded=function f(name){
 	if(!rtv){ debug.log("font issue"); debugger; }
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.playVideo=function(src) {
+	this._videoLoader = ResourceHandler.createLoader('video',null, this._playVideo.bind(this, src), this._onVideoError.bind(this));
+	this._playVideo(src);
+};
 $aaaa$.render=function(stage){
 	if(0<this._skipCount) this._skipCount^=0;
 	else this._skipCount&=0;
@@ -337,7 +590,7 @@ $aaaa$.printError=function(name, message){
 	this._applyCanvasFilter();
 	this._clearUpperCanvas();
 };
-$aaaa$.printLoadingError=function f(url){
+$dddd$=$aaaa$.printLoadingError=function f(type,url){
 	console.log("Graphics.printLoadingError");
 	let rtv=this._errorPrinter;
 	if (this._errorPrinter && !this._errorShowed) {
@@ -353,15 +606,8 @@ $aaaa$.printLoadingError=function f(url){
 		this._errorPrinter.appendChild(button);
 		this._loadingCount = -Infinity;
 		
-		// using transparent image?
-		let btn = d.ce('button');
-		btn.ac(d.ce('div').at('Give up')).ac(d.ce('div').at('(use 1x1 transparent image)'));
-		btn.onmousedown = btn.ontouchstart = function(event) {
-			ResourceHandler.retry(1);
-			event.stopPropagation();
-		};
-		this._errorPrinter.ac(d.ce('br')).ac(btn);
-		this._loadingCount = -Infinity;
+		let alt=f.alts[type];
+		if(alt) alt(this);
 		
 		let arr=this._errorPrinter.querySelectorAll("button"); //let arr=d.querySelectorAll('#ErrorPrinter>button');
 		// clear btn.style.backgroundColor so they can use style sheet
@@ -373,7 +619,7 @@ $aaaa$.printLoadingError=function f(url){
 			if(h<arr[x].offsetHeight) h=arr[x].offsetHeight;
 		}
 		if(w&&h){ // both none zero
-			++w;++h; // offset width/height are integer "measurements"
+			++w;++h; // offset width/height are integer "measurement"s
 			for(let x=0;x!==arr.length;++x){
 				arr[x].style.width =w+'px';
 				arr[x].style.height=h+'px';
@@ -381,6 +627,22 @@ $aaaa$.printLoadingError=function f(url){
 		}
 	}
 	return rtv;
+};
+$dddd$.alts={
+	'img':self=>{
+		// using transparent image?
+		let btn = d.ce('button');
+		btn.ac(d.ce('div').at('Give up')).ac(d.ce('div').at('(use 1x1 transparent image)'));
+		btn.onmousedown = btn.ontouchstart = function(evt) {
+			ResourceHandler.retry(1);
+			evt.stopPropagation();
+		};
+		self._errorPrinter.ac(d.ce('br')).ac(btn);
+		self._loadingCount = -Infinity;
+	},
+	//'audio':self=>{},
+	//'video':self=>{},
+	//'map':self=>{},
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -436,17 +698,40 @@ if(0&&0)$aaaa$.prototype.bltImage=function(source, sx, sy, sw, sh, dx, dy, dw, d
 		this._setDirty();
 	}
 };
-$rrrr$=$aaaa$.prototype.decode;
+$rrrr$=$aaaa$.prototype.decode=function(){
+	switch(this._loadingState){
+		case 'requestCompleted': case 'decryptCompleted':
+			this._loadingState = 'loaded';
+
+			if(!this.__canvas) this._createBaseTexture(this._image);
+			this._setDirty();
+			this._callLoadListeners();
+			break;
+
+		case 'requesting': case 'decrypting':
+			this._decodeAfterRequest = true;
+			if (!this._loader) {
+				this._loader = ResourceHandler.createLoader('img',this._url, this._requestImage.bind(this, this._url), this._onError.bind(this));
+				this._image.removeEventListener('error', this._errorListener);
+				this._image.addEventListener('error', this._errorListener = this._loader);
+			}
+			break;
+
+		case 'pending': case 'purged': case 'error':
+			this._decodeAfterRequest = true;
+			this._requestImage(this._url);
+			break;
+	}
+};
 $dddd$=$aaaa$.prototype.decode=function f(){
 	let flag=!this._loader && this._loadingState.slice(-4)==='ting'; // case 'requesting': case 'decrypting':
 	f.ori.call(this);
 	if(flag){
 		this._image.removeEventListener('error', this._errorListener);
-		this._image.addEventListener('error',this._errorListener=this._loader=ResourceHandler.createLoader( this._url,this._requestImage.bind(this),this._onError.bind(this) ));
+		this._image.addEventListener('error',this._errorListener=this._loader = ResourceHandler.createLoader('img',this._url,this._requestImage.bind(this),this._onError.bind(this) ));
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype._requestImage;
-$dddd$=$aaaa$.prototype._requestImage=function(url){
+$aaaa$.prototype._requestImage=function(url){
 	if(Bitmap._reuseImages.length !== 0){
 		this._image = Bitmap._reuseImages.pop();
 	}else{
@@ -454,7 +739,7 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 	}
 
 	if (this._decodeAfterRequest && !this._loader) {
-		this._loader = ResourceHandler.createLoader(url, this._requestImage.bind(this), this._onError.bind(this));
+		this._loader = ResourceHandler.createLoader('img',url, this._requestImage.bind(this), this._onError.bind(this));
 	}
 
 		this._image = new Image();
@@ -476,11 +761,9 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 							this._errorListener();
 						break;
 						case '2':{ // ok
-							let img=this._image; img.addEventListener('error', function(){this.src="";this.src=url});
-							img.setLoadingTimeout(8763);
-							//img.onload=function(){this._done=1;console.log('onloadeddata');};
-							//img.onloadstart=function(){console.log('onloadstart');setTimeout(()=>(!this._done)&&this.abort(),8763);};
-							img.src=url; break;
+							let img=this._image.ae('error', function(){this.src="";this.src=url;}); // this is new()
+							img.setLoadSrcWithTimeout(url,4876);
+							break;
 							// too slow
 							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
 							this._image.src="data:image/png;base64," + btoa(s);
@@ -493,11 +776,12 @@ $dddd$=$aaaa$.prototype._requestImage=function(url){
 				}
 			},8763);
 		}else{
-			this._image.addEventListener('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
-			this._image.src = url;
+			this._image.ae('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
+			this._image.src=url;
+			//this._image.setLoadSrcWithTimeout(url,4876);
 		}
 	}
-}; $dddd$.ori=$rrrr$;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ScreenSprite
@@ -785,14 +1069,14 @@ $aaaa$.prototype.updateTransform=function(forced){
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
 };
-$aaaa$.prototype._paintAllTiles=function(startX, startY) {
+$aaaa$.prototype._paintAllTiles=function(startX, startY){
 	for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
 		for(let x=0;x!==xs;++x){
 			this._paintTiles(startX, startY, x, y);
 		}
 	}
 };
-$aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
+$aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	//debug.log("Tilemap.prototype._paintTiles");
 	let tableEdgeVirtualId = 1<<14;
 	let mx = startX + x;
@@ -801,10 +1085,19 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	let ly = my.mod(this._tileRows)^0;
 	let dx = lx * this._tileWidth;
 	let dy = ly * this._tileHeight;
-	let tileId0 = this._readMapData(mx, my, 0);
-	let tileId1 = this._readMapData(mx, my, 1);
-	let tileId2 = this._readMapData(mx, my, 2);
-	let tileId3 = this._readMapData(mx, my, 3);
+	let idx,data3d1=none;
+	{
+		let x=this.horizontalWrap?mx.mod(this._mapWidth):mx;
+		let y=this.verticalWrap?my.mod(this._mapHeight):my;
+		if($gameMap.isValid(x,y)){
+			idx^=0;
+			data3d1=$dataMap.data3d[idx+=this._mapWidth*y+x];
+		}
+	}
+	let tileId0 = data3d1[3]^0;
+	let tileId1 = data3d1[2]^0;
+	let tileId2 = data3d1[1]^0;
+	let tileId3 = data3d1[0]^0;
 	let shadowBits = this._readMapData(mx, my, 4);
 	let upperTileId1 = this._readMapData(mx, my - 1, 1);
 	let lowerTiles = [];
@@ -838,8 +1131,9 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		}else lowerTiles.push(tileId3);
 	}
 	
+	if(idx!==undefined) for(let x=0,arr=$dataMap.addLower[idx]||[];x!==arr.length;++x) lowerTiles.push(arr[x][0]);
 	let lastLowerTiles = this._readLastTiles(0, lx, ly);
-	if(!lowerTiles.equals(lastLowerTiles) || (Tilemap.tileAn[tileId0]===1 && this._frameUpdated)){
+	if( ( ($dataMap.hasA1[idx]||$dataMap.hasA1_lower[idx]) && this._frameUpdated) || !lowerTiles.equals(lastLowerTiles) ){
 		this._lowerBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
 		for(let i=0;i!==lowerTiles.length;++i){
 			let lowerTileId = lowerTiles[i];
@@ -850,17 +1144,37 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		this._writeLastTiles(0, lx, ly, lowerTiles);
 	}
 	
-	let lastUpperTiles = this._readLastTiles(1, lx, ly);
-	if(!upperTiles.equals(lastUpperTiles)){
+	let addUpper=(idx===undefined)?f._dummy_arr:$dataMap.addUpper[idx];
+	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
+	let lastUpperTiles = this._readLastTiles(4, lx, ly);
+	if(flag_drawAddUpper || !upperTiles.equals(lastUpperTiles)){
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
 		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy);
-		this._writeLastTiles(1, lx, ly, upperTiles);
+		this._writeLastTiles(4, lx, ly, upperTiles);
+	}
+	if(flag_drawAddUpper){
+		this._writeLastTiles(5, lx, ly, addUpper);
+		for(let x=0,arr=addUpper;x!==arr.length;++x) this._drawTile(this._upperBitmap, arr[x][0], dx, dy , arr[x][1]);
 	}
 };
 $aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
 	return this._isHigherTile(tileId3)||tileId3===tileId0||(tileId2===0&&tileId3>=384&&tileId3<452);
 };
-$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
+$aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){
+	if(Tilemap.isVisibleTile(tileId)){
+		if(tp!==undefined){ // transparent
+			let ga=bitmap._context.globalAlpha;
+			bitmap._context.globalAlpha=1-tp;
+			if(Tilemap.isAutotile(tileId)) this._drawAutotile(bitmap, tileId, dx, dy);
+			else this._drawNormalTile(bitmap, tileId, dx, dy);
+			bitmap._context.globalAlpha=ga;
+		}else{
+			if(Tilemap.isAutotile(tileId)) this._drawAutotile(bitmap, tileId, dx, dy);
+			else this._drawNormalTile(bitmap, tileId, dx, dy);
+		}
+	}
+};
+$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy , tp){
 	//debug.log('Tilemap.prototype._drawNormalTile');
 	let w = this._tileWidth;
 	let h = this._tileHeight;
@@ -868,9 +1182,11 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//let sy = ((tileId>>3)&15)*h;
 	//let setNumber = Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8));
 	let source = this.bitmaps[ Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8)) ];
-	if(source) bitmap.bltImage(source, ( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, w, h, dx, dy, w, h);
+	if(source){
+		bitmap.blt(source, ( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, w, h, dx, dy, w, h);
+	}
 };
-$dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
+$dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy , tp){
 	//debug.log('Tilemap.prototype._drawAutotile');
 	
 	// const
@@ -897,7 +1213,7 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	let table = f.autotileTable[shape];
 	let source = this.bitmaps[setNumber];
 	
-	if (table && source) {
+	if(table && source){
 		let w1 = this._tileWidth_;
 		let h1 = this._tileHeight_;
 		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=h1>>1,isTable=f.isTable;i!==4;++i) {
@@ -912,10 +1228,10 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 				let qsy2 = 3;
 				let sx2 = (bx2 + qsx2) * w1;
 				let sy2 = (by2 + qsy2) * h1;
-				bitmap.bltImage(source, sx2, sy2, w1, h1,  dx1, dy1, w1, h1);
+				bitmap.blt(source, sx2, sy2, w1, h1,  dx1, dy1, w1, h1);
 				dy1+=h1_;
-				bitmap.bltImage(source, sx1, sy1, w1, h1_, dx1, dy1, w1, h1_);
-			}else bitmap.bltImage(source, sx1, sy1, w1, h1, dx1, dy1, w1, h1);
+				bitmap.blt(source, sx1, sy1, w1, h1_, dx1, dy1, w1, h1_);
+			}else bitmap.blt(source, sx1, sy1, w1, h1, dx1, dy1, w1, h1);
 		}
 	}
 };
@@ -1081,15 +1397,24 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 	this.upperZLayer.clear();
 	return Tilemap.prototype._paintAllTiles.call(this,startX,startY);
 };
-$aaaa$.prototype._paintTiles = function(startX, startY, x, y) {
+$aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	//debug.log('ShaderTilemap.prototype._paintTiles');
 	let mx = startX + x;
 	let my = startY + y;
 	let dx = x * this._tileWidth, dy = y * this._tileHeight;
-	let tileId0 = this._readMapData(mx, my, 0);
-	let tileId1 = this._readMapData(mx, my, 1);
-	let tileId2 = this._readMapData(mx, my, 2);
-	let tileId3 = this._readMapData(mx, my, 3);
+	let idx,data3d1=none;
+	{
+		let x=this.horizontalWrap?mx%this._mapWidth:mx;
+		let y=this.verticalWrap?my%this._mapHeight:my;
+		if($gameMap.isValid(x,y)){
+			idx^=0;
+			data3d1=$dataMap.data3d[idx+=this._mapWidth*y+x];
+		}
+	}
+	let tileId0 = data3d1[3]^0;
+	let tileId1 = data3d1[2]^0;
+	let tileId2 = data3d1[1]^0;
+	let tileId3 = data3d1[0]^0;
 	let shadowBits = this._readMapData(mx, my, 4);
 	let upperTileId1 = this._readMapData(mx, my - 1, 1);
 	let lowerLayer = this.lowerLayer.children[0];
@@ -1128,7 +1453,18 @@ $aaaa$.prototype._paintTiles = function(startX, startY, x, y) {
 			this._drawTile(lowerLayer, tileId3, dx, dy);
 		}
 	}
+	
+	if(idx!==undefined){
+		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) this._drawTile(lowerLayer, arr[x][0], dx, dy , arr[x][1]);
+		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x) this._drawTile(upperLayer, arr[x][0], dx, dy , arr[x][1]);
+	}
 };
+$rrrr$=$aaaa$.prototype._drawTile;
+$dddd$=$aaaa$.prototype._drawTile=function f(){
+	//debug.log('ShaderTilemap.prototype._drawTile');
+	// f(layer,tileId,dx,dy , tp)
+	return f.ori.apply(this,arguments);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawNormalTile');
 	
@@ -1528,6 +1864,22 @@ $aaaa$.prototype.updatePosition = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
+$aaaa$.prototype.loadTileset=function(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
+	this._tileset=$gameMap.tileset();
+	if(this._tileset){
+		let tilesetNames = this._tileset.tilesetNames;
+		for(let i=0;i!==tilesetNames.length;++i){
+			this._tilemap.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
+		}
+		let newTilesetFlags=$gameMap.tilesetFlags();
+		if(!this._tilemap.flags.equals(newTilesetFlags)){
+			this._tilemap.flags = newTilesetFlags;
+			//this._tilemap.refresh(); // 'ShaderTilemap.refresh' is called when 'initialize' -> '_needsRepaint' is true
+		}
+		if(Graphics.isWebGL()) this._tilemap.refreshTileset(); // 'Tilemap.refreshTileset' is empty
+		else this._tilemap.refresh();
+	}
+};
 $aaaa$.prototype.createCharacters=function(){
 	if(this._characterSprites) this._characterSprites.length=0;
 	else this._characterSprites = [];
@@ -1662,6 +2014,7 @@ $aaaa$.resetData3d=(idx)=>{ // - to 3d data [[x,y],3-z] // 0<=z<=3, z larger -> 
 			lv-=sz;
 			dst.push(data[idx+lv]);
 		}
+		DataManager.resetHasA1(idx);
 	}else{
 		if(!$dataMap.data3d) $dataMap.data3d=[];
 		for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data,data3d=$dataMap.data3d ;y!==ys;++y){ for(let x=0;x!==xs;++x){
@@ -1672,6 +2025,98 @@ $aaaa$.resetData3d=(idx)=>{ // - to 3d data [[x,y],3-z] // 0<=z<=3, z larger -> 
 				dst.push(data[idx+lv]);
 			}
 		} }
+	}
+};
+$aaaa$.resetHasA1=(idx)=>{
+	//debug.log('DataManager.resetHasA1');
+	if(!$dataMap) return;
+	if(idx!==undefined){ idx|=0;
+		let sz=$dataMap.width*$dataMap.height,data=$dataMap.data,dst;
+		
+		dst=$dataMap.hasA1;
+		dst[idx]=false;
+		for(let lv=sz<<2;lv;){
+			lv-=sz;
+			if(Tilemap.tileAn[ data[idx+lv] ]===1){
+				dst[idx]=true;
+				break;
+			}
+		}
+		
+		dst=$dataMap.hasA1_lower;
+		dst[idx]=false;
+		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) if(Tilemap.tileAn[ arr[x][0] ]===1){ dst[idx]=true; break; }
+		
+		dst=$dataMap.hasA1_upper;
+		dst[idx]=false;
+		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x) if(Tilemap.tileAn[ arr[x][0] ]===1){ dst[idx]=true; break; }
+	}else{
+		if(!$dataMap.hasA1) $dataMap.hasA1=[];
+		if(!$dataMap.hasA1_lower) $dataMap.hasA1_lower=[];
+		if(!$dataMap.hasA1_upper) $dataMap.hasA1_upper=[];
+		for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data, hasA1=$dataMap.hasA1, hasA1_lower=$dataMap.hasA1_lower, hasA1_upper=$dataMap.hasA1_upper ;y!==ys;++y){ for(let x=0;x!==xs;++x){
+			let idx=$dataMap.width*y+x,dst;
+			
+			dst=hasA1;
+			dst[idx]=false;
+			for(let lv=sz<<2;lv;){
+				lv-=sz;
+				if(Tilemap.tileAn[ data[idx+lv] ]===1){
+					dst[idx]=true;
+					break;
+				}
+			}
+			
+			dst=hasA1_lower;
+			dst[idx]=false;
+			for(let i=0,arr=$dataMap.addLower[idx];i!==arr.length;++i) if(Tilemap.tileAn[ arr[i][0] ]===1){ dst[idx]=true; break; }
+			
+			dst=hasA1_upper;
+			dst[idx]=false;
+			for(let i=0,arr=$dataMap.addUpper[idx];i!==arr.length;++i) if(Tilemap.tileAn[ arr[i][0] ]===1){ dst[idx]=true; break; }
+		} }
+	}
+};
+$aaaa$.resetPseudoTile=()=>{
+	// <addUpper:[{tid,loc,tp}]>  <addLower:[{tid,loc}]>
+	// {loc:[x,y]} or {loc:[x,y,xe,ye]}
+	//  => dst[idx_loc][tid,tp]
+	
+	if(!$dataMap) return "! $dataMap";
+	let w=$dataMap.width,src,dst;
+	
+	if(!$dataMap.addUpper) $dataMap.addUpper=[];
+	else $dataMap.addUpper.length=0;
+	dst=$dataMap.addUpper;
+	src=$dataMap.meta.addUpper;
+	for(let x=0,sz=$dataMap.height*$dataMap.width;x!==sz;++x) dst[x]=[];
+	if(src){
+		let added=JSON.parse(src);
+		for(let x=0,arr=added;x!==arr.length;++x){
+			let curr=added[x];
+			let loc=curr.loc;
+			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp])
+			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
+				dst[y*w+x].push([curr.tid,curr.tp]);
+			} } }
+		}
+	}
+	
+	if(!$dataMap.addLower) $dataMap.addLower=[];
+	else $dataMap.addLower.length=0;
+	dst=$dataMap.addLower;
+	src=$dataMap.meta.addLower;
+	for(let x=0,sz=$dataMap.height*$dataMap.width;x!==sz;++x) dst[x]=[];
+	if(src){
+		let added=JSON.parse(src);
+		for(let x=0,arr=added;x!==arr.length;++x){
+			let curr=added[x];
+			let loc=curr.loc;
+			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tid])
+			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
+				dst[y*w+x].push([curr.tid,curr.tp]);
+			} } }
+		}
 	}
 };
 $aaaa$.loadMapData = function f(mapId) {
@@ -1736,7 +2181,11 @@ $aaaa$.loadMapData = function f(mapId) {
 			}
 		} } }
 		// extended map data (including events)
+		// - in-note added pseudo-tiles
+		this.resetPseudoTile();
+		// - pre-cal.
 		this.resetData3d();
+		this.resetHasA1();
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
 		if(tmp=$dataTemplateEvtFromMaps[$dataMap.tilesetId]){
@@ -1793,7 +2242,7 @@ $aaaa$.loadMapData = function f(mapId) {
 	};
 	if (mapId > 0) {
 		let filename = 'Map%1.json'.format(mapId.padZero(3));
-		this._mapLoader = ResourceHandler.createLoader('data/' + filename, this.loadDataFile.bind(this, '$dataMap', filename));
+		this._mapLoader = ResourceHandler.createLoader('map','data/' + filename, this.loadDataFile.bind(this, '$dataMap', filename));
 		this.loadDataFile('$dataMap', filename ,f.playerChanges, {mapid:mapId});
 	} else {
 		this.makeEmptyMap();
@@ -2701,6 +3150,7 @@ $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){
 	debug.log('Scene_Map.prototype.start');
 	f.ori.call(this);
+	this._spriteset._tilemap.refreshTileset();
 	return this._mapNameWindow.open();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -6071,6 +6521,21 @@ $aaaa$.prototype.addOnceCommand=function(){
 	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED"){
 		this.addCommand('Visit It', 'gifts');
 		this._list.back.once=1;
+	}
+};
+$aaaa$.prototype.addMainCommands=function(){ // 
+	let enabled = this.areMainCommandsEnabled();
+	if(this.needsCommand('item')){
+		this.addCommand($dataCustom.itemSlot, 'item', enabled);
+	}
+	if(this.needsCommand('skill')){
+		this.addCommand(TextManager.skill, 'skill', enabled);
+	}
+	if(this.needsCommand('equip')){
+		this.addCommand(TextManager.equip, 'equip', enabled);
+	}
+	if(this.needsCommand('status')){
+		this.addCommand(TextManager.status, 'status', enabled);
 	}
 };
 $aaaa$.prototype.makeCommandList = function() {
