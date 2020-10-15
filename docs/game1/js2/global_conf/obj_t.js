@@ -67,233 +67,6 @@ $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1,
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
-// - RectTileLayer
-$aaaa$=PIXI.tilemap.RectTileLayer;
-$aaaa$.prototype.renderCanvas=function(renderer){
-	if(this.textures.length===0) return;
-	let points=this.pointsBuf;
-	renderer.context.fillStyle = '#000000';
-	for(let i=0,n=points.length;i!==n;i+=10) {
-		let x1 = points[i], y1 = points[i + 1];
-		let x2 = points[i + 2], y2 = points[i + 3];
-		let w = points[i + 4];
-		let h = points[i + 5];
-		x1 += points[i + 6] * renderer.plugins.tilemap.tileAnim[0];
-		y1 += points[i + 7] * renderer.plugins.tilemap.tileAnim[1];
-		let textureId = points[i + 8];
-		let tp=points[i + 8];
-		if (textureId >= 0) {
-			let ga=renderer.context.globalAlpha;
-			renderer.context.globalAlpha=1-tp;
-			renderer.context.drawImage(this.textures[textureId].baseTexture.source, x1, y1, w, h, x2, y2, w, h);
-			renderer.context.globalAlpha=ga;
-		}
-		else {
-			renderer.context.globalAlpha = 0.5;
-			renderer.context.fillRect(x2, y2, w, h);
-			renderer.context.globalAlpha = 1;
-		}
-	}
-};
-$aaaa$.prototype.addRect = function (textureId, u, v, x, y, tileWidth, tileHeight, animX, animY , tp) {
-	if (animX === void 0) { animX = 0; }
-	if (animY === void 0) { animY = 0; }
-	let pb=this.pointsBuf;
-	this.hasAnim = this.hasAnim || animX > 0 || animY > 0;
-	if (tileWidth === tileHeight) {
-		pb.push(u);
-		pb.push(v);
-		pb.push(x);
-		pb.push(y);
-		pb.push(tileWidth);
-		pb.push(tileHeight);
-		pb.push(animX | 0);
-		pb.push(animY | 0);
-		pb.push(textureId);
-		pb.push(tp|0);
-	}
-	else {
-		if( tileWidth % tileHeight === 0 ){
-			for(let i=0,e=~~(tileWidth/tileHeight);i!==e;++i){
-				pb.push(u + i * tileHeight);
-				pb.push(v);
-				pb.push(x + i * tileHeight);
-				pb.push(y);
-				pb.push(tileHeight);
-				pb.push(tileHeight);
-				pb.push(animX | 0);
-				pb.push(animY | 0);
-				pb.push(textureId);
-				pb.push(tp|0);
-			}
-		}
-		else if( tileHeight % tileWidth === 0 ){
-			for(let i=0,e=~~(tileHeight / tileWidth);i!==e;++i) {
-				pb.push(u);
-				pb.push(v + i * tileWidth);
-				pb.push(x);
-				pb.push(y + i * tileWidth);
-				pb.push(tileWidth);
-				pb.push(tileWidth);
-				pb.push(animX | 0);
-				pb.push(animY | 0);
-				pb.push(textureId);
-				pb.push(tp|0);
-			}
-		}
-		else {
-			pb.push(u);
-			pb.push(v);
-			pb.push(x);
-			pb.push(y);
-			pb.push(tileWidth);
-			pb.push(tileHeight);
-			pb.push(animX | 0);
-			pb.push(animY | 0);
-			pb.push(textureId);
-			pb.push(tp|0);
-		}
-	}
-};
-$aaaa$.prototype.renderWebGL=function(renderer, useSquare){
-	if (useSquare === void 0) { useSquare = false; }
-	let points = this.pointsBuf;
-	if (points.length === 0)
-		return;
-	let rectsCount = ~~(points.length / 10); // <--
-	let tile = renderer.plugins.tilemap;
-	let gl = renderer.gl;
-	if (!useSquare) {
-		tile.checkIndexBuffer(rectsCount);
-	}
-	let shader = tile.getShader(useSquare);
-	let textures = this.textures;
-	if (textures.length === 0)
-		return;
-	let len = textures.length;
-	if (this._tempTexSize < shader.maxTextures) {
-		this._tempTexSize = shader.maxTextures;
-		this._tempSize = new Float32Array(2 * shader.maxTextures);
-	}
-	for (let i = 0; i < len; i++) {
-		if (!textures[i] || !textures[i].valid)
-			return;
-		let texture = textures[i].baseTexture;
-	}
-	tile.bindTextures(renderer, shader, textures);
-	let vb = tile.getVb(this.vbId);
-	if (!vb) {
-		vb = tile.createVb(useSquare);
-		this.vbId = vb.id;
-		this.vbBuffer = null;
-		this.modificationMarker = 0;
-	}
-	let vao = vb.vao;
-	renderer.bindVao(vao);
-	let vertexBuf = vb.vb;
-	vertexBuf.bind();
-	let vertices = rectsCount * shader.vertPerQuad;
-	if (vertices === 0)
-		return;
-	if (this.modificationMarker != vertices) {
-		this.modificationMarker = vertices;
-		let vs = shader.stride * vertices;
-		if (!this.vbBuffer || this.vbBuffer.byteLength < vs) {
-			let bk = shader.stride;
-			while (bk < vs) {
-				bk *= 2;
-			}
-			this.vbBuffer = new ArrayBuffer(bk);
-			this.vbArray = new Float32Array(this.vbBuffer);
-			this.vbInts = new Uint32Array(this.vbBuffer);
-			vertexBuf.upload(this.vbBuffer, 0, true);
-		}
-		let arr = this.vbArray, ints = this.vbInts;
-		let sz = 0;
-		let textureId, shiftU, shiftV;
-		if (useSquare) {
-			for(let i=0;i!==points.length;i+=10){ // <--
-				textureId = (points[i + 8] >> 2);
-				shiftU = 1024 * (points[i + 8] & 1);
-				shiftV = 1024 * ((points[i + 8] >> 1) & 1);
-				arr[sz++] = points[i + 2];
-				arr[sz++] = points[i + 3];
-				arr[sz++] = points[i + 0] + shiftU;
-				arr[sz++] = points[i + 1] + shiftV;
-				arr[sz++] = points[i + 4];
-				arr[sz++] = points[i + 6];
-				arr[sz++] = points[i + 7];
-				arr[sz++] = textureId;
-				//arr[sz++] = points[i + 9]; // <--
-			}
-		}
-		else {
-			let tint = -1;
-			for (let i=0;i!==points.length;i+=10){ // <--
-				let eps = 0.5;
-				textureId = (points[i + 8] >> 2);
-				shiftU = 1024 * (points[i + 8] & 1);
-				shiftV = 1024 * ((points[i + 8] >> 1) & 1);
-				let x = points[i + 2], y = points[i + 3];
-				let w = points[i + 4], h = points[i + 5];
-				let u = points[i] + shiftU, v = points[i + 1] + shiftV;
-				let animX = points[i + 6], animY = points[i + 7];
-				arr[sz++] = x;
-				arr[sz++] = y;
-				arr[sz++] = u;
-				arr[sz++] = v;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				//arr[sz++] = points[i + 9]; // <--
-				arr[sz++] = x + w;
-				arr[sz++] = y;
-				arr[sz++] = u + w;
-				arr[sz++] = v;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				//arr[sz++] = points[i + 9]; // <--
-				arr[sz++] = x + w;
-				arr[sz++] = y + h;
-				arr[sz++] = u + w;
-				arr[sz++] = v + h;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				//arr[sz++] = points[i + 9]; // <--
-				arr[sz++] = x;
-				arr[sz++] = y + h;
-				arr[sz++] = u;
-				arr[sz++] = v + h;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				//arr[sz++] = points[i + 9]; // <--
-			}
-		}
-		vertexBuf.upload(arr, 0, true);
-	}
-	if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
-	else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
-};
-$rrrr$=$dddd$=$aaaa$=undef;
 // - TileRenderer
 PIXI.tilemap.TileRenderer.prototype.getVb = function (id) {
 	// 雷ㄛ 變數名稱寫錯是在衝三小
@@ -305,6 +78,15 @@ PIXI.tilemap.TileRenderer.prototype.getVb = function (id) {
 	}
 	return null;
 };
+$rrrr$=$dddd$=$aaaa$=undef;
+// - CompositeRectTileLayer
+$aaaa$=PIXI.tilemap.CompositeRectTileLayer;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
+	texPerChild=texPerChild||16; // bigger
+	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // core
 
@@ -761,7 +543,7 @@ $aaaa$.prototype._requestImage=function(url){
 	} else {
 		this._loadingState = 'requesting';
 			this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
-		if(this._loader){
+		if(this._loader && !_global_conf.isDataURI(url)){
 			this._loadListener = Bitmap.prototype._onLoad.bind(this);
 			this._errorListener = this._loader;
 			_global_conf['jurl'](url,"HEAD",undef,undef,'arraybuffer',undef,async (xhr)=>{
@@ -1173,7 +955,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 $aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
 	return this._isHigherTile(tileId3)||tileId3===tileId0||(tileId2===0&&tileId3>=384&&tileId3<452);
 };
-$aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){
+$aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){ // polling very slow (sparse)
 	if(Tilemap.isVisibleTile(tileId)){
 		if(tp!==undefined){ // transparent
 			let ga=bitmap._context.globalAlpha;
@@ -1187,7 +969,7 @@ $aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){
 		}
 	}
 };
-$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy , tp){
+$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawNormalTile');
 	let w = this._tileWidth;
 	let h = this._tileHeight;
@@ -1199,7 +981,7 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy , tp){
 		bitmap.blt(source, ( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, w, h, dx, dy, w, h);
 	}
 };
-$dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy , tp){
+$dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawAutotile');
 	
 	// const
@@ -1379,9 +1161,9 @@ $dddd$=$aaaa$.prototype.renderWebGL=function f(renderer) {
 	// if the object is not visible or the alpha is 0 then no need to render this element
 	if (!(this.visible && 0<this.worldAlpha && this.renderable)) return;
 	// do a quick check to see if this element has a mask or a filter.
-	if (this._mask || this._filters) this.renderAdvancedWebGL(renderer);
+	if (this._mask || this._filters) this.renderAdvancedWebGL(renderer); // not executed
 	else {
-		this._renderWebGL(renderer);
+		this._renderWebGL(renderer); // is empty func.
 		// simple render children!
 		f.forEach.renderer=renderer;
 		return this.children.forEach(f.forEach,true);
@@ -1390,6 +1172,45 @@ $dddd$=$aaaa$.prototype.renderWebGL=function f(renderer) {
 $dddd$.forEach=function f(c){
 	c.renderWebGL(f.renderer);
 };
+$aaaa$.prototype.refreshTileset_extBitmaps=function f(bitmaps){
+	if(!f.cache) f.cache=new CacheSystem(1);
+	if(bitmaps.length===0 || 1>=bitmaps[0].width || 1>=bitmaps[0].height) return bitmaps;
+	if(this.bitmaps.length>=17) console.warn("ShaderTilemap.bitmaps.length>=17","might cause errors");
+	let texPerChild=this.lowerLayer.texPerChild||16;
+	for(let b=0,bs=this.bitmaps.length;b!==bs;++b){
+		if(bitmaps.length>=texPerChild) break; // due to webgl
+		let fname=this.bitmaps[b]._fname;
+		let alpha=0.25;
+		let cacheKey=fname+"-"+alpha;
+		let newBitmap=f.cache.get(cacheKey);
+		if(newBitmap){
+			bitmaps.push(this.refreshTileset.toPIXI(newBitmap));
+			continue;
+		}
+		let src=bitmaps[b].baseTexture.source;
+		let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
+		let ctx=c.getContext('2d'); // ctx.clearRect(0,0,c.width,c.height);
+		ctx.globalAlpha=alpha;
+		ctx.drawImage(src,0,0);
+		let dataURL=c.toDataURL();
+		if(dataURL==="data:,") newBitmap=ImageManager.loadEmptyBitmap();
+		else{
+			newBitmap=Bitmap.load(dataURL,cacheKey);
+			f.cache.add(cacheKey,newBitmap);
+		}
+		bitmaps.push(this.refreshTileset.toPIXI(newBitmap));
+	}
+	return bitmaps;
+};
+$dddd$=$aaaa$.prototype.refreshTileset=function f(){
+	if(!f.cache) f.cache=new CacheSystem(1);
+	let bitmaps=this.bitmaps.map(f.toPIXI);
+	this.refreshTileset_extBitmaps(bitmaps);
+	this.lowerLayer.setBitmaps(bitmaps);
+	this.upperLayer.setBitmaps(bitmaps);
+	for(let x=0,arr=this.upperLayer_a025s;x!==arr.length;++x) arr[x].setBitmaps(bitmaps);
+};
+$dddd$.toPIXI=bitmap=>bitmap._baseTexture?new PIXI.Texture(bitmap._baseTexture):bitmap;
 $aaaa$.prototype.updateTransform=function() {
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
 	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
@@ -1405,8 +1226,20 @@ $aaaa$.prototype.updateTransform=function() {
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
 };
+$rrrr$=$aaaa$.prototype._createLayers;
+$dddd$=$aaaa$.prototype._createLayers=function f(){
+	let flag=!this.lowerZLayer;
+	f.ori.call(this);
+	if(flag){
+		this.upperLayer_tps=[this.upperLayer];
+		
+		for(let x=0,arr=this.upperLayer_a025s=[];x!==5;++x){
+			this.upperZLayer.addChild(arr[x] = new PIXI.tilemap.CompositeRectTileLayer(5+x, [], 0));
+		}
+	}
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._paintAllTiles=function(startX, startY){
-	this.lowerZLayer.clear();
+	this.lowerZLayer.clear(); // this.lowerZLayer.children[0]===this.lowerLayer
 	this.upperZLayer.clear();
 	return Tilemap.prototype._paintAllTiles.call(this,startX,startY);
 };
@@ -1432,14 +1265,18 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	let upperTileId1 = this._readMapData(mx, my - 1, 1);
 	let lowerLayer = this.lowerLayer.children[0];
 	let upperLayer = this.upperLayer.children[0];
+	let layers=this.upperLayer_a025s,revealTransparency=0.25;
+	let isNearPlayer=$gamePlayer.dist2({x:mx,y:my,dist2:true})===0;
 	
 	if (this._isHigherTile(tileId0)) {
-		this._drawTile(upperLayer, tileId0, dx, dy);
+		if(isNearPlayer) this._drawTile_byTp(layers, tileId0, dx, dy, revealTransparency);
+		else this._drawTile(upperLayer, tileId0, dx, dy);
 	} else {
 		this._drawTile(lowerLayer, tileId0, dx, dy);
 	}
 	if (this._isHigherTile(tileId1)) {
-		this._drawTile(upperLayer, tileId1, dx, dy);
+		if(isNearPlayer) this._drawTile_byTp(layers, tileId1, dx, dy, revealTransparency);
+		else this._drawTile(upperLayer, tileId1, dx, dy);
 	} else {
 		this._drawTile(lowerLayer, tileId1, dx, dy);
 	}
@@ -1452,46 +1289,80 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	}
 	
 	if (this._isOverpassPosition(mx, my)) {
-		this._drawTile(upperLayer, tileId2, dx, dy);
-		this._drawTile(upperLayer, tileId3, dx, dy);
+		if(isNearPlayer){
+			this._drawTile_byTp(layers, tileId2, dx, dy, revealTransparency);
+			this._drawTile_byTp(layers, tileId3, dx, dy, revealTransparency);
+		}else{
+			this._drawTile(upperLayer, tileId2, dx, dy);
+			this._drawTile(upperLayer, tileId3, dx, dy);
+		}
 	} else {
 		if (this._isHigherTile(tileId2)) {
-			this._drawTile(upperLayer, tileId2, dx, dy);
+			if(isNearPlayer) this._drawTile_byTp(layers, tileId2, dx, dy, revealTransparency);
+			else this._drawTile(upperLayer, tileId2, dx, dy);
 		} else {
 			this._drawTile(lowerLayer, tileId2, dx, dy);
 		}
 		if(this._isHigherTile_id3(tileId0,tileId1,tileId2,tileId3)){
-			this._drawTile(upperLayer, tileId3, dx, dy);
+			if(isNearPlayer) this._drawTile_byTp(layers, tileId3, dx, dy, revealTransparency);
+			else this._drawTile(upperLayer, tileId3, dx, dy);
 		} else {
 			this._drawTile(lowerLayer, tileId3, dx, dy);
 		}
 	}
-	
 	if(idx!==undefined){
-		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) this._drawTile(lowerLayer, arr[x][0], dx, dy , arr[x][1]);
-		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x) this._drawTile(upperLayer, arr[x][0], dx, dy , arr[x][1]);
+		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) this._drawTile(lowerLayer, arr[x][0], dx, dy);
+		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x){
+			this._drawTile_byTp(layers, arr[x][0], dx, dy , arr[x][1]);
+		}
+	}
+};
+$aaaa$.prototype._drawTile_byTp=function(layers,tid,dx,dy,tp){
+	tp*=8; tp^=0;
+	let pad=window['/tmp/'].pad^0;
+	tp+=pad;
+	if(0>=tp) return this._drawTile(layers[0].children[0],tid,dx,dy);
+	else if(tp>=8) return;
+	tp/=8.0;
+	let baseLen=this.bitmaps.length,drawCnt=0,mul=1,lastDist=1-tp; lastDist*=lastDist;
+	for(let x=this.upperLayer_a025s.length;x--;){
+		mul*=1-0.25;
+		let dist=mul-tp; dist*=dist;
+		if(dist<lastDist) lastDist=dist;
+		else break;
+		++drawCnt;
+	}
+	drawCnt+=drawCnt===0;
+	for(let x=0;x!==drawCnt;++x){
+		this._drawTile(layers[x].children[0],tid,dx,dy,baseLen);
 	}
 };
 $rrrr$=$aaaa$.prototype._drawTile;
-$dddd$=$aaaa$.prototype._drawTile=function f(){
+$dddd$=$aaaa$.prototype._drawTile=function f(layer, tileId, dx, dy , altShift){ // polling very fast (frequent)
 	//debug.log('ShaderTilemap.prototype._drawTile');
-	// f(layer,tileId,dx,dy , tp)
-	return f.ori.apply(this,arguments);
+	if (Tilemap.isVisibleTile(tileId)) {
+		if (Tilemap.isAutotile(tileId)) {
+			this._drawAutotile(layer, tileId, dx, dy , altShift);
+		} else {
+			this._drawNormalTile(layer, tileId, dx, dy , altShift);
+		}
+	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy){
+$aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy , altShift){
 	//debug.log('ShaderTilemap.prototype._drawNormalTile');
 	
 	let w = this._tileWidth;
 	let h = this._tileHeight;
 	//let sx = ( ((tileId>>4)&8)+(tileId&7) )*w;
 	//let sy = ((tileId>>3)&15)*h;
-	//let setNumber=Tilemap.isTileA5(tileId)?4:( 5+(tileId>>8) );
-	layer.addRect( Tilemap.tileAn[tileId]===5?4:( 5+(tileId>>8) ), 
+	let setNumber=Tilemap.tileAn[tileId]===5?4:( 5+(tileId>>8) );
+	altShift^=0;
+	layer.addRect( setNumber+altShift, 
 		( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, 
 		dx, dy, w, h
 	);
 };
-$aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
+$aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy , altShift) {
 	//debug.log('ShaderTilemap.prototype._drawAutotile');
 	let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
 	let kind = Tilemap.getAutotileKind(tileId);
@@ -1504,7 +1375,9 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 	let isTable = false;
 	let animX = 0, animY = 0;
 	
-	if(Tilemap.isTileA1(tileId)){
+	switch(Tilemap.tileAn[tileId]){
+	default: break;
+	case 1:
 		setNumber=0;
 		if(kind>=0&&kind<4){
 			animX=(kind<2)<<1;
@@ -1521,26 +1394,31 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 				animY=1;
 			}
 		}
-	}else if(Tilemap.isTileA2(tileId)){
+	break;
+	case 2:
 		setNumber = 1;
 		bx = tx<<1;
 		by = (ty - 2) * 3;
 		isTable = this._isTableTile(tileId);
-	}else if(Tilemap.isTileA3(tileId)){
+	break;
+	case 3:
 		setNumber = 2;
 		bx = tx<<1;
 		by = (ty - 6)<<1;
 		autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
-	}else if(Tilemap.isTileA4(tileId)){
+	break;
+	case 4:
 		setNumber = 3;
 		bx = tx<<1;
 		by = Math.floor((ty - 10) * 2.5 + ((ty&1)? 0.5 : 0));
 		if(ty&1) autotileTable = Tilemap.WALL_AUTOTILE_TABLE;
+	break;
 	}
 	
 	let table = autotileTable[shape];
 	let w1 = this._tileWidth_; // 48>>1
 	let h1 = this._tileHeight_; // 48>>1
+	altShift^=0;
 	if(table){ for(let i=0,bx2=bx<<1,by2=by<<1,h1_=h1>>1;i!==4;++i){
 		let qsx = table[i][0];
 		let qsy = table[i][1];
@@ -1553,9 +1431,9 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy) {
 			let qsy2 = 3;
 			let sx2 = (bx2 + qsx2) * w1;
 			let sy2 = (by2 + qsy2) * h1;
-			layer.addRect(setNumber, sx2, sy2, dx1, dy1, w1, h1, animX, animY);
-			layer.addRect(setNumber, sx1, sy1, dx1, dy1+h1_, w1, h1_, animX, animY);
-		}else layer.addRect(setNumber, sx1, sy1, dx1, dy1, w1, h1, animX, animY);
+			layer.addRect(setNumber+altShift, sx2, sy2, dx1, dy1,     w1, h1,  animX, animY);
+			layer.addRect(setNumber+altShift, sx1, sy1, dx1, dy1+h1_, w1, h1_, animX, animY);
+		}else layer.addRect(setNumber+altShift, sx1, sy1, dx1, dy1, w1, h1, animX, animY);
 	}}
 };
 $aaaa$.prototype._drawTableEdge=function(layer, tileId, dx, dy){
@@ -2423,6 +2301,14 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ImageManager
 $aaaa$=ImageManager;
+$rrrr$=$aaaa$.loadTileset;
+$dddd$=$aaaa$.loadTileset=function f(fname,hue){
+	// f(folder,fname,hue,smooth)
+	let rtv=f.ori.call(this,fname,hue);
+	rtv._fname=fname;
+	window['/tmp/'][fname]=rtv;
+	return rtv;
+}; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.loadNormalBitmap=function(path, hue) {
 	let key = this._generateCacheKey(path, hue);
 	let bitmap=this._imageCache.get(key);
@@ -2553,6 +2439,9 @@ $dddd$=$aaaa$.update=function f(){
 	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.isMap=function(){return this._scene && this._scene.constructor===Scene_Map};
+$aaaa$.getTilemap=function(){
+	let sc; if((sc=this._scene).constructor===Scene_Map) return sc._spriteset._tilemap;
+};
 $aaaa$._alphas=[];
 $aaaa$.pushAlpha=function(a){this._alphas.push(this._scene.alpha);this._scene.alpha=a;};
 $aaaa$.popAlpha=function(){this._scene.alpha=this._alphas.pop();};
@@ -3840,7 +3729,7 @@ $aaaa$.prototype.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwww
 	}
 	return rtv;
 };
-$aaaa$.prototype.eventsXyRef=function(xy){ return this.eventsXy(xy.x,xy.y); };
+$aaaa$.prototype.eventsXyRef=function(xy){ xy=xy||$gamePlayer; return this.eventsXy(xy.x,xy.y); };
 $aaaa$.prototype.eventsXyNt=function(posx,posy){ // overwrite.
 	if(!this.isValid(posx,posy)) return [];
 	let mapd=$dataMap,tbl;
@@ -4136,12 +4025,6 @@ $aaaa$.prototype.command123=function(){ // ctrl ss
 };
 $aaaa$.prototype.command214=function(){ // erase evt
 	if(this.isOnCurrentMap()&&this._eventId.toId()>0) $gameMap.eraseEvent(this._eventId);
-	return true;
-};
-if(0&&0)$aaaa$.prototype.command230=function(){ // wait
-	// no need to rewrite
-	// in script, 60 means 1 sec, no matter how much fps.
-	this.wait(this._params[0]>>(_global_conf.halfFps^0));
 	return true;
 };
 // - - expose info
@@ -4614,10 +4497,18 @@ $aaaa$.prototype.executeMove = function(direction) {
 	this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
 	let sc=SceneManager._scene;
 	if(sc.constructor===Scene_Map){
-		let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
-		sc._spriteset._tilemap._paintTiles(sx,sy,$gamePlayer.scrolledX()+this.x-last_x,$gamePlayer.scrolledY()+this.y-last_y);
-		sc._spriteset._tilemap._paintTiles(sx,sy,$gamePlayer.scrolledX()              ,$gamePlayer.scrolledY()              );
-			// display top-left anchor + player offset of display
+		if(Graphics.isWebGL()){
+//			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
+//			let scx=$gamePlayer.scrolledX()+sx-(sx^0),scy=$gamePlayer.scrolledY()+sy-(sy^0);
+//			sc._spriteset._tilemap._paintTiles(sx^0,sy^0,scx+this.x-last_x,scy+this.y-last_y);
+//			sc._spriteset._tilemap._paintTiles(sx^0,sy^0,scx              ,scy              );
+		}else{
+			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
+			let scx=$gamePlayer.scrolledX(),scy=$gamePlayer.scrolledY();
+			sc._spriteset._tilemap._paintTiles(sx,sy,scx+this.x-last_x,scy+this.y-last_y);
+			sc._spriteset._tilemap._paintTiles(sx,sy,scx              ,scy              );
+				// display top-left anchor + player offset of display
+		}
 	}
 //		if(sc.constructor===Scene_Map){
 //			let x1=Math.floor(this._realX),x2=Math.ceil(this._realX);
@@ -5924,9 +5815,9 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			tmp=tmp.meta;
 			if(tmp.cond!==undefined){
 				let cond=eval(tmp.cond);
-				if(tmp.skipNLine){
-					let skipNLine=eval(tmp.skipNLine);
-					let line=(skipNLine && skipNLine.constructor===Function)?skipNLine(olist,c,rtv):skipNLine;
+				if(tmp.elseSkipNLine){
+					let skipN=eval(tmp.elseSkipNLine);
+					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
 					if(!cond) c+=line;
 				}
 			}

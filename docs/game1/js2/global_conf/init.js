@@ -165,6 +165,7 @@ if(window && window.location){
 }
 _global_conf["scene strts"]={};
 
+_global_conf["isDataURI"]=s=>s.match(/^data:[^,]*,/)!==null;
 _global_conf["jurl"] = (url, method, header, data, resType, callback, callback_all_h, timeout_ms) => {
 	resType=resType||'';
 	let xhttp=new XMLHttpRequest();

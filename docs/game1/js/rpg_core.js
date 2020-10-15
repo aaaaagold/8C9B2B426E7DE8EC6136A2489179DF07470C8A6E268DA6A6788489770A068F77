@@ -4946,42 +4946,8 @@ ShaderTilemap.prototype.refresh = function() {
     this._needsRepaint = true;
 };
 
-/**
- * Call after you update tileset
- *
- * @method updateBitmaps
- */
-ShaderTilemap.prototype.refreshTileset = function() {
-    var bitmaps = this.bitmaps.map(function(x) { return x._baseTexture ? new PIXI.Texture(x._baseTexture) : x; } );
-    this.lowerLayer.setBitmaps(bitmaps);
-    this.upperLayer.setBitmaps(bitmaps);
-};
-
-/**
- * @method updateTransform
- * @private
- */
-ShaderTilemap.prototype.updateTransform = function() {
-    if (this.roundPixels) {
-        var ox = Math.floor(this.origin.x);
-        var oy = Math.floor(this.origin.y);
-    } else {
-        ox = this.origin.x;
-        oy = this.origin.y;
-    }
-    var startX = Math.floor((ox - this._margin) / this._tileWidth);
-    var startY = Math.floor((oy - this._margin) / this._tileHeight);
-    this._updateLayerPositions(startX, startY);
-    if (this._needsRepaint ||
-        this._lastStartX !== startX || this._lastStartY !== startY) {
-        this._lastStartX = startX;
-        this._lastStartY = startY;
-        this._paintAllTiles(startX, startY);
-        this._needsRepaint = false;
-    }
-    this._sortChildren();
-    PIXI.Container.prototype.updateTransform.call(this);
-};
+ShaderTilemap.prototype.refreshTileset;
+ShaderTilemap.prototype.updateTransform;
 
 /**
  * @method _createLayers
