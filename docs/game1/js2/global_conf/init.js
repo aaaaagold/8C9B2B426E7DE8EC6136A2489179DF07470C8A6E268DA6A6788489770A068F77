@@ -402,8 +402,9 @@ let setShorthand = (w)=>{
 	};
 	$dddd$.cmp=(a,b)=>a-b;
 	w.Array.prototype.sum=function(mapFunc){
-		if(this.length===0) return undefined;
-		if(mapFunc && mapFunc.constructor===Function){
+		let isFunc = mapFunc && mapFunc.constructor===Function;
+		if(this.length===0) return isFunc?undefined:0;
+		if(isFunc){
 			let rtv=mapFunc(this[0]);
 			for(let x=1,xs=this.length;x!==xs;++x) rtv+=this[x];
 			return rtv;

@@ -1200,6 +1200,7 @@ $aaaa$.prototype.refreshTileset_extBitmaps=function f(bitmaps){
 		}
 		bitmaps.push(this.refreshTileset.toPIXI(newBitmap));
 	}
+	while(texPerChild<bitmaps.length) bitmaps.pop();
 	return bitmaps;
 };
 $dddd$=$aaaa$.prototype.refreshTileset=function f(){
@@ -1245,6 +1246,8 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 };
 $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	//debug.log('ShaderTilemap.prototype._paintTiles');
+	// startX = $gameMap._displayX_tw/$gameMap.tileWidth()^0
+	// startY = $gameMap._displayY_th/$gameMap.tileHeight()^0
 	let mx = startX + x;
 	let my = startY + y;
 	let dx = x * this._tileWidth, dy = y * this._tileHeight;
@@ -2309,7 +2312,7 @@ $dddd$=$aaaa$.loadTileset=function f(fname,hue){
 	window['/tmp/'][fname]=rtv;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.loadNormalBitmap=function(path, hue) {
+$dddd$=$aaaa$.loadNormalBitmap=function f(path, hue) {
 	let key = this._generateCacheKey(path, hue);
 	let bitmap=this._imageCache.get(key);
 	if (!bitmap) {
@@ -4498,10 +4501,8 @@ $aaaa$.prototype.executeMove = function(direction) {
 	let sc=SceneManager._scene;
 	if(sc.constructor===Scene_Map){
 		if(Graphics.isWebGL()){
-//			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
-//			let scx=$gamePlayer.scrolledX()+sx-(sx^0),scy=$gamePlayer.scrolledY()+sy-(sy^0);
-//			sc._spriteset._tilemap._paintTiles(sx^0,sy^0,scx+this.x-last_x,scy+this.y-last_y);
-//			sc._spriteset._tilemap._paintTiles(sx^0,sy^0,scx              ,scy              );
+			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
+			sc._spriteset._tilemap._paintAllTiles(sx^0,sy^0); // drawing flow: addRect , sent vertices to webgl => remove rect or totally re-draw
 		}else{
 			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
 			let scx=$gamePlayer.scrolledX(),scy=$gamePlayer.scrolledY();
