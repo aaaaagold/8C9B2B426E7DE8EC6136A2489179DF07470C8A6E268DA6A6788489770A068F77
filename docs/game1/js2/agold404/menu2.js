@@ -2050,7 +2050,6 @@ $aaaa$=Window_CustomPopupMsg;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.destructor=none;
-$aaaa$.prototype.update=none;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	let self=this;
@@ -2072,8 +2071,9 @@ $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	//this.redrawtxt();
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.update=function(){let p=this.parent; if(p&&p.constructor!==Window_CustomPopups) this._update(Date.now());};
 $aaaa$.prototype._update=function(t){
-	// called by 'Window_CustomPopupMsgs'
+	// called by 'Window_CustomPopups'
 	if(this.updateItvl==="no") return;
 	if(t-this._lastUpdateTime>=this.updateItvl){
 		if(t>=this.endTime) this.ctr=64;
