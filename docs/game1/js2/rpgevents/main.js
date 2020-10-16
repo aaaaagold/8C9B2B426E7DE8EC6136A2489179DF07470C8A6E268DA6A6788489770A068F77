@@ -13,6 +13,7 @@ const add=(src)=>{
 	},100);
 };
 
+add("list");
 add("items");
 add("shops");
 add("interact");

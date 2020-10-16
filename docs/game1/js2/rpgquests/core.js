@@ -49,7 +49,7 @@ $qqqq$=list.core_collectwoods={
 	},
 	reward:{
 		codes:[
-			["$gameParty.gainGold(($gameParty._items[61]^0)*100)","依照交回的大木材數量給予該數量*100G"]
+			["$gameParty.gainGold(($gameParty._items[61]^0)*100)","依照個人交回的大木材數量給予該數量*100G"]
 		]
 	},
 	__dummy:null

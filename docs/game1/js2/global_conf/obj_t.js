@@ -4043,7 +4043,7 @@ Object.defineProperties($aaaa$.prototype, {
 $rrrr$=$aaaa$.prototype.canUse;
 $dddd$=$aaaa$.prototype.canUse=function f(dataItem){
 	let meta=dataItem&&dataItem.meta;
-	if(SceneManager._scene.constructor===Scene_Item && (meta.code||meta.func)) return true;
+	if(SceneManager._scene.constructor===Scene_Item && (meta.code||meta.func) && $gameParty.hasItem(dataItem)) return true;
 	return f.ori.call(this,dataItem);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.paramMax=function(paramId){
