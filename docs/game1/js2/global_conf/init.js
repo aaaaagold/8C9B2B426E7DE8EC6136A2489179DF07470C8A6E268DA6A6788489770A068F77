@@ -288,9 +288,11 @@ let setShorthand = (w)=>{
 	w.HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
 	w.HTMLElement.prototype.acarr=function(arr){arr.forEach(c=>this.appendChild(c));return this;};
 	w.HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+	w.HTMLElement.prototype.sans=function(ns,a,v){this.setAttributeNS(ns,a,v);return this;};
 	w.HTMLElement.prototype.at=function(t){this.ac(d.createTextNode(t));return this;};
 	w.HTMLElement.prototype.si=function(i){this.innerHTML=i;return this;};
 	w.HTMLElement.prototype.ga=function(a){return this.getAttribute(a);};
+	w.HTMLElement.prototype.gans=function(ns,a){return this.getAttributeNS(ns,a);};
 	w.HTMLElement.prototype.range=function(){return this.getBoundingClientRect();};
 	w.HTMLElement.prototype.cenPos=function(){
 		let rtv={},t=this.getBoundingClientRect();
@@ -350,6 +352,10 @@ let setShorthand = (w)=>{
 	if(!w.NodeList.prototype.forEach){ w.NodeList.prototype.forEach=function(f){
 		for(let x=0,xs=this.length;x!==xs;++x) f(this[x],x,this);
 	}; }
+	w.SVGImageElement.prototype.sa=w.HTMLElement.prototype.sa;
+	w.SVGImageElement.prototype.ga=w.HTMLElement.prototype.ga;
+	w.SVGImageElement.prototype.sans=w.HTMLElement.prototype.sans;
+	w.SVGImageElement.prototype.gans=w.HTMLElement.prototype.gans;
 	
 	w.isInt=(obj)=>parseInt(obj)===obj;
 	Object.defineProperties(w,{
@@ -527,7 +533,7 @@ let setShorthand = (w)=>{
 		configurable: false},
 		front: {
 			get:function(){
-				return this._ende===this._strt?undef:this._data[this._strt];
+				return this._ende===this._strt?undefined:this._data[this._strt];
 			},
 			set:function(rhs){
 				return this._ende===this._strt?this._data[this.push(rhs)]:(this._data[this._strt]=rhs);
@@ -539,7 +545,7 @@ let setShorthand = (w)=>{
 		configurable: false},
 		back: {
 			get:function(){
-				return this._ende===this._strt?undef:this._data[this._lastIdx()]; },
+				return this._ende===this._strt?undefined:this._data[this._lastIdx()]; },
 			set:function(rhs){
 				return this._ende===this._strt?this._data[this.push(rhs)]:(this._data[this._lastIdx()]=rhs);
 			},
@@ -580,6 +586,10 @@ let setShorthand = (w)=>{
 		return true;
 	};
 	w.Queue.prototype.pop_front=$rrrr$;
+	w.Queue.prototype.shift=function(){
+		let rtv=this.front;
+		return this.pop()?rtv:undefined;
+	};
 	w.Queue.prototype.pop_back=function(){
 		if(this._ende===this._strt) return false;
 		if(0===--this._len){ this.clear(); return true; }
@@ -595,7 +605,7 @@ let setShorthand = (w)=>{
 	};
 	w.Queue.prototype.getnth=function(n){ return this._data[this._toValidIdx(n)]; }; // 0-base
 	w.Queue.prototype.setnth=function(n,rhs){
-		let idx=this._toValidIdx(n); if(idx===undef) return undef;
+		let idx=this._toValidIdx(n); if(idx===undef) return undefined;
 		this._data[idx]=rhs;
 		return true;
 	}; // 0-base

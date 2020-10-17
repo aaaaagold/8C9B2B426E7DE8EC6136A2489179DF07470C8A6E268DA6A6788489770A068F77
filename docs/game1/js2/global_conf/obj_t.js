@@ -209,6 +209,11 @@ Object.defineProperty($aaaa$.prototype, 'pitch', {
 	},
 	configurable: true
 });
+$rrrr$=$aaaa$.prototype.clear;
+$dddd$=$aaaa$.prototype.clear=function f(){
+	f.ori.call(this);
+	this._loadListeners=new Queue();
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.initialize=function(url){
 	if (!WebAudio._initialized) {
 		WebAudio.initialize();
@@ -250,6 +255,14 @@ $aaaa$.prototype._load=function f(url){
 		return f.cache.xhrq_regist(url_ori,callbacks); // xhr.send();
 	}
 };
+$rrrr$=$dddd$=$aaaa$=undef;
+// - Html5Audio
+$aaaa$=Html5Audio;
+$rrrr$=$aaaa$.clear;
+$dddd$=$aaaa$.clear=function f(){
+	f.ori.call(this);
+	this._loadListeners=new Queue();
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Graphics
@@ -441,10 +454,17 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Bitmap
 $aaaa$=Bitmap;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(w,h){
+	f.ori.call(this,w,h);
+	this._loadListeners=new Queue();
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.load;
-$dddd$=$aaaa$.load=function f(url,key) {
+$dddd$=$aaaa$.load=function f(url,key,opt){
+	if(url==="data:,") return ImageManager.loadEmptyBitmap();
 	let rtv=f.ori.call(this,url);
 	rtv._cacheKey=key;
+	rtv._opt=opt;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -476,8 +496,13 @@ $aaaa$.prototype._createCanvas=function(width, height){
 		this.__canvas.width = w;
 		this.__canvas.height = h;
 		this._createBaseTexture(this._canvas);
-		
+		let ga;
+		if(this._opt&&this._opt.globalAlpha!==undefined){ debugger;
+			ga=this.__context.globalAlpha;
+			this.__context.globalAlpha=this._opt.globalAlpha;
+		}
 		this.__context.drawImage(this._image, 0, 0);
+		if(ga!==undefined) this.__context.globalAlpha=ga;
 	}
 	this._setDirty();
 };
@@ -543,7 +568,7 @@ $aaaa$.prototype._requestImage=function(url){
 	} else {
 		this._loadingState = 'requesting';
 			this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
-		if(this._loader && !_global_conf.isDataURI(url)){
+		if( this._loader && url.slice(0,5)!=="blob:" && !_global_conf.isDataURI(url) ){
 			this._loadListener = Bitmap.prototype._onLoad.bind(this);
 			this._errorListener = this._loader;
 			_global_conf['jurl'](url,"HEAD",undef,undef,'arraybuffer',undef,async (xhr)=>{
@@ -684,6 +709,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Tilemap
 $aaaa$=Tilemap;
+$aaaa$.revealTp=0.3125; // tp:transparent
 $aaaa$.prototype.refresh=function(){
 	if(this.parent){
 		this.updateTransform(true);
@@ -944,7 +970,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	if(flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby || !upperTiles.equals(lastUpperTiles)){
 		flag_drawAddUpper=true;
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
-		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , upperTiles.playerNearby?0.25:undefined);
+		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , upperTiles.playerNearby?Tilemap.revealTp:undefined);
 		this._writeLastTiles(4, lx, ly, upperTiles);
 	}
 	if(flag_drawAddUpper){
@@ -1145,6 +1171,33 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ShaderTilemap
 $aaaa$=ShaderTilemap;
+if(0){ // debugging an array usage
+Object.defineProperties($aaaa$.prototype,{
+	bitmaps:{ get:function(){debugger;return this._bms;},
+		set:function(_rhs){
+			debugger;
+			this._bms={_data:_rhs};
+			for(let x=0,arr=Object.getOwnPropertyNames(Array.prototype);x!==arr.length;++x){
+				let p=arr[x],tmp={}; tmp[p]={
+					get:function(){return this._data[p];},
+					set:function(rhs){debugger;return this._data[p]=rhs;},
+				};
+				Object.defineProperties(this._bms,tmp);
+			}
+			for(let x=21;x--;){
+				let i=x;
+				let tmp={}; tmp[i]={
+					get:function(){return this._data[i];},
+					set:function(rhs){debugger;return this._data[i]=rhs;},
+				};
+				Object.defineProperties(this._bms,tmp);
+			}
+			debugger;
+			return this._bms;
+		},
+	}
+});
+}
 $dddd$=$aaaa$.prototype._hackRenderer=function f(renderer){
 	renderer.plugins.tilemap.tileAnim[0] = f.tbl[this.animationFrame&3] * this._tileWidth;
 	renderer.plugins.tilemap.tileAnim[1] = (this.animationFrame % 3) * this._tileHeight;
@@ -1204,9 +1257,8 @@ $aaaa$.prototype.refreshTileset_extBitmaps=function f(bitmaps){
 	return bitmaps;
 };
 $dddd$=$aaaa$.prototype.refreshTileset=function f(){
-	if(!f.cache) f.cache=new CacheSystem(1);
 	let bitmaps=this.bitmaps.map(f.toPIXI);
-	this.refreshTileset_extBitmaps(bitmaps);
+	//this.refreshTileset_extBitmaps(bitmaps);
 	this.lowerLayer.setBitmaps(bitmaps);
 	this.upperLayer.setBitmaps(bitmaps);
 	for(let x=0,arr=this.upperLayer_a025s;x!==arr.length;++x) arr[x].setBitmaps(bitmaps);
@@ -1268,7 +1320,7 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	let upperTileId1 = this._readMapData(mx, my - 1, 1);
 	let lowerLayer = this.lowerLayer.children[0];
 	let upperLayer = this.upperLayer.children[0];
-	let layers=this.upperLayer_a025s,revealTransparency=0.25;
+	let layers=this.upperLayer_a025s,revealTransparency=Tilemap.revealTp;
 	let isNearPlayer=$gamePlayer.dist2({x:mx,y:my,dist2:true})===0;
 	
 	if (this._isHigherTile(tileId0)) {
@@ -1321,13 +1373,13 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	}
 };
 $aaaa$.prototype._drawTile_byTp=function(layers,tid,dx,dy,tp){
-	tp*=8; tp^=0;
+	tp*=64; tp^=0;
 	let pad=window['/tmp/'].pad^0;
 	tp+=pad;
 	if(0>=tp) return this._drawTile(layers[0].children[0],tid,dx,dy);
-	else if(tp>=8) return;
-	tp/=8.0;
-	let baseLen=this.bitmaps.length,drawCnt=0,mul=1,lastDist=1-tp; lastDist*=lastDist;
+	else if(tp>=64) return;
+	tp/=64.0;
+	let baseLen=$gameMap.tileset().tilesetNames.length||9,drawCnt=0,mul=1,lastDist=1-tp; lastDist*=lastDist;
 	for(let x=this.upperLayer_a025s.length;x--;){
 		mul*=1-0.25;
 		let dist=mul-tp; dist*=dist;
@@ -1758,20 +1810,45 @@ $aaaa$.prototype.updatePosition = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
-$aaaa$.prototype.loadTileset=function(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
-	this._tileset=$gameMap.tileset();
-	if(this._tileset){
-		let tilesetNames = this._tileset.tilesetNames;
-		for(let i=0;i!==tilesetNames.length;++i){
-			this._tilemap.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
+$dddd$=$aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
+	if(!f.cache) f.cache=new CacheSystem(1);
+	if(this._tileset=$gameMap.tileset()){
+		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
+		for(let i=0,cache=f.cache,texPerChild=tm.lowerLayer.texPerChild||16,len=tilesetNames.length;i!==len;++i){
+			let x=i,curr=tm.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
+			if(isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
+				let fname=bitmap._fname; if(!fname){ tm.bitmaps[x+len]=ImageManager.loadEmptyBitmap(); return; }
+				let i=x+len,alpha=0.25;
+				let cacheKey=fname+"-"+alpha;
+				let b2=cache.get(cacheKey); if(b2){ tm.bitmaps[i]=b2; return; }
+				let src=bitmap._baseTexture.source;
+				let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
+				let ctx=c.getContext('2d'); // ctx.clearRect(0,0,c.width,c.height);
+				ctx.globalAlpha=alpha;
+				ctx.drawImage(src,0,0);
+if(0){ // flashing tiles (to black) when new 'onload'
+				c.toBlob((blob)=>{
+					let url=URL.createObjectURL(blob);
+					tm.bitmaps[x+len]=b2=Bitmap.load(url,cacheKey);
+					b2.addLoadListener(()=>{
+						URL.revokeObjectURL(url);
+						tm.refreshTileset();
+					});
+					cache.add(cacheKey,b2);
+				});
+}else{ // lag on start
+				tm.bitmaps[i]=b2=Bitmap.load(c.toDataURL(),cacheKey);
+				cache.add(cacheKey,b2);
+}
+			});
 		}
 		let newTilesetFlags=$gameMap.tilesetFlags();
-		if(!this._tilemap.flags.equals(newTilesetFlags)){
-			this._tilemap.flags = newTilesetFlags;
+		if(!tm.flags.equals(newTilesetFlags)){
+			tm.flags = newTilesetFlags;
 			//this._tilemap.refresh(); // 'ShaderTilemap.refresh' is called when 'initialize' -> '_needsRepaint' is true
 		}
-		if(Graphics.isWebGL()) this._tilemap.refreshTileset(); // 'Tilemap.refreshTileset' is empty
-		else this._tilemap.refresh();
+		if(isWebGL) tm.refreshTileset(); // 'Tilemap.refreshTileset' is empty
+		else tm.refresh();
 	}
 };
 $aaaa$.prototype.createCharacters=function(){
