@@ -187,14 +187,25 @@ list.lottery=(action)=>{
 	let dataitem=action.item();
 	$gameParty.gainItem($dataItems[list.lotteryList.rnd()],1);
 };
-list.lotteryList=[];
-{
+list.lotteryList=[
+	['txt',"(沒東西)",199],
+	['txt',"(沒機會)",188],
+	['txt',"(是空的)",177],
+	['txt',"(機會零)",166],
+	['txt',"(機會無)",155],
+	['i',6,99],
+	['i',7,88],
+	['i',8,77],
+	['i',9,66],
+];
+if(0){
 	let arr=list.lotteryList;
 	for(let x=6;x<=16;++x) arr.push(x);
 	for(let x=18;x<=27;++x) arr.push(x);
 }
 list.lottery_printList=(action)=>{
 	$gameMessage.popup("作者還沒做好(TODO)",1);
+	SceneManager.push(Scene_LotteryList);
 };
 
 // end

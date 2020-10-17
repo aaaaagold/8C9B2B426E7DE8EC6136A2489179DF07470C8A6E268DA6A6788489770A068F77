@@ -572,7 +572,53 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_LoadOnline
 
-// - Scene_App
+// - Scene_LotteryList
+function Scene_LotteryList(){
+	this.initialize.apply(this, arguments);
+}
+$aaaa$=Scene_LotteryList;
+$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$aaaa$.prototype.constructor = $aaaa$;
+$aaaa$.prototype.createOptionsWindow=function f(){
+	debug.log('Scene_LotteryList.prototype.createOptionsWindow');
+	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
+	let mh=$gamePlayer.menuHistory,key=this.constructor.name;
+	let list=[],lList=rpgevts.item&&rpgevts.item.lotteryList;
+	let idx={
+		txt:0,
+		i:$dataItems,
+		a:$dataArmors,
+		w:$dataWeapons,
+	};
+	
+	if(lList){ if(lList.length){ for(let x=0,arr=lList;x!==arr.length;++x){
+		let n=arr[x];
+		let data=idx[n[0]];
+		if(data){
+			if(data[n[1]]) list.push([data[n[1]].name,"'"+n[2]+"'.valueOf();"+data[n[1]].name+";func;call",1,none]);
+		}else{
+			// 0:txt
+			if(data===0) list.push([n[1],"atob('"+btoa(n[2])+"');"+n[1]+";func;call",1,none]);
+		}
+	} } }
+	
+	if(list.length===0) list.push(["清單是空的",";empty;func",0]);
+	else list.unshift(["品項","'權重';empty;func",0]);
+	this._window = new Window_CustomMenu_main(0,0,list);
+	if(mh[key]){
+		this._window._lastSelItem=mh[key];
+		let lastSelItem=this._window.lastSelItem();
+		if(lastSelItem!==undefined) this._window._windows[0].select(lastSelItem);
+	}else{
+		mh[key]=this._window._lastSelItem;
+	}
+	this._window.setHandler('cancel', this.popScene.bind(this));
+	this._window.statusWidth=()=>{return 240;};
+	this.addWindow(this._window);
+};
+$dddd$=$rrrr$=$aaaa$=undef; // END Scene_LotteryList
+
+// - Scene_Apps
 
 function Scene_Apps(){
 	this.initialize.apply(this, arguments);
@@ -608,7 +654,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.statusWidth=()=>{return 240;};
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_App
+$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Apps
 
 // - Scene_Quest
 
