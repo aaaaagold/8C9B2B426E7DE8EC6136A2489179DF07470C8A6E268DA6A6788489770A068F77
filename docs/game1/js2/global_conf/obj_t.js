@@ -83,7 +83,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=PIXI.tilemap.CompositeRectTileLayer;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
-	texPerChild=texPerChild||16; // bigger
+	texPerChild=texPerChild||16; // cannot >16 ?_?
 	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -970,7 +970,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	if(flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby || !upperTiles.equals(lastUpperTiles)){
 		flag_drawAddUpper=true;
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
-		for(let j=0;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , upperTiles.playerNearby?Tilemap.revealTp:undefined);
+		for(let j=0,revealTp=upperTiles.playerNearby?Tilemap.revealTp:undefined;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , revealTp);
 		this._writeLastTiles(4, lx, ly, upperTiles);
 	}
 	if(flag_drawAddUpper){
@@ -1225,40 +1225,8 @@ $dddd$=$aaaa$.prototype.renderWebGL=function f(renderer) {
 $dddd$.forEach=function f(c){
 	c.renderWebGL(f.renderer);
 };
-$aaaa$.prototype.refreshTileset_extBitmaps=function f(bitmaps){
-	if(!f.cache) f.cache=new CacheSystem(1);
-	if(bitmaps.length===0 || 1>=bitmaps[0].width || 1>=bitmaps[0].height) return bitmaps;
-	if(this.bitmaps.length>=17) console.warn("ShaderTilemap.bitmaps.length>=17","might cause errors");
-	let texPerChild=this.lowerLayer.texPerChild||16;
-	for(let b=0,bs=this.bitmaps.length;b!==bs;++b){
-		if(bitmaps.length>=texPerChild) break; // due to webgl
-		let fname=this.bitmaps[b]._fname;
-		let alpha=0.25;
-		let cacheKey=fname+"-"+alpha;
-		let newBitmap=f.cache.get(cacheKey);
-		if(newBitmap){
-			bitmaps.push(this.refreshTileset.toPIXI(newBitmap));
-			continue;
-		}
-		let src=bitmaps[b].baseTexture.source;
-		let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
-		let ctx=c.getContext('2d'); // ctx.clearRect(0,0,c.width,c.height);
-		ctx.globalAlpha=alpha;
-		ctx.drawImage(src,0,0);
-		let dataURL=c.toDataURL();
-		if(dataURL==="data:,") newBitmap=ImageManager.loadEmptyBitmap();
-		else{
-			newBitmap=Bitmap.load(dataURL,cacheKey);
-			f.cache.add(cacheKey,newBitmap);
-		}
-		bitmaps.push(this.refreshTileset.toPIXI(newBitmap));
-	}
-	while(texPerChild<bitmaps.length) bitmaps.pop();
-	return bitmaps;
-};
 $dddd$=$aaaa$.prototype.refreshTileset=function f(){
 	let bitmaps=this.bitmaps.map(f.toPIXI);
-	//this.refreshTileset_extBitmaps(bitmaps);
 	this.lowerLayer.setBitmaps(bitmaps);
 	this.upperLayer.setBitmaps(bitmaps);
 	for(let x=0,arr=this.upperLayer_a025s;x!==arr.length;++x) arr[x].setBitmaps(bitmaps);
@@ -1814,7 +1782,7 @@ $dddd$=$aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shaderti
 	if(!f.cache) f.cache=new CacheSystem(1);
 	if(this._tileset=$gameMap.tileset()){
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
-		for(let i=0,cache=f.cache,texPerChild=tm.lowerLayer.texPerChild||16,len=tilesetNames.length;i!==len;++i){
+		for(let i=0,cache=f.cache,texPerChild=isWebGL?tm.lowerLayer.texPerChild||16:0,len=tilesetNames.length;i!==len;++i){
 			let x=i,curr=tm.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
 			if(isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
 				let fname=bitmap._fname; if(!fname){ tm.bitmaps[x+len]=ImageManager.loadEmptyBitmap(); return; }
