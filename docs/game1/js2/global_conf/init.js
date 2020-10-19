@@ -474,6 +474,22 @@ let setShorthand = (w)=>{
 			return rtv;
 		};
 	}
+	w.String.prototype.forEach=function(foo){
+		// foo(ele,idx,arr)
+		for(let x=0,len=this.length;x!==len;++x) foo(this[x],x,this);
+	};
+	w.String.prototype.filter=function(foo){
+		// foo(ele,idx,arr) ; rtv is str
+		let rtv="";
+		for(let x=0,len=this.length;x!==len;++x) if(foo(this[x],x,this)) rtv+=this[x];
+		return rtv;
+	};
+	w.String.prototype.map=function(foo){
+		// foo(ele,idx,arr) ; rtv is arr
+		let rtv=[];
+		for(let x=0,len=this.length;x!==len;++x) rtv.push(foo(this[x],x,this));
+		return rtv;
+	};
 	w.String.prototype.isSpaces=function(){
 		let m=this.match(/[ \b\t\n\r]*/);
 		return (m&&m[0].length)===this.length;

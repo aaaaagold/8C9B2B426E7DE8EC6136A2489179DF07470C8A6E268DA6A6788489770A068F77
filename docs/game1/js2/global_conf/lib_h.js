@@ -1,5 +1,10 @@
 "use strict";
 
+String.prototype.toId=function(){
+	let tmp=this.match(/^([0-9]+)(-[0-9A-Z_a-z]+)?$/);
+	return (tmp||undef)&&Number(tmp[1]);
+};
+
 const addScript=(src)=>{
 	let t=document.createElement("script");
 	t.setAttribute("type","text/javascript");

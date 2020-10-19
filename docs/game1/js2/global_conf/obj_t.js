@@ -6,6 +6,7 @@ let $aaaa$,$dddd$,$rrrr$;
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t; };
+// additional func: see lib-h
 
 // fit 'when children is AVLTree'
 PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=function updateAccessibleObjects(displayObject) {
@@ -1738,6 +1739,14 @@ $aaaa$.prototype.tilesetBitmap=function(tileId) {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Animation
 $aaaa$=Sprite_Animation;
+$rrrr$=$aaaa$.prototype.setup;
+$dddd$=$aaaa$.prototype.setup=function f(){
+	// f(target, animation, mirror, delay)
+	f.ori.apply(this,arguments);
+	// set z lower if not 'screen' (default z=8)
+	let ani=this._animation,p=this.parent; // pos: 0:head 1:center 2:feet 3:screen
+	if(ani&&ani.position!==3 && p&&p.player) this.z=p.player.z;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setupDuration=function() {
 	this._durFloor=this._animation.frames.length * this._rate;
 	this._duration=this._durFloor+1;
@@ -1834,10 +1843,10 @@ $aaaa$.prototype.createCharacters=function(){
 	let cnt=$gameParty._actors.length-1; if(cnt===-1) cnt=0;
 	$gamePlayer._followers._data.slice(0,cnt).forEach( flr=>this._characterSprites.push(new Sprite_Character(flr)) );
 	this._characterSprites.push(new Sprite_Character($gamePlayer));
+	this._tilemap.player=this._characterSprites.back;
 	for(let i=0;i!==this._characterSprites.length;++i){
 		this._tilemap.addChild(this._characterSprites[i]);
 	}
-	//this._tilemap.player=this._characterSprites.back;
 };
 $aaaa$.prototype.updateTilemap = function() {
 	this._tilemap.origin.x = $gameMap._displayX_tw;
