@@ -1744,7 +1744,7 @@ $dddd$=$aaaa$.prototype.setup=function f(){
 	// f(target, animation, mirror, delay)
 	f.ori.apply(this,arguments);
 	// set z lower if not 'screen' (default z=8)
-	let ani=this._animation,t=this._effectTarget; // pos: 0:head 1:center 2:feet 3:screen
+	let ani=this._animation,t=arguments[0]; // pos: 0:head 1:center 2:feet 3:screen
 	if(ani&&ani.position!==3 && t) this.z=t.z;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setupDuration=function() {
