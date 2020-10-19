@@ -4654,29 +4654,8 @@ Tilemap.prototype._isOverpassPosition = function(mx, my) {
     return false;
 };
 
-/**
- * @method _sortChildren
- * @private
- */
-Tilemap.prototype._sortChildren = function() {
-    this.children.sort(this._compareChildOrder.bind(this));
-};
-
-/**
- * @method _compareChildOrder
- * @param {Object} a
- * @param {Object} b
- * @private
- */
-Tilemap.prototype._compareChildOrder = function(a, b) {
-    if (a.z !== b.z) {
-        return a.z - b.z;
-    } else if (a.y !== b.y) {
-        return a.y - b.y;
-    } else {
-        return a.spriteId - b.spriteId;
-    }
-};
+Tilemap.prototype._sortChildren;
+Tilemap.prototype._compareChildOrder;
 
 // Tile type checkers
 
