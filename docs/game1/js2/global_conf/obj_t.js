@@ -633,12 +633,14 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs^=0; // this.y=rhs;
-		if(this._character===$gamePlayer||this.y!==rhs){
-			if(this._lastKey){
+		if(this._character===$gamePlayer||(this.oy===undefined&&this.y!==rhs)){
+			let lk=this._lastKey;
+			if(lk){
 				let p=this.parent,y=rhs+$gameMap._displayY_th;
-				if(this._lastKey[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
-					p.rmc_tree(this._lastKey);
-					p.addc_tree([this.z^0,y,this.spriteId],this);
+				let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight();
+				if(lk[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
+					p.rmc_tree(lk); lk[1]=y;
+					p.addc_tree(lk,this);
 					//console.warn('y',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
 				}
 			}
@@ -649,17 +651,34 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		return this._z;
 	},set:function(rhs){ rhs^=0; // this.z=rhs;
 		if(this.z!==rhs){
-			if(this._lastKey){
+			let lk=this._lastKey;
+			if(lk){
 				let p=this.parent;
-				if(this._lastKey[0]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
-					p.rmc_tree(this._lastKey);
-					p.addc_tree([rhs,(this.y^0)+$gameMap._displayY_th,this.spriteId],this);
+				if(lk[0]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
+					p.rmc_tree(lk); lk[0]=rhs;
+			//	let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight();
+					p.addc_tree(lk,this);
 					//console.warn('z',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
 				}
 			}
 			return this._z=rhs;
 		}else return rhs;
-	},configurable:false}
+	},configurable:false},
+	z2:{get:function(){
+		return this._z2;
+	},set:function(rhs){ rhs^=0; // this.z2=rhs;
+		if(this.z2!==rhs){
+			let lk=this._lastKey;
+			if(lk){
+				let p=this.parent;
+				if(lk[2]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
+					p.rmc_tree(lk); lk[2]=rhs;
+					p.addc_tree(lk,this);
+				}
+			}
+			return this._z2=rhs;
+		}else return rhs;
+	},configurable:false},
 });
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function(){ // overwrite, forEach is slowwwwwwwwww
@@ -837,7 +856,11 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	
 	c.transform._parentID=-1;
 	
-	let key=[c.z^0,c.y^0,c.spriteId^0];
+	if(!c.z2) c.z2=0;
+	let y=(c.oy===undefined)?c.y:c.oy;
+	let cc=this._character; if(cc) y+=cc.screenY_deltaToParent()*$gameMap.tileHeight();
+	let key=[c.z^0,y^0,c.z2,c.spriteId^0];
+	// screenZ,screenY(ord=gameMapY),gameMapZ
 	if(c.spriteId===undefined) key.push(this._boundsID);
 	this.addc_tree(key,c);
 	
@@ -888,6 +911,109 @@ $aaaa$.prototype.updateTransform=function(forced){
 	//this._sortChildren();
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
+};
+$dddd$=$aaaa$.prototype._createLayers=function f(){ // re-write: psuedo layer
+	let width = this._width;
+	let height = this._height;
+	let margin = this._margin;
+	//let tileCols = Math.ceil(width / this._tileWidth) + 1;
+	//let tileRows = Math.ceil(height / this._tileHeight) + 1;
+	let layerWidth = this._tileCols * this._tileWidth;
+	let layerHeight = this._tileRows * this._tileHeight;
+	this._layerWidth = layerWidth;
+	this._layerHeight = layerHeight;
+	let dup=4;
+
+	/*
+	 * Z coordinate:
+	 *
+	 * 0 : Lower tiles
+	 * 1 : Lower characters
+	 ** 3 : _z2Layers: psuedo tiles with different sprite.y
+	 * 3 : Normal characters
+	 * 4 : Upper tiles
+	 * 5 : Upper characters
+	 * 6 : Airship shadow
+	 * 7 : Balloon
+	 * 8 : Animation
+	 * 9 : Destination
+	 */
+	
+	this._lowerLayer = new Sprite();
+	this._lowerLayer.move(-margin, -margin, width, height);
+	this._lowerLayer.z = 0;
+	this._lowerBitmap = new Bitmap(layerWidth, layerHeight);
+	for(let _=dup;_--;) this._lowerLayer.addChild(new Sprite(this._lowerBitmap));
+	
+if(1){
+	this._z2Layers={};
+	this._z2Layers_ys=[];
+	this._z2Layers_bitmaps={};
+	let addUpper_str=$dataMap.meta.addUpper;
+	if(addUpper_str!==true && addUpper_str){
+		let addUppers=JSON.parse(addUpper_str);
+		let ys=this._z2Layers_ys,lvs=this._z2Layers;
+		for(let x=0,arr=addUppers;x!==arr.length;++x){
+			let y=arr[x].y;
+			if(y===undefined) continue;
+			ys.push(y);
+		}
+		ys.sort(f.srt);
+		for(let j=0,th=Game_Map.prototype.tileHeight();j!==ys.length;++j){
+			let y=ys[j];
+			if(lvs[y]) continue;
+			let lv=lvs[y] = new Sprite();
+			lv.oy=y*th+1;
+			lv.z2=4; // same as 'this._upperLayer'
+			lv.move(-margin, -margin, width, height);
+			lv.z=3;
+			let bitmap=new Bitmap(layerWidth, layerHeight);
+			this._z2Layers_bitmaps[y]=bitmap;
+			for(let _=dup;_--;) lv.addChild(new Sprite(bitmap));
+		}
+	}
+}
+	
+	this._upperLayer = new Sprite();
+	this._upperLayer.move(-margin, -margin, width, height);
+	this._upperLayer.z = 4;
+	this._upperBitmap = new Bitmap(layerWidth, layerHeight);
+	for(let _=dup;_--;) this._upperLayer.addChild(new Sprite(this._upperBitmap));
+	
+	this.addChild(this._lowerLayer);
+	if(this._z2Layers){ for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers;x!==idx.length;++x){
+		this.addChild(arr[idx[x]]);
+	} }
+	this.addChild(this._upperLayer);
+};
+$dddd$.srt=(a,b)=>a-b;
+$aaaa$.prototype._updateLayerPositions=function(){
+	let m = this._margin;
+	let ox = Math.floor(this.origin.x);
+	let oy = Math.floor(this.origin.y);
+	let x2 = (ox - m).mod(this._layerWidth);
+	let y2 = (oy - m).mod(this._layerHeight);
+	let w1 = this._layerWidth - x2;
+	let h1 = this._layerHeight - y2;
+	let w2 = this._width - w1;
+	let h2 = this._height - h1;
+	
+	let childrens=[this._lowerLayer.children];
+	if(this._z2Layers){ for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers;x!==idx.length;++x){
+		childrens.push(arr[idx[x]].children);
+	} }
+	childrens.push(this._upperLayer.children);
+	for (let i = 0; i!==childrens.length; ++i) {
+		let children = childrens[i];
+		children[0].move(0, 0, w1, h1);
+		children[0].setFrame(x2, y2, w1, h1);
+		children[1].move(w1, 0, w2, h1);
+		children[1].setFrame(0, y2, w2, h1);
+		children[2].move(0, h1, w1, h2);
+		children[2].setFrame(x2, 0, w1, h2);
+		children[3].move(w1, h1, w2, h2);
+		children[3].setFrame(0, 0, w2, h2);
+	}
 };
 $aaaa$.prototype._paintAllTiles=function(startX, startY){
 	for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
@@ -965,6 +1091,21 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	}
 	
 	let addUpper=(idx===undefined)?f._dummy_arr:$dataMap.addUpper[idx];
+	
+	if(this._z2Layers){
+		let last=this._readLastTiles(3,lx,ly);
+		if(this._frameUpdated || !last.equals(addUpper)){
+			for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers_bitmaps;x!==idx.length;++x)
+				arr[idx[x]].clearRect(dx, dy, this._tileWidth, this._tileHeight);
+			for(let x=0,arr=addUpper;x!==arr.length;++x){
+				let y=arr[x][2];
+				if(y===undefined) continue;
+				this._drawTile(this._z2Layers_bitmaps[y], arr[x][0], dx, dy , arr[x][1]);
+			}
+			this._writeLastTiles(3, lx, ly, addUpper);
+		}
+	}
+	
 	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
 	let lastUpperTiles = this._readLastTiles(4, lx, ly);
 	upperTiles.playerNearby=$gamePlayer.dist2({x:mx,y:my,dist2:true})===0;
@@ -976,7 +1117,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	}
 	if(flag_drawAddUpper){
 		this._writeLastTiles(5, lx, ly, addUpper);
-		for(let x=0,arr=addUpper;x!==arr.length;++x) this._drawTile(this._upperBitmap, arr[x][0], dx, dy , arr[x][1]);
+		for(let x=0,arr=addUpper;x!==arr.length;++x) if(arr[x][2]===undefined) this._drawTile(this._upperBitmap, arr[x][0], dx, dy , arr[x][1]);
 	}
 };
 $aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
@@ -1229,6 +1370,9 @@ $dddd$.forEach=function f(c){
 $dddd$=$aaaa$.prototype.refreshTileset=function f(){
 	let bitmaps=this.bitmaps.map(f.toPIXI);
 	this.lowerLayer.setBitmaps(bitmaps);
+	for(let x=0,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x)
+		for(let lv=0,lvs=arr[idx[x]].children;lv!==lvs.length;++lv)
+			lvs[lv].setBitmaps(bitmaps);
 	this.upperLayer.setBitmaps(bitmaps);
 	for(let x=0,arr=this.upperLayer_a025s;x!==arr.length;++x) arr[x].setBitmaps(bitmaps);
 };
@@ -1248,21 +1392,74 @@ $aaaa$.prototype.updateTransform=function() {
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
 };
-$rrrr$=$aaaa$.prototype._createLayers;
 $dddd$=$aaaa$.prototype._createLayers=function f(){
-	let flag=!this.lowerZLayer;
-	f.ori.call(this);
-	if(flag){
-		this.upperLayer_tps=[this.upperLayer];
+	let width = this._width;
+	let height = this._height;
+	let margin = this._margin;
+	//let tileCols = Math.ceil(width / this._tileWidth) + 1;
+	//let tileRows = Math.ceil(height / this._tileHeight) + 1;
+	let layerWidth = this._layerWidth = this._tileCols * this._tileWidth;
+	let layerHeight = this._layerHeight = this._tileRows * this._tileHeight;
+	this._needsRepaint = true;
+
+	if (!this.lowerZLayer) {
+		//@hackerham: create layers only in initialization. Doesn't depend on width/height
+		let parameters = PluginManager.parameters('ShaderTilemap');
+		let useSquareShader = Number(parameters.hasOwnProperty('squareShader') ? parameters['squareShader'] : 0);
 		
-		for(let x=0,arr=this.upperLayer_a025s=[];x!==5;++x){
-			this.upperZLayer.addChild(arr[x] = new PIXI.tilemap.CompositeRectTileLayer(5+x, [], 0));
+		this.addChild(this.lowerZLayer = new PIXI.tilemap.ZLayer(this, 0));
+		this.lowerZLayer.addChild(this.lowerLayer = new PIXI.tilemap.CompositeRectTileLayer(0, [], useSquareShader));
+		this.lowerLayer.shadowColor = new Float32Array([0.0, 0.0, 0.0, 0.5]);
+		
+		this.z2Layers={};
+		this.z2Layers_ys=[];
+		let alphaDupCnt=5,addUpper_str=$dataMap.meta.addUpper;
+		if(addUpper_str!==true && addUpper_str){
+			// a025 when .z===3
+			let addUppers=JSON.parse(addUpper_str);
+			// this.z2Layers[y]
+			let ys=this.z2Layers_ys,lvs=this.z2Layers;
+			for(let x=0,arr=addUppers;x!==arr.length;++x){
+				let y=arr[x].y;
+				if(y===undefined) continue;
+				ys.push(y);
+			}
+			ys.sort(f.srt);
+			for(let j=0,th=Game_Map.prototype.tileHeight();j!==ys.length;++j){
+				let y=ys[j];
+				if(lvs[y]) continue;
+				let lv=lvs[y]=new PIXI.tilemap.ZLayer(this, 3);
+				lv.oy=y*th+1;
+				lv.z2=4; // same as 'this.upperZLayer'
+				this.addChild(lv);
+				for(let x=0;x!==alphaDupCnt;++x) lv.addChild( new PIXI.tilemap.CompositeRectTileLayer(4+x, [], useSquareShader) );
+			}
 		}
+		
+		this.addChild(this.upperZLayer = new PIXI.tilemap.ZLayer(this, 4));
+		this.upperZLayer.addChild(this.upperLayer = new PIXI.tilemap.CompositeRectTileLayer(4, [], useSquareShader));
+		// upZ a025
+		for(let x=0,arr=this.upperLayer_a025s=[];x!==alphaDupCnt;++x){
+			this.upperZLayer.addChild(arr[x] = new PIXI.tilemap.CompositeRectTileLayer(5+x, [], useSquareShader));
+		}
+	}
+};
+$dddd$.srt=(a,b)=>a-b;
+$rrrr$=$aaaa$.prototype._updateLayerPositions;
+$dddd$=$aaaa$.prototype._updateLayerPositions=function f(){
+	// f(startX, startY)
+	f.ori.apply(this,arguments);
+	for(let x=0,pos=this.lowerZLayer.position,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x){
+		let curr=arr[idx[x]];
+		curr.position.x=pos.x;
+		curr.position.y=pos.y;
 	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._paintAllTiles=function(startX, startY){
-	this.lowerZLayer.clear(); // this.lowerZLayer.children[0]===this.lowerLayer
-	this.upperZLayer.clear();
+	this.lowerZLayer.clear(); // z=0 // this.lowerZLayer.children[0]===this.lowerLayer
+	for(let x=0,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x)
+		arr[idx[x]].clear(); // z=3
+	this.upperZLayer.clear(); // z=4
 	return Tilemap.prototype._paintAllTiles.call(this,startX,startY);
 };
 $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
@@ -1333,11 +1530,12 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		} else {
 			this._drawTile(lowerLayer, tileId3, dx, dy);
 		}
-	}
+}
 	if(idx!==undefined){
 		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) this._drawTile(lowerLayer, arr[x][0], dx, dy);
-		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x){
-			this._drawTile_byTp(layers, arr[x][0], dx, dy , arr[x][1]);
+		for(let x=0,arr=$dataMap.addUpper[idx],tmp={};x!==arr.length;++x){
+			let lvs=(arr[x][2]===undefined)?layers:(this.z2Layers[arr[x][2]]||tmp).children;
+			if(lvs) this._drawTile_byTp(lvs, arr[x][0], dx, dy , arr[x][1]);
 		}
 	}
 };
@@ -1733,6 +1931,11 @@ $aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
 	if(this._tileId>0) return $gameMap.tileHeight();
 	else return this.bitmap.height>>(2+!this._isBigCharacter);
 };
+$rrrr$=$aaaa$.prototype.updatePosition;
+$dddd$=$aaaa$.prototype.updatePosition=function f(){
+	f.ori.call(this);
+	this.z2=this._character.screenZ2();
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.tilesetBitmap=function(tileId) {
 	return ImageManager.loadTileset($gameMap.tileset().tilesetNames[(tileId>>8)+5]);
 };
@@ -1745,7 +1948,10 @@ $dddd$=$aaaa$.prototype.setup=function f(){
 	f.ori.apply(this,arguments);
 	// set z lower if not 'screen' (default z=8)
 	let ani=this._animation,t=arguments[0]; // pos: 0:head 1:center 2:feet 3:screen
-	if(ani&&ani.position!==3 && t) this.z=t.z;
+	if(ani&&ani.position!==3 && t){
+		this.z2=this.z;
+		this.z=t.z;
+	}
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setupDuration=function() {
 	this._durFloor=this._animation.frames.length * this._rate;
@@ -1785,9 +1991,12 @@ $aaaa$.prototype.updatePosition = function() {
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
+// - Sprite_Balloon
+$aaaa$=Sprite_Balloon;
+$rrrr$=$dddd$=$aaaa$=undef;
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
-$dddd$=$aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
+$aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
 	if(!f.cache) f.cache=new CacheSystem(1);
 	if(this._tileset=$gameMap.tileset()){
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
@@ -2026,7 +2235,7 @@ $aaaa$.resetHasA1=(idx)=>{
 	}
 };
 $aaaa$.resetPseudoTile=()=>{
-	// <addUpper:[{tid,loc,tp}]>  <addLower:[{tid,loc}]>
+	// <addUpper:[{tid,loc,tp,top?}]>  <addLower:[{tid,loc}]>
 	// {loc:[x,y]} or {loc:[x,y,xe,ye]}
 	//  => dst[idx_loc][tid,tp]
 	
@@ -2045,7 +2254,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let loc=curr.loc;
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp])
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
-				dst[y*w+x].push([curr.tid,curr.tp]);
+				dst[y*w+x].push([curr.tid,curr.tp,curr.y]);
 			} } }
 		}
 	}
@@ -2062,7 +2271,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let loc=curr.loc;
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tid])
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
-				dst[y*w+x].push([curr.tid,curr.tp]);
+				dst[y*w+x].push([curr.tid,curr.tp,curr.y]);
 			} } }
 		}
 	}
@@ -4136,8 +4345,29 @@ $aaaa$.prototype.screenX=function() {
 $aaaa$.prototype.screenY=function() {
 	return this.scrolledY_th()+$gameMap.tileHeight()-this.shiftY()-this.jumpHeight();
 };
+$aaaa$.prototype.screenY_deltaToParent=function(){
+	let rtv=0;
+	if(this && this._priorityType===2 && this.parentId){
+		let p=$gameMap._events[this.parentId];
+		if(p._priorityType!==2) rtv+=p.y-this.y;
+	}
+	return rtv;
+};
 $aaaa$.prototype.screenZ=function(){
+	if(this._priorityType===2){
+		let rtv=0;
+		if($gamePlayer){
+			let tk=$gamePlayer._tilemapKey;
+			if(tk) rtv+=tk[0]^0;
+		}
+		if(!rtv) rtv+=3; // 3, same as Sprite_Chr($gamePlayer)'s z
+		return rtv;
+	}
 	return (this._priorityType<<1)|1;
+};
+$aaaa$.prototype.screenZ2=function(){ // z of (x,y sys of gameMapZ), distinguish thing at same x,y
+	let rtv=this.z2;
+	return rtv===undefined?3:rtv;
 };
 $dddd$=$aaaa$.prototype.canPassDiagNumpad = function f(x,y,dir){
 	return this.canPassDiagonally(x,y,f.h[dir],f.v[dir]);
@@ -4528,7 +4758,9 @@ Object.defineProperties($aaaa$.prototype, {
 			if(this._sUp!==n) $gameMessage.popup("切換至"+$dataItems[64].name.slice(0,-1)+n,1);
 			return this._sUp=n;
 	}, configurable: false },
-	_dummy:{get:function(){return'';},configurable:false}
+	z2:{
+		get:function(){return (this._z2===undefined)?3:this._z2;},
+	},
 });
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
@@ -4549,7 +4781,7 @@ $aaaa$.prototype.refresh=function(){
 $aaaa$.prototype.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
-$aaaa$.prototype.executeMove = function(direction) {
+$aaaa$.prototype.executeMove=function(direction){ // redraw last and next standing tile
 	let last_x=this.x,last_y=this.y;
 	this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
 	let sc=SceneManager._scene;
@@ -4560,8 +4792,9 @@ $aaaa$.prototype.executeMove = function(direction) {
 		}else{
 			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
 			let scx=$gamePlayer.scrolledX(),scy=$gamePlayer.scrolledY();
-			sc._spriteset._tilemap._paintTiles(sx,sy,scx+this.x-last_x,scy+this.y-last_y);
-			sc._spriteset._tilemap._paintTiles(sx,sy,scx              ,scy              );
+			let dx=$gameMap.roundX(this.x-last_x),dy=$gameMap.roundY(this.y-last_y);
+			sc._spriteset._tilemap._paintTiles(sx,sy,scx+dx,scy+dy);
+			sc._spriteset._tilemap._paintTiles(sx,sy,scx   ,scy   );
 				// display top-left anchor + player offset of display
 		}
 	}
@@ -5396,6 +5629,15 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - event
 
 $aaaa$=Game_Event;
+Object.defineProperties($aaaa$.prototype,{
+	z2:{
+		get:function(){
+			return (this._z2===undefined)?this._priorityType:this._z2;
+		},set:function(rhs){
+			this._z2=rhs;
+		},
+	}
+});
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	//debug.log2('Game_Event.prototype.initialize');
@@ -5422,6 +5664,11 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	
 	let evtd=this.event();
 	let meta=evtd.meta;
+	
+	if(meta.z2){
+		let tmp=Number(z2);
+		if(!isNaN(tmp)) this._z2=tmp;
+	}
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
 	
 	let x=this._x,y=this._y; // will be used later
