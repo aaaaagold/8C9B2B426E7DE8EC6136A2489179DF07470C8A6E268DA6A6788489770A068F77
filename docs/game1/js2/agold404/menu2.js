@@ -2216,7 +2216,7 @@ $aaaa$.prototype.getstr_min=function(){
 	return (this._key.constructor===Function)?this._key(this._obj):this._obj[this._key];
 };
 $aaaa$.prototype.getstr=function(val){
-	if(val===undefined) val=this.getstr_min();
+	if(val===undefined) val=this.getstr_min()||"";
 	return (this.head||"")+val.toString()+(this.tail||"");
 };
 $aaaa$.prototype.redrawtxt=function(){

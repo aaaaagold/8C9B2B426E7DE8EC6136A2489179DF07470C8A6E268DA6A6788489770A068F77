@@ -1094,7 +1094,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	
 	if(this._z2Layers){
 		let last=this._readLastTiles(3,lx,ly);
-		if(this._frameUpdated || !last.equals(addUpper)){
+		if((addUpper.length!==0 && this._frameUpdated) || !last.equals(addUpper)){
 			for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers_bitmaps;x!==idx.length;++x)
 				arr[idx[x]].clearRect(dx, dy, this._tileWidth, this._tileHeight);
 			for(let x=0,arr=addUpper;x!==arr.length;++x){
@@ -2498,6 +2498,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data){
 		$gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
 		$gamePlayer.requestMapReload();
 		SceneManager.goto(Scene_Map);
+		$gameSystem.onAfterLoad();
 		return true;
 	}else if(sfid==='online'){
 		// check gas
@@ -4354,6 +4355,7 @@ $aaaa$.prototype.screenY_deltaToParent=function(){
 	return rtv;
 };
 $aaaa$.prototype.screenZ=function(){
+	if(this._z!==undefined) return this._z;
 	if(this._priorityType===2){
 		let rtv=0;
 		if($gamePlayer){
@@ -5665,8 +5667,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	let evtd=this.event();
 	let meta=evtd.meta;
 	
+	if(meta.z){
+		let tmp=Number(meta.z);
+		if(!isNaN(tmp)) this._z=tmp;
+	}
 	if(meta.z2){
-		let tmp=Number(z2);
+		let tmp=Number(meta.z2);
 		if(!isNaN(tmp)) this._z2=tmp;
 	}
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
