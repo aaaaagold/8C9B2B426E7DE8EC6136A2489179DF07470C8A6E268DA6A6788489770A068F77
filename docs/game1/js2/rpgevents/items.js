@@ -2,6 +2,7 @@
 
 (()=>{ // strt
 let list=rpgevts.item;
+let $dddd$,$rrrr$;
 const backToMap=()=>{
 	if(SceneManager._scene.constructor!==Scene_Map){
 		do{
@@ -184,10 +185,13 @@ list.activationFlute=(action)=>{
 	setTimeout(()=>AudioManager.playMe({name:"Musical2",volume:75,pitch:200}),1);
 };
 list.lottery=(action)=>{
-	let dataitem=action.item();
-	$gameParty.gainItem($dataItems[list.lotteryList.rnd()],1);
+	//let dataitem=action.item();
+	let p=list.lotteryList.rnd();
+	if(p.special){
+		if(p.data[0]==="txt") $gameMessage.popup(p.data[1],1);
+	}else $gameParty.gainItem(p.item,p.cnt);
 };
-list.lotteryList=[
+list.lotteryList=[ // type,id,weight,cnt(default=1)
 	['txt',"(沒東西)",199],
 	['txt',"(沒機會)",188],
 	['txt',"(是空的)",177],
@@ -198,13 +202,23 @@ list.lotteryList=[
 	['i',8,77],
 	['i',9,66],
 ];
-if(0){
-	let arr=list.lotteryList;
-	for(let x=6;x<=16;++x) arr.push(x);
-	for(let x=18;x<=27;++x) arr.push(x);
-}
+$dddd$=list.lotteryList.rnd=function f(){
+	if(this.length===0) return;
+	if(this.acc===undefined){
+		// suppose 'this.acc' will be deleted if elements change
+		let arr=this.acc=this.map(f.getWeight);
+		for(let x=1;x!==arr.length;++x) arr[x]+=arr[x-1];
+	}
+	let r=Math.random()*this.acc.back;
+	let idx=this.acc.lower_bound(r);
+	idx+=this.acc[idx]===r;
+	let p=this[idx];
+	let data=f.tbl[p[0]];
+	return data?{item:data[p[1]],cnt:(p[3]||1)}:{special:true,data:p};
+};
+$dddd$.getWeight=x=>x[2];
+$dddd$.tbl={a:$dataArmors,i:$dataItems,s:$dataSkills,w:$dataWeapons};
 list.lottery_printList=(action)=>{
-	$gameMessage.popup("作者還沒做好(TODO)",1);
 	SceneManager.push(Scene_LotteryList);
 };
 

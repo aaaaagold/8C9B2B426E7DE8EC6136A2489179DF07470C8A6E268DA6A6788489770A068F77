@@ -438,7 +438,7 @@ $dddd$.debugPack=(notDev)=>{
 	for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
 	let placing=[96,];
 	for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
-	let consume=[103,];
+	let consume=[23,103,];
 	for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
 	
 	let rings=[6,12,];
@@ -1947,10 +1947,10 @@ $aaaa$.prototype.redrawtxt=function(){
 	this.drawText(cursor,startx,this.lineHeight());
 	
 	// btn - ok
-	this.drawlinetext(" ok ",2);
+	this.drawlinetext(" ok (Enter)",2);
 	
 	// btn - cancel
-	this.drawlinetext(" cancel ",3);
+	this.drawlinetext(" cancel (ESC)",3);
 	
 	// horizontal cursor
 	//this.drawcursor();
