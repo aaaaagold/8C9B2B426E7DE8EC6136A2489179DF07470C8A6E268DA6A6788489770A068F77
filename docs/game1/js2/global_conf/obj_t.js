@@ -2444,7 +2444,7 @@ $aaaa$.saveGameWithoutRescue = function(savefileId) {
 	this.saveGlobalInfo(globalInfo);
 	return true;
 };
-$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","imgModded",]; 
+$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","_imgModded","_imgModded_timestamp",]; 
 $rrrr$=$aaaa$.makeSaveContents;
 $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
@@ -2460,7 +2460,7 @@ $dddd$=$aaaa$.makeSaveContents=function f(){
 $dddd$.delAttrs_chr=function f(chr){
 	for(let x=0,arr=f.list;x!==arr.length;++x) delete chr[arr[x]];
 };
-$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","imgModded"];
+$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp",];
 $rrrr$=$aaaa$.extractSaveContents;
 $dddd$=$aaaa$.extractSaveContents=function f(){
 	debug.log('DataManager.extractSaveContents');
@@ -5800,6 +5800,10 @@ Object.defineProperties($aaaa$.prototype,{
 		}
 		this._pri=rhs;
 	},configurable:false},
+	imgModded:{ get:function(){return this._imgModded;},set:function(rhs){
+		if(this._imgModded=rhs) ;//this._imgModded_timestamp=Date.now();
+		return rhs;
+	},configurable:false},
 	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
 		if(this._chrIdx!==rhs) this.imgModded=true;
 		this._chrIdx=rhs;
@@ -6134,21 +6138,27 @@ $dddd$=$aaaa$.prototype.list=function f(){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype._genFaceData=function(c){
+	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
+	// Sprite_Character.prototype.patternWidth
+	// Sprite_Character.prototype.patternHeight
+	c=c||SceneManager._scene._spriteset._tilemap.children.find(this._tilemapKey).data;
+	if(!c) return;
+	let frm=c._realFrame; // c._isBigCharacter; this._isObjectCharacter;
+	// let r=Math.min(Window_Base._faceWidth/frm.width,Window_Base._faceHeight/frm.height);
+	let sz=frm.width*frm.height,r=Math.min(Window_Base._faceWidth*frm.height,Window_Base._faceHeight*frm.width);
+	let w=~~(frm.width*r/sz),h=~~(frm.height*r/sz); // for precision
+	let rtv=[
+		c._bitmap,
+		frm.x,frm.y,frm.width,frm.height,
+		(Window_Base._faceWidth-w)>>1,(Window_Base._faceHeight-h)>>1,w,h,
+	]; rtv.ref=c;
+	return rtv;
+};
 $aaaa$.prototype.setFace=function(idx){
+	//debug.log('Game_Event.prototype.setFace');
 	if(this._isObjectCharacter){
-		// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
-		// Sprite_Character.prototype.patternWidth
-		// Sprite_Character.prototype.patternHeight
-		let c=SceneManager._scene._spriteset._tilemap.children.find(this._tilemapKey).data;
-		let frm=c._realFrame; // c._isBigCharacter; this._isObjectCharacter;
-		// let r=Math.min(Window_Base._faceWidth/frm.width,Window_Base._faceHeight/frm.height);
-		let sz=frm.width*frm.height,r=Math.min(Window_Base._faceWidth*frm.height,Window_Base._faceHeight*frm.width);
-		let w=~~(frm.width*r/sz),h=~~(frm.height*r/sz); // for precision
-		$gameMessage.setFaceImage([
-			c._bitmap,
-			frm.x,frm.y,frm.width,frm.height,
-			(Window_Base._faceWidth-w)>>1,(Window_Base._faceHeight-h)>>1,w,h,
-		],"data");
+		$gameMessage.setFaceImage(this._genFaceData(),"data");
 	}else if(this._characterName){
 		if(idx===undefined) idx=this._characterIndex;
 		$gameMessage.setFaceImage(this._characterName,idx);
@@ -6510,6 +6520,14 @@ $dddd$=$aaaa$.prototype.onEndOfText=function f(){
 	f.ori.call(this);
 	this.inaline=false;
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.update;
+$dddd$=$aaaa$.prototype.update=function f(){
+	let fr=this.faceRef;
+	if(fr && this.faceRef_updateID!==fr.texture._updateID){
+		if(fr._character) this._drawFaceFromData(fr._character._genFaceData(fr));
+	}
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.startMessage;
 $dddd$=$aaaa$.prototype.startMessage=function f(){
 	if($gameMessage._evtName!==undefined) this._evtName=$gameMessage._evtName;
@@ -6591,22 +6609,31 @@ $aaaa$.prototype.updateInput=function(){
 	}
 	return false;
 };
+$aaaa$.prototype._drawFaceFromData=function(data){
+	this.faceRef=data.ref;
+	this.faceRef_updateID=data.ref.texture._updateID;
+	let c=this.contents,tmp=d.ce('canvas');
+	// cut others unrelated, prevents unknown smoothing colors
+	tmp.width=data[3]; tmp.height=data[4];
+	let ctx=tmp.getContext('2d');
+	ctx.drawImage(
+		data[0].constructor===HTMLCanvasElement?data[0]:data[0]._image,
+		data[1],data[2],data[3],data[4],
+		0,0,data[3],data[4]
+	);
+	// re-arrange data to fit the function
+	data[0]=tmp._canvas=tmp; data[2]=data[1]=0;
+	c.clearRect(0,0,data[7]||data[3],data[8]||data[4]);
+	c.blt.apply(c,data);
+};
 $rrrr$=$aaaa$.prototype.loadMessageFace;
 $dddd$=$aaaa$.prototype.loadMessageFace=function f(){
+	//debug.log('Window_Message.prototype.loadMessageFace');
+	this.faceRef=undefined;
 	if($gameMessage.faceIndex()==="data"){
 		// all data provided, draw!
-		let data=$gameMessage.faceName(),c=this.contents,tmp=d.ce('canvas');
-		// cut others unrelated, prevents unknown smoothing colors
-		tmp.width=data[3]; tmp.height=data[4];
-		let ctx=tmp.getContext('2d');
-		ctx.drawImage(
-			data[0].constructor===HTMLCanvasElement?data[0]:data[0]._image,
-			data[1],data[2],data[3],data[4],
-			0,0,data[3],data[4]
-		);
-		// re-arrange data to fit the function
-		data[0]=tmp._canvas=tmp; data[2]=data[1]=0;
-		c.blt.apply(c,data);
+		let data=$gameMessage.faceName();
+		this._drawFaceFromData(data);
 	}else return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.drawMessageFace;
