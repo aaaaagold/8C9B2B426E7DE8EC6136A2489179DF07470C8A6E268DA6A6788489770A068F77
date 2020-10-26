@@ -48,6 +48,27 @@ $aaaa$.prototype.destructor=function(){
 	for(let x=0,arr=this.children;x!==arr.length;++x) if(arr[x]) r.push(arr[x]);
 	for(let x=r.length;x--;) this.removeChildAt(x);
 };
+$rrrr$=$aaaa$.prototype._refreshArrows;
+$dddd$=$aaaa$.prototype._refreshArrows=function f(){
+	f.ori.call(this);
+	if(!this._leftArrowSprite){
+		let ua=this._upArrowSprite,la,ra;
+		this.addChild(la=this._leftArrowSprite=new Sprite());
+		this.addChild(ra=this._rightArrowSprite=new Sprite());
+		ra.bitmap=la.bitmap=ua.bitmap;
+		ra.anchor.y=ra.anchor.x=la.anchor.y=la.anchor.x=0.5;
+		let uaf=ua._frame;
+		let sx=uaf.x-uaf.height,sy=uaf.y,p=uaf.width,q=uaf.height;
+		la.setFrame(sx,sy+q,q,p);
+		ra.setFrame(sx+p+q,sy+q,q,p);
+	}
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype._updateArrows;
+$dddd$=$aaaa$.prototype._updateArrows=function f(){
+	f.ori.call(this);
+	this._leftArrowSprite.visible = this.leftArrowVisible;
+	this._rightArrowSprite.visible = this.rightArrowVisible;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1, color2) {
 	let labelWidth = this.textWidth('HP');
 	let valueWidth = this.textWidth('000');
@@ -107,6 +128,9 @@ $dddd$=$aaaa$.prototype.initialize=function f(x, y, width, height){
 	// (int,int,int,int)
 	return f.ori.call(this, ~~x, ~~y, ~~width, ~~height);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.contain=function(x,y){
+	return x>=this.x && x<this.x+this.width && y>=this.y && y<this.y+this.height;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Utils
@@ -6808,11 +6832,26 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - options
 $aaaa$=Window_Options;
-$aaaa$.prototype._volumeOffset = _global_conf["default volume offset"] || 10 ;
-$aaaa$.prototype.volumeOffset=function() {
-	return this._volumeOffset;
+$aaaa$.prototype.statusWidth=function(){
+	return 64;
 };
 $aaaa$.prototype.processOk = function() {
+	if(this.leftArrowVisible && this._onTouch_ing){
+		let ori=this.getGlobalPosition();
+		let rect=this.itemRectForText(this._index);
+		let la=this._leftArrowSprite,ra=this._rightArrowSprite;
+		let xl=la.getGlobalPosition().x,xu=ra.getGlobalPosition().x;
+		let sw=xu-xl;
+		console.log(sw);
+		rect.y+=ori.y; rect.height+=this.textPadding()<<1;
+		let tx=TouchInput.x,ty=TouchInput.y;
+		if(ty<rect.y||ty>=rect.y+rect.height) return;
+		let x=TouchInput.x-xl;
+		if(x<-la.width||x>=sw) return;
+		if(x<(sw>>1)) this.cursorLeft();
+		else this.cursorRight();
+		return;
+	}
 	let index = this.index();
 	let symbol = this.commandSymbol(index);
 	let value = this.getConfigValue(symbol);
@@ -6825,6 +6864,45 @@ $aaaa$.prototype.processOk = function() {
 		this.changeValue(symbol, !value);
 	}
 };
+$aaaa$.prototype._volumeOffset = _global_conf["default volume offset"] || 10 ;
+$aaaa$.prototype.volumeOffset=function() {
+	return this._volumeOffset;
+};
+$rrrr$=$aaaa$.prototype.updateArrows;
+$dddd$=$aaaa$.prototype.updateArrows=function f(){
+	f.ori.call(this);
+	let la=this._leftArrowSprite,ra=this._rightArrowSprite;
+	if(this._lastIdx!==this._index){
+		this._lastIdx=this._index;
+		let s="Volume";
+		let flag=this._list[this._index].symbol.slice(-s.length)===s;
+		this.rightArrowVisible=this.leftArrowVisible=flag;
+		if(flag){
+			let rect=this.itemRectForText(this._index);
+			let xbase=rect.x+rect.width+2;
+			let y=rect.y+this.lineHeight()+((rect.heigh)>>1);
+			la.move(xbase-this.statusWidth(),y);
+			ra.move(xbase+(ra.width<<1),y);
+		}
+	}
+	this.ctr^=0; ++this.ctr;
+	if(this.leftArrowVisible){
+		let s=Math.sin(this.ctr*f.rad1)/2;
+		la.anchor._x=0.5-s;
+		ra.anchor._x=0.5+s;
+	}
+}; $dddd$.ori=$rrrr$;
+$dddd$.rad1=Math.PI/64;
+$rrrr$=$aaaa$.prototype.processTouch;
+$dddd$=$aaaa$.prototype.processTouch=function f(){
+	f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.onTouch;
+$dddd$=$aaaa$.prototype.onTouch=function f(triggered){
+	this._onTouch_ing=true;
+	f.ori.call(this,triggered);
+	this._onTouch_ing=undefined;
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - itemlist
