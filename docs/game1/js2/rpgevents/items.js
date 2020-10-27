@@ -167,7 +167,10 @@ list.leafJuice=(action)=>{
 		delete $gameParty._leafJuiceCnt;
 	}
 };
-let tbl_fireCrystal=[]; tbl_fireCrystal[96]=2; tbl_fireCrystal[102]=3;
+let tbl_fireCrystal=[];
+tbl_fireCrystal[96]=2;
+tbl_fireCrystal[102]=3;
+tbl_fireCrystal[106]=4;
 list.fireCrystal=(action)=>{
 	backToMap();
 	let item=action.item();
@@ -220,6 +223,42 @@ $dddd$.getWeight=x=>x[2];
 $dddd$.tbl={a:$dataArmors,i:$dataItems,s:$dataSkills,w:$dataWeapons};
 list.lottery_printList=(action)=>{
 	SceneManager.push(Scene_LotteryList);
+};
+
+let accessory_validMaps={ // .meta.accessory -> array or function
+	overworld:()=>$dataMap.tilesetId===1,
+	outside:()=>$dataMap.tilesetId===2,
+	inside:()=>$dataMap.tilesetId===3,
+	dungeon:()=>$dataMap.tilesetId===4,
+	sfoutside:()=>$dataMap.tilesetId===5,
+	sfinside:()=>$dataMap.tilesetId===6,
+	myhouse:[31,],
+},accessory_toEvt={ // itemId -> evtTemplateId
+	107:2, 108:3, 109:4, 110:5,
+};
+list.accessory=(action)=>{
+	let dataitem=action.item();
+	let maps=accessory_validMaps[dataitem.meta.accessory];
+	if(maps){
+		let isValid=false; // true: can placing this accessory
+		if(maps.constructor===Function) isValid=maps();
+		else if(maps.constructor===Array) isValid=maps.indexOf($gameMap._mapId)!==-1;
+		if(isValid){
+			let p=$gamePlayer;
+			let evtid=$dataMap.templateStrt+accessory_toEvt[dataitem.id];
+			if(isNaN(evtid)) $gameMessage.popup("這不是裝飾品道具",1);
+			else{
+				let res=$gameMap.cpevt(evtid,p.x,p.y,1,1); // using tileTemplate
+				if(res===0) $gameMessage.popup("角色所在位置有其他東西而無法放置",1);
+				else{
+					$gameParty.loseItem(dataitem,1);
+					backToMap();
+				}
+			}
+			return;
+		}
+	}
+	$gameMessage.popup("該道具無法放置在此地圖中",1);
 };
 
 // end

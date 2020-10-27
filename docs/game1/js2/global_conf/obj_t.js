@@ -2104,6 +2104,7 @@ $dddd$.reverse(); [
 	{ name: '$dataTemplateEvtFromMap_overworld', src: 'Map077.json'   },
 	{ name: '$dataTemplateEvtFromMap_outside', src: 'Map078.json'   },
 	{ name: '$dataTemplateEvtFromMap_dungeon', src: 'Map117.json'   },
+	{ name: '$dataTemplateEvtFromMap_inside', src: 'Map123.json'   },
 	{ name: '$dataTemplateEvt_move', src: 'Map089.json'   },
 	{ name: '$dataTemplateEvt_item', src: 'Map114.json'   },
 ].reverse().forEach(x=>$dddd$.push(x)); $dddd$.reverse();

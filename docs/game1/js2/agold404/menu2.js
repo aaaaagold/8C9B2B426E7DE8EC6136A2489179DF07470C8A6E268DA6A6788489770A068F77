@@ -436,7 +436,7 @@ $dddd$.debugPack=(notDev)=>{
 	for(let x=0,arr=addons;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1);
 	let returns=[42,93,];
 	for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
-	let placing=[96,];
+	let placing=[96,107,108,109,110,];
 	for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
 	let consume=[23,103,];
 	for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
