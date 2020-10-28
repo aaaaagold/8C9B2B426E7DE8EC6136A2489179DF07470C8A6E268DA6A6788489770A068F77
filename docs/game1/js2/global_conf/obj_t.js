@@ -5692,6 +5692,10 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	let evtd=this.event();
 	let meta=evtd.meta;
 	
+	if(meta.stopCount){
+		let tmp=Number(meta.stopCount);
+		if(!isNaN(tmp)) this._stopCount=tmp;
+	}
 	if(meta.z){
 		let tmp=Number(meta.z);
 		if(!isNaN(tmp)) this._z=tmp;
@@ -6133,6 +6137,7 @@ $aaaa$.prototype.refresh=function(forced) {
 		this._pageIndex=newPageIndex;
 		this.setupPage();
 	}
+	return this;
 };
 $rrrr$=$aaaa$.prototype.list;
 $dddd$=$aaaa$.prototype.list=function f(){
