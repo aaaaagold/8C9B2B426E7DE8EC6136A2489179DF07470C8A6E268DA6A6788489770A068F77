@@ -4792,16 +4792,8 @@ Game_Party.prototype.gold = function() {
     return this._gold;
 };
 
-Game_Party.prototype.gainGold = function(amount) {
-    this._gold = (this._gold + amount).clamp(0, this.maxGold());
-};
-
 Game_Party.prototype.loseGold = function(amount) {
     this.gainGold(-amount);
-};
-
-Game_Party.prototype.maxGold = function() {
-    return 99999999;
 };
 
 Game_Party.prototype.steps = function() {
@@ -5978,10 +5970,6 @@ Game_CharacterBase.prototype.checkStop = function(threshold) {
 
 Game_CharacterBase.prototype.resetStopCount = function() {
     this._stopCount = 0;
-};
-
-Game_CharacterBase.prototype.realMoveSpeed = function() {
-    return this._moveSpeed + (this.isDashing() ? 1 : 0);
 };
 
 Game_CharacterBase.prototype.distancePerFrame = function() {
@@ -7175,25 +7163,6 @@ Game_Player.prototype.isDashButtonPressed = function() {
         return !shift;
     } else {
         return shift;
-    }
-};
-
-Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
-    var x1 = lastScrolledX;
-    var y1 = lastScrolledY;
-    var x2 = this.scrolledX();
-    var y2 = this.scrolledY();
-    if (y2 > y1 && y2 > this.centerY()) {
-        $gameMap.scrollDown(y2 - y1);
-    }
-    if (x2 < x1 && x2 < this.centerX()) {
-        $gameMap.scrollLeft(x1 - x2);
-    }
-    if (x2 > x1 && x2 > this.centerX()) {
-        $gameMap.scrollRight(x2 - x1);
-    }
-    if (y2 < y1 && y2 < this.centerY()) {
-        $gameMap.scrollUp(y1 - y2);
     }
 };
 

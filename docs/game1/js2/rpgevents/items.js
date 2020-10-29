@@ -267,7 +267,8 @@ list.slowingBead=(action)=>{
 		$gameMessage.popup("角色前方已超出地圖，無法放置",1);
 		return;
 	}
-	$gameMap.cpevt($dataMap.templateStrt_item+5,xy.x,xy.y,1,1,1);
+	if($gameMap._mapId===103 && $gameMap._events[65].pos(xy.x,xy.y) && !$gameSelfSwitches._data[103]['65,B'] ) $gameMap._events[65].ssStateSet("A");
+	else $gameMap.cpevt($dataMap.templateStrt_item+5,xy.x,xy.y,1,1,1);
 	$gameParty.loseItem(dataitem,1);
 	backToMap();
 };

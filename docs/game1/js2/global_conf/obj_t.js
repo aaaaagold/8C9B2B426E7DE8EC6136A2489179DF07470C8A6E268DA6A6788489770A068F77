@@ -2374,10 +2374,6 @@ $aaaa$.loadMapData = function f(mapId) {
 		$dataMap.data_bak=$dataMap.data.slice(0);
 		// defaults
 		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
-		// edit image color according to meta
-		if(0&&0)for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
-			
-		}
 		// preload
 		// - preload face image according to events' character image
 		let faceSet=new Set(),faces=[];
@@ -4506,15 +4502,13 @@ $dddd$.h=[0,4,0,6,4,0,6,4,0,6];
 $dddd$.v=[0,2,2,2,0,0,0,8,8,8];
 $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 	let isSucc=this.canPassDiagonally(this._x, this._y, horz, vert);
+	this.setMovementSuccess(isSucc);
 	if(isSucc){
-		this.setMovementSuccess(isSucc);
-		if(this.isMovementSucceeded()){
-			this._x=$gameMap.roundXWithDirection(this._x, horz);
-			this._y=$gameMap.roundYWithDirection(this._y, vert);
-			this._realX=$gameMap.xWithDirection(this._x, this.reverseDir(horz));
-			this._realY=$gameMap.yWithDirection(this._y, this.reverseDir(vert));
-			this.increaseSteps();
-		}
+		this._x=$gameMap.roundXWithDirection(this._x, horz);
+		this._y=$gameMap.roundYWithDirection(this._y, vert);
+		this._realX=$gameMap.xWithDirection(this._x, this.reverseDir(horz));
+		this._realY=$gameMap.yWithDirection(this._y, this.reverseDir(vert));
+		this.increaseSteps();
 	}else{
 		let canx=this.canPass(this._x,this._y,horz),cany=this.canPass(this._x,this._y,vert);
 		isSucc=canx|cany;
@@ -4525,7 +4519,7 @@ $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 			if(cany) this.moveStraight(vert);
 			else if(canx) this.moveStraight(horz);
 		}
-		if(isSucc) return ;
+		if(isSucc) return this.setMovementSuccess(isSucc);
 	}
 	// (this._direction,horz,vert)=>this._direction
 	if(!f.dirbit[horz]) horz=0;
@@ -4542,7 +4536,7 @@ $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 //            [0,1,2,3,4,5,6,7,8,9];
 $dddd$.dirbit=[0,0,1,0,2,0,1,0,2,0]; // none:0 +:1 -:2
 $rrrr$=$aaaa$.prototype.moveDiagonally;
-$dddd$=$aaaa$.prototype.moveDiagonally=function(dh,dv){
+$dddd$=$aaaa$.prototype.moveDiagonally=function f(dh,dv){
 	let d=this._direction;
 	f.ori.call(this,dh,dv);
 	if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
@@ -4603,10 +4597,9 @@ $aaaa$.prototype.moveSpeedBuff_ctr=function(){ // ctr-=1
 		((buff.delta<0)?this._mvSpBuf.debuff:this._mvSpBuf.buff).push(buff);
 	}
 };
-$rrrr$=$aaaa$.prototype.realMoveSpeed;
-$dddd$=$aaaa$.prototype.realMoveSpeed=function f(){
-	return (this.speedup^0)/2.0+this.moveSpeedBuff_cal()+f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.realMoveSpeed=function f(){
+	return (this.speedup^0)/2.0+this._moveSpeed+this.moveSpeedBuff_cal()+(this.isDashing()^0);
+};
 $rrrr$=$aaaa$.prototype.jump;
 $dddd$=$aaaa$.prototype.jump=function f(dx,dy){
 	return f.ori.call(this,dx|0,dy|0);
@@ -4732,7 +4725,8 @@ $aaaa$.prototype.turnAwayFromCharacter=function(chr){
 	if(Math.abs(sy)<Math.abs(sx)) this.setDirection(0<sx?6:4);
 	else if(sy!==0) this.setDirection(0<sy?2:8);
 };
-$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
+$rrrr$=$aaaa$.prototype.findDirectionTo;
+$dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
 	//debug.log('Game_Character.prototype.findDirectionTo');
 	//a; // debug - cracking
 		// when called by $gamePlayer
@@ -4839,7 +4833,7 @@ $aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
 		}
 	}
 	return c_and_dir.dir;
-};
+}; $dddd$.ori=$rrrr$;
 //$rrrr$=$aaaa$.prototype.isCollidedWithCharacters;
 //$dddd$=$aaaa$.prototype.isCollidedWithCharacters=function(){ // overwrite
 //}; $dddd$.ori=$rrrr$;
@@ -4863,11 +4857,7 @@ $dddd$=$aaaa$.prototype.clear=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.isBusy;
 $dddd$=$aaaa$.prototype.isBusy=function f(){
-	return f.ori.call(this)||this._windowCnt;
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.add;
-$dddd$=$aaaa$.prototype.add=function f(txt){
-	return f.ori.call(this,txt);
+	return this._windowCnt||f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.add_finishQuest=function f(qname){
 	if(f.prefix===undefined) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
@@ -5549,29 +5539,30 @@ $aaaa$.prototype.gain_amountHead=function(amount,noSound){
 	}
 	return rtv+" \\RGB["+color.default+"]";
 };
-$rrrr$=$aaaa$.prototype.gainGold;
-$dddd$=$aaaa$.prototype.gainGold=function f(amount,noSound){
+$aaaa$.prototype.gainGold=function f(amount,noSound){
 	if(this._gold){
 		let h=sha256(this._gold+'/'+this._hashn_gold),g=0;
 		while(h.slice(-3)!=="000") h=sha256(g+++'/'+this._hashn_gold);
 		if(g) this._gold=g-1;
 	}
 	let prevg=this._gold;
-	f.ori.call(this,arguments[0]);
+	//f.ori.call(this,amount); //this._gold = (this._gold + amount).clamp(0, this.maxGold());
+	this._gold+=amount;
 	if(prevg!==this._gold){ for(let x=0;;++x){
 		let h=sha256(this._gold+'/'+x);
 		if(h.slice(-3)==="000"){
 			this._hashn_gold=x;
 			break;
 		}
-	}}
+	} }
 	let cnt=arguments[0]; if(!cnt) return;
 	let head=this.gain_amountHead(cnt,noSound);
 	let txt=head+Math.abs(cnt)+" \\G";
 	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt);
 	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
 	return txt;
-}; $dddd$.ori=$rrrr$;
+};
+$aaaa$.prototype.maxGold=()=>99999999;
 $rrrr$=$aaaa$.prototype.consumeItem;
 $dddd$=$aaaa$.prototype.consumeItem=function f(){
 	debug.log('Game_Party.prototype.consumeItem');
@@ -5614,7 +5605,6 @@ $dddd$=$aaaa$.prototype.gainItem=function f(item, amount, includeEquip, noSound)
 				//   =>  \\\\ -> \ 
 		if(!window['/tmp/']['debug']) window['/tmp/']['debug']="";
 		//debug.log(window['/tmp/']['debug']+=txt.replace(re,"$1$2_$4")+"\n");
-
 	}
 	return txt;
 }; $dddd$.ori=$rrrr$;
