@@ -4541,6 +4541,18 @@ $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 };
 //            [0,1,2,3,4,5,6,7,8,9];
 $dddd$.dirbit=[0,0,1,0,2,0,1,0,2,0]; // none:0 +:1 -:2
+$rrrr$=$aaaa$.prototype.moveDiagonally;
+$dddd$=$aaaa$.prototype.moveDiagonally=function(dh,dv){
+	let d=this._direction;
+	f.ori.call(this,dh,dv);
+	if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.moveStraight;
+$dddd$=$aaaa$.prototype.moveStraight=function f(dir){
+	let d=this._direction;
+	f.ori.call(this,dir);
+	if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
+}; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.prototype.d8to4=function f(d){ return f.tbl[d]|0; };
 $dddd$.tbl=[0x00,0x24,0x20,0x26,0x04,0x00,0x06,0x84,0x80,0x86]; /* Y(8,2),X(4,6) numpad */
 $aaaa$.prototype.moveDiagonally_d8=function(d8) {
@@ -4607,12 +4619,6 @@ $aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is 
 	return (mapd&&mapd.coordTbl&&mapd.coordTbl[mapd.width*posy+posx]||this._events).some(evt=>evt&&evt.posNt(posx,posy)&&evt.isNormalPriority());
 	// note: why normal?
 };
-$rrrr$=$aaaa$.prototype.moveStraight;
-$dddd$=$aaaa$.prototype.moveStraight=function f(dir){
-	let d=this._direction;
-	f.ori.call(this,dir);
-	if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
-}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.genBlood=function(permanent){ // tile
 	if(permanent){
 		let data={}; data[$gameMap.xy2idx(this.x,this.y,2)]=599;
