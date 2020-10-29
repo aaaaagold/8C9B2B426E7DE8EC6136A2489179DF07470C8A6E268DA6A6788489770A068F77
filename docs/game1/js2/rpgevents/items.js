@@ -260,6 +260,17 @@ list.accessory=(action)=>{
 	}
 	$gameMessage.popup("該道具無法放置在此地圖中",1);
 };
+list.slowingBead=(action)=>{
+	let dataitem=action.item();
+	let xy=$gamePlayer.frontPos();
+	if(!$gameMap.isValid_round(xy.x,xy.y)){
+		$gameMessage.popup("角色前方已超出地圖，無法放置",1);
+		return;
+	}
+	$gameMap.cpevt($dataMap.templateStrt_item+5,xy.x,xy.y,1,1,1);
+	$gameParty.loseItem(dataitem,1);
+	backToMap();
+};
 
 // end
 })();

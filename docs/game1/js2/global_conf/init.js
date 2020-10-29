@@ -364,20 +364,6 @@ let setShorthand = (w)=>{
 			set:function(rhs){return rhs;},
 		configurable: false}
 	});
-	w['_/dev/stack']=[];
-	Object.defineProperties(w,{
-		"/dev/stack": {
-			get:function(){ return this['_/dev/stack'].pop(); },
-			set:function(rhs){ return this['_/dev/stack'].push(rhs); },
-		configurable: false}
-	});
-	w['_/dev/queue']=[];
-	Object.defineProperties(w,{
-		"/dev/queue": {
-			get:function(){ return this['_/dev/queue'].shift(); },
-			set:function(rhs){ return this['_/dev/queue'].push(rhs); },
-		configurable: false}
-	});
 	
 	Object.defineProperties(Object.prototype,{
 		hasKey: { // it's slow, still need to copy keys to an array (or something like that)
@@ -494,10 +480,6 @@ let setShorthand = (w)=>{
 		let m=this.match(/[ \b\t\n\r]*/);
 		return (m&&m[0].length)===this.length;
 	};
-	w.String.prototype.toId=function(){
-		let tmp=this.match(/^([0-9]+)(-[0-9A-Z_a-z]+)?$/);
-		return (tmp||undef)&&Number(tmp[1]);
-	};
 	
 	const hexDigits=['0','1','2','3','4','5','6','7','8','9',"A","B","C","D","E","F"];
 	w.Number.prototype.toId=function(){ return this.valueOf(); };
@@ -536,7 +518,7 @@ let setShorthand = (w)=>{
 		return (tmp<0)*this._data.length+tmp;
 	};
 	w.Queue.prototype.clear=function(init_size){
-		if(!(init_size>=32)) init_size=32;
+		if(!(init_size>=8)) init_size=8;
 		this._ende=this._strt=0;
 		this._len=0;
 		this._data.length=init_size;

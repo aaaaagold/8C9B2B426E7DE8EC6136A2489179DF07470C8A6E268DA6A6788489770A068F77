@@ -711,9 +711,7 @@ ImageManager.loadEnemy = function(filename, hue) {
     return this.loadBitmap('img/enemies/', filename, hue, true);
 };
 
-ImageManager.loadCharacter = function(filename, hue) {
-    return this.loadBitmap('img/characters/', filename, hue, false);
-};
+ImageManager.loadCharacter;
 
 ImageManager.loadFace = function(filename, hue) {
     return this.loadBitmap('img/faces/', filename, hue, true);
@@ -751,16 +749,7 @@ ImageManager.loadTitle2 = function(filename, hue) {
     return this.loadBitmap('img/titles2/', filename, hue, true);
 };
 
-ImageManager.loadBitmap = function(folder, filename, hue, smooth) {
-    if (filename) {
-        var path = folder + encodeURIComponent(filename) + '.png';
-        var bitmap = this.loadNormalBitmap(path, hue || 0);
-        bitmap.smooth = smooth;
-        return bitmap;
-    } else {
-        return this.loadEmptyBitmap();
-    }
-};
+ImageManager.loadBitmap;
 
 ImageManager.loadEmptyBitmap = function() {
     var empty = this._imageCache.get('empty');
