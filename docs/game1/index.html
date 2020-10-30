@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -37,30 +37,60 @@ button:hover{
 	color:#FFFFFF;background-color:#000000;opacity:0.875;
 }
 </style>
+<script>
+"use strict";
+
+(()=>{
+let w=window,d=document,jss=[
+	"js2/global_conf/init.js",
+	"js/plugins.js",
+	"js2/global_conf/lib_h.js",
+	"js/libs/pixi.js",
+	"js/libs/pixi-tilemap.js",
+	"js/libs/pixi-picture.js",
+	"js/libs/fpsmeter.js",
+	"js/libs/lz-string.js",
+	"js/libs/iphone-inline-video.browser.js",
+	"js2/global_conf/lib_t.js",
+	"js2/global_conf/obj_h.js",
+	"js/rpg_core.js",
+	"js/rpg_managers.js",
+	"js/rpg_objects.js",
+	"js/rpg_scenes.js",
+	"js/rpg_sprites.js",
+	"js/rpg_windows.js",
+	"js2/global_conf/obj_t.js",
+	"js2/global_conf/obj_t2.js",
+	"js2/global_conf/strt.js",
+	"js2/agold404/chainWithGAS.js",
+//	"js/main.js",
+];
+
+let onloadProc=function f(){
+	if(f.idx===jss.length){
+		let z=0,a=PluginManager.loadScript=function o(name){ ++z;
+			let scr = d.ce('script');
+			scr.onerror = this.onError.bind(this);
+			scr.onload = o.o;
+			scr._url = scr.src = this._path + name;
+			d.body.ac(scr);
+		};
+		let O_O=()=>{ z=undefined; if(!SceneManager._scene) SceneManager.run(Scene_Boot); };
+		a.o=()=>{ if(--z===0) O_O(); };
+		PluginManager.setup($plugins);
+		if(z===0) O_O(); // no plugins or loading is very fast
+		return;
+	}
+	let scr=d.createElement('script');
+	scr.onload=f;
+	let src=jss[f.idx++]; src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
+	scr.src=src;
+	d.body.appendChild(scr);
+}; onloadProc.idx=0;
+if(d.body) onloadProc(); else w.onload=()=>{ w.onload=null; onloadProc(); }
+})();
+
+</script>
 </head>
-<body style="background-color: black">
-	<script type="text/javascript" src="js2/global_conf/init.js"></script>
-	<script type="text/javascript" src="js/plugins.js"></script>
-	<script type="text/javascript" src="js2/global_conf/lib_h.js"></script>
-	<script type="text/javascript" src="js/libs/pixi.js"></script>
-	<script type="text/javascript" src="js/libs/pixi-tilemap.js"></script>
-	<script type="text/javascript" src="js/libs/pixi-picture.js"></script>
-	<script type="text/javascript" src="js/libs/fpsmeter.js"></script>
-	<script type="text/javascript" src="js/libs/lz-string.js"></script>
-	<script type="text/javascript" src="js/libs/iphone-inline-video.browser.js"></script>
-	<script type="text/javascript" src="js2/global_conf/lib_t.js"></script>
-	<script type="text/javascript" src="js2/global_conf/obj_h.js"></script>
-	<script type="text/javascript" src="js/rpg_core.js"></script>
-	<script type="text/javascript" src="js/rpg_managers.js"></script>
-	<script type="text/javascript" src="js/rpg_objects.js"></script>
-	<script type="text/javascript" src="js/rpg_scenes.js"></script>
-	<script type="text/javascript" src="js/rpg_sprites.js"></script>
-	<script type="text/javascript" src="js/rpg_windows.js"></script>
-	<script type="text/javascript" src="js2/global_conf/obj_t.js"></script>
-	<script type="text/javascript" src="js2/global_conf/obj_t2.js"></script>
-	<script type="text/javascript" src="js2/global_conf/strt.js"></script>
-	<!-- <script type="text/javascript" src="js2/agold404/RPGMakerMV-is-too-slow-to-be-called-a-tool.js"></script> -->
-	<script type="text/javascript" src="js2/agold404/chainWithGAS.js"></script>
-	<script type="text/javascript" src="js/main.js"></script>
-</body>
+<body style="background-color: black"></body>
 </html>
