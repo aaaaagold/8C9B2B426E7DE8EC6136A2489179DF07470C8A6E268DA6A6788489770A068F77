@@ -308,7 +308,7 @@ $aaaa$._createRenderer=function(){
 	PIXI.dontSayHello=true;
 	let width=this._width;
 	let height=this._height;
-	let options={ view: this._canvas, transparent: true };
+	let options={ view: this._canvas, transparent: true, };
 	try{
 		switch(this._rendererType){
 		case 'canvas':{
@@ -1145,7 +1145,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 		}else lowerTiles.push(tileId3);
 	}
 	
-	if(idx!==undefined) for(let x=0,arr=$dataMap.addLower[idx]||[];x!==arr.length;++x) lowerTiles.push(arr[x][0]);
+	if(idx!==undefined) for(let x=0,arr=$dataMap.addLower[idx]||[];x!==arr.length;++x) if(!arr[x][3]||arr[x][3]()) lowerTiles.push(arr[x][0]);
 	let lastLowerTiles = this._readLastTiles(0, lx, ly);
 	if( ( ($dataMap.hasA1[idx]||$dataMap.hasA1_lower[idx]) && this._frameUpdated) || !lowerTiles.equals(lastLowerTiles) ){
 		this._lowerBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
@@ -1166,9 +1166,10 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 			for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers_bitmaps;x!==idx.length;++x)
 				arr[idx[x]].clearRect(dx, dy, this._tileWidth, this._tileHeight);
 			for(let x=0,arr=addUpper;x!==arr.length;++x){
-				let y=arr[x][2];
-				if(y===undefined) continue;
-				this._drawTile(this._z2Layers_bitmaps[y], arr[x][0], dx, dy , arr[x][1]);
+				let curr=arr[x];
+				if(curr[3] && !curr[3]()) continue;
+				let y=curr[2]; if(y===undefined) continue;
+				this._drawTile(this._z2Layers_bitmaps[y], curr[0], dx, dy , curr[1]);
 			}
 			this._writeLastTiles(3, lx, ly, addUpper);
 		}
@@ -1185,7 +1186,10 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	}
 	if(flag_drawAddUpper){
 		this._writeLastTiles(5, lx, ly, addUpper);
-		for(let x=0,arr=addUpper;x!==arr.length;++x) if(arr[x][2]===undefined) this._drawTile(this._upperBitmap, arr[x][0], dx, dy , arr[x][1]);
+		for(let x=0,arr=addUpper;x!==arr.length;++x){
+			let curr=arr[x];
+			if( curr[2]===undefined && (!curr[3]||curr[3]()) ) this._drawTile(this._upperBitmap, curr[0], dx, dy , curr[1]);
+		}
 	}
 };
 $aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
@@ -1600,10 +1604,14 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		}
 }
 	if(idx!==undefined){
-		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x) this._drawTile(lowerLayer, arr[x][0], dx, dy);
+		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x){
+			let curr=arr[x]; if(!curr[3]||curr[3]()) this._drawTile(lowerLayer, curr[0], dx, dy, curr[1]);
+		}
 		for(let x=0,arr=$dataMap.addUpper[idx],tmp={};x!==arr.length;++x){
-			let lvs=(arr[x][2]===undefined)?layers:(this.z2Layers[arr[x][2]]||tmp).children;
-			if(lvs) this._drawTile_byTp(lvs, arr[x][0], dx, dy , arr[x][1]);
+			let curr=arr[x];
+			if( curr[3] && !curr[3]()) continue;
+			let lvs=(curr[2]===undefined)?layers:(this.z2Layers[curr[2]]||tmp).children;
+			if( lvs ) this._drawTile_byTp(lvs, curr[0], dx, dy , curr[1]);
 		}
 	}
 };
@@ -2317,9 +2325,10 @@ $aaaa$.resetHasA1=(idx)=>{
 	}
 };
 $aaaa$.resetPseudoTile=()=>{
-	// <addUpper:[{tid,loc,tp,top?}]>  <addLower:[{tid,loc}]>
+	// <addUpper:[{tid,loc,tp,top?,cond?}]>  <addLower:[{tid,loc,cond?}]>
 	// {loc:[x,y]} or {loc:[x,y,xe,ye]}
 	//  => dst[idx_loc][tid,tp]
+	// cond: visible if true or undefined
 	
 	if(!$dataMap) return "! $dataMap";
 	let w=$dataMap.width,src,dst;
@@ -2334,9 +2343,10 @@ $aaaa$.resetPseudoTile=()=>{
 		for(let x=0,arr=added;x!==arr.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
-			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp])
+			let cond=eval(curr.cond);
+			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
-				dst[y*w+x].push([curr.tid,curr.tp,curr.y]);
+				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
 			} } }
 		}
 	}
@@ -2351,9 +2361,10 @@ $aaaa$.resetPseudoTile=()=>{
 		for(let x=0,arr=added;x!==arr.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
-			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tid])
+			let cond=eval(curr.cond);
+			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
-				dst[y*w+x].push([curr.tid,curr.tp,curr.y]);
+				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
 			} } }
 		}
 	}
@@ -4183,6 +4194,15 @@ $dddd$=$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. lookin
 		}
 	}
 	return rtv;
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.refresh;
+$dddd$=$aaaa$.prototype.refresh=function f(){
+	f.ori.call(this);
+	let tm=SceneManager.getTilemap();
+	if(tm && tm.constructor===ShaderTilemap){
+		let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
+		tm._paintAllTiles(sx^0,sy^0);
+	}
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.refresh;
 $dddd$=$aaaa$.prototype.refresh=function f(){ // reduce refresh calls
@@ -6324,10 +6344,10 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			tmp=tmp.meta;
 			if(tmp.cond!==undefined){
 				let cond=eval(tmp.cond);
-				if(tmp.elseSkipNLine){
-					let skipN=eval(tmp.elseSkipNLine);
+				if(!cond && tmp.elseSkipN){
+					let skipN=eval(tmp.elseSkipN);
 					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
-					if(!cond) c+=line;
+					c+=line;
 				}
 			}
 			x=c-1; // for-loop: ++x
@@ -6710,6 +6730,170 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 $dddd$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
 $rrrr$=$dddd$=$aaaa$=undef;
 
+// - selectable
+$aaaa$=Window_Selectable;
+$aaaa$.prototype.standardFontSize=()=>(Utils.isMobileDevice()<<2)+28;
+$aaaa$.prototype.lineHeight=()=>(Utils.isMobileDevice()*6)+36;
+$rrrr$=$aaaa$.prototype.processHandling;
+$dddd$=$aaaa$.prototype.processHandling=function f(){
+	if(SceneManager._nextScene===null) return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.processCursorMove=function(){ // overwrite for efficiency
+	if (this.isCursorMovable()) {
+		let lastIndex = this.index();
+		if (Input.isRepeated('down')) {
+			let wrap=Input.isTriggered('down');
+			this.cursorDown(wrap);
+			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorDown(wrap);
+		}
+		if (Input.isRepeated('up')) {
+			let wrap=Input.isTriggered('up');
+			this.cursorUp(wrap);
+			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorUp(wrap);
+		}
+		if (Input.isRepeated('right')) {
+			let wrap=Input.isTriggered('right');
+			this.cursorRight(wrap);
+			//if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorRight(wrap);
+		}
+		if (Input.isRepeated('left')) {
+			let wrap=Input.isTriggered('left');
+			this.cursorLeft(wrap);
+			//if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorLeft(wrap);
+		}
+		if(Input.isTriggered('home')){
+			this.select(0);
+			this.cursorPageup();
+		}
+		if(Input.isTriggered('end')){
+			this.select(this.maxItems());
+			this.cursorPagedown();
+		}
+		if (!this.isHandled('pagedown') && Input.isTriggered('pagedown')) {
+			this.cursorPagedown();
+			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorPagedown();
+		}
+		if (!this.isHandled('pageup') && Input.isTriggered('pageup')) {
+			this.cursorPageup();
+			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorPageup();
+		}
+		if (this.index() !== lastIndex) {
+			SoundManager.playCursor();
+		}
+	}
+};
+$aaaa$.prototype.cursorPageup=function() { // overwrite because it's wrong
+	if(0<this.topRow()) this.setTopRow(this.topRow() - this.maxPageRows());
+	this.select(Math.max(this.index() - this.maxPageItems(), 0));
+};
+$aaaa$.prototype.cursorPagedown=function() { // overwrite because it's wrong
+	let tmp=this.topRow() + this.maxPageRows();
+	if(tmp < this.maxRows()) this.setTopRow(tmp);
+	let idx=this.index(); idx*=idx>=0;
+	this.select(Math.min(idx + this.maxPageItems(), this.maxItems() - 1));
+};
+$aaaa$.prototype.trimSel=function(idx){
+	idx^=0;
+	let maxItems=this.maxItems();
+	if(idx>=maxItems) idx=maxItems-1;
+	if(idx<0) idx=0;
+	this.select(idx);
+};
+$aaaa$.prototype.processCancel = function(noSound) {
+	if(!noSound) SoundManager.playCancel();
+	this.updateInputData();
+	this.deactivate();
+	this.callCancelHandler();
+};
+$aaaa$.prototype.touchOutsideFrame=none;
+$rrrr$=$aaaa$.prototype.onTouch;
+$dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
+	if(!iw) return f.ori.call(this,triggered);
+	let lastIndex = this.index();
+	let x = this.canvasToLocalX(TouchInput.x);
+	let y = this.canvasToLocalY(TouchInput.y);
+	let hitIndex = this.hitTest(x, y);
+	if(hitIndex >= 0){
+		if(hitIndex === this.index()){
+			if(triggered && this.isTouchOkEnabled()){
+				let idx=iw._lastIdx;
+				this.processOk();
+				iw.trimSel(idx);
+			}
+		}else if(this.isCursorMovable()){
+			this.select(hitIndex);
+		}
+	}else if(!this._touching) this.processTouchOutsideFrame(triggered,x,y,iw); // not click on 'this'
+	else if(this._stayCount >= 10){
+		if(y < this.padding) this.cursorUp();
+		else if(y >= this.height - this.padding) this.cursorDown();
+	}
+	if(this.index() !== lastIndex) SoundManager.playCursor();
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
+
+// - itemCat
+$aaaa$=Window_ItemCategory;
+$rrrr$=$aaaa$.prototype.processOk;
+$dddd$=$aaaa$.prototype.processOk=function f(){
+	f.ori.call(this);
+	if(this._lastIdxs) this.parent.parent._itemWindow.trimSel(this._lastIdxs[this._index]^0);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.processTouch=function(){
+	if(this.isOpenAndActive()){
+		if(TouchInput.isTriggered()){
+			if(this.isTouchedInsideFrame()) this._touching = true;
+			this.onTouch(true);
+		}else if(TouchInput.isCancelled()){
+			if(this.isCancelEnabled()) this.processCancel();
+		}
+		if(this._touching){
+			if(TouchInput.isPressed()) this.onTouch(false);
+			else this._touching = false;
+		}
+	}else this._touching = false;
+};
+$aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
+	if( triggered && this.isTouchOkEnabled() && iw.isTouchedInsideFrame() ){
+		//this.processOk();
+		if(this.isCurrentItemEnabled()){
+			SoundManager.playCursor();
+			this.updateInputData();
+			this.deactivate();
+			this.callOkHandler();
+			let idx=iw.hitTest(x+this.x-iw.x,y+this.y-iw.y);
+			if(idx<0 && this._lastIdxs) idx=this._lastIdxs[this._index];
+			iw.trimSel(idx);
+		}else this.playBuzzerSound();
+	}
+};
+$aaaa$.prototype.onTouch=function(triggered){
+	return this._onTouch_iw(triggered,this.parent.parent._itemWindow);
+};
+$rrrr$=$dddd$=$aaaa$=undef;
+
+// - itemList
+$aaaa$=Window_ItemList;
+$rrrr$=$aaaa$.prototype.processCancel;
+$dddd$=$aaaa$.prototype.processCancel=function f(noSound){
+	let cat=this.parent.parent._categoryWindow;
+	if(!cat._lastIdxs) cat._lastIdxs=[];
+	cat._lastIdxs[cat._index]=this._index;
+	return f.ori.call(this,noSound);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.processTouch=Window_ItemCategory.prototype.processTouch;
+$aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
+	if( triggered && this.isTouchOkEnabled() && iw.isTouchedInsideFrame() ){
+		this.processCancel(true);
+		let idx=iw.hitTest(x+this.x-iw.x,y+this.y-iw.y);
+		if(idx>=0) iw.trimSel(idx);
+	}
+};
+$aaaa$.prototype.onTouch=function(triggered){
+	return this._onTouch_iw(triggered,this.parent.parent._categoryWindow);
+};
+$rrrr$=$dddd$=$aaaa$=undef;
+
 // - msg
 $aaaa$=Window_Message;
 $rrrr$=$aaaa$.prototype.onEndOfText;
@@ -6838,76 +7022,6 @@ $dddd$=$aaaa$.prototype.drawMessageFace=function f(){
 	if($gameMessage.faceIndex()==="data") return; // ensurance
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
-
-// - selectable
-$aaaa$=Window_Selectable;
-$aaaa$.prototype.standardFontSize=()=>(Utils.isMobileDevice()<<2)+28;
-$aaaa$.prototype.lineHeight=()=>(Utils.isMobileDevice()*6)+36;
-$rrrr$=$aaaa$.prototype.processHandling;
-$dddd$=$aaaa$.prototype.processHandling=function f(){
-	if(SceneManager._nextScene===null) return f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processCursorMove=function(){ // overwrite for efficiency
-	if (this.isCursorMovable()) {
-		let lastIndex = this.index();
-		if (Input.isRepeated('down')) {
-			let wrap=Input.isTriggered('down');
-			this.cursorDown(wrap);
-			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorDown(wrap);
-		}
-		if (Input.isRepeated('up')) {
-			let wrap=Input.isTriggered('up');
-			this.cursorUp(wrap);
-			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorUp(wrap);
-		}
-		if (Input.isRepeated('right')) {
-			let wrap=Input.isTriggered('right');
-			this.cursorRight(wrap);
-			//if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorRight(wrap);
-		}
-		if (Input.isRepeated('left')) {
-			let wrap=Input.isTriggered('left');
-			this.cursorLeft(wrap);
-			//if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorLeft(wrap);
-		}
-		if(Input.isTriggered('home')){
-			this.select(0);
-			this.cursorPageup();
-		}
-		if(Input.isTriggered('end')){
-			this.select(this.maxItems());
-			this.cursorPagedown();
-		}
-		if (!this.isHandled('pagedown') && Input.isTriggered('pagedown')) {
-			this.cursorPagedown();
-			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorPagedown();
-		}
-		if (!this.isHandled('pageup') && Input.isTriggered('pageup')) {
-			this.cursorPageup();
-			if(Input.isPressed('shift')) for(let x=10;--x;) this.cursorPageup();
-		}
-		if (this.index() !== lastIndex) {
-			SoundManager.playCursor();
-		}
-	}
-};
-$aaaa$.prototype.cursorPageup=function() { // overwrite because it's wrong
-	if(0<this.topRow()) this.setTopRow(this.topRow() - this.maxPageRows());
-	this.select(Math.max(this.index() - this.maxPageItems(), 0));
-};
-$aaaa$.prototype.cursorPagedown=function() { // overwrite because it's wrong
-	let tmp=this.topRow() + this.maxPageRows();
-	if(tmp < this.maxRows()) this.setTopRow(tmp);
-	let idx=this.index(); idx*=idx>=0;
-	this.select(Math.min(idx + this.maxPageItems(), this.maxItems() - 1));
-};
-$aaaa$.prototype.processCancel = function(noSound) {
-	if(!noSound) SoundManager.playCancel();
-	this.updateInputData();
-	this.deactivate();
-	this.callCancelHandler();
-};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - command

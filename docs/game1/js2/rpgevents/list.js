@@ -25,4 +25,14 @@ list.core_gotoNearestTree=(chr,minRemain)=>{
 	return chr.moveDiagonally(dx===0?0:dx+5,dy===0?0:dy*3+5);
 };
 
+list.discardLastNChoices=n=>{
+	if(n===undefined) n=1;
+	return function(olist,c,rtv){
+		let next1=deepcopy(olist[c]);
+		next1.parameters[0].length-=n;
+		rtv.push(next1);
+		return 1;
+	};
+};
+
 })();

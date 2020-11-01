@@ -2050,6 +2050,7 @@ $aaaa$.prototype.doOk=function(){
 	if(lastCh!==undefined) this._choice_=undefined;
 	if(this._dstValid&&!this._dstValid(this.node_input.value)){
 		SoundManager.playBuzzer();
+		this.node_input.focus();
 		this._choice=lastCh;
 		return;
 	}
