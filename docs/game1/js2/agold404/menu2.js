@@ -65,6 +65,17 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	f.ori.call(this);
 	this.setBackgroundOpacity(0);
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.start;
+$dddd$=$aaaa$.prototype.start=function f(){
+	f.ori.call(this);
+	let tmp=window['/tmp/'],ls=tmp._laterScenes;
+	if(ls && ls.length){
+		let sc=ls.pop();  ls.pop();
+		SceneManager.goto(sc);
+	}
+}; $dddd$.ori=$rrrr$;
+if(!window['/tmp/']) window['/tmp/']={};
+if(!window['/tmp/']._laterScenes) window['/tmp/']._laterScenes=[];
 $dddd$=$rrrr$=$aaaa$=undef;
 
 // - Scene_OnlineLoadFail

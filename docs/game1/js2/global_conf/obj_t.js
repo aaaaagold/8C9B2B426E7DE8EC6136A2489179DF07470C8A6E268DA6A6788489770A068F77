@@ -178,6 +178,9 @@ $dddd$=$aaaa$.createLoader=function(type,url, retryMethod, resignMethod, retryIn
 				case 'img':
 					foo=giveUp=>{ retryCount=0; retryMethod(giveUp?blank_1x1:url); }
 					break;
+				case 'audio':
+					foo=giveUp=>{ retryCount=0; retryMethod(giveUp?blank_audio:url); }
+					break;
 				}
 				reloaders.push(foo);
 			}
@@ -415,11 +418,35 @@ $aaaa$._makeErrorHtml=(name, message)=>d.ce("div").sa("style","background-color:
 ).ac(d.ce("br")).ac(
 	d.ce("font").sa("color","white").at(message)
 ).ac(d.ce("br"));
-$aaaa$.printError=function(name, message){
+$dddd$=$aaaa$.printError=function f(name, message){
 	this._errorShowed=true;
-	if(this._errorPrinter) this._errorPrinter.rf(0).ac(this._makeErrorHtml(name, message));
+	let ep=this._errorPrinter;
+	if(ep){
+		let btn=d.ce('button').at('Restart the game');
+		btn.onclick=f.restart;
+		ep.rf(0).ac(this._makeErrorHtml(name, message)).ac(btn);
+		if(name==="UnknownError"){
+			console.log(message.stack);
+		}
+	}
 	this._applyCanvasFilter();
 	this._clearUpperCanvas();
+};
+$dddd$.restart=function f(){
+	// revert Graphics._applyCanvasFilter
+	let g=Graphics;
+	let s=g._canvas.style;
+        s.webkitFilter = '';
+        s.filter = '';
+        s.opacity = 1;
+	
+	g._errorPrinter.rf(0);
+	g._renderer.clear();
+	window['/tmp/']._laterScenes.push(Scene_Title); // prepare next-2 scene
+	let sm=SceneManager;
+	if(sm._scene) sm._scene.stop();
+	sm.goto(Scene_Black); // block current scene
+	sm.resume();
 };
 $dddd$=$aaaa$.printLoadingError=function f(type,url){
 	console.log("Graphics.printLoadingError");
@@ -429,12 +456,12 @@ $dddd$=$aaaa$.printLoadingError=function f(type,url){
 		this._errorPrinter.rf(0).ac(this._makeErrorHtml("Loading Error", "Failed to load: " + url));
 		
 		// retry?
-		let button = document.createElement('button').at("Retry");
-		button.onmousedown = button.ontouchstart = function(event) {
+		let btn = d.ce('button').at("Retry");
+		btn.onmousedown = btn.ontouchstart = function(event) {
 			ResourceHandler.retry();
 			event.stopPropagation();
 		};
-		this._errorPrinter.appendChild(button);
+		this._errorPrinter.ac(btn);
 		this._loadingCount = -Infinity;
 		
 		let alt=f.alts[type];
@@ -471,9 +498,25 @@ $dddd$.alts={
 		self._errorPrinter.ac(d.ce('br')).ac(btn);
 		self._loadingCount = -Infinity;
 	},
-	//'audio':self=>{},
+	'audio':self=>{
+		// using transparent image?
+		let btn = d.ce('button');
+		btn.ac(d.ce('div').at('Give up')).ac(d.ce('div').at('(use empty audio)'));
+		btn.onmousedown = btn.ontouchstart = function(evt) {
+			ResourceHandler.retry(1);
+			evt.stopPropagation();
+		};
+		self._errorPrinter.ac(d.ce('br')).ac(btn);
+		self._loadingCount = -Infinity;
+	},
 	//'video':self=>{},
 	//'map':self=>{},
+};
+$aaaa$.eraseLoadingError=function(){
+	if(this._errorPrinter && !this._errorShowed){
+		this._errorPrinter.rf(0); // prevent from using '.innerHTML'
+		this.startLoading();
+	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -705,7 +748,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 			let lk=this._lastKey;
 			if(lk){
 				let p=this.parent,y=rhs+$gameMap._displayY_th;
-				let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight();
+				let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight(); // so that player won't "split" multi-event events
 				if(lk[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
 					p.rmc_tree(lk); lk[1]=y;
 					p.addc_tree(lk,this);
@@ -1844,8 +1887,8 @@ $dddd$=$aaaa$._setupEventHandlers=function f(){
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $aaaa$._onTouchStart = function(event) {
-	let cancel=false,cx=0,cy=0;
-	for (let i=0;i<event.changedTouches.length;++i) {
+	let L=event.changedTouches.length,cancel=false,cx=0,cy=0;
+	for (let i=0;i<L;++i) {
 		let touch=event.changedTouches[i];
 		let x=Graphics.pageToCanvasX(touch.pageX);
 		let y=Graphics.pageToCanvasY(touch.pageY);
@@ -1862,7 +1905,6 @@ $aaaa$._onTouchStart = function(event) {
 	if(cancel){
 		this._screenPressed = true;
 		this._pressedTime = 0;
-		let L=event.touches.length;
 		cx/=L; cy/=L;
 		this._onCancel(cx,cy);
 		event.preventDefault();
@@ -2720,6 +2762,35 @@ $aaaa$._bgmVolume = $aaaa$._defaultVolume;
 $aaaa$._bgsVolume = $aaaa$._defaultVolume;
 $aaaa$. _meVolume = $aaaa$._defaultVolume;
 $aaaa$. _seVolume = $aaaa$._defaultVolume;
+$aaaa$._saveBgX=function(rtv,curr,buffer){
+	// rtv must be an object
+	if(curr){
+		rtv.name=curr.name;
+		rtv.volume=curr.volume;
+		rtv.pitch=curr.pitch;
+		rtv.pan=curr.pan;
+		rtv.pos=buffer?buffer.seek() : 0;
+	}else{
+		rtv.name='';
+		rtv.volume=0;
+		rtv.pitch=0;
+		rtv.pan=0;
+		rtv.pos=0;
+	}
+	return rtv;
+};
+$rrrr$=$aaaa$.saveBgm;
+$dddd$=$aaaa$.saveBgm=function f(rtv){
+	// rtv is obj or "sth that is false"
+	if(!rtv) return f.ori.call(this);
+	return this._saveBgX(rtv,this._currentBgm,this._bgmBuffer);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.saveBgs;
+$dddd$=$aaaa$.saveBgs=function f(rtv){
+	// rtv is obj or "sth that is false"
+	if(!rtv) return f.ori.call(this);
+	return this._saveBgX(rtv,this._currentBgs,this._bgsBuffer);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - TextManager
@@ -2727,6 +2798,11 @@ TextManager.custom=(id)=>$dataCustom[id]||'';
 
 // - SceneManager
 $aaaa$=SceneManager;
+$rrrr$=$aaaa$.catchException;
+$dddd$=$aaaa$.catchException=function f(e){
+	debugger; // not very useful though
+	return f.ori.call(this,e);
+}; $dddd$.ori=$rrrr$;
 $aaaa$._defaultWidth  = _global_conf["default width"]; // @global_conf/obj_h.js
 $aaaa$._defaultHeight = _global_conf["default height"]; // @global_conf/obj_h.js
 $aaaa$._screenWidth  = SceneManager._defaultWidth; // refer by Graphics // set by plugin
@@ -2777,46 +2853,57 @@ $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
 	if(this._resuming) return;
 	this._resuming=true;
-	if(this._pauseInfo&&this._pauseInfo.paused) this._pauseToResume();
-	let rtv=f.ori.call(this);
+	if(this._pauseInfo&&this._pauseInfo.paused){
+		if(Date.now()-this._pauseInfo.timestamp<111){
+			this._resuming=false;
+			return;
+		}
+		this._pauseToResume();
+	}
+	f.ori.call(this);
 	this._resuming=false;
-	return rtv;
 }; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.pause=function f(){
-	let self=this;
 	if(this._stopped) return;
 	this._stopped=true;
 	if(!this._pauseInfo) this._pauseInfo={};
 	let info=this._pauseInfo;
-	let bgm=info.bgm=AudioManager.saveBgm(),bgs=info.bgs=AudioManager.saveBgs();
+	info.timestamp=Date.now();
+	let bgm=AudioManager.saveBgm(info.bgm); if(!info.bgm) info.bgm=bgm;
+	let bgs=AudioManager.saveBgs(info.bgs); if(!info.bgs) info.bgs=bgs;
 	AudioManager.stopAll();
-	let msg=(info.msg||(
+	//let msg=info.msg;
+	if(!info.msg){
 		info.msg=d.ce("div")
 			.ac(d.ce("div").at("Now paused."))
-			.ac(d.ce("div").at("Click the button in the top-left corner of the screen to resume."))
-	)).sa("class","msg");
-	let btn=(info.btn||(
-		info.btn=d.ce("button").ac(d.ce("div").at("resume"))
-	)).sa("class",""),sty=btn.style;
+			.ac(d.ce("div").at("Click the button in the top-left corner of the screen to resume."));
+	}
+	info.msg.sa("class","msg");
+	let btn=info.btn;
+	if(!btn){
+		btn=info.btn=d.ce("button").ac(d.ce("div").at("resume"));
+	}
+	btn.sa("class","");
+	let sty=btn.style;
 	if(!btn.ref){
 		btn.ref=this;
 		sty.position="absolute";
-		sty.zIndex=999;
-		d.ge("UpperDiv").ac(msg);
+		sty.zIndex=222;
+		d.ge("UpperDiv").ac(info.msg);
 		d.body.ac(btn);
 	}
-	btn.onclick=f.btnResume; // cleared (=null) after resumed
+	btn.onclick=f.btnResume; // cleared (=undef, will be (auto) converted to null) after resumed
 	
 	info.paused=true; // done pausing
 };
 $dddd$.btnResume=function(){ this.ref.resume(); };
 $aaaa$._pauseToResume=function(){
-	if(!this._pauseInfo) return;
 	let info=this._pauseInfo;
-	info.btn.sa("class","none"); info.btn.onclick=null;
+	info.btn.onclick=undefined;
+	info.btn.sa("class","none");
 	info.msg.sa("class","none");
-	AudioManager.replayBgm(info.bgm); info.bgm=undef;
-	AudioManager.replayBgs(info.bgs); info.bgs=undef;
+	AudioManager.replayBgm(info.bgm); info.bgm=undefined;
+	AudioManager.replayBgs(info.bgs); info.bgs=undefined;
 	info.paused=false;
 };
 $rrrr$=$aaaa$.update;
@@ -3057,7 +3144,8 @@ $aaaa$.prototype.updateChildren=Sprite.prototype.update;
 $rrrr$=$aaaa$.prototype.detachReservation;
 $dddd$=$aaaa$.prototype.detachReservation=function f(){
 	debug.log('Scene_Base.prototype.detachReservation');
-	return this._windowLayer?this._windowLayer.destructor():f.ori.call(this);
+	let wl=this._windowLayer; if(wl) wl.destructor();
+	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -3493,10 +3581,13 @@ Object.defineProperties($aaaa$.prototype, {
 	name: { get: function(){return this.displayName();}, configurable: false },
 	_displayX: { get: function(){console.warn('lack of precision'); return this._displayX_tw/this.tileWidth();}, configurable: false },
 	_displayY: { get: function(){console.warn('lack of precision'); return this._displayY_th/this.tileHeight();}, configurable: false },
-	_dummy:{get:function(){return'';},configurable:false}
+	_parallaxX: { set: function(rhs){this._parallaxX_tw=this.tileWidth()*rhs; return rhs;}, configurable: false },
+	_parallaxY: { set: function(rhs){this._parallaxY_th=this.tileHeight()*rhs; return rhs;}, configurable: false },
 });
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
+	this._parallaxX_tw^=0;
+	this._parallaxY_th^=0;
 	this._displayX_tw^=0;
 	this._displayY_th^=0;
 	this._wtw^=0;
@@ -3560,13 +3651,15 @@ $aaaa$.prototype.scrollDown_th=function(distance_th) {
 		this._displayY_th%=this._hth;
 		//this._displayY=this._displayY_th/th; // use getter
 		if (this._parallaxLoopY) {
-			this._parallaxY += distance_th/th;
+			this._parallaxY_th+=distance_th;
+			//this._parallaxY += distance_th/th;
 		}
 	} else if (this._hth >= gh) {
 		let lastY_th = this._displayY_th;
 		this._displayY_th = Math.min(this._displayY_th + distance_th, this._hth - gh)^0;
 		//this._displayY=this._displayY_th/th; // use getter
-		this._parallaxY += (this._displayY_th - lastY_th)/th;
+		this._parallaxY_th+=this._displayY_th-lastY_th;
+		//this._parallaxY += (this._displayY_th - lastY_th)/th;
 	}
 	this._displayY_th^=0;
 };
@@ -3582,12 +3675,16 @@ $aaaa$.prototype.scrollLeft_tw=function(distance_tw) {
 		this._displayX_tw+=this._wtw-distance_tw;
 		this._displayX_tw%=this._wtw;
 		//this._displayX=this._displayX_tw/tw; // use getter
-		if (this._parallaxLoopX) this._parallaxX -= distance_tw/tw;
+		if(this._parallaxLoopX){
+			this._parallaxX_tw-=distance_tw;
+			//this._parallaxX -= distance_tw/tw;
+		}
 	} else if (this._wtw >= gw) {
 		let lastX_tw = this._displayX_tw;
 		this._displayX_tw=Math.max(this._displayX_tw - distance_tw, 0);
 		//this._displayX=this._displayX_tw/tw; // use getter
-		this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
+		this._parallaxX_tw+=this._displayX_tw-lastX_tw;
+		//this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
 	}
 	this._displayX_tw^=0;
 };
@@ -3602,12 +3699,16 @@ $aaaa$.prototype.scrollRight_tw=function(distance_tw) {
 		this._displayX_tw+=distance_tw;
 		this._displayX_tw%=this._wtw;
 		//this._displayX=this._displayX_tw/tw; // use getter
-		if (this._parallaxLoopX) this._parallaxX += distance_tw/tw;
+		if(this._parallaxLoopX){
+			this._parallaxX_tw+=distance_tw;
+			//this._parallaxX+=distance_tw/tw;
+		}
 	} else if (this._wtw >= gw) {
 		let lastX_tw = this._displayX_tw;
 		this._displayX_tw=Math.min(this._displayX_tw + distance_tw, this._wtw - gw)^0;
 		//this._displayX=this._displayX_tw/tw; // use getter
-		this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
+		this._parallaxX_tw+=this._displayX_tw-lastX_tw;
+		//this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
 	}
 	this._displayX_tw^=0;
 };
@@ -3623,13 +3724,15 @@ $aaaa$.prototype.scrollUp_th=function(distance_th) {
 		this._displayY_th%=this._hth;
 		//this._displayY=this._displayY_th/th; // use getter
 		if (this._parallaxLoopY) {
-			this._parallaxY -= distance_th/th;
+			this._parallaxY_th-=distance_th;
+			//this._parallaxY -= distance_th/th;
 		}
 	} else if (this._hth >= gh) {
 		let lastY_th=this._displayY_th;
 		this._displayY_th=Math.max(this._displayY_th - distance_th, 0)^0;
 		//this._displayY=this._displayY_th/th; // use getter
-		this._parallaxY+=(this._displayY_th - lastY_th)/th;
+		this._parallaxY_th+=this._displayY_th-lastY_th;
+		//this._parallaxY+=(this._displayY_th - lastY_th)/th;
 	}
 	this._displayY_th^=0;
 };
@@ -3639,32 +3742,52 @@ $aaaa$.prototype.scrollUp = function(distance) {
 };
 $aaaa$.prototype.screenTileX=function(){ return this._screenTileX^0; };
 $aaaa$.prototype.screenTileY=function(){ return this._screenTileY^0; };
+$aaaa$.prototype.parallaxOx=function(){
+	if (this._parallaxZero) return this._parallaxX_tw;
+	else if(this._parallaxLoopX) return this._parallaxX_tw>>1;
+	else return 0;
+};
+$aaaa$.prototype.parallaxOy=function(){
+	if(this._parallaxZero) return this._parallaxY_th;
+	else if(this._parallaxLoopY) return this._parallaxY_th>>1;
+	else return 0;
+};
+$aaaa$.prototype.updateParallax = function() {
+	if(this._parallaxLoopX) this._parallaxX_tw+=this._parallaxSx>>1;
+	if(this._parallaxLoopY) this._parallaxY_th+=this._parallaxSy>>1;
+};
 $aaaa$.prototype.setDisplayPos = function(x, y) {
 	// called by Game_Player
 {
 	let tw=this.tileWidth();
 	if (this.isLoopHorizontal()) {
-		this._displayX_tw=(x*tw).mod(this._wtw)^0;
+		let xtw=x*tw;
+		this._displayX_tw=xtw.mod(this._wtw)^0;
 		//this._displayX=this._displayX_tw/tw; // use getter
-		this._parallaxX=x;
+		this._parallaxX_tw=xtw;
+		//this._parallaxX=x;
 	} else {
 		let endX_tw=this._wtw - Graphics.width;
 		this._displayX_tw=endX_tw<0?endX_tw>>1:(x*tw).clamp(0,endX_tw);
 		//this._displayX=this._displayX_tw/tw; // use getter
-		this._parallaxX=this._displayX;
+		this._parallaxX_tw=this._displayX_tw;
+		//this._parallaxX=this._displayX;
 	}
 }
 {
 	let th=this.tileHeight();
 	if (this.isLoopVertical()) {
-		this._displayY_th=(y*th).mod(this._hth)^0;
+		let yth=y*th;
+		this._displayY_th=yth.mod(this._hth)^0;
 		//this._displayY=this._displayY_th/th; // use getter
-		this._parallaxY=y;
+		this._parallaxY_th=yth;
+		//this._parallaxY=y;
 	} else {
 		let endY_th=this._hth - Graphics.height;
 		this._displayY_th=endY_th<0?endY_th>>1:(y*th).clamp(0, endY_th);
 		//this._displayY=this._displayY_th/th; // use getter
-		this._parallaxY=this._displayY;
+		this._parallaxY_th=this._displayY_th;
+		//this._parallaxY=this._displayY;
 	}
 }
 	this._displayX_tw^=0;
@@ -4491,9 +4614,10 @@ $aaaa$.prototype.screenY=function() {
 };
 $aaaa$.prototype.screenY_deltaToParent=function(){
 	let rtv=0;
-	if(this && this._priorityType===2 && this.parentId){
+	if(this._priorityType===2 && this.parentId){
 		let p=$gameMap._events[this.parentId];
-		if(p._priorityType!==2) rtv+=p.y-this.y;
+		if(p===undefined) console.warn("no parent found:",this.parentId);
+		else if(p._priorityType!==2) rtv+=p.y-this.y;
 	}
 	return rtv;
 };
@@ -4972,6 +5096,34 @@ $aaaa$.prototype.refresh=function(){
 	this.setImage(characterName,characterIndex);
 	this._followers.refresh();
 };
+$aaaa$.prototype.moveByInput=function f(){
+	if(!this.isMoving() && this.canMove()){
+		let direction = this.getInputDirection();
+		if(direction > 0){
+			$gameTemp.clearDestination();
+			this.executeMove(direction);
+		}else if($gameTemp.isDestinationValid()){
+			let x = $gameTemp.destinationX();
+			let y = $gameTemp.destinationY();
+			direction = this.findDirectionTo(x, y);
+			if(direction > 0) this.executeMove(direction);
+			else if( TouchInput.x || TouchInput.y ){
+				let tx=TouchInput.x , ty=TouchInput.y ;
+				let tm=SceneManager.getTilemap(); if(!tm) return;
+				let rf=tm.player._realFrame;
+				let sx=this.scrolledX_tw() , sy=this.scrolledY_th() ;
+				let dx=this.scrolledX_tw()+(rf.width>>1)-TouchInput.x , dy=this.scrolledY_th()+(rf.height)-TouchInput.y ;
+				let dx2=dx*dx,dy2=dy*dy;
+				if(dy2<dx2){
+					if(dx!==0) this._direction=dx<0?6:4;
+				}else{
+					if(dy!==0) this._direction=dy<0?2:8;
+				}
+			}
+		}
+		//if(direction > 0)this.executeMove(direction);
+	}
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
@@ -6036,13 +6188,13 @@ $dddd$=$aaaa$.prototype.moveStraight=function f(d){ // strtByAny
 	f.ori.call(this,d);
 	if(!this.isMovementSucceeded()) return; // handled by this.checkEventTriggerTouch
 	let strtMeta={startBy:this._eventId},strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(this.x,this.y)];
-	strtByAny.forEach(evt=>evt.start(undefined,strtMeta));
+	if(strtByAny) strtByAny.forEach(evt=>evt.start(undefined,strtMeta)); // preventing myself moving an evt out of the map
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.checkEventTriggerTouch;
 $dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(x,y){ // strtByAny
 	//debug.log('Game_Event.prototype.checkEventTriggerTouch');
 	let strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)];
-	if(strtByAny.length){
+	if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
 		let strtMeta={startBy:this._eventId};
 		strtByAny.forEach(evt=>evt.start(undefined,strtMeta));
 		return;
@@ -7129,7 +7281,6 @@ $aaaa$.prototype.processOk = function() {
 		let la=this._leftArrowSprite,ra=this._rightArrowSprite;
 		let xl=la.getGlobalPosition().x,xu=ra.getGlobalPosition().x;
 		let sw=xu-xl;
-		console.log(sw);
 		rect.y+=ori.y; rect.height+=this.textPadding()<<1;
 		let tx=TouchInput.x,ty=TouchInput.y;
 		if(ty<rect.y||ty>=rect.y+rect.height) return;
@@ -7143,13 +7294,13 @@ $aaaa$.prototype.processOk = function() {
 	let symbol = this.commandSymbol(index);
 	let value = this.getConfigValue(symbol);
 	if (this.isVolumeSymbol(symbol)) {
-		value -= this.volumeOffset();
-		if (value < 0) value = 100;
-		value = value.clamp(0, 100);
-		this.changeValue(symbol, value);
-	} else {
-		this.changeValue(symbol, !value);
-	}
+//		value -= this.volumeOffset();
+//		if (value < 0) value = 100;
+//		value = value.clamp(0, 100);
+//		this.changeValue(symbol, value);
+		SoundManager.playBuzzer();
+		return;
+	}else this.changeValue(symbol, !value);
 };
 $aaaa$.prototype._volumeOffset = _global_conf["default volume offset"] || 10 ;
 $aaaa$.prototype.volumeOffset=function() {

@@ -5433,26 +5433,6 @@ Game_Map.prototype.setupBattleback = function() {
     }
 };
 
-Game_Map.prototype.parallaxOx = function() {
-    if (this._parallaxZero) {
-        return this._parallaxX * this.tileWidth();
-    } else if (this._parallaxLoopX) {
-        return this._parallaxX * this.tileWidth() / 2;
-    } else {
-        return 0;
-    }
-};
-
-Game_Map.prototype.parallaxOy = function() {
-    if (this._parallaxZero) {
-        return this._parallaxY * this.tileHeight();
-    } else if (this._parallaxLoopY) {
-        return this._parallaxY * this.tileHeight() / 2;
-    } else {
-        return 0;
-    }
-};
-
 Game_Map.prototype.tileset = function() {
     return $dataTilesets[this._tilesetId];
 };
@@ -5691,15 +5671,6 @@ Game_Map.prototype.updateVehicles = function() {
     this._vehicles.forEach(function(vehicle) {
         vehicle.update();
     });
-};
-
-Game_Map.prototype.updateParallax = function() {
-    if (this._parallaxLoopX) {
-        this._parallaxX += this._parallaxSx / this.tileWidth() / 2;
-    }
-    if (this._parallaxLoopY) {
-        this._parallaxY += this._parallaxSy / this.tileHeight() / 2;
-    }
 };
 
 Game_Map.prototype.changeTileset = function(tilesetId) {

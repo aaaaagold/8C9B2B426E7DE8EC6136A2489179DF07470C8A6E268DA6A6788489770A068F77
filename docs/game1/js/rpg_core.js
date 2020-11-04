@@ -1897,27 +1897,8 @@ Graphics.endLoading = function() {
     this._upperCanvas.style.opacity = 0;
 };
 
-/**
- * Displays the loading error text to the screen.
- *
- * @static
- * @method printLoadingError
- * @param {String} url The url of the resource failed to load
- */
 Graphics.printLoadingError;
-
-/**
- * Erases the loading error text.
- *
- * @static
- * @method eraseLoadingError
- */
-Graphics.eraseLoadingError = function() {
-    if (this._errorPrinter && !this._errorShowed) {
-        this._errorPrinter.innerHTML = '';
-        this.startLoading();
-    }
-};
+Graphics.eraseLoadingError;
 
 /**
  * Displays the error text to the screen.
