@@ -340,12 +340,11 @@ let setShorthand = (w)=>{
 	w.HTMLImageElement.prototype.setLoadSrcWithTimeout=function f(src,ms){
 		// this function will overwrite 'onload'
 		// note: onloadstart is not working in chrome but standard spec.
-		ms^=0;
 		this._loaded=false;
 		this.onload=f.onload;
 		this.src=src;
 		if(0<(ms^=0)){ setTimeout(()=>{
-			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); }
+			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); this.src=src; }
 		},ms); }
 		//debug.log("set img  src,timeout =",[src,ms],"ms");
 	};
@@ -499,7 +498,7 @@ let setShorthand = (w)=>{
 		let v=this.valueOf();
 		return (((0xFFFFFFFF<<(bitlen-n))^(~0))&(v>>n)) | (v<<(bitlen-n));
 	};
-	w.Number.prototype.sh_r=function(n){
+	w.Number.prototype.sh_r=function(n){ // === '>>>'
 		let bitlen=32;
 		// n%=bitlen; n+=bitlen; n%=bitlen;
 		n&=bitlen-1;
@@ -1382,8 +1381,8 @@ let setShorthand = (w)=>{
 			let words=[]; for(let x=0;x!==64;x+=4) words.push((arr[base+x]<<24)|(arr[base+x+1]<<16)|(arr[base+x+2]<<8)|arr[base+x+3]);
 			for(let x=0;x!==16;++x) w[x]=words[x];
 			for(let i=16;i!==64;++i){
-				let s0=w[i-15].rot_r(7)^w[i-15].rot_r(18)^w[i-15].sh_r(3);
-				let s1=w[i-2].rot_r(17)^w[i- 2].rot_r(19)^w[i-2].sh_r(10);
+				let s0=w[i-15].rot_r(7)^w[i-15].rot_r(18)^(w[i-15]>>>3);
+				let s1=w[i-2].rot_r(17)^w[i- 2].rot_r(19)^(w[i-2]>>>10);
 				w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
 			}
 			let a = h0;
@@ -1424,7 +1423,7 @@ let setShorthand = (w)=>{
 		for(let x=0;x!==rtvtmp.length;++x){
 			for(let h=rtvtmp[x],sh=32;sh;){
 				sh-=8;
-				let tmp=(h.sh_r(sh)&0xFF).toHexInt();
+				let tmp=((h>>>sh)&0xFF).toHexInt();
 				if(tmp.length===1) rtv+="0";
 				rtv+=tmp;
 			}
@@ -1481,8 +1480,8 @@ let setShorthand = (w)=>{
 			let words=[]; for(let x=0;x!==64;x+=4) words.push((arr[base+x]<<24)|(arr[base+x+1]<<16)|(arr[base+x+2]<<8)|arr[base+x+3]);
 			for(let x=0;x!==16;++x) w[x]=words[x];
 			for(let i=16;i!==64;++i){
-				let s0=w[i-15].rot_r(7)^w[i-15].rot_r(18)^w[i-15].sh_r(3);
-				let s1=w[i-2].rot_r(17)^w[i- 2].rot_r(19)^w[i-2].sh_r(10);
+				let s0=w[i-15].rot_r(7)^w[i-15].rot_r(18)^(w[i-15]>>>3);
+				let s1=w[i-2].rot_r(17)^w[i- 2].rot_r(19)^(w[i-2]>>>10);
 				w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
 			}
 			let a = h0;
@@ -1524,7 +1523,7 @@ let setShorthand = (w)=>{
 			for(let x=0;x!==rtvtmp.length;++x){
 				for(let h=rtvtmp[x],sh=32;sh;){
 					sh-=8;
-					rtv+=String.fromCharCode(h.sh_r(sh)&0xFF);
+					rtv+=String.fromCharCode((h>>>sh)&0xFF);
 				}
 			}
 		}else{
@@ -1532,7 +1531,7 @@ let setShorthand = (w)=>{
 			for(let x=0;x!==rtvtmp.length;++x){
 				for(let h=rtvtmp[x],sh=32;sh;){
 					sh-=8;
-					let tmp=(h.sh_r(sh)&0xFF).toHexInt();
+					let tmp=((h>>>sh)&0xFF).toHexInt();
 					if(tmp.length===2) rtv+=tmp;
 					else rtv+="0"+tmp;
 				}

@@ -6,6 +6,67 @@ let $aaaa$,$dddd$,$rrrr$;
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t; };
+LZString._decompress_calL=(m,shMax)=>{
+	let rtv=0>>>0;
+	shMax|=0;
+	for(let p=0>>>0;p!==shMax;++p){
+		let c = m.val & m.position;
+		m.position >>= 1;
+		if(m.position === 0){
+			m.position = 32768;
+			m.val=(m.arr[m.index]<<8)|(m.arr[m.index|1]);
+			m.index+=2;
+		}
+		rtv |= (c!==0) << p;
+	}
+	return rtv;
+};
+LZString.decompressFromUint8Array=function(e){ // reduce mem. use and prevent 'Maximum call stack size exceeded'
+	if(!e) return;
+	let t = [], r = 4, i = 4, s = 3, o = "", u = "", f, h, d, v = LZString._f , q=LZString._decompress_calL, m = {
+		arr: e,
+		val: (e[0]<<8)|e[1],
+		position: 32768,
+		index: 2,
+	};
+	for(let a=0;a!==3;++a) t[a] = a;
+	switch (q(m,2)) {
+	case 0:
+		d = v(q(m,8));
+		break;
+	case 1:
+		d = v(q(m,16));
+		break;
+	case 2: return "";
+	}
+	t[3] = d;
+	f = u = d;
+	while(true){
+		if(m.arr.length<m.index) return "";
+		switch (d=q(m,s)) {
+		case 0:
+			t[d=i++] = v(q(m,8));
+			r--;
+			break;
+		case 1:
+			t[d=i++] = v(q(m,16));
+			r--;
+			break;
+		case 2: return u;
+		}
+		if(r === 0) r = 1<<s++;
+		if(t[d]) o = t[d];
+		else{
+			if(d === i) o = f + f.charAt(0);
+			else return null;
+		}
+		u += o;
+		t[i++] = f + o.charAt(0);
+		r--;
+		f = o;
+		if(r === 0) r = 1<<s++;
+	}
+};
 // additional func: see lib-h
 
 // fit 'when children is AVLTree'
@@ -2624,12 +2685,16 @@ $dddd$=$aaaa$.saveGame=function f(sfid){
 	}else return f.ori.call(this,sfid);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.loadGame;
-$dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data){
+$dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
+	// kargs:{u8arr:true-like means data is an Uint8Array object}
 	if(f.cache===undefined) f.cache=new CacheSystem();
 	if(sfid==='callback'){
 		// set data
 		this.createGameObjects();
-		this.extractSaveContents(JsonEx.parse(LZString.decompressFromBase64(data)));
+		let data2;
+		if(kargs.u8arr) data2=LZString.decompressFromUint8Array(data);
+		else data2=LZString.decompressFromBase64(data);
+		this.extractSaveContents(JsonEx.parse(data2));
 		this.onlineOk=true;
 		//Scene_Load.prototype.reloadMapIfUpdated.call({});
 		$gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);

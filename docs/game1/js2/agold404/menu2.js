@@ -500,7 +500,7 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 				$gameMessage.popup($dataCustom.fromLocalSaveLoadingErr,1);
 				delete self.ref.fileReader;
 			};
-			reader.onload=function(e){
+			if(0&&0)reader.onload=function(e){ // reserve it just in case something wrong...
 				let data=e.target.result,t=";base64,";
 				let strt=data.indexOf(t);
 				data=strt===-1?"":data.slice(strt+t.length);
@@ -514,8 +514,22 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 				}
 				self.value=''; // will NOT goto line: 'this.files.length===0' above.
 			};
+			reader.onload=function(e){
+				let buf=e.target.result;
+				let u8arr=new Uint8Array(buf);
+				try{
+					DataManager.loadGame('callback',0,u8arr,{u8arr:true});
+					delete DataManager.onlineOk;
+					delete self.ref.fileReader;
+				}catch(e){
+					SoundManager.playBuzzer();
+					$gameMessage.popup($dataCustom.fromLocalSaveLoadingImproper,1);
+				}
+				self.value='';
+			};
 			this.ref.fileReader=reader;
-			reader.readAsDataURL(this.files[0]);
+			//reader.readAsDataURL(this.files[0]);
+			reader.readAsArrayBuffer(this.files[0]); // testing beta...
 		};
 		htmlele.onclick=function(){
 			//this.value=''; // clear previous selection when 'FileReader.onload'
@@ -901,7 +915,6 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	
 	let list=[
 		[$dataCustom.saveLocalFromList,";_dlSave;func",1,(()=>{
-			console.log("?");
 			let rtv=[],txt=StorageManager.load(0);
 			let info=txt&&JSON.parse(txt)||{};
 			StorageManager.lastJson_load0=info;
@@ -911,24 +924,28 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 				let id=x; rtv.push([f+" "+loct(info[x].timestamp)+" ",
 					"DataManager.titleAddName(StorageManager.lastJson_load0["+id+"]);;func;call",
 				1,()=>{
+					if(Date.now()-lastDlTime<1111){
+						$gameMessage.popup("請稍後再試",1);
+						$gameMessage.popup("下載過於頻繁，瀏覽器可能會阻擋下載",1);
+						return;
+					}
 					let key=StorageManager.webStorageKey(id);
 					dlSave(localStorage.getItem(key));
+					lastDlTime=Date.now();
 					Input.clear();
 				}]);
 			}
 			return rtv;
 		})()],
 		[$dataCustom.saveLocalCurrent,";;func;call",1,()=>{
-			let tm=Date.now();
-			if(tm-lastDlTime<1111){
+			if(Date.now()-lastDlTime<1111){
 				$gameMessage.popup("請稍後再試",1);
 				$gameMessage.popup("下載過於頻繁，瀏覽器可能會阻擋下載",1);
 				return;
 			}
 			let json=JsonEx.stringify(DataManager.makeSaveContents());
-			tm=Date.now();
 			dlSave(LZString.compressToBase64(json));
-			lastDlTime=tm;
+			lastDlTime=Date.now();
 			Input.clear();
 		}],
 	];
