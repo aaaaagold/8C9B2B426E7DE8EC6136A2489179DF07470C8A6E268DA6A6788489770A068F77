@@ -228,14 +228,8 @@ Sprite_Character.prototype.updateBitmap = function() {
     }
 };
 
-Sprite_Character.prototype.setTileBitmap = function() {
-    this.bitmap = this.tilesetBitmap(this._tileId);
-};
-
-Sprite_Character.prototype.setCharacterBitmap = function() {
-    this.bitmap = ImageManager.loadCharacter(this._characterName);
-    this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
-};
+Sprite_Character.prototype.setTileBitmap;
+Sprite_Character.prototype.setCharacterBitmap;
 
 Sprite_Character.prototype.updateFrame = function() {
     if (this._tileId > 0) {

@@ -344,8 +344,8 @@ let setShorthand = (w)=>{
 		this.onload=f.onload;
 		this.src=src;
 		if(0<(ms^=0)){ setTimeout(()=>{
-			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); this.src=src; }
-		},ms); }
+			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); }
+		},ms); } // reset target via '_errorListener'
 		//debug.log("set img  src,timeout =",[src,ms],"ms");
 	};
 	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.onload=function(){ this._loaded=true; };

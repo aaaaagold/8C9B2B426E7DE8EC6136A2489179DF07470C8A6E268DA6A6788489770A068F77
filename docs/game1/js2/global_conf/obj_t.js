@@ -8,12 +8,12 @@ String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t; };
 LZString._decompress_calL=(m,shMax)=>{
 	let rtv=0>>>0;
-	shMax|=0;
+	shMax>>>0;
 	for(let p=0>>>0;p!==shMax;++p){
 		let c = m.val & m.position;
 		m.position >>= 1;
 		if(m.position === 0){
-			m.position = 32768;
+			m.position = 1<<15;
 			m.val=(m.arr[m.index]<<8)|(m.arr[m.index|1]);
 			m.index+=2;
 		}
@@ -23,7 +23,7 @@ LZString._decompress_calL=(m,shMax)=>{
 };
 LZString.decompressFromUint8Array=function(e){ // reduce mem. use and prevent 'Maximum call stack size exceeded'
 	if(!e) return;
-	let t = [], r = 4, i = 4, s = 3, o = "", u = "", f, h, d, v = LZString._f , q=LZString._decompress_calL, m = {
+	let t = [], r = 4, i = 4, s = 3, o = "", u = "", f, d, v = LZString._f , q=LZString._decompress_calL, m = {
 		arr: e,
 		val: (e[0]<<8)|e[1],
 		position: 32768,
@@ -56,10 +56,8 @@ LZString.decompressFromUint8Array=function(e){ // reduce mem. use and prevent 'M
 		}
 		if(r === 0) r = 1<<s++;
 		if(t[d]) o = t[d];
-		else{
-			if(d === i) o = f + f.charAt(0);
-			else return null;
-		}
+		else if(d === i) o = f + f.charAt(0);
+		else return null;
 		u += o;
 		t[i++] = f + o.charAt(0);
 		r--;
@@ -626,7 +624,7 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 	if(!this._colorChanged && src.width!==0 && src.height!==0 && this._args&&this._args.color!==undefined){
 		this._colorChanged=true;
 		let color=JSON.parse(this._args.color);
-		let w=[];
+		let invert=!!color[3],w=[];
 		for(let c=0;c!==3;++c){ // color.length===3 // rgb
 			w[c]=0;
 			for(let x=0,arr=color[c];x!==3;++x) // color[c].length===3
@@ -643,7 +641,7 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 			for(let c=0;c!==3;++c){ // rgb
 				let sum=0;
 				for(let cc=0;cc!==3;++cc) sum+=color[c][cc]*curr[cc];
-				tmp.data[x+c]=~~(sum/w[c]);
+				tmp.data[x+c]=invert?0xFF&~(sum/w[c]):~~(sum/w[c]);
 			}
 		}
 		ctx.putImageData(tmp,0,0);
@@ -765,11 +763,11 @@ $aaaa$.prototype._requestImage=function(url){
 						break;
 					}
 				}
-			},8763);
+			},4876);
 		}else{
 			this._image.ae('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
-			this._image.src=url;
-			//this._image.setLoadSrcWithTimeout(url,4876);
+			//this._image.src=url;
+			this._image.setLoadSrcWithTimeout(url,4876);
 		}
 	}
 };
@@ -2047,17 +2045,23 @@ $dddd$=$aaaa$.prototype.updateBitmap=function f(){
 $aaaa$.prototype.isImageChanged=function(){ // rewrite
 	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
 };
-$aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
+$aaaa$.prototype._setBitmap_args=function(){
+	let hasSth=false,rtv={}; // args
 	let c=this._character,meta;
 	if(c){
 		if(c.constructor===Game_Actor) meta=c.actor().meta;
 		if(c.constructor===Game_Event) meta=c.event().meta;
 	}
-	let args={};
 	if(meta){
-		if(meta.color) args.color=meta.color;
+		if(meta.color){ hasSth=true; rtv.color=meta.color; }
 	}
-	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,args);
+	return hasSth&&rtv;
+};
+$aaaa$.prototype.setTileBitmap=function(){
+	this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
+};
+$aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
+	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,this._setBitmap_args());
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
 };
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
@@ -2128,8 +2132,8 @@ $dddd$=$aaaa$.prototype.updatePosition=function f(){
 	f.ori.call(this);
 	this.z2=this._character.screenZ2();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.tilesetBitmap=function(tileId) {
-	return ImageManager.loadTileset($gameMap.tileset().tilesetNames[(tileId>>8)+5]);
+$aaaa$.prototype.tilesetBitmap=function(tileId,args) {
+	return ImageManager.loadTileset($gameMap.tileset().tilesetNames[(tileId>>8)+5],undefined,args);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Animation
@@ -2774,17 +2778,17 @@ $aaaa$.loadCharacter = function(filename, hue, args){ // re-write: add args: 'ar
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
 };
 $rrrr$=$aaaa$.loadTileset;
-$dddd$=$aaaa$.loadTileset=function f(fname,hue){
+$dddd$=$aaaa$.loadTileset=function f(filename,hue,args){
 	// f(folder,fname,hue,smooth)
-	let rtv=f.ori.call(this,fname,hue);
-	rtv._fname=fname;
-	window['/tmp/'][fname]=rtv;
+	let rtv=this.loadBitmap('img/tilesets/', filename, hue, false, args);
+	rtv._fname=filename;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.loadBitmap=function(folder, filename, hue, smooth, args){ // re-write: add args: 'args': edit img
 	if(filename){
 		let path = folder + filename + '.png',a='';
 		for(let i in args){
+			if(a!=='') a+="&";
 			a+=encodeURIComponent(i);
 			if(args[i]!==true){
 				a+='=';
@@ -5052,6 +5056,14 @@ $aaaa$.prototype.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
 $aaaa$.prototype.moveRandom = function() {
 	let d=(Math.randomInt(4)+1)<<1;
 	if(this.canPass(this.x,this.y,d)) this.moveStraight(d);
+};
+$aaaa$.prototype.getSprite=function(){
+	let k=this._tilemapKey;
+	if(!k) return;
+	let tm=SceneManager.getTilemap();
+	if(!tm) return;
+	let rtv=tm.children.find(k);
+	return rtv&&rtv.data;
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 

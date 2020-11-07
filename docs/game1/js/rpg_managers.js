@@ -737,9 +737,7 @@ ImageManager.loadSystem = function(filename, hue) {
     return this.loadBitmap('img/system/', filename, hue, false);
 };
 
-ImageManager.loadTileset = function(filename, hue) {
-    return this.loadBitmap('img/tilesets/', filename, hue, false);
-};
+ImageManager.loadTileset;
 
 ImageManager.loadTitle1 = function(filename, hue) {
     return this.loadBitmap('img/titles1/', filename, hue, true);
