@@ -4776,7 +4776,7 @@ $aaaa$.prototype.moveSpeedBuff_set=function(buff){ // buff or debuff
 	if(!this._mvSpBuf){
 		this._mvSpBuf={};
 		this._mvSpBuf.  buff=[];
-		this._mvSpBuf.debuff=[];
+		this._mvSpBuf.debuff=[]; // seperate buff/debuff for specified uses like extend buffs time or reduce debuffs time
 		this._mvSpBuf.stack=[]; // push order is unrelated
 	}
 	this._mvSpBuf.stack.push(buff);
@@ -4788,6 +4788,17 @@ $aaaa$.prototype.moveSpeedBuff_cal=function(){
 	let debuff=this._mvSpBuf.debuff;
 	for(let x=0,arr=this._mvSpBuf.  buff;x!==arr.length;++x) rtv+=arr[x].delta;
 	for(let x=0,arr=this._mvSpBuf.debuff;x!==arr.length;++x) rtv+=arr[x].delta;
+	return rtv;
+};
+$aaaa$.prototype.moveSpeedBuff_calNext=function(){ // because _ctr is called AFTER chr.move
+	if(!this._mvSpBuf) return 0;
+	let rtv=0;
+	let   buff=this._mvSpBuf.  buff;
+	let debuff=this._mvSpBuf.debuff;
+	let  stack=this._mvSpBuf.stack;
+	for(let x=0,arr=this._mvSpBuf.  buff;x!==arr.length;++x) if(arr[x].remain_move>=2) rtv+=arr[x].delta;
+	for(let x=0,arr=this._mvSpBuf.debuff;x!==arr.length;++x) if(arr[x].remain_move>=2) rtv+=arr[x].delta;
+	for(let x=0,arr=this._mvSpBuf.stack;x!==arr.length;++x) if(arr[x].remain_move>=1) rtv+=arr[x].delta;
 	return rtv;
 };
 $aaaa$.prototype.moveSpeedBuff_ctr=function(){ // ctr-=1
@@ -4834,8 +4845,7 @@ $aaaa$.prototype.genBlood=function(permanent){ // tile
 };
 $rrrr$=$aaaa$.prototype.requestAnimation;
 $dddd$=$aaaa$.prototype.requestAnimation=function f(id){
-	if(_global_conf.noAnimation) id=0;
-	f.ori.call(this,id);
+	f.ori.call(this,_global_conf.noAnimation?0:id);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -5200,7 +5210,7 @@ $aaaa$.prototype.moveByInput=function f(){
 		}
 		//if(direction > 0)this.executeMove(direction);
 	}
-}; $dddd$.ori=$rrrr$;
+};
 $aaaa$.prototype.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
@@ -5238,16 +5248,17 @@ $aaaa$.prototype.updateDashing=function(){
 $aaaa$.prototype.update = function(sceneActive) {
 	let lastScrolledX_tw = this.scrolledX_tw();
 	let lastScrolledY_th = this.scrolledY_th();
-	let wasMoving = this.isMoving();
 	this.updateDashing();
+	let wasMoving = this.isMoving();
 	if(sceneActive){
 		this.moveByInput();
 	}
-	Game_Character.prototype.update.call(this);
+	let wm2=this.isMoving(); // TODO: is it better move 'wasMoving' here?
+	Game_Character.prototype.update.call(this); // real_xy ==> xy
 	this.updateScroll_t(lastScrolledX_tw, lastScrolledY_th);
 	this.updateVehicle();
 	if(!this.isMoving()){
-		this.updateNonmoving(wasMoving);
+		this.updateNonmoving(wasMoving || wm2); // if only 'wasMoving', 1-step to goal cause touch-evt not triggered
 	}
 	this._followers.update();
 };
@@ -5466,9 +5477,9 @@ $dddd$=$aaaa$.prototype.triggerAction=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.checkEventTriggerHere;
 $dddd$=$aaaa$.prototype.checkEventTriggerHere=function f(){
-	debug.log('Game_Player.prototype.checkEventTriggerHere');
-	debug.log($gamePlayer.x,$gamePlayer.y);
-	debug.log(arguments[0]);
+	//debug.log('Game_Player.prototype.checkEventTriggerHere');
+	//debug.log($gamePlayer.x,$gamePlayer.y);
+	//debug.log(arguments[0]);
 	if(($dataMap.triggerHere0touch=TouchInput.isTriggered()&&arguments[0][0]===0)&&this.customEvtStrt()) return;
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
@@ -6265,7 +6276,7 @@ $dddd$=$aaaa$.prototype.moveStraight=function f(d){ // strtByAny
 	f.ori.call(this,d);
 	if(!this.isMovementSucceeded()) return; // handled by this.checkEventTriggerTouch
 	let strtMeta={startBy:this._eventId},strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(this.x,this.y)];
-	if(strtByAny) strtByAny.forEach(evt=>evt.start(undefined,strtMeta)); // preventing myself moving an evt out of the map
+	if(strtByAny) strtByAny.forEach(evt=>evt.start(undefined,strtMeta)); // 'if' for preventing myself moving an evt out of the map
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.checkEventTriggerTouch;
 $dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(x,y){ // strtByAny
