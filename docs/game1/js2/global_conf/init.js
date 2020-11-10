@@ -340,15 +340,24 @@ let setShorthand = (w)=>{
 	w.HTMLImageElement.prototype.setLoadSrcWithTimeout=function f(src,ms){
 		// this function will overwrite 'onload'
 		// note: onloadstart is not working in chrome but standard spec.
-		this._loaded=false;
-		this.onload=f.onload;
+		this._loaded=this._errored=false;
+		this.ae('error',f.ae_onerr);
+		this.ae('load',f.ae_onload);
+		this._timeoutAction=()=>{
+			this.removeEventListener('error',f.ae_onerr);
+			this.removeEventListener('load',f.ae_onload);
+			if(this._errored) return;
+			if(!this._loaded){
+				console.warn("loading img timeout:",src);
+				if(this.onerror) this.onerror();
+			}
+		};
 		this.src=src;
-		if(0<(ms^=0)){ setTimeout(()=>{
-			if(!this._loaded){ this.src=""; console.warn("the server is not strong enough to load:",src); }
-		},ms); } // reset target via '_errorListener'
+		if(0<(ms^=0)) setTimeout(this._timeoutAction,ms);
 		//debug.log("set img  src,timeout =",[src,ms],"ms");
 	};
-	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.onload=function(){ this._loaded=true; };
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onerr=function(){ this._errored=true; this._timeoutAction(); };
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onload=function(){ this._loaded=true; this._timeoutAction(); };
 	if(!w.NodeList.prototype.forEach){ w.NodeList.prototype.forEach=function(f){
 		for(let x=0,xs=this.length;x!==xs;++x) f(this[x],x,this);
 	}; }
@@ -869,7 +878,9 @@ let setShorthand = (w)=>{
 	};
 	w.AVLTree.prototype._find_r=function f(key,curr,parent){
 		if(!curr || this._keyEqu(curr.key,key)) return [curr,parent];
-		else return f.call(this,key,curr.meta[this._keyLt(key,curr.key)?"L":"R"],curr);
+		else return f.call(this,key,
+			this._keyLt(key,curr.key)?curr.meta.L:curr.meta.R
+		,curr);
 	};
 	w.AVLTree.prototype.find=function(key){
 		// dup keys are allowed, but it'll return any {key,data} of them or undefined

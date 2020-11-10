@@ -5,11 +5,11 @@ let $aaaa$,$dddd$,$rrrr$;
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
-Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t; };
+Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
 LZString._decompress_calL=(m,shMax)=>{
-	let rtv=0>>>0;
-	shMax>>>0;
-	for(let p=0>>>0;p!==shMax;++p){
+	let rtv=0^0;
+	shMax^=0;
+	for(let p=0^0;p!==shMax;++p){
 		let c = m.val & m.position;
 		m.position >>= 1;
 		if(m.position === 0){
@@ -653,13 +653,13 @@ $aaaa$.prototype._createCanvas=function(width, height){
 	this.__canvas = this.__canvas || document.ce('canvas');
 	this.__context = this.__canvas.getContext('2d');
 	
-	let min=Graphics.isWebGL()^0;
+	let min=Graphics.isWebGL()>>>0;
 	// must >=1 else shadertilemap crash
-	this.__canvas.width = width^0||min;
-	this.__canvas.height = height^0||min;
+	this.__canvas.width = width>>>0||min;
+	this.__canvas.height = height>>>0||min;
 	if(this._image){
-		let w = this._image.width^0||min;
-		let h = this._image.height^0||min;
+		let w = this._image.width>>>0||min;
+		let h = this._image.height>>>0||min;
 		this.__canvas.width = w;
 		this.__canvas.height = h;
 		this._createBaseTexture(this._canvas);
@@ -720,7 +720,7 @@ $dddd$=$aaaa$.prototype.decode=function f(){
 		this._image.addEventListener('error',this._errorListener=this._loader = ResourceHandler.createLoader('img',this._url,this._requestImage.bind(this),this._onError.bind(this) ));
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._requestImage=function(url){
+$dddd$=$aaaa$.prototype._requestImage=function f(url){
 	if(Bitmap._reuseImages.length !== 0){
 		this._image = Bitmap._reuseImages.pop();
 	}else{
@@ -750,7 +750,7 @@ $aaaa$.prototype._requestImage=function(url){
 							this._errorListener();
 						break;
 						case '2':{ // ok
-							let img=this._image.ae('error', function(){this.src="";this.src=url;}); // this is new()
+							let img=this._image; img.onerror=f.onerr;
 							img.setLoadSrcWithTimeout(url,4876);
 							break;
 							// too slow
@@ -771,6 +771,11 @@ $aaaa$.prototype._requestImage=function(url){
 		}
 	}
 };
+$dddd$.onerr=function f(){ this.onerror=null;
+	let src=this.src; this.src='';
+	console.warn("err:","loading",src);
+	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,4876); },111);
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ScreenSprite
@@ -790,7 +795,6 @@ $aaaa$.prototype.setColor=function(r, g, b){
 		graphics.clear();
 		let intColor = (r << 16) | (g << 8) | b;
 		graphics.beginFill(intColor, 1);
-		//whole screen with zoom. BWAHAHAHAHA
 		graphics.drawRect(0,0, Graphics.width , Graphics.height );
 	}
 };
@@ -914,7 +918,10 @@ $aaaa$.prototype.addc_tree=function(key,data){ // prepare
 };
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
-	this.animationFrame = ~~(++this.animationCount / 30); // always >=0 , use parseInt is faster
+	this.animationFrame  = ~~(++this.animationCount / 30); // always >=0 , use parseInt is faster
+	if(this.animationCount===149) this.animationCount=29^0; // [1,4] , this.animationFrame&3
+	++this.animationCount2; // minor, for addUpper and addLower
+	if(this.animationCount2>=30) this.animationCount&=0;
 	f.updateChildren.call(this); // difference here
 	//this.children.forEach(c=>c&&c.update&&c.update());
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
@@ -953,12 +960,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this.usetree(); // tilemap refreshed at the end of 'initialize'
 	
 	this._margin = 0^0;
-	this._width = Graphics.width+(this._margin<<1) ^ 0;
-	this._height = Graphics.height+(this._margin<<1) ^ 0;
-	this._tileWidth = 48^0;
-	this._tileHeight = 48^0;
-	this._tileWidth_=this._tileWidth>>1;
-	this._tileHeight_=this._tileHeight>>1;
+	this._width = Graphics.width+(this._margin<<1) >>>0;
+	this._height = Graphics.height+(this._margin<<1) >>>0;
+	this._tileWidth = 48>>>0;
+	this._tileHeight = 48>>>0;
+	this._tileWidth_=this._tileWidth>>>1;
+	this._tileHeight_=this._tileHeight>>>1;
 	this._mapWidth = 0;
 	this._mapHeight = 0;
 	this._mapData = null;
@@ -987,7 +994,8 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	/**
 	 * The animation count for autotiles.
 	 */
-	this.animationCount = 0^0;
+	this.animationCount  =  0^0;
+	this.animationCount2 = 15^0; // for reduce CPU loading at a frame
 	
 	/**
 	 * Whether the tilemap loops horizontal.
@@ -1078,6 +1086,7 @@ $aaaa$.prototype.updateTransform=function(forced){
 		this._paintAllTiles(startX, startY);
 		this._needsRepaint = false;
 	}
+	if(this.animationCount2===0) this._paintAllTiles(startX, startY);
 	//this._sortChildren();
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
@@ -1197,8 +1206,8 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	let tableEdgeVirtualId = 1<<14;
 	let mx = startX + x;
 	let my = startY + y;
-	let lx = mx.mod(this._tileCols)^0;
-	let ly = my.mod(this._tileRows)^0;
+	let lx = mx.mod(this._tileCols);
+	let ly = my.mod(this._tileRows);
 	let dx = lx * this._tileWidth;
 	let dy = ly * this._tileHeight;
 	let idx,data3d1=none;
@@ -1719,8 +1728,8 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 };
 $aaaa$.prototype._drawTile_byTp=function(layers,tid,dx,dy,tp){
 	tp*=64; tp^=0;
-	let pad=window['/tmp/'].pad^0;
-	tp+=pad;
+	//let pad=window['/tmp/'].pad^0; // debug
+	//tp+=pad; // debug
 	if(0>=tp) return this._drawTile(layers[0].children[0],tid,dx,dy);
 	else if(tp>=64) return;
 	tp/=64.0;
@@ -3224,6 +3233,7 @@ $aaaa$.prototype.isGameFontLoaded = function() {
 	if(Graphics.isFontLoaded( _global_conf.useFont ) || Graphics.canUseCssFontLoading()) return true;
 	else if(Date.now()-this._startDate>=20000) throw new Error('Failed to load font');
 };
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // - itemBase
 $aaaa$=Scene_ItemBase;
@@ -3232,6 +3242,7 @@ $dddd$=$aaaa$.prototype.applyItem=function f(){
 	debug.log('Scene_ItemBase.prototype.applyItem');
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // item
 $aaaa$=Scene_Item;
@@ -3244,6 +3255,12 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	//actor.y=help.y+help.height;
 	//actor.height-=actor.y-oriy;
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.createActorWindow;
+$dddd$=$aaaa$.prototype.createActorWindow=function f(){
+	f.ori.call(this);
+	this._itemWindow.addChild(this._actorWindow);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // - title
 $aaaa$=Scene_Title;
@@ -3274,6 +3291,7 @@ $aaaa$.prototype.customTitleCommand=function(){
 	this._commandWindow.close();
 	return SceneManager.push(Scene_Title); // call stack not stacking . amazing !
 };
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // - menu
 $aaaa$=Scene_Menu;
@@ -3697,7 +3715,7 @@ $aaaa$.prototype._screenTileY=0^0;
 $aaaa$.prototype.isLoopHorizontal=function(){return $dataMap.scrollType&2;};
 $aaaa$.prototype.isLoopVertical=function(){return $dataMap.scrollType&1;};
 $aaaa$.prototype.adjustX_tw=function(x) {
-	let rtv=x*this.tileWidth()-this._displayX_tw^0;
+	let rtv=x*this.tileWidth()-this._displayX_tw ^0;
 	rtv+=(this.isLoopHorizontal()&&this._wtw+rtv*2<Graphics.width)*this._wtw;
 	return rtv;
 };
@@ -3705,7 +3723,7 @@ $aaaa$.prototype.adjustX = function(x) {
 	return this.adjustX_tw(x)/this.tileWidth();
 };
 $aaaa$.prototype.adjustY_th=function(y) {
-	let rtv=y*this.tileHeight()-this._displayY_th^0;
+	let rtv=y*this.tileHeight()-this._displayY_th ^0;
 	rtv+=(this.isLoopVertical()&&this._hth+rtv*2<Graphics.height)*this._hth;
 	return rtv;
 };
@@ -3715,20 +3733,14 @@ $aaaa$.prototype.adjustY=function(y) {
 $aaaa$.prototype.scrollDown_th=function(distance_th) {
 	distance_th=~~(distance_th+0.5);
 	let th=this.tileHeight(),gh=Graphics.height;
-	if (this.isLoopVertical()) {
+	if(this.isLoopVertical()){
 		this._displayY_th+=distance_th;
 		this._displayY_th%=this._hth;
-		//this._displayY=this._displayY_th/th; // use getter
-		if (this._parallaxLoopY) {
-			this._parallaxY_th+=distance_th;
-			//this._parallaxY += distance_th/th;
-		}
-	} else if (this._hth >= gh) {
+		if(this._parallaxLoopY) this._parallaxY_th+=distance_th;
+	}else if(this._hth >= gh){
 		let lastY_th = this._displayY_th;
-		this._displayY_th = Math.min(this._displayY_th + distance_th, this._hth - gh)^0;
-		//this._displayY=this._displayY_th/th; // use getter
+		this._displayY_th = Math.min(this._displayY_th + distance_th, this._hth - gh);
 		this._parallaxY_th+=this._displayY_th-lastY_th;
-		//this._parallaxY += (this._displayY_th - lastY_th)/th;
 	}
 	this._displayY_th^=0;
 };
@@ -3740,20 +3752,14 @@ $aaaa$.prototype.scrollDown = function(distance) {
 $aaaa$.prototype.scrollLeft_tw=function(distance_tw) {
 	distance_tw=~~(distance_tw+0.5);
 	let tw=this.tileWidth(),gw=Graphics.width;
-	if (this.isLoopHorizontal()) {
+	if(this.isLoopHorizontal()){
 		this._displayX_tw+=this._wtw-distance_tw;
 		this._displayX_tw%=this._wtw;
-		//this._displayX=this._displayX_tw/tw; // use getter
-		if(this._parallaxLoopX){
-			this._parallaxX_tw-=distance_tw;
-			//this._parallaxX -= distance_tw/tw;
-		}
-	} else if (this._wtw >= gw) {
+		if(this._parallaxLoopX) this._parallaxX_tw-=distance_tw;
+	}else if(this._wtw >= gw){
 		let lastX_tw = this._displayX_tw;
 		this._displayX_tw=Math.max(this._displayX_tw - distance_tw, 0);
-		//this._displayX=this._displayX_tw/tw; // use getter
 		this._parallaxX_tw+=this._displayX_tw-lastX_tw;
-		//this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
 	}
 	this._displayX_tw^=0;
 };
@@ -3764,20 +3770,14 @@ $aaaa$.prototype.scrollLeft = function(distance) {
 $aaaa$.prototype.scrollRight_tw=function(distance_tw) {
 	distance_tw=~~(distance_tw+0.5);
 	let tw=this.tileWidth(),gw=Graphics.width;
-	if (this.isLoopHorizontal()) {
+	if(this.isLoopHorizontal()){
 		this._displayX_tw+=distance_tw;
 		this._displayX_tw%=this._wtw;
-		//this._displayX=this._displayX_tw/tw; // use getter
-		if(this._parallaxLoopX){
-			this._parallaxX_tw+=distance_tw;
-			//this._parallaxX+=distance_tw/tw;
-		}
-	} else if (this._wtw >= gw) {
+		if(this._parallaxLoopX) this._parallaxX_tw+=distance_tw;
+	}else if(this._wtw >= gw){
 		let lastX_tw = this._displayX_tw;
-		this._displayX_tw=Math.min(this._displayX_tw + distance_tw, this._wtw - gw)^0;
-		//this._displayX=this._displayX_tw/tw; // use getter
+		this._displayX_tw=Math.min(this._displayX_tw + distance_tw, this._wtw - gw);
 		this._parallaxX_tw+=this._displayX_tw-lastX_tw;
-		//this._parallaxX+=(this._displayX_tw - lastX_tw)/tw;
 	}
 	this._displayX_tw^=0;
 };
@@ -3788,20 +3788,14 @@ $aaaa$.prototype.scrollRight = function(distance) {
 $aaaa$.prototype.scrollUp_th=function(distance_th) {
 	distance_th=~~(distance_th+0.5);
 	let th=this.tileHeight(),gh=Graphics.height;
-	if (this.isLoopVertical()) {
+	if(this.isLoopVertical()){
 		this._displayY_th+=this._hth-distance_th;
 		this._displayY_th%=this._hth;
-		//this._displayY=this._displayY_th/th; // use getter
-		if (this._parallaxLoopY) {
-			this._parallaxY_th-=distance_th;
-			//this._parallaxY -= distance_th/th;
-		}
-	} else if (this._hth >= gh) {
+		if(this._parallaxLoopY) this._parallaxY_th-=distance_th; 
+	}else if(this._hth >= gh){
 		let lastY_th=this._displayY_th;
-		this._displayY_th=Math.max(this._displayY_th - distance_th, 0)^0;
-		//this._displayY=this._displayY_th/th; // use getter
+		this._displayY_th=Math.max(this._displayY_th - distance_th, 0);
 		this._parallaxY_th+=this._displayY_th-lastY_th;
-		//this._parallaxY+=(this._displayY_th - lastY_th)/th;
 	}
 	this._displayY_th^=0;
 };
@@ -3831,10 +3825,8 @@ $aaaa$.prototype.setDisplayPos = function(x, y) {
 	let tw=this.tileWidth();
 	if (this.isLoopHorizontal()) {
 		let xtw=x*tw;
-		this._displayX_tw=xtw.mod(this._wtw)^0;
-		//this._displayX=this._displayX_tw/tw; // use getter
+		this._displayX_tw=xtw.mod(this._wtw);
 		this._parallaxX_tw=xtw;
-		//this._parallaxX=x;
 	} else {
 		let endX_tw=this._wtw - Graphics.width;
 		this._displayX_tw=endX_tw<0?endX_tw>>1:(x*tw).clamp(0,endX_tw);
@@ -3845,36 +3837,26 @@ $aaaa$.prototype.setDisplayPos = function(x, y) {
 }
 {
 	let th=this.tileHeight();
-	if (this.isLoopVertical()) {
+	if(this.isLoopVertical()){
 		let yth=y*th;
-		this._displayY_th=yth.mod(this._hth)^0;
-		//this._displayY=this._displayY_th/th; // use getter
+		this._displayY_th=yth.mod(this._hth);
 		this._parallaxY_th=yth;
-		//this._parallaxY=y;
-	} else {
+	}else{
 		let endY_th=this._hth - Graphics.height;
 		this._displayY_th=endY_th<0?endY_th>>1:(y*th).clamp(0, endY_th);
-		//this._displayY=this._displayY_th/th; // use getter
 		this._parallaxY_th=this._displayY_th;
-		//this._parallaxY=this._displayY;
 	}
 }
 	this._displayX_tw^=0;
 	this._displayY_th^=0;
 };
 $aaaa$.prototype.canvasToMapX=function(x) {
-	//let tileWidth = this.tileWidth();
-	//let originX = this._displayX_tw;
 	let rtv=((this._displayX_tw + x) / this.tileWidth()^0);
 	return this.roundX(rtv);
-	//return this.roundX(mapX);
 };
 $aaaa$.prototype.canvasToMapY=function(y){
-	//let tileHeight = this.tileHeight();
-	//let originY = this._displayY_th;
 	let rtv=((this._displayY_th + y) / this.tileHeight()^0);
 	return this.roundY(rtv);
-	//return this.roundY(mapY);
 };
 $rrrr$=$aaaa$.prototype.setup;
 $dddd$=$aaaa$.prototype.setup=function f(){
@@ -4278,7 +4260,7 @@ $aaaa$.prototype.adjMtx=function(strtx,strty,canPassOnEvts){
 			let newx=this.roundXWithDirection(curr[0],dir);
 			let newy=this.roundYWithDirection(curr[1],dir);
 			// can overlap on some evts or all evts if 'canPassOnEvts'
-			if(canPassOnEvts || $dataMap.coordTbl[this.xy2idx(newx,newy)].map(e=>{let evtd=e.event(); return !evtd.meta.passable&&(!evtd.isChild||evtd.meta.isOnLand)^0;}).sum()===0)
+			if(canPassOnEvts || $dataMap.coordTbl[this.xy2idx(newx,newy)].map(e=>{let evtd=e.event(); return !evtd.meta.passable&&(!evtd.isChild||evtd.meta.isOnLand)>>>0;}).sum()===0)
 				q.push([newx,newy]);
 		}
 	}
@@ -4828,6 +4810,12 @@ $rrrr$=$aaaa$.prototype.jump;
 $dddd$=$aaaa$.prototype.jump=function f(dx,dy){
 	return f.ori.call(this,dx|0,dy|0);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.jumpAbs=function(x,y){
+	if(isNaN(x)||isNaN(y)) ; else{
+		let dx=Number(x)-this.x,dy=Number(y)-this.y;
+		this.jump(dx,dy);
+	}
+};
 $aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is making a new array and then search
 	//debug.log('Game_CharacterBase.prototype.isCollidedWithEvents');
 	if(!$gameMap.isValid(posx,posy)) return false;
@@ -5094,13 +5082,12 @@ $aaaa$.prototype.add_finishQuest=function f(qname){
 	if(f.prefix===undefined) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
 	let txt=f.prefix+qname;
 	if(qname!==undefined && qname!==null&&qname===this._lastFinish){
-		//this._lastFinish_cnt^=0; // no need
 		++this._lastFinish_cnt;
 		this._texts.pop();
 		txt+="\\RGB["+$dataCustom.textcolor.default+"] * "+this._lastFinish_cnt;
 	}else{
 		this._lastFinish=qname;
-		this._lastFinish_cnt=1;
+		this._lastFinish_cnt=1^0;
 	}
 	return this.add(txt);
 };
@@ -5494,12 +5481,6 @@ $dddd$=$aaaa$.prototype.checkEventTriggerThere=function f(){
 	if($dataMap.lastPlayerDir===this._direction) f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
 //$aaaa$.prototype.checkEventTriggerThere=$rrrr$; // currently no needed
-$aaaa$.prototype.jumpAbs=function(x,y){
-	if(isNaN(x)||isNaN(y)) ; else{
-		let dx=Number(x)-this.x,dy=Number(y)-this.y;
-		this.jump(dx,dy);
-	}
-};
 $rrrr$=$aaaa$.prototype.reserveTransfer;
 $dddd$=$aaaa$.prototype.reserveTransfer=function f(){
 	debug.log('Game_Player.prototype.reserveTransfer');
@@ -5762,8 +5743,9 @@ $aaaa$.prototype.burnLvOutput=function(parents){
 	return 0;
 };
 $aaaa$.prototype.gainAchievement=function(id){
+	id^=0;
 	if(this._achievement===undefined) this._achievement=[''];
-	if(this._achievement[id]) return;
+	if(id===0 || this._achievement[id]) return;
 	this._achievement[id]=1;
 	let ac=$dataCustom.achievement[id],color=$dataCustom.textcolor;
 	if(ac===undefined||ac.constructor!==Array) return;
@@ -5780,7 +5762,7 @@ $aaaa$.prototype.gainAchievement=function(id){
 	}
 	last^=0;
 	if(last<id){
-		for(let x=last+1;x!==id;++x) this._achievement[x]=''; // reduce save file size
+		for(let x=last+1^0;x!==id;++x) this._achievement[x]=''; // reduce save file size
 		this._achievement_lastMaxId=id;
 	}
 };
@@ -6617,8 +6599,12 @@ $aaaa$.prototype.setFace=function(idx){
 	if(this._isObjectCharacter){
 		$gameMessage.setFaceImage(this._genFaceData(),"data");
 	}else if(this._characterName){
-		if(idx===undefined) idx=this._characterIndex;
-		$gameMessage.setFaceImage(this._characterName,idx);
+		let s=this.getSprite();
+		if(s&&s._isBigCharacter) $gameMessage.setFaceImage(this._genFaceData(s),"data");
+		else{
+			if(idx===undefined) idx=this._characterIndex;
+			$gameMessage.setFaceImage(this._characterName,idx);
+		}
 	}
 };
 $aaaa$.prototype.speak=function(txt,kargs){
@@ -6693,15 +6679,19 @@ $aaaa$.prototype.setValue=function f(switchId,value,noUpdate){
 
 // - vars
 $aaaa$=Game_Variables;
-$rrrr$=$aaaa$.prototype.setValue;
-$dddd$=$aaaa$.prototype.setValue=function f(varId,val){
-	let strt=window['/tmp/'].gameVarTrimStrt^=0;
+$aaaa$.prototype.setValue=function f(varId,val){
+	let strt=$gameTemp.gameVarTrimStrt^=0;
 	if(strt<varId){
-		for(;strt!==varId;++strt) this._data[strt]^=0;
-		window['/tmp/'].gameVarTrimStrt=varId;
+		for(;strt!==varId;++strt) if(!this._data[strt] && this._data[strt]!=='') this._data[strt]^=0;
+		$gameTemp.gameVarTrimStrt=varId;
 	}
-	return f.ori.call(this,varId,val);
-}; $dddd$.ori=$rrrr$;
+	if(0<varId){
+		if(typeof val === 'number') val^=0;
+		this._data[varId] = val;
+		this.onChange();
+	}
+};
+$rrrr$=$dddd$=$aaaa$=undef;
 
 // - item
 $aaaa$=Game_Item;
@@ -6974,6 +6964,18 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Window_Selectable;
 $aaaa$.prototype.standardFontSize=()=>(Utils.isMobileDevice()<<2)+28;
 $aaaa$.prototype.lineHeight=()=>(Utils.isMobileDevice()*6)+36;
+$aaaa$.prototype.deselect=function(){ // rewrite: consist 'this._scrollY'
+	this._stayCount = 0;
+	{
+		let lastScrollY=this._scrollY;
+		this.ensureCursorVisible();
+		this._scrollY=lastScrollY;
+	}
+	this._index = -1;
+	this.updateCursor();
+	this.callUpdateHelp();
+};
+
 $rrrr$=$aaaa$.prototype.processHandling;
 $dddd$=$aaaa$.prototype.processHandling=function f(){
 	if(SceneManager._nextScene===null) return f.ori.call(this);
@@ -7033,6 +7035,7 @@ $aaaa$.prototype.cursorPagedown=function() { // overwrite because it's wrong
 	this.select(Math.min(idx + this.maxPageItems(), this.maxItems() - 1));
 };
 $aaaa$.prototype.trimSel=function(idx){
+	if(!idx&&idx!==0) return;
 	idx^=0;
 	let maxItems=this.maxItems();
 	if(idx>=maxItems) idx=maxItems-1;
@@ -7055,14 +7058,8 @@ $dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggere
 	let hitIndex = this.hitTest(x, y);
 	if(hitIndex >= 0){
 		if(hitIndex === this.index()){
-			if(triggered && this.isTouchOkEnabled()){
-				let idx=iw._lastIdx;
-				this.processOk();
-				iw.trimSel(idx);
-			}
-		}else if(this.isCursorMovable()){
-			this.select(hitIndex);
-		}
+			if(triggered && this.isTouchOkEnabled()) this.processOk();
+		}else if(this.isCursorMovable()) this.select(hitIndex);
 	}else if(!this._touching) this.processTouchOutsideFrame(triggered,x,y,iw); // not click on 'this'
 	else if(this._stayCount >= 10){
 		if(y < this.padding) this.cursorUp();
@@ -7070,14 +7067,19 @@ $dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggere
 	}
 	if(this.index() !== lastIndex) SoundManager.playCursor();
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.processTouchOutsideFrame=none;
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - itemCat
 $aaaa$=Window_ItemCategory;
 $rrrr$=$aaaa$.prototype.processOk;
 $dddd$=$aaaa$.prototype.processOk=function f(){
+	if(this._lastScrollYs) this._itemWindow._scrollY=this._lastScrollYs[this._index]^0;
+	if(this._lastIdxs){
+		this._itemWindow.trimSel(this._lastIdxs[this._index]^0);
+		this._itemWindow.refresh();
+	}
 	f.ori.call(this);
-	if(this._lastIdxs) this.parent.parent._itemWindow.trimSel(this._lastIdxs[this._index]^0);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.processTouch=function(){
 	if(this.isOpenAndActive()){
@@ -7100,15 +7102,16 @@ $aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
 			SoundManager.playCursor();
 			this.updateInputData();
 			this.deactivate();
-			this.callOkHandler();
 			let idx=iw.hitTest(x+this.x-iw.x,y+this.y-iw.y);
-			if(idx<0 && this._lastIdxs) idx=this._lastIdxs[this._index];
+			if(idx<0 && this._lastIdxs) idx=this._lastIdxs[this._index]^0;
 			iw.trimSel(idx);
+			//this.callOkHandler();
+			this._itemWindow.activate();
 		}else this.playBuzzerSound();
 	}
 };
 $aaaa$.prototype.onTouch=function(triggered){
-	return this._onTouch_iw(triggered,this.parent.parent._itemWindow);
+	return this._onTouch_iw(triggered,this._itemWindow);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -7116,10 +7119,20 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Window_ItemList;
 $rrrr$=$aaaa$.prototype.processCancel;
 $dddd$=$aaaa$.prototype.processCancel=function f(noSound){
-	let cat=this.parent.parent._categoryWindow;
-	if(!cat._lastIdxs) cat._lastIdxs=[];
-	cat._lastIdxs[cat._index]=this._index;
-	return f.ori.call(this,noSound);
+	let lastScrollY=this._scrollY;
+	{
+		let sc=SceneManager._scene;
+		if(sc && sc.constructor===Scene_Item){
+			let cat=sc._categoryWindow; //this.parent.parent._categoryWindow;
+			if(!cat._lastIdxs) cat._lastIdxs=[];
+			cat._lastIdxs[cat._index]=this._index;
+			if(!cat._lastScrollYs) cat._lastScrollYs=[];
+			cat._lastScrollYs[cat._index]=lastScrollY;
+		}
+	}
+	f.ori.call(this,noSound);
+	this._scrollY=lastScrollY;
+	this.refresh(); // TODO: reduce this 'this.refresh'
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.processTouch=Window_ItemCategory.prototype.processTouch;
 $aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
@@ -7131,6 +7144,54 @@ $aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
 };
 $aaaa$.prototype.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this.parent.parent._categoryWindow);
+};
+$aaaa$.prototype.setCategory=function f(catKey){ // rewrite: return true if updated else false; use last scrollY;
+	if (this._category !== catKey){
+		this._category = catKey;
+		this._scrollY=0;
+		{
+			let sc=SceneManager._scene;
+			if(sc && sc.constructor===Scene_Item){
+				let cat=sc._categoryWindow,tmp; //this.parent.parent._categoryWindow;
+				//if(cat._lastIdxs && (tmp=cat._lastIdxs[cat._index])) this._index=tmp;
+				if(cat._lastScrollYs && (tmp=cat._lastScrollYs[cat._index])) this._scrollY=tmp;
+			}
+		}
+		this.refresh();
+		//this.resetScroll();
+		return true;
+	}
+	return false;
+};
+$rrrr$=$aaaa$.prototype.selectLast;
+$dddd$=$aaaa$.prototype.selectLast=function f(){
+	if(this._index>=0) ; else f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
+
+
+// - evtItem
+$aaaa$=Window_EventItem;
+$aaaa$.prototype.updatePlacement=function f(){
+	// re-cal. windowHeight
+	let sc=SceneManager._scene;
+	if(sc){
+		let h=Graphics.boxHeight,msg=sc._messageWindow;
+		if(msg && msg._openness){
+			let nf=msg._nameField;
+			if(nf) h-=nf.enabled*nf.height;
+			h-=msg.height;
+		}
+		if(this.height!==h){
+			this.height=h;
+			// refresh (without 'this.makeItemList')
+			this.createContents();
+			this.drawAllItems();
+		}
+	}
+	// ori
+	if((this._messageWindow.y<<1) >= Graphics.boxHeight) this.y = 0;
+	else this.y = Graphics.boxHeight - this.height;
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -7237,8 +7298,8 @@ $aaaa$.prototype._drawFaceFromData=function(data){
 	// cut others unrelated, prevents unknown smoothing colors
 	tmp.width=data[3]; tmp.height=data[4];
 	let ctx=tmp.getContext('2d');
-	ctx.drawImage(
-		data[0].constructor===HTMLCanvasElement?data[0]:data[0]._image,
+	let img=data[0].constructor===HTMLCanvasElement?data[0]:data[0]._image;
+	if(img) ctx.drawImage(img,
 		data[1],data[2],data[3],data[4],
 		0,0,data[3],data[4]
 	);

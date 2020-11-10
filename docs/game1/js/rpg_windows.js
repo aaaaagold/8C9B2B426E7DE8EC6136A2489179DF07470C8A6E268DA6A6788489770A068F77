@@ -1754,13 +1754,7 @@ Window_ItemList.prototype.initialize = function(x, y, width, height) {
     this._data = [];
 };
 
-Window_ItemList.prototype.setCategory = function(category) {
-    if (this._category !== category) {
-        this._category = category;
-        this.refresh();
-        this.resetScroll();
-    }
-};
+Window_ItemList.prototype.setCategory;
 
 Window_ItemList.prototype.spacing = function() {
     return 48;
@@ -3967,13 +3961,7 @@ Window_EventItem.prototype.start = function() {
     this.activate();
 };
 
-Window_EventItem.prototype.updatePlacement = function() {
-    if (this._messageWindow.y >= Graphics.boxHeight / 2) {
-        this.y = 0;
-    } else {
-        this.y = Graphics.boxHeight - this.height;
-    }
-};
+Window_EventItem.prototype.updatePlacement;
 
 Window_EventItem.prototype.includes = function(item) {
     var itypeId = $gameMessage.itemChoiceItypeId();
