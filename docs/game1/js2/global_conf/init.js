@@ -384,8 +384,8 @@ let setShorthand = (w)=>{
 	};
 	
 	const hexDigits=['0','1','2','3','4','5','6','7','8','9',"A","B","C","D","E","F"];
-	w.Number.prototype.toId=function(){ return this.valueOf(); };
-	w.Number.prototype.toHexInt=function(unsigned_){
+	Number.prototype.toId=function(){ return this.valueOf(); };
+	Number.prototype.toHexInt=function(unsigned_){
 		let rtv="",i=this.valueOf(),arr=[];
 		if(i===0) return "0";
 		if(!unsigned_ && i<0){ rtv+='-'; i=-parseInt(i); }
@@ -393,14 +393,14 @@ let setShorthand = (w)=>{
 		while(arr.length!==0) rtv+=arr.pop();
 		return rtv;
 	};
-	w.Number.prototype.rot_r=function(n){
+	Number.prototype.rot_r=function(n){
 		let bitlen=32;
 		// n%=bitlen; n+=bitlen; n%=bitlen;
 		n&=bitlen-1;
 		let v=this.valueOf();
 		return (((0xFFFFFFFF<<(bitlen-n))^(~0))&(v>>n)) | (v<<(bitlen-n));
 	};
-	w.Number.prototype.sh_r=function(n){ // === '>>>'
+	Number.prototype.sh_r=function(n){ // === '>>>'
 		let bitlen=32;
 		// n%=bitlen; n+=bitlen; n%=bitlen;
 		n&=bitlen-1;
@@ -1827,7 +1827,7 @@ let setShorthand = (w)=>{
 			if(!key) key='';
 			let key_words,kt=(typeof key); // 1 word = 4 byte
 			if(kt==="string"){
-				key_words=bytes2words(str2bytes(key));
+				key_words=w.bytes2words(w.str2bytes(key));
 			}else if(key.constructor===Array && typeof key[0]==="number"){
 				key_words=key;
 			}else throw new Error("unsupported key type");
@@ -1888,9 +1888,9 @@ let setShorthand = (w)=>{
 		if(enc0dec1){
 			let blks=aes_dec(w.bytes2words(data),key); // data is bytes
 			let arr=[];
-			for(let b=0;b!==blks;++b){
-				for(let blk=blks[b],w=0;w!==blk.length;++w){
-					for(let word=blk[w],x=32;x;){
+			for(let bid=0;bid!==blks;++bid){
+				for(let blk=blks[bid],wid=0;wid!==blk.length;++wid){
+					for(let word=blk[wid],x=32;x;){
 						let byte=(word>>(x-=8))&0xFF;
 						if(byte===0) return w.bytes2str(arr);
 						arr.push(byte);
