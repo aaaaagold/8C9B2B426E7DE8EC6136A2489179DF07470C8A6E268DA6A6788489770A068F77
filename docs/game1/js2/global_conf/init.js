@@ -1886,18 +1886,18 @@ let setShorthand = (w)=>{
 		
 		let z=Math.pow(2,35),r=/([0-9A-F][0-9A-F]?)/g;
 		if(enc0dec1){
-			let blks=aes_dec(bytes2words(data),key); // data is bytes
+			let blks=aes_dec(w.bytes2words(data),key); // data is bytes
 			let arr=[];
 			for(let b=0;b!==blks;++b){
 				for(let blk=blks[b],w=0;w!==blk.length;++w){
 					for(let word=blk[w],x=32;x;){
 						let byte=(word>>(x-=8))&0xFF;
-						if(byte===0) return bytes2str(arr);
+						if(byte===0) return w.bytes2str(arr);
 						arr.push(byte);
 					}
 				}
 			}
-			return bytes2str(arr);
+			return w.bytes2str(arr);
 		}else{
 			let blks=aes(data,key);
 			return blks.map(blk=>blk.map(w=>(w+z).toString(16).toUpperCase().slice(1).replace(r,' $1')).join('').slice(1)).join(' ');
