@@ -17,6 +17,7 @@
 	"noLeaderHp": "左側不顯示隊長(隊伍中選單排序最前面的角色)HP",
 	"noLeaderMp": "左側不顯示隊長(隊伍中選單排序最前面的角色)MP",
 	"noAnimation": "不顯示動畫特效",
+	"noAutotile": "不更新動態地圖(如水流效果)",
 	"fromLocalSave": "使用檔案繼續",
 	"fromLocalSaveCh": "選擇檔案",
 	"fromLocalSaveLoading": "讀取中...",

@@ -422,10 +422,12 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 };
 $dddd$.debugPack=(notDev)=>{
 	let dev=!notDev;
-	let p=$gamePlayer;
-	if(dev) p._halfFps=1;
-	p._noGainMsg=1;
-	p._noGainSound=1;
+	if(dev){
+		let p=$gamePlayer;
+		p._halfFps=1;
+		p._noGainMsg=1;
+		p._noGainSound=1;
+	}
 	let pt=$gameParty,itds=$dataItems,armds=$dataArmors,wpnds=$dataWeapons;
 	if(dev && SceneManager._scene.constructor!==Scene_DebugMenu2){
 		pt.gainItem(itds[78],1);
@@ -866,6 +868,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		[$dataCustom.noLeaderHp,"_global_conf;noLeaderHp"],
 		[$dataCustom.noLeaderMp,"_global_conf;noLeaderMp"],
 		[$dataCustom.noAnimation,"_global_conf;noAnimation"],
+		[$dataCustom.noAutotile,"_global_conf;noAutotile"],
 		["FPS減半 (你覺得CPU快燒起來的時候可以用)","_global_conf;halfFps"],
 		["字體(電腦中需有該字體，本遊戲不另外提供)","_global_conf;useFont;text;請輸入想用的字體"],
 	],{statusWidth:()=>360});

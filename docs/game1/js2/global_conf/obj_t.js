@@ -918,10 +918,9 @@ $aaaa$.prototype.addc_tree=function(key,data){ // prepare
 };
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
-	this.animationFrame  = ~~(++this.animationCount / 30); // always >=0 , use parseInt is faster
-	if(this.animationCount===149) this.animationCount=29^0; // [1,4] , this.animationFrame&3
-	++this.animationCount2; // minor, for addUpper and addLower
-	if(this.animationCount2>=30) this.animationCount&=0;
+	if(_global_conf.noAutotile) this.animationFrame=0^0;
+	else this.animationFrame = ~~(++this.animationCount>>5); // always >=0 , use parseInt is faster
+	this.animationCount&=127;
 	f.updateChildren.call(this); // difference here
 	//this.children.forEach(c=>c&&c.update&&c.update());
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
@@ -995,7 +994,6 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	 * The animation count for autotiles.
 	 */
 	this.animationCount  =  0^0;
-	this.animationCount2 = 15^0; // for reduce CPU loading at a frame
 	
 	/**
 	 * Whether the tilemap loops horizontal.
@@ -1086,7 +1084,6 @@ $aaaa$.prototype.updateTransform=function(forced){
 		this._paintAllTiles(startX, startY);
 		this._needsRepaint = false;
 	}
-	if(this.animationCount2===0) this._paintAllTiles(startX, startY);
 	//this._sortChildren();
 	//PIXI.Container.prototype.updateTransform.call(this);
 	return this.updateTransform_tail();
@@ -2459,7 +2456,8 @@ $aaaa$.resetPseudoTile=()=>{
 		for(let x=0,arr=added;x!==arr.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
-			let cond=eval(curr.cond);
+			//let cond=eval(curr.cond);
+			let cond=Function('"use strict";return (' + curr.cond + ')')();
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -2477,7 +2475,8 @@ $aaaa$.resetPseudoTile=()=>{
 		for(let x=0,arr=added;x!==arr.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
-			let cond=eval(curr.cond);
+			//let cond=eval(curr.cond);
+			let cond=Function('"use strict";return ('+curr.cond+')')();
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -4591,7 +4590,8 @@ $aaaa$.prototype.command111=function(){ // cond branch
 		result=Input.isPressed(this._params[1]);
 	}break;
 	case 12:{ // Script
-		result=!!eval(this._params[1]);
+		//result=!!eval(this._params[1]);
+		result=!!Function('"use strict";return (' + this._params[1] + ')').bind(this)();
 	}break;
 	case 13:{ // Vehicle
 		result=($gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]));
@@ -5161,7 +5161,8 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	[
 		"_noGainMsg","_noGainHint","_noGainSound",
 		"_noLeaderHp","_noLeaderMp",
-	].forEach(x=>ConfigManager[x]&&(this[x]=ConfigManager[x]));
+		"_noAnimation","_noAutotile",
+	].forEach(x=>(x in ConfigManager)&&(this[x]=ConfigManager[x]));
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.refresh=function(){
 	let actor=$gameParty.leader();
@@ -6565,9 +6566,11 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			DataManager.extractMetadata(tmp);
 			tmp=tmp.meta;
 			if(tmp.cond!==undefined){
-				let cond=eval(tmp.cond);
+				//let cond=eval(tmp.cond);
+				let cond=Function('"use strict";return (' + tmp.cond + ')')();
 				if(!cond && tmp.elseSkipN){
-					let skipN=eval(tmp.elseSkipN);
+					//let skipN=eval(tmp.elseSkipN);
+					let skipN=Function('"use strict";return (' + tmp.elseSkipN + ')')();
 					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
 					c+=line;
 				}
@@ -6743,8 +6746,10 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 		case 'weapon': {
 		}break;
 	}
-	if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
-	if(meta&&meta.code) eval(meta.code);
+	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
+	if(meta&&meta.func) Function('"use strict";return (' + meta.func.replace(/\(|\)/g,'') + ')')()(this);
+	//if(meta&&meta.code) eval(meta.code);
+	if(meta&&meta.code) Function('"use strict";return (' + meta.code + ')')();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);
@@ -6873,21 +6878,11 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	//let self=this;
 	text = text.replace(/\\/g, '\x1b');
 	text = text.replace(/\x1b\x1b/g, '\\');
-	text = text.replace(f.re_utf8, function() {
-		return String.fromCharCode(arguments[1]);
-	}.bind(this));
-	text = text.replace(f.re_code, function() {
-		return eval(arguments[1]);
-	}.bind(this));
-	text = text.replace(f.re_keyword, function(){
-		return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+eval(arguments[1])+"\x1bRGB["+$dataCustom.textcolor.default+"]";
-	}.bind(this));
-	text = text.replace(f.re_item, function(){
-		return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]";
-	}.bind(this));
-	text = text.replace(f.re_quest, function(){
-		return "\x1bRGB["+$dataCustom.textcolor.quest+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]";
-	}.bind(this));
+	text = text.replace(f.re_utf8, f.f_utf8);
+	text = text.replace(f.re_code, f.f_code);
+	text = text.replace(f.re_keyword, f.f_keyword);
+	text = text.replace(f.re_item, f.f_item);
+	text = text.replace(f.re_quest, f.f_quest);
 	text = text.replace(/\x1bV\[(\d+)\]/gi, function() {
 		return $gameVariables.value(arguments[1]);
 	}.bind(this));
@@ -6906,10 +6901,23 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	return text;
 };
 $dddd$.re_utf8=/\x1bUTF8\[([^\]]+)\]/g;
+$dddd$.f_utf8=function(){ return String.fromCharCode(arguments[1]); };
 $dddd$.re_code=/\x1bCODE'([^']+)'/g;
-$dddd$.re_item=/\x1bitem\[(\d+)\]/g;
-$dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
+$dddd$.f_code=function(){
+	//return eval(arguments[1]);
+	return Function('"use strict";return (' + arguments[1] + ')')();
+};
 $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
+$dddd$.f_keyword=function(){
+	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
+		//eval(arguments[1])+
+		Function('"use strict";return (' + arguments[1] + ')')()
+		"\x1bRGB["+$dataCustom.textcolor.default+"]";
+};
+$dddd$.re_item=/\x1bitem\[(\d+)\]/g;
+$dddd$.f_item=function(){ return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
+$dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
+$dddd$.f_quest=function(){ return "\x1bRGB["+$dataCustom.textcolor.quest+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $aaaa$.prototype.processNormalCharacter = function(textState) {
 	let c = textState.text[textState.index++];
 	let w = this.textWidth(c);

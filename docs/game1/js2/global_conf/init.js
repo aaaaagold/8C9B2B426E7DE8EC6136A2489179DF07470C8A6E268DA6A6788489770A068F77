@@ -8,113 +8,6 @@ const tm2020strt=new Date("2020-01-01T00:00:00.000Z").getTime();
 let deepcopy=(obj)=>{return JSON.parse(JSON.stringify(obj));};
 let d=document;
 let _global_conf={};
-	Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions'@obj_t
-		halfFps: {
-			get:function(){
-				let key='_halfFps';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_halfFps';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noGainMsg: {
-			get:function(){
-				let key='_noGainMsg';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noGainMsg';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noGainHint: {
-			get:function(){
-				let key='_noGainHint';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noGainHint';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noGainSound: {
-			get:function(){
-				let key='_noGainSound';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noGainSound';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noLeaderHp: {
-			get:function(){
-				let key='_noLeaderHp';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noLeaderHp';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noLeaderMp: {
-			get:function(){
-				let key='_noLeaderMp';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noLeaderMp';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		noAnimation: {
-			get:function(){
-				let key='_noAnimation';
-				return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
-			},set:function(rhs){
-				let key='_noAnimation';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false},
-		useFont: {
-			get:function(){
-				return $gamePlayer && $gamePlayer._useFont || ConfigManager._useFont
-					|| "Consolas,monospace,'Courier New',Courier,微軟正黑體,標楷體";
-					// "Consolas,monospace,'Courier New',Courier,微軟正黑體,標楷體";
-			}, set:function(rhs){
-				let key='_useFont';
-				if($dataMap) return $gamePlayer[key]=rhs;
-				else{
-					window['/tmp/'].chConfig=1;
-					return ConfigManager[key]=rhs;
-				}
-			},
-		configurable: false}
-	});
 let textWidthCache=[]; textWidthCache.length=65536; // String.fromCharCode has mask 0xFFFF
 let searchTbl={};
 let screenShots={};
@@ -374,16 +267,16 @@ let setShorthand = (w)=>{
 		configurable: false}
 	});
 	
-	Object.defineProperties(Object.prototype,{
+	Object.defineProperties(w.Object.prototype,{
 		hasKey: { // it's slow, still need to copy keys to an array (or something like that)
 			get:function(){
 				debug.warn("Obj.hasKey is slow, still need to copy keys to an array (or something like that). And also 'for(let i in Obj)' is too.");
 				for(let i in this){return true;} return false;
 			},
-		configurable: false}
+		configurable: true}
 	});
 	
-	Object.defineProperties(Array.prototype,{
+	Object.defineProperties(w.Array.prototype,{
 		back: {
 			get:function(){return this[this.length-1];},
 			set:function(rhs){return this[this.length-1]=rhs;},
@@ -1346,16 +1239,33 @@ let setShorthand = (w)=>{
 	
 	w.Function.prototype._dummy_arr=[];
 	
-	w.hash=function(input_str){
-		// https://en.wikipedia.org/wiki/SHA-2#Pseudocode
-		let h0 = 0x6a09e667;
-		let h1 = 0xbb67ae85;
-		let h2 = 0x3c6ef372;
-		let h3 = 0xa54ff53a;
-		let h4 = 0x510e527f;
-		let h5 = 0x9b05688c;
-		let h6 = 0x1f83d9ab;
-		let h7 = 0x5be0cd19;
+	// https://en.wikipedia.org/wiki/UTF-8#Encoding
+	w.bytes2str=function bytes2str(bytes){ // UTF-8
+		let rtv='';
+		for(let x=0;x!==bytes.length;++x){
+			let b=bytes[x];
+			if(b&0x80){
+				if((b>>5)>=6){ // 110xxxxx
+					if((b>>4)>=14){ // 1110xxxx
+						if((b>>3)>=30){ // 11110xxx
+							let code=b&7;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							rtv+=String.fromCharCode(code);
+						}else{
+							let code=b&0xF;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							rtv+=String.fromCharCode(code);
+						}
+					}else rtv+=String.fromCharCode( ((b&0x1F)<<6)|(bytes[++x]&63) );
+				}else throw new Error("not a utf8 string");
+			}else rtv+=String.fromCharCode(b);
+		}
+		return rtv;
+	};
+	w.str2bytes=function str2bytes(input_str){ // UTF-8
 		input_str=input_str||"";
 		let arr=[];
 		// to byte string
@@ -1376,6 +1286,30 @@ let setShorthand = (w)=>{
 				for(let z=rev_arr.length;z--;) arr.push(rev_arr[z]);
 			}else arr.push(c);
 		}
+		return arr;
+	};
+	w.bytes2words=function bytes2words(bytesarr){
+		let rtv=[];
+		for(let x=0;x<bytesarr.length;x+=4){
+			let tmp=0;
+			for(let z=0;z!==4;++z){ tmp<<=8; tmp|=bytesarr[x|z]&0xFF; } // will use undefined to do bitwise operation
+			rtv.push(tmp);
+		}
+		return rtv;
+	};
+	
+	w.hash=function(input_str){
+		// https://en.wikipedia.org/wiki/SHA-2#Pseudocode
+		let h0 = 0x6a09e667;
+		let h1 = 0xbb67ae85;
+		let h2 = 0x3c6ef372;
+		let h3 = 0xa54ff53a;
+		let h4 = 0x510e527f;
+		let h5 = 0x9b05688c;
+		let h6 = 0x1f83d9ab;
+		let h7 = 0x5be0cd19;
+		input_str=input_str||"";
+		let arr=w.str2bytes(input_str);
 		// padding K
 		let K=(512-((arr.length*8)+1+64)%512)%512; // L +1 +64
 		// L +1 +K +64 ===     0 (mod 512)
@@ -1454,26 +1388,8 @@ let setShorthand = (w)=>{
 		let input_str=input_str_orOthersTreatedAsArrayOfBytes;
 		input_str=input_str||"";
 		let arr=[];
-		if(typeof input_str==='string'){
-			// to byte string
-			for(let mask=0x7FFFFFFF,x=0;x!==input_str.length;++x){
-				let c=input_str.charCodeAt(x)&mask; // make sure to be unsigned
-				if(c>0x7F){ // 2 bytes or more
-					let rev_arr=[c&0x3F|0x80],r=(c>>6);
-					if(c>0x7FF){ // 3 bytes or more
-						rev_arr.push(r&0x3F|0x80); r>>=6;
-						if(c>0xFFFF){ // 4 bytes
-							rev_arr.push(r&0x3F|0x80); r>>=6;
-							if(c>0x10FFFF){ // wtf
-								rev_arr.push(r&0x3F); r>>=6;
-								rev_arr.push(r|0xF8); // &0x3
-							}else rev_arr.push(r|0xF); // &0x7
-						}else rev_arr.push(r|0xE0); // &0xF
-					}else rev_arr.push(r|0xC0); // &0x1F
-					for(let z=rev_arr.length;z--;) arr.push(rev_arr[z]);
-				}else arr.push(c);
-			}
-		}else for(let x=0;x!==input_str.length;++x) arr.push(input_str[x]&0xFF);
+		if(typeof input_str==='string') arr=w.str2bytes(input_str);
+		else for(let x=0;x!==input_str.length;++x) arr.push(input_str[x]&0xFF);
 		let trueStrLen=arr.length;
 		// padding K
 		let K=(512-((arr.length*8)+1+64)%512)%512; // L +1 +64
