@@ -1220,7 +1220,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 		let data=this._mapData;
 		if(data){
 			shadowBits |= data[(4*h+mmy)*w+mmx];
-			upperTileId1 |= data[(4*h+(mmy===0?h:mmy)-1)*w+mmx];
+			upperTileId1 |= data[(1*h+(mmy===0&&this.verticalWrap?h:mmy)-1)*w+mmx];
 		}
 	}
 	let tileId0 = data3d1[3]^0;
@@ -5195,6 +5195,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 		"_noLeaderHp","_noLeaderMp",
 		"_noAnimation","_noAutotile",
 	].forEach(x=>(x in ConfigManager)&&(this[x]=ConfigManager[x]));
+	this._rndid=Date.now()+''+Math.random();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.refresh=function(){
 	let actor=$gameParty.leader();
