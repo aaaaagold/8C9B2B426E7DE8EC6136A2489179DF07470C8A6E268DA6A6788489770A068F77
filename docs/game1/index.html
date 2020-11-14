@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -43,13 +43,14 @@ button:hover{
 "use strict";
 
 var isDev,jss;
-//jss=undefined; //testing
+jss=undefined; //testing
 (()=>{
 let w=window,d=document;
+const ac=(p,c)=>{p.appendChild(c);return p;},ce=(t)=>d.createElement(t),sa=(e,a,v)=>{e.setAttribute(a,v);return e;},tn=(txt)=>d.createTextNode(txt);
 let isDev_=isDev;
 if(!jss) jss=[
-	":init",
 	"js/plugins.js",
+	":init",
 	":lib_h",
 	"js/libs/pixi.js",
 	"js/libs/pixi-tilemap.js",
@@ -73,7 +74,25 @@ if(!jss) jss=[
 ];
 
 let onloadProc=function f(){
+	if(f.idx===0){
+		if(!f.wait_blk){
+			f.wait_blk=ce('div');
+			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));
+			f.wait_list={};
+			for(let x=0;x!==jss.length;++x){
+				let div=f.wait_list[jss[x]]=ac(sa(ce('div'),"class","msg"),tn(jss[x]));
+				ac(d.body,div);
+			}
+		}
+	}else{
+		for(let x=f._lastIdx;x!==f.idx;++x){
+			let div=f.wait_list[jss[x]];
+			div.parentNode.removeChild(div);
+		}
+	}
+	f._lastIdx=f.idx;
 	if(f.idx===jss.length){
+		f.wait_blk.parentNode.removeChild(f.wait_blk); f.wait_blk=undefined;
 		let z,a;
 		
 		// disable some buffers to reduce mem. usage
@@ -102,7 +121,7 @@ let onloadProc=function f(){
 		
 		return;
 	}
-	let scr=d.createElement('script');
+	let scr=ce('script');
 	let src=jss[f.idx++];
 	if(src[0]===":"){
 		let gas="https://script.google.com/macros/s/AKfycbxKqePNqsycE-Y4FkmZEeCMcILjXaCRoMgUESaEI2iiSzCYmH0G/exec";
@@ -119,21 +138,29 @@ let onloadProc=function f(){
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),k,1);
 					if(isDev_) console.log(plain);
-					scr.appendChild(d.createTextNode(plain));
-					d.body.appendChild(scr);
+					ac(scr,tn(plain));
+					ac(d.body,scr);
 					setTimeout(f,404);
 				}
 			}
 		}
-		;
-		xhr.open("POST",gas+"?game=燒毀"+files+"&"+Date.now(),true);
-		xhr.send(k);
+		let cnt=4,go=()=>{
+			if(--cnt===0){
+				f.wait_blk.parentNode.removeChild(f.wait_blk); f.wait_blk=undefined;
+				ac(d.body,ac(sa(ce('div'),'class',"msg"),tn("遊戲壞掉了，重新整理或放棄吧。")));
+				return;
+			}
+			xhr.open("POST",gas+"?game=燒毀"+files+"&"+Date.now(),true);
+			xhr.send(k);
+		};
+		xhr.onerror=go;
+		go();
 	}else{
 		scr.onerror=f.onerr;
 		scr.onload=f;
 		src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
 		scr.src=src;
-		d.body.appendChild(scr);
+		ac(d.body,scr);
 	}
 }; onloadProc.idx=0;
 onloadProc.onerr=function f(){ this.onerror=null;
