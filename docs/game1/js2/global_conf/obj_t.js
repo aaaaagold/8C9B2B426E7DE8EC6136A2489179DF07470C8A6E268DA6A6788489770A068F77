@@ -3252,18 +3252,19 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Scene_Item;
 $rrrr$=$aaaa$.prototype.create;
 $dddd$=$aaaa$.prototype.create=function f(){
-	debug.log('Scene_Item.prototype.create');
+	//debug.log('Scene_Item.prototype.create');
 	return f.ori.call(this);
 	//let help=this._helpWindow,actor=this._actorWindow;
 	//let oriy=actor.y;
 	//actor.y=help.y+help.height;
 	//actor.height-=actor.y-oriy;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.createActorWindow;
-$dddd$=$aaaa$.prototype.createActorWindow=function f(){
-	f.ori.call(this);
-	this._itemWindow.addChild(this._actorWindow);
-}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.createActorWindow=function(){ // rewrite: actorWindow on top with semi-transparent background to other windows
+	this._actorWindow = new Window_MenuActor();
+	this._actorWindow.setHandler('ok',     this.onActorOk.bind(this));
+	this._actorWindow.setHandler('cancel', this.onActorCancel.bind(this));
+	this.addChild(this._actorWindow);
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - title
@@ -3531,9 +3532,13 @@ $dddd$.genRandMaze=function f(){
 		let idx=y*w+x;
 		mark[idx]=B;
 		for(let i=1;i!==tiles.length;++i){
-			if(data[tiles[i][0]*sz+idx]===tiles[i][1]){
-				mark[idx]=i; break;
+			let marked=false;
+			for(let k=0^0;k<tiles[i].length;k+=2){
+				if(data[tiles[i][k]*sz+idx]===tiles[i][k|1]){
+					mark[idx]=i; marked=true; break;
+				}
 			}
+			if(marked) break;
 		}
 		if(mark[idx]===e) entries.push(idx);
 		else if(mark[idx]===b) mark[idx]=B;
