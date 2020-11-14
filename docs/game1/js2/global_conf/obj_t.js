@@ -1200,28 +1200,33 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 };
 $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	//debug.log("Tilemap.prototype._paintTiles");
+	let w=this._mapWidth,h=this._mapHeight;
 	let tableEdgeVirtualId = 1<<14;
-	let mx = startX + x;
-	let my = startY + y;
+	let mx = startX + (this.horizontalWrap?x.mod(w):x);
+	let my = startY + (this.  verticalWrap?y.mod(h):y);
+	let mmx=this.horizontalWrap?mx.mod(w):mx;
+	let mmy=this.  verticalWrap?my.mod(h):my;
 	let lx = mx.mod(this._tileCols);
 	let ly = my.mod(this._tileRows);
 	let dx = lx * this._tileWidth;
 	let dy = ly * this._tileHeight;
+	let shadowBits = 0;
+	let upperTileId1 = 0;
 	let idx,data3d1=none;
-	{
-		let x=this.horizontalWrap?mx.mod(this._mapWidth):mx;
-		let y=this.verticalWrap?my.mod(this._mapHeight):my;
-		if($gameMap.isValid(x,y)){
-			idx^=0;
-			data3d1=$dataMap.data3d[idx+=this._mapWidth*y+x];
+	if($gameMap.isValid(mmx,mmy)){
+		idx^=0;
+		data3d1=$dataMap.data3d[idx+=w*mmy+mmx];
+		// replace 'this._readMapData'
+		let data=this._mapData;
+		if(data){
+			shadowBits |= data[(4*h+mmy)*w+mmx];
+			upperTileId1 |= data[(4*h+(mmy===0?h:mmy)-1)*w+mmx];
 		}
 	}
 	let tileId0 = data3d1[3]^0;
 	let tileId1 = data3d1[2]^0;
 	let tileId2 = data3d1[1]^0;
 	let tileId3 = data3d1[0]^0;
-	let shadowBits = this._readMapData(mx, my, 4);
-	let upperTileId1 = this._readMapData(mx, my - 1, 1);
 	let lowerTiles = [];
 	let upperTiles = [];
 	
@@ -1285,7 +1290,7 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	
 	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
 	let lastUpperTiles = this._readLastTiles(4, lx, ly);
-	upperTiles.playerNearby=$gamePlayer.dist2({x:mx,y:my,dist2:true})===0;
+	upperTiles.playerNearby=$gamePlayer.dist2({x:mmx,y:mmy,dist2:true})===0;
 	if(flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby || !upperTiles.equals(lastUpperTiles)){
 		flag_drawAddUpper=true;
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
@@ -2986,7 +2991,7 @@ $aaaa$._pauseToResume=function(){
 $rrrr$=$aaaa$.update;
 $dddd$=$aaaa$.update=function f(){
 	//debug.log('SceneManager.update');
-	if(!(_global_conf&&_global_conf.halfFps) || (this._half_do^=1)) return f.ori.call(this);
+	if(!((_global_conf&&_global_conf.halfFps)||(this.isMap()&&$dataMap&&$dataMap.meta.halfFps)) || (this._half_do^=1)) return f.ori.call(this);
 	else{
 		++Graphics.frameCount;
 		return this.requestUpdate();
@@ -6995,7 +7000,7 @@ $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $dddd$.f_keyword=function(){
 	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
 		//eval(arguments[1])+
-		Function('"use strict";return (' + arguments[1] + ')')()
+		Function('"use strict";return (' + arguments[1] + ')')()+
 		"\x1bRGB["+$dataCustom.textcolor.default+"]";
 };
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;
