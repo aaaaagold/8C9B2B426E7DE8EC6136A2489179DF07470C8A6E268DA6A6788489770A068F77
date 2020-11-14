@@ -7939,12 +7939,6 @@ Game_Event.prototype.moveTypeTowardPlayer = function() {
     }
 };
 
-Game_Event.prototype.isNearThePlayer = function() {
-    var sx = Math.abs(this.deltaXFrom($gamePlayer.x));
-    var sy = Math.abs(this.deltaYFrom($gamePlayer.y));
-    return sx + sy < 20;
-};
-
 Game_Event.prototype.moveTypeCustom = function() {
     this.updateRoutineMove();
 };

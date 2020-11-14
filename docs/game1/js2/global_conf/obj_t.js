@@ -3868,7 +3868,34 @@ $dddd$=$aaaa$.prototype.setup=function f(){
 	AudioManager.stopMe();
 	AudioManager.stopBgs();
 	AudioManager.stopSe();
+	// put position and others back if same map
+	let mapid=this._mapId,evts=this._events;
 	f.ori.call(this,arguments[0]);
+	if(this._mapId===mapid){
+		for(let x=0;x!==evts.length;++x){
+			let src=evts[x],dst=this._events[x];
+			if(src && dst){
+				dst._x=src._x;
+				dst._y=src._y;
+				dst._realX=src._realX;
+				dst._realY=src._realY;
+				dst._direction=src._direction;
+				// 
+				if(src._queues && src._queues.length){
+					let srcq=src._queues,dstq=dst._queues;
+					dstq.length=srcq.length;
+					for(let q=0;q!==srcq.length;++q){
+						dstq[q]=new Queue();
+						dstq[q]._data=srcq[q]._data;
+						dstq[q]._strt=srcq[q]._strt;
+						dstq[q]._ende=srcq[q]._ende;
+						dstq[q]._len=srcq[q]._len;
+					}
+				}
+			}
+		}
+		
+	}
 	this.loadDynamicEvents();
 	// load 'meta.recordLoc' s
 	this.load_recordLoc();
@@ -6100,6 +6127,9 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 		let tmp=Number(meta.z2);
 		if(!isNaN(tmp)) this._z2=tmp;
 	}
+	if(meta.longDistDetection){
+		this._lld=meta.longDistDetection===true?true:Number(meta.longDistDetection);
+	}
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
 	
 	let x=this._x,y=this._y; // will be used later
@@ -6139,6 +6169,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	//debug.log2(this.refresh);
 	this.refresh();
 	
+	this._queues=[];
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._rmFromCoordTbl=function(){
@@ -6243,7 +6274,36 @@ Object.defineProperties($aaaa$.prototype,{
 		if(this._tid!==rhs) this.imgModded=true;
 		this._tid=rhs;
 	},configurable:false},
+	longDistDetection:{ get:function(){ return this._lld||false; },set:function(rhs){
+		return this._lld=rhs;
+	},configurable:false},
 });
+$aaaa$.prototype.queuePush=function(qidx,data){ qidx^=0;
+	if(!this._queues[qidx]) this._queues[qidx]=new Queue();
+	return this._queues[qidx].push(data);
+};
+$aaaa$.prototype.queuePop=function(qidx){ qidx^=0;
+	return this._queues[qidx]&&this._queues[qidx].pop();
+};
+$aaaa$.prototype.queueLen=function(qidx){
+	return (this._queues[qidx]&&this._queues[qidx].length)^0;
+};
+$aaaa$.prototype.queueGetnth=function(qidx,n){ qidx^=0;
+	return this._queues[qidx]&&this._queues[qidx].getnth(n);
+};
+$aaaa$.prototype.pushXyToQueue=function(qidx,obj){
+	return this.queuePush(qidx,[obj.x,obj.y]);
+};
+$aaaa$.prototype.findDirFromQueue=function(qidx){ // try from newest to oldest
+	let q=this._queues[qidx^0]; // 'this.pushXyToQueue' // [ ... , [x,y], ... ] 
+	if(!q) return 0;
+	for(let nth=q.length;nth--;){
+		let xy=q.getnth(nth);
+		let res=this.findDirectionTo(xy[0],xy[1]);
+		if(res!==0) return res;
+	}
+	return 0;
+};
 $aaaa$.prototype.resetDir=function(alsoSetupPage){
 	let p=this.findProperPageIndex();
 	if(p<0) return;
@@ -6293,6 +6353,13 @@ $aaaa$.prototype.setPreventZaWarudo=function(val){
 	this._preventZaWarudo=val;
 };
 $aaaa$.prototype.event=function(){ return $dataMap.events[this._eventId.toId()]; };
+$aaaa$.prototype.isNearThePlayer=function(p,dist){
+	p=p||$gamePlayer;
+	dist=dist===undefined?20:dist; dist^=0;
+	let sx = Math.abs(this.deltaXFrom(p.x));
+	let sy = Math.abs(this.deltaYFrom(p.y));
+	return sx + sy < dist;
+};
 $aaaa$.prototype.hasStrtType=function(key){
 	// strtType will be clear when 'this.start'
 	return this.strt && this.strt[key];
@@ -6669,6 +6736,23 @@ $aaaa$.prototype.canSlashed=function(){
 	// 權限
 	return this.canSlashed_auth(parents);
 };
+$aaaa$.prototype.updateSelfMovement=function(forced){
+	forced|=this.longDistDetection;
+	if (forced || !this._locked && this.isNearTheScreen() &&
+			this.checkStop(this.stopCountThreshold())) {
+		switch (this._moveType) {
+		case 1:
+			this.moveTypeRandom();
+			break;
+		case 2:
+			this.moveTypeTowardPlayer();
+			break;
+		case 3:
+			this.moveTypeCustom();
+			break;
+		}
+	}
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - switches
@@ -6904,8 +6988,8 @@ $dddd$.re_utf8=/\x1bUTF8\[([^\]]+)\]/g;
 $dddd$.f_utf8=function(){ return String.fromCharCode(arguments[1]); };
 $dddd$.re_code=/\x1bCODE'([^']+)'/g;
 $dddd$.f_code=function(){
-	//return eval(arguments[1]);
-	return Function('"use strict";return (' + arguments[1] + ')')();
+	return eval(arguments[1]); // {let s="嘔";for(let x=6;x--;)s+=s;s}
+	//return Function('"use strict";return (' + arguments[1] + ')')();
 };
 $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $dddd$.f_keyword=function(){

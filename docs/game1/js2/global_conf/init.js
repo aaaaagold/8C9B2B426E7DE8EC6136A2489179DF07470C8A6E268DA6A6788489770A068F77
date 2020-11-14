@@ -549,8 +549,9 @@ let setShorthand = (w)=>{
 		}
 		return false;
 	};
-	w.Queue.prototype.map=function(callback){
+	w.Queue.prototype.map=function f(callback){
 		let rtv=[];
+		callback=callback||f.same;
 		if(this._ende<this._strt){
 			for(let x=this._strt,xs=this._data.length;x!==xs;++x){
 				rtv.push(callback(this._data[x]));
@@ -565,6 +566,7 @@ let setShorthand = (w)=>{
 		}
 		return rtv;
 	};
+	w.Queue.prototype.map.same=x=>x;
 	w.Queue.prototype.filter=function(callback){
 		let rtv=[];
 		if(this._ende<this._strt){
