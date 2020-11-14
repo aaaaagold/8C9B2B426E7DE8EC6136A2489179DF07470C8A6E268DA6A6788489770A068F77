@@ -138,9 +138,8 @@ let onloadProc=function f(){
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),k,1);
 					if(isDev_) console.log(plain);
-					ac(scr,tn(plain));
-					ac(d.body,scr);
-					setTimeout(f,404);
+					ac(d.body, ac(scr,tn(plain)) );
+					f();
 				}
 			}
 		}
