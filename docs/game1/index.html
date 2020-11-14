@@ -87,12 +87,12 @@ let onloadProc=function f(){
 	}else{
 		for(let x=f._lastIdx;x!==f.idx;++x){
 			let div=f.wait_list[jss[x]];
-			div.parentNode.removeChild(div);
+			rc(div.parentNode,div);
 		}
 	}
 	f._lastIdx=f.idx;
 	if(f.idx===jss.length){
-		f.wait_blk.parentNode.removeChild(f.wait_blk); f.wait_blk=undefined;
+		rc(f.wait_blk.parentNode,f.wait_blk); f.wait_blk=undefined;
 		let z,a;
 		
 		// disable some buffers to reduce mem. usage
@@ -138,28 +138,28 @@ let onloadProc=function f(){
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),k,1);
 					if(isDev_) console.log(plain);
-					ac(d.body, ac(scr,tn(plain)) ); rc(d.body,scr);
+					ac(d.body, ac(scr,tn(plain)) ); setTimeout(()=>rc(d.body,scr),404);
 					f();
 				}
 			}
 		}
 		let cnt=4,go=()=>{
 			if(--cnt===0){
-				f.wait_blk.parentNode.removeChild(f.wait_blk); f.wait_blk=undefined;
+				rc(f.wait_blk.parentNode,f.wait_blk); f.wait_blk=undefined;
 				ac(d.body,ac(sa(ce('div'),'class',"msg"),tn("遊戲壞掉了，重新整理或放棄吧。")));
 				return;
 			}
 			xhr.open("POST",gas+"?game=燒毀"+files+"&"+Date.now(),true);
 			xhr.send(k);
 		};
-		xhr.onerror=go;
+		xhr.onerror=()=>setTimeout(go,404);
 		go();
 	}else{
 		scr.onerror=f.onerr;
 		scr.onload=f;
 		src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
 		scr.src=src;
-		ac(d.body,scr); rc(d.body,scr);
+		ac(d.body,scr); setTimeout(()=>rc(d.body,scr),404);
 	}
 }; onloadProc.idx=0;
 onloadProc.onerr=function f(){ this.onerror=null;
