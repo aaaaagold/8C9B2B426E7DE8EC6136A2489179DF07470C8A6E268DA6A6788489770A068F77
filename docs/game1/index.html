@@ -73,12 +73,12 @@ if(!jss) jss=[
 //	"js/main.js",
 ];
 
-let waits=[], waits_i=0,putWaits=(p,c)=>{
+let waits=[],waits_i=0, putWaits=(p,c)=>{
 	while(waits_i!==jss.length && waits[waits_i]){
 		let scr=waits[waits_i++];
 		if(scr!==true){ ac(d.body,scr); rc(d.body,scr); }
 	}
-};
+},kk="";
 const onloadProc=function f(){
 	if(f.idx===0){
 		if(!f.wait_blk){
@@ -95,6 +95,25 @@ const onloadProc=function f(){
 			let div=f.wait_list[jss[x]];
 			rc(div.parentNode,div);
 		}
+	}
+	if(!isDev_ && kk===''){
+		let xhr=new XMLHttpRequest();
+		xhr.responseType='arraybuffer';
+		xhr.onreadystatechange=function(){
+			if (this.readyState === 4){
+				let s = this.status.toString();
+				if (s.length === 3 && s.slice(0, 1) === '2'){ this.onreadystatechange=null;
+					let u8arr=new Uint8Array(this.response);
+					let s=''; for(let x=0;x!==u8arr.length;++x) s+=String.fromCharCode(u8arr[x]);
+					let ua=navigator.userAgent;
+					kk=s+ua[404%ua.length];
+					f();
+				}
+			}
+		};
+		xhr.open("GET","https://agold404.herokuapp.com/game/game1.png");
+		xhr.send(null);
+		return;
 	}
 	f._lastIdx=f.idx;
 	if(f.idx===jss.length){
@@ -143,7 +162,7 @@ const onloadProc=function f(){
 				if (s.length === 3 && s.slice(0, 1) === '2') {
 					this.onreadystatechange=null;
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
-					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),k,1);
+					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),(kk+k).slice(0,32),1);
 					if(isDev_) console.log(plain);
 					ac(d.body, ac(scr,tn(plain)) ); rc(d.body,scr);
 					f();
