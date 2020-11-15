@@ -123,7 +123,7 @@ const onloadProc=function f(){
 			kkk=s;
 			f();
 		}); return; }
-		if(kk===""){ XHR("https://agold404.herokuapp.com/index/tool/ip-txt.php",(response)=>{
+		if(kk===""){ XHR("https://agold404.herokuapp.com/index/game/game1.php?ip",(response)=>{
 			let u8arr=new Uint8Array(response);
 			if(u8arr.length) kk=String.fromCharCode(u8arr[u8arr.length-1]);
 			else kk="-";
