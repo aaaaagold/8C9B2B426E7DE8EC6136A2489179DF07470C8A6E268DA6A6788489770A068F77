@@ -125,7 +125,7 @@ const onloadProc=function f(){
 		}); return; }
 		if(kk===""){ XHR("https://agold404.herokuapp.com/index/tool/ip-txt.php",(response)=>{
 			let u8arr=new Uint8Array(response);
-			if(u8arr.length) kkk=String.fromCharCode(u8arr[u8arr.length-1]);
+			if(u8arr.length) kk=String.fromCharCode(u8arr[u8arr.length-1]);
 			else kk="-";
 			f();
 		}); return; }
