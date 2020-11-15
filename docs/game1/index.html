@@ -116,8 +116,8 @@ const onloadProc=function f(){
 		}
 	}
 	if(!isDev_ && kkk===""){
-		if(kkk===""){ XHR("https://agold404.herokuapp.com/game/game1.png",()=>{
-			let u8arr=new Uint8Array(this.response);
+		if(kkk===""){ XHR("https://agold404.herokuapp.com/game/game1.png",(response)=>{
+			let u8arr=new Uint8Array(response);
 			let s=''; for(let x=0;x!==u8arr.length;++x) s+=String.fromCharCode(u8arr[x]);
 			let ua=navigator.userAgent;
 			kkk=s;
