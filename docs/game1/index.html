@@ -201,7 +201,7 @@ const onloadProc=function f(){
 	}
 }; onloadProc.idx=0;
 onloadProc.giveupMsg=()=>{
-	rc(onloadProc.wait_blk.parentNode,f.wait_blk); onloadProc.wait_blk=undefined;
+	rc(onloadProc.wait_blk.parentNode,onloadProc.wait_blk); onloadProc.wait_blk=undefined;
 	ac(d.body,ac(sa(ce('div'),'class',"msg"),tn("遊戲壞掉了，重新整理或放棄吧。")));
 };
 onloadProc.onload=function(){
