@@ -916,11 +916,29 @@ $aaaa$.prototype.rmc_tree=function(key){ // prepare
 };
 $aaaa$.prototype.addc_tree=function(key,data){ // prepare
 };
+Object.defineProperties(Tilemap.prototype,{
+	frameCount_2:{ get:function(){return this._fc_2;}, set:function(rhs){
+		let fc_2=Number(rhs)^0;
+		if(0<fc_2){
+			this._fc_2=fc_2;
+			this._fc_2_msk=(1<<(fc_2+2))-1;
+		}
+		return rhs;
+	},configurable:false},
+});
+$rrrr$=$aaaa$.prototype.setData;
+$dddd$=$aaaa$.prototype.setData=function f(w,h,d){
+	if($dataMap){
+		let tmp=$dataMap.meta.frameCount_2;
+		if(tmp) this.frameCount_2=(Number(tmp)||5)^0;
+	}
+	return f.ori.call(this,w,h,d);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
 	if(_global_conf.noAutotile) this.animationFrame=0^0;
-	else this.animationFrame = ~~(++this.animationCount>>5); // always >=0 , use parseInt is faster
-	this.animationCount&=127;
+	else this.animationFrame = ~~(++this.animationCount>>this._fc_2); // always >=0 , use parseInt is faster
+	this.animationCount&=this._fc_2_msk;
 	f.updateChildren.call(this); // difference here
 	//this.children.forEach(c=>c&&c.update&&c.update());
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
@@ -980,30 +998,15 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	 */
 	this.bitmaps = [];
 	
-	/**
-	 * The origin point of the tilemap for scrolling.
-	 */
-	this.origin = new Point();
+	this.origin = new Point(); // The origin point of the tilemap for scrolling.
 	
-	/**
-	 * The tileset flags.
-	 */
-	this.flags = [];
+	this.flags = []; // The tileset flags.
 	
-	/**
-	 * The animation count for autotiles.
-	 */
-	this.animationCount  =  0^0;
+	this.animationCount  =  0^0; // The animation count for autotiles.
+	this.frameCount_2=5^0; // number of counting bits
 	
-	/**
-	 * Whether the tilemap loops horizontal.
-	 */
-	this.horizontalWrap = false;
-	
-	/**
-	 * Whether the tilemap loops vertical.
-	 */
-	this.verticalWrap = false;
+	this.horizontalWrap = false; // Whether the tilemap loops horizontal.
+	this.verticalWrap = false; // Whether the tilemap loops vertical.
 	
 	// pre-cal.
 	// first '+' then '^'

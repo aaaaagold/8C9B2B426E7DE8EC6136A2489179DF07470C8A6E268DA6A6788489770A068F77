@@ -175,8 +175,7 @@ list.fireCrystal=(action)=>{
 	backToMap();
 	let item=action.item();
 	if($dataMap.meta.disableBomb){
-		$gameParty.setFace();
-		$gameMessage.add("在這裡放\\item["+item.id+"]似乎不太好。");
+		$gameParty.speak("在這裡放\\item["+item.id+"]似乎不太好。");
 		return;
 	}
 	$gameParty.gainItem(item,-1);
