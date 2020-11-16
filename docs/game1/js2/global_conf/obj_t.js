@@ -4627,8 +4627,8 @@ $aaaa$.prototype.command111=function(){ // cond branch
 		result=Input.isPressed(this._params[1]);
 	}break;
 	case 12:{ // Script
-		//result=!!eval(this._params[1]);
-		result=!!Function('"use strict";return (' + this._params[1] + ')').bind(this)();
+		result=!!eval(this._params[1]);
+		//result=!!Function('"use strict";return (' + this._params[1] + ')').bind(this)();
 	}break;
 	case 13:{ // Vehicle
 		result=($gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]));

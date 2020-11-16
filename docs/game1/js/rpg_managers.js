@@ -7,39 +7,21 @@
 //
 // The static class that manages the database and game objects.
 
-function DataManager() {
-    throw new Error('This is a static class');
-}
-
-var $dataActors       = null;
-var $dataClasses      = null;
-var $dataSkills       = null;
-var $dataItems        = null;
-var $dataWeapons      = null;
-var $dataArmors       = null;
-var $dataEnemies      = null;
-var $dataTroops       = null;
-var $dataStates       = null;
-var $dataAnimations   = null;
-var $dataTilesets     = null;
-var $dataCommonEvents = null;
-var $dataSystem       = null;
-var $dataMapInfos     = null;
-var $dataMap          = null;
-var $gameTemp         = null;
-var $gameSystem       = null;
-var $gameScreen       = null;
-var $gameTimer        = null;
-var $gameMessage      = null;
-var $gameSwitches     = null;
-var $gameVariables    = null;
-var $gameSelfSwitches = null;
-var $gameActors       = null;
-var $gameParty        = null;
-var $gameTroop        = null;
-var $gameMap          = null;
-var $gamePlayer       = null;
-var $testEvent        = null;
+if(!window.objs) window.objs={};
+var $gameTemp         = objs.$gameTemp         = null;
+var $gameSystem       = objs.$gameSystem       = null;
+var $gameScreen       = objs.$gameScreen       = null;
+var $gameTimer        = objs.$gameTimer        = null;
+var $gameMessage      = objs.$gameMessage      = null;
+var $gameSwitches     = objs.$gameSwitches     = null;
+var $gameVariables    = objs.$gameVariables    = null;
+var $gameSelfSwitches = objs.$gameSelfSwitches = null;
+var $gameActors       = objs.$gameActors       = null;
+var $gameParty        = objs.$gameParty        = null;
+var $gameTroop        = objs.$gameTroop        = null;
+var $gameMap          = objs.$gameMap          = null;
+var $gamePlayer       = objs.$gamePlayer       = null;
+var $testEvent        = objs.$testEvent        = null;
 
 DataManager._globalId       = 'RPGMV';
 DataManager._lastAccessedId = 1;
@@ -154,19 +136,19 @@ DataManager.isEventTest = function() {
 };
 
 DataManager.createGameObjects = function() {
-    $gameTemp          = new Game_Temp();
-    $gameSystem        = new Game_System();
-    $gameScreen        = new Game_Screen();
-    $gameTimer         = new Game_Timer();
-    $gameMessage       = new Game_Message();
-    $gameSwitches      = new Game_Switches();
-    $gameVariables     = new Game_Variables();
-    $gameSelfSwitches  = new Game_SelfSwitches();
-    $gameActors        = new Game_Actors();
-    $gameParty         = new Game_Party();
-    $gameTroop         = new Game_Troop();
-    $gameMap           = new Game_Map();
-    $gamePlayer        = new Game_Player();
+    $gameTemp         = objs.$gameTemp         = new Game_Temp();
+    $gameSystem       = objs.$gameSystem       = new Game_System();
+    $gameScreen       = objs.$gameScreen       = new Game_Screen();
+    $gameTimer        = objs.$gameTimer        = new Game_Timer();
+    $gameMessage      = objs.$gameMessage      = new Game_Message();
+    $gameSwitches     = objs.$gameSwitches     = new Game_Switches();
+    $gameVariables    = objs.$gameVariables    = new Game_Variables();
+    $gameSelfSwitches = objs.$gameSelfSwitches = new Game_SelfSwitches();
+    $gameActors       = objs.$gameActors       = new Game_Actors();
+    $gameParty        = objs.$gameParty        = new Game_Party();
+    $gameTroop        = objs.$gameTroop        = new Game_Troop();
+    $gameMap          = objs.$gameMap          = new Game_Map();
+    $gamePlayer       = objs.$gamePlayer       = new Game_Player();
 };
 
 DataManager.setupNewGame = function() {
@@ -368,26 +350,22 @@ DataManager.makeSaveContents = function() {
 };
 
 DataManager.extractSaveContents = function(contents) {
-    $gameSystem        = contents.system;
-    $gameScreen        = contents.screen;
-    $gameTimer         = contents.timer;
-    $gameSwitches      = contents.switches;
-    $gameVariables     = contents.variables;
-    $gameSelfSwitches  = contents.selfSwitches;
-    $gameActors        = contents.actors;
-    $gameParty         = contents.party;
-    $gameMap           = contents.map;
-    $gamePlayer        = contents.player;
+    $gameSystem       = objs.$gameSystem       = contents.system;
+    $gameScreen       = objs.$gameScreen       = contents.screen;
+    $gameTimer        = objs.$gameTimer        = contents.timer;
+    $gameSwitches     = objs.$gameSwitches     = contents.switches;
+    $gameVariables    = objs.$gameVariables    = contents.variables;
+    $gameSelfSwitches = objs.$gameSelfSwitches = contents.selfSwitches;
+    $gameActors       = objs.$gameActors       = contents.actors;
+    $gameParty        = objs.$gameParty        = contents.party;
+    $gameMap          = objs.$gameMap          = contents.map;
+    $gamePlayer       = objs.$gamePlayer       = contents.player;
 };
 
 //-----------------------------------------------------------------------------
 // ConfigManager
 //
 // The static class that manages the configuration data.
-
-function ConfigManager() {
-    throw new Error('This is a static class');
-}
 
 ConfigManager.alwaysDash        = false;
 ConfigManager.commandRemember   = false;
@@ -458,10 +436,6 @@ ConfigManager.readFlag = function(config, name) {
 // StorageManager
 //
 // The static class that manages storage for saving game data.
-
-function StorageManager() {
-    throw new Error('This is a static class');
-}
 
 StorageManager.save = function(savefileId, json) {
     if (this.isLocalMode()) {
@@ -680,10 +654,6 @@ StorageManager.webStorageKey = function(savefileId) {
 // ImageManager
 //
 // The static class that loads images, creates bitmap objects and retains them.
-
-function ImageManager() {
-    throw new Error('This is a static class');
-}
 
 ImageManager.cache = new CacheMap(ImageManager);
 
@@ -962,10 +932,6 @@ ImageManager.clearRequest = function(){
 // AudioManager
 //
 // The static class that handles BGM, BGS, ME and SE.
-
-function AudioManager() {
-    throw new Error('This is a static class');
-}
 
 AudioManager._masterVolume   = 1;   // (min: 0, max: 1)
 AudioManager._bgmVolume      = 100;
@@ -1384,10 +1350,6 @@ AudioManager.checkWebAudioError = function(webAudio) {
 //
 // The static class that plays sound effects defined in the database.
 
-function SoundManager() {
-    throw new Error('This is a static class');
-}
-
 SoundManager.preloadImportantSounds = function() {
     this.loadSystemSound(0);
     this.loadSystemSound(1);
@@ -1507,10 +1469,6 @@ SoundManager.playUseSkill = function() {
 // TextManager
 //
 // The static class that handles terms and messages.
-
-function TextManager() {
-    throw new Error('This is a static class');
-}
 
 TextManager.basic = function(basicId) {
     return $dataSystem.terms.basic[basicId] || '';
@@ -1635,10 +1593,6 @@ Object.defineProperties(TextManager, {
 // SceneManager
 //
 // The static class that manages scene transitions.
-
-function SceneManager() {
-    throw new Error('This is a static class');
-}
 
 /*
  * Gets the current time in ms without on iOS Safari.
@@ -2000,10 +1954,6 @@ SceneManager.resume = function() {
 // BattleManager
 //
 // The static class that manages battle progress.
-
-function BattleManager() {
-    throw new Error('This is a static class');
-}
 
 BattleManager.setup = function(troopId, canEscape, canLose) {
     this.initMembers();
@@ -2657,10 +2607,6 @@ BattleManager.gainDropItems = function() {
 // PluginManager
 //
 // The static class that manages the plugins.
-
-function PluginManager() {
-    throw new Error('This is a static class');
-}
 
 PluginManager._path         = 'js/plugins/';
 PluginManager._scripts      = [];

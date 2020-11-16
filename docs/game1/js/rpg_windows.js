@@ -7,10 +7,6 @@
 //
 // The superclass of all windows within the game.
 
-function Window_Base() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_Base.prototype = Object.create(Window.prototype);
 Window_Base.prototype.constructor = Window_Base;
 
@@ -628,10 +624,6 @@ Window_Base.prototype.reserveFaceImages = function() {
 //
 // The window class with cursor movement and scroll functions.
 
-function Window_Selectable() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_Selectable.prototype = Object.create(Window_Base.prototype);
 Window_Selectable.prototype.constructor = Window_Selectable;
 
@@ -1153,10 +1145,6 @@ Window_Selectable.prototype.refresh = function() {
 //
 // The superclass of windows for selecting a command.
 
-function Window_Command() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_Command.prototype = Object.create(Window_Selectable.prototype);
 Window_Command.prototype.constructor = Window_Command;
 
@@ -1294,10 +1282,6 @@ Window_Command.prototype.refresh = function() {
 //
 // The command window for the horizontal selection format.
 
-function Window_HorzCommand() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_HorzCommand.prototype = Object.create(Window_Command.prototype);
 Window_HorzCommand.prototype.constructor = Window_HorzCommand;
 
@@ -1321,10 +1305,6 @@ Window_HorzCommand.prototype.itemTextAlign = function() {
 // Window_Help
 //
 // The window for displaying the description of the selected item.
-
-function Window_Help() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_Help.prototype = Object.create(Window_Base.prototype);
 Window_Help.prototype.constructor = Window_Help;
@@ -1360,10 +1340,6 @@ Window_Help.prototype.refresh = function() {
 // Window_Gold
 //
 // The window for displaying the party's gold.
-
-function Window_Gold() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_Gold.prototype = Object.create(Window_Base.prototype);
 Window_Gold.prototype.constructor = Window_Gold;
@@ -1407,10 +1383,6 @@ Window_Gold.prototype.open = function() {
 // Window_MenuCommand
 //
 // The window for selecting a command on the menu screen.
-
-function Window_MenuCommand() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_MenuCommand.prototype = Object.create(Window_Command.prototype);
 Window_MenuCommand.prototype.constructor = Window_MenuCommand;
@@ -1532,10 +1504,6 @@ Window_MenuCommand.prototype.selectLast = function() {
 //
 // The window for displaying party member status on the menu screen.
 
-function Window_MenuStatus() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_MenuStatus.prototype = Object.create(Window_Selectable.prototype);
 Window_MenuStatus.prototype.constructor = Window_MenuStatus;
 
@@ -1650,10 +1618,6 @@ Window_MenuStatus.prototype.setPendingIndex = function(index) {
 //
 // The window for selecting a target actor on the item and skill screens.
 
-function Window_MenuActor() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_MenuActor.prototype = Object.create(Window_MenuStatus.prototype);
 Window_MenuActor.prototype.constructor = Window_MenuActor;
 
@@ -1699,10 +1663,6 @@ Window_MenuActor.prototype.selectForItem = function(item) {
 //
 // The window for selecting a category of items on the item and shop screens.
 
-function Window_ItemCategory() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ItemCategory.prototype = Object.create(Window_HorzCommand.prototype);
 Window_ItemCategory.prototype.constructor = Window_ItemCategory;
 
@@ -1740,10 +1700,6 @@ Window_ItemCategory.prototype.setItemWindow = function(itemWindow) {
 // Window_ItemList
 //
 // The window for selecting an item on the item screen.
-
-function Window_ItemList() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_ItemList.prototype = Object.create(Window_Selectable.prototype);
 Window_ItemList.prototype.constructor = Window_ItemList;
@@ -1842,10 +1798,6 @@ Window_ItemList.prototype.refresh = function() {
 //
 // The window for selecting a skill type on the skill screen.
 
-function Window_SkillType() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_SkillType.prototype = Object.create(Window_Command.prototype);
 Window_SkillType.prototype.constructor = Window_SkillType;
 
@@ -1908,10 +1860,6 @@ Window_SkillType.prototype.selectLast = function() {
 //
 // The window for displaying the skill user's status on the skill screen.
 
-function Window_SkillStatus() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_SkillStatus.prototype = Object.create(Window_Base.prototype);
 Window_SkillStatus.prototype.constructor = Window_SkillStatus;
 
@@ -1943,10 +1891,6 @@ Window_SkillStatus.prototype.refresh = function() {
 // Window_SkillList
 //
 // The window for selecting a skill on the skill screen.
-
-function Window_SkillList() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_SkillList.prototype = Object.create(Window_Selectable.prototype);
 Window_SkillList.prototype.constructor = Window_SkillList;
@@ -2065,10 +2009,6 @@ Window_SkillList.prototype.refresh = function() {
 //
 // The window for displaying parameter changes on the equipment screen.
 
-function Window_EquipStatus() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_EquipStatus.prototype = Object.create(Window_Base.prototype);
 Window_EquipStatus.prototype.constructor = Window_EquipStatus;
 
@@ -2155,10 +2095,6 @@ Window_EquipStatus.prototype.drawNewParam = function(x, y, paramId) {
 //
 // The window for selecting a command on the equipment screen.
 
-function Window_EquipCommand() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_EquipCommand.prototype = Object.create(Window_HorzCommand.prototype);
 Window_EquipCommand.prototype.constructor = Window_EquipCommand;
 
@@ -2185,10 +2121,6 @@ Window_EquipCommand.prototype.makeCommandList = function() {
 // Window_EquipSlot
 //
 // The window for selecting an equipment slot on the equipment screen.
-
-function Window_EquipSlot() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_EquipSlot.prototype = Object.create(Window_Selectable.prototype);
 Window_EquipSlot.prototype.constructor = Window_EquipSlot;
@@ -2267,10 +2199,6 @@ Window_EquipSlot.prototype.updateHelp = function() {
 //
 // The window for selecting an equipment item on the equipment screen.
 
-function Window_EquipItem() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_EquipItem.prototype = Object.create(Window_ItemList.prototype);
 Window_EquipItem.prototype.constructor = Window_EquipItem;
 
@@ -2334,10 +2262,6 @@ Window_EquipItem.prototype.playOkSound = function() {
 // Window_Status
 //
 // The window for displaying full status on the status screen.
-
-function Window_Status() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_Status.prototype = Object.create(Window_Selectable.prototype);
 Window_Status.prototype.constructor = Window_Status;
@@ -2463,10 +2387,6 @@ Window_Status.prototype.maxEquipmentLines = function() {
 //
 // The window for changing various settings on the options screen.
 
-function Window_Options() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_Options.prototype = Object.create(Window_Command.prototype);
 Window_Options.prototype.constructor = Window_Options;
 
@@ -2589,10 +2509,6 @@ Window_Options.prototype.setConfigValue = function(symbol, volume) {
 //
 // The window for selecting a save file on the save and load screens.
 
-function Window_SavefileList() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_SavefileList.prototype = Object.create(Window_Selectable.prototype);
 Window_SavefileList.prototype.constructor = Window_SavefileList;
 
@@ -2678,10 +2594,6 @@ Window_SavefileList.prototype.playOkSound = function() {
 //
 // The window for selecting buy/sell on the shop screen.
 
-function Window_ShopCommand() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ShopCommand.prototype = Object.create(Window_HorzCommand.prototype);
 Window_ShopCommand.prototype.constructor = Window_ShopCommand;
 
@@ -2709,10 +2621,6 @@ Window_ShopCommand.prototype.makeCommandList = function() {
 // Window_ShopBuy
 //
 // The window for selecting an item to buy on the shop screen.
-
-function Window_ShopBuy() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_ShopBuy.prototype = Object.create(Window_Selectable.prototype);
 Window_ShopBuy.prototype.constructor = Window_ShopBuy;
@@ -2814,10 +2722,6 @@ Window_ShopBuy.prototype.updateHelp = function() {
 //
 // The window for selecting an item to sell on the shop screen.
 
-function Window_ShopSell() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ShopSell.prototype = Object.create(Window_ItemList.prototype);
 Window_ShopSell.prototype.constructor = Window_ShopSell;
 
@@ -2834,10 +2738,6 @@ Window_ShopSell.prototype.isEnabled = function(item) {
 //
 // The window for inputting quantity of items to buy or sell on the shop
 // screen.
-
-function Window_ShopNumber() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_ShopNumber.prototype = Object.create(Window_Selectable.prototype);
 Window_ShopNumber.prototype.constructor = Window_ShopNumber;
@@ -3060,10 +2960,6 @@ Window_ShopNumber.prototype.onButtonOk = function() {
 // The window for displaying number of items in possession and the actor's
 // equipment on the shop screen.
 
-function Window_ShopStatus() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ShopStatus.prototype = Object.create(Window_Base.prototype);
 Window_ShopStatus.prototype.constructor = Window_ShopStatus;
 
@@ -3212,10 +3108,6 @@ Window_ShopStatus.prototype.changePage = function() {
 //
 // The window for editing an actor's name on the name input screen.
 
-function Window_NameEdit() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_NameEdit.prototype = Object.create(Window_Base.prototype);
 Window_NameEdit.prototype.constructor = Window_NameEdit;
 
@@ -3344,10 +3236,6 @@ Window_NameEdit.prototype.refresh = function() {
 // Window_NameInput
 //
 // The window for selecting text characters on the name input screen.
-
-function Window_NameInput() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_NameInput.prototype = Object.create(Window_Selectable.prototype);
 Window_NameInput.prototype.constructor = Window_NameInput;
@@ -3612,10 +3500,6 @@ Window_NameInput.prototype.onNameOk = function() {
 //
 // The window used for the event command [Show Choices].
 
-function Window_ChoiceList() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ChoiceList.prototype = Object.create(Window_Command.prototype);
 Window_ChoiceList.prototype.constructor = Window_ChoiceList;
 
@@ -3710,10 +3594,6 @@ Window_ChoiceList.prototype.callCancelHandler = function() {
 // Window_NumberInput
 //
 // The window used for the event command [Input Number].
-
-function Window_NumberInput() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_NumberInput.prototype = Object.create(Window_Selectable.prototype);
 Window_NumberInput.prototype.constructor = Window_NumberInput;
@@ -3927,10 +3807,6 @@ Window_NumberInput.prototype.onButtonOk = function() {
 //
 // The window used for the event command [Select Item].
 
-function Window_EventItem() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_EventItem.prototype = Object.create(Window_ItemList.prototype);
 Window_EventItem.prototype.constructor = Window_EventItem;
 
@@ -3990,10 +3866,6 @@ Window_EventItem.prototype.onCancel = function() {
 // Window_Message
 //
 // The window for displaying text messages.
-
-function Window_Message() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_Message.prototype = Object.create(Window_Base.prototype);
 Window_Message.prototype.constructor = Window_Message;
@@ -4305,10 +4177,6 @@ Window_Message.prototype.startPause = function() {
 // The window for displaying scrolling text. No frame is displayed, but it
 // is handled as a window for convenience.
 
-function Window_ScrollText() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_ScrollText.prototype = Object.create(Window_Base.prototype);
 Window_ScrollText.prototype.constructor = Window_ScrollText;
 
@@ -4393,10 +4261,6 @@ Window_ScrollText.prototype.terminateMessage = function() {
 //
 // The window for displaying the map name on the map screen.
 
-function Window_MapName() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_MapName.prototype = Object.create(Window_Base.prototype);
 Window_MapName.prototype.constructor = Window_MapName;
 
@@ -4466,10 +4330,6 @@ Window_MapName.prototype.drawBackground = function(x, y, width, height) {
 //
 // The window for displaying battle progress. No frame is displayed, but it is
 // handled as a window for convenience.
-
-function Window_BattleLog() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_BattleLog.prototype = Object.create(Window_Selectable.prototype);
 Window_BattleLog.prototype.constructor = Window_BattleLog;
@@ -5055,10 +4915,6 @@ Window_BattleLog.prototype.makeTpDamageText = function(target) {
 //
 // The window for selecting whether to fight or escape on the battle screen.
 
-function Window_PartyCommand() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_PartyCommand.prototype = Object.create(Window_Command.prototype);
 Window_PartyCommand.prototype.constructor = Window_PartyCommand;
 
@@ -5095,10 +4951,6 @@ Window_PartyCommand.prototype.setup = function() {
 // Window_ActorCommand
 //
 // The window for selecting an actor's action on the battle screen.
-
-function Window_ActorCommand() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_ActorCommand.prototype = Object.create(Window_Command.prototype);
 Window_ActorCommand.prototype.constructor = Window_ActorCommand;
@@ -5191,10 +5043,6 @@ Window_ActorCommand.prototype.selectLast = function() {
 //
 // The window for displaying the status of party members on the battle screen.
 
-function Window_BattleStatus() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_BattleStatus.prototype = Object.create(Window_Selectable.prototype);
 Window_BattleStatus.prototype.constructor = Window_BattleStatus;
 
@@ -5281,10 +5129,6 @@ Window_BattleStatus.prototype.drawGaugeAreaWithoutTp = function(rect, actor) {
 //
 // The window for selecting a target actor on the battle screen.
 
-function Window_BattleActor() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_BattleActor.prototype = Object.create(Window_BattleStatus.prototype);
 Window_BattleActor.prototype.constructor = Window_BattleActor;
 
@@ -5319,10 +5163,6 @@ Window_BattleActor.prototype.actor = function() {
 // Window_BattleEnemy
 //
 // The window for selecting a target enemy on the battle screen.
-
-function Window_BattleEnemy() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_BattleEnemy.prototype = Object.create(Window_Selectable.prototype);
 Window_BattleEnemy.prototype.constructor = Window_BattleEnemy;
@@ -5398,10 +5238,6 @@ Window_BattleEnemy.prototype.select = function(index) {
 //
 // The window for selecting a skill to use on the battle screen.
 
-function Window_BattleSkill() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_BattleSkill.prototype = Object.create(Window_SkillList.prototype);
 Window_BattleSkill.prototype.constructor = Window_BattleSkill;
 
@@ -5425,10 +5261,6 @@ Window_BattleSkill.prototype.hide = function() {
 // Window_BattleItem
 //
 // The window for selecting an item to use on the battle screen.
-
-function Window_BattleItem() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_BattleItem.prototype = Object.create(Window_ItemList.prototype);
 Window_BattleItem.prototype.constructor = Window_BattleItem;
@@ -5457,10 +5289,6 @@ Window_BattleItem.prototype.hide = function() {
 // Window_TitleCommand
 //
 // The window for selecting New Game/Continue on the title screen.
-
-function Window_TitleCommand() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_TitleCommand.prototype = Object.create(Window_Command.prototype);
 Window_TitleCommand.prototype.constructor = Window_TitleCommand;
@@ -5509,10 +5337,6 @@ Window_TitleCommand.prototype.selectLast = function() {
 //
 // The window for selecting "Go to Title" on the game end screen.
 
-function Window_GameEnd() {
-    this.initialize.apply(this, arguments);
-}
-
 Window_GameEnd.prototype = Object.create(Window_Command.prototype);
 Window_GameEnd.prototype.constructor = Window_GameEnd;
 
@@ -5541,10 +5365,6 @@ Window_GameEnd.prototype.makeCommandList = function() {
 // Window_DebugRange
 //
 // The window for selecting a block of switches/variables on the debug screen.
-
-function Window_DebugRange() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_DebugRange.prototype = Object.create(Window_Selectable.prototype);
 Window_DebugRange.prototype.constructor = Window_DebugRange;
@@ -5637,10 +5457,6 @@ Window_DebugRange.prototype.setEditWindow = function(editWindow) {
 // Window_DebugEdit
 //
 // The window for displaying switches and variables on the debug screen.
-
-function Window_DebugEdit() {
-    this.initialize.apply(this, arguments);
-}
 
 Window_DebugEdit.prototype = Object.create(Window_Selectable.prototype);
 Window_DebugEdit.prototype.constructor = Window_DebugEdit;

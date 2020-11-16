@@ -7,10 +7,6 @@
 //
 // The sprite class with a feature which displays animations.
 
-function Sprite_Base() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Base.prototype = Object.create(Sprite.prototype);
 Sprite_Base.prototype.constructor = Sprite_Base;
 
@@ -56,10 +52,6 @@ Sprite_Base.prototype.isAnimationPlaying = function() {
 // Sprite_Button
 //
 // The sprite for displaying a button.
-
-function Sprite_Button() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Button.prototype = Object.create(Sprite.prototype);
 Sprite_Button.prototype.constructor = Sprite_Button;
@@ -165,10 +157,6 @@ Sprite_Button.prototype.canvasToLocalY = function(y) {
 // Sprite_Character
 //
 // The sprite for displaying a character.
-
-function Sprite_Character() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Character.prototype = Object.create(Sprite_Base.prototype);
 Sprite_Character.prototype.constructor = Sprite_Character;
@@ -375,10 +363,6 @@ Sprite_Character.prototype.isBalloonPlaying = function() {
 //
 // The superclass of Sprite_Actor and Sprite_Enemy.
 
-function Sprite_Battler() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Battler.prototype = Object.create(Sprite_Base.prototype);
 Sprite_Battler.prototype.constructor = Sprite_Battler;
 
@@ -564,10 +548,6 @@ Sprite_Battler.prototype.inHomePosition = function() {
 // Sprite_Actor
 //
 // The sprite for displaying an actor.
-
-function Sprite_Actor() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Actor.prototype = Object.create(Sprite_Battler.prototype);
 Sprite_Actor.prototype.constructor = Sprite_Actor;
@@ -839,10 +819,6 @@ Sprite_Actor.prototype.damageOffsetY = function() {
 //
 // The sprite for displaying an enemy.
 
-function Sprite_Enemy() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Enemy.prototype = Object.create(Sprite_Battler.prototype);
 Sprite_Enemy.prototype.constructor = Sprite_Enemy;
 
@@ -1096,10 +1072,6 @@ Sprite_Enemy.prototype.damageOffsetY = function() {
 // Sprite_Animation
 //
 // The sprite for displaying an animation.
-
-function Sprite_Animation() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Animation.prototype = Object.create(Sprite.prototype);
 Sprite_Animation.prototype.constructor = Sprite_Animation;
@@ -1367,10 +1339,6 @@ Sprite_Animation.prototype.startHiding = function(duration) {
 //
 // The sprite for displaying a popup damage.
 
-function Sprite_Damage() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Damage.prototype = Object.create(Sprite.prototype);
 Sprite_Damage.prototype.constructor = Sprite_Damage;
 
@@ -1487,10 +1455,6 @@ Sprite_Damage.prototype.isPlaying = function() {
 //
 // The sprite for displaying state icons.
 
-function Sprite_StateIcon() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_StateIcon.prototype = Object.create(Sprite.prototype);
 Sprite_StateIcon.prototype.constructor = Sprite_StateIcon;
 
@@ -1565,10 +1529,6 @@ Sprite_StateIcon.prototype.updateFrame = function() {
 //
 // The sprite for displaying an overlay image for a state.
 
-function Sprite_StateOverlay() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_StateOverlay.prototype = Object.create(Sprite_Base.prototype);
 Sprite_StateOverlay.prototype.constructor = Sprite_StateOverlay;
 
@@ -1634,10 +1594,6 @@ Sprite_StateOverlay.prototype.updateFrame = function() {
 // Sprite_Weapon
 //
 // The sprite for displaying a weapon image for attacking.
-
-function Sprite_Weapon() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Weapon.prototype = Object.create(Sprite_Base.prototype);
 Sprite_Weapon.prototype.constructor = Sprite_Weapon;
@@ -1716,10 +1672,6 @@ Sprite_Weapon.prototype.isPlaying = function() {
 //
 // The sprite for displaying a balloon icon.
 
-function Sprite_Balloon() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Balloon.prototype = Object.create(Sprite_Base.prototype);
 Sprite_Balloon.prototype.constructor = Sprite_Balloon;
 
@@ -1786,10 +1738,6 @@ Sprite_Balloon.prototype.isPlaying = function() {
 // Sprite_Picture
 //
 // The sprite for displaying a picture.
-
-function Sprite_Picture() {
-    this.initialize.apply(this, arguments);
-}
 
 Sprite_Picture.prototype = Object.create(Sprite.prototype);
 Sprite_Picture.prototype.constructor = Sprite_Picture;
@@ -1882,10 +1830,6 @@ Sprite_Picture.prototype.loadBitmap = function() {
 //
 // The sprite for displaying the timer.
 
-function Sprite_Timer() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Timer.prototype = Object.create(Sprite.prototype);
 Sprite_Timer.prototype.constructor = Sprite_Timer;
 
@@ -1943,10 +1887,6 @@ Sprite_Timer.prototype.updateVisibility = function() {
 //
 // The sprite for displaying the destination place of the touch input.
 
-function Sprite_Destination() {
-    this.initialize.apply(this, arguments);
-}
-
 Sprite_Destination.prototype = Object.create(Sprite.prototype);
 Sprite_Destination.prototype.constructor = Sprite_Destination;
 
@@ -1999,10 +1939,6 @@ Sprite_Destination.prototype.updateAnimation = function() {
 // Spriteset_Base
 //
 // The superclass of Spriteset_Map and Spriteset_Battle.
-
-function Spriteset_Base() {
-    this.initialize.apply(this, arguments);
-}
 
 Spriteset_Base.prototype = Object.create(Sprite.prototype);
 Spriteset_Base.prototype.constructor = Spriteset_Base;
@@ -2137,10 +2073,6 @@ Spriteset_Base.prototype.updatePosition = function() {
 //
 // The set of sprites on the map screen.
 
-function Spriteset_Map() {
-    this.initialize.apply(this, arguments);
-}
-
 Spriteset_Map.prototype = Object.create(Spriteset_Base.prototype);
 Spriteset_Map.prototype.constructor = Spriteset_Map;
 
@@ -2264,10 +2196,6 @@ Spriteset_Map.prototype.updateShadow = function() {
 // Spriteset_Battle
 //
 // The set of sprites on the battle screen.
-
-function Spriteset_Battle() {
-    this.initialize.apply(this, arguments);
-}
 
 Spriteset_Battle.prototype = Object.create(Spriteset_Base.prototype);
 Spriteset_Battle.prototype.constructor = Spriteset_Battle;

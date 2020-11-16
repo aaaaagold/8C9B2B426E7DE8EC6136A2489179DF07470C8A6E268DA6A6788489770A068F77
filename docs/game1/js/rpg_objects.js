@@ -7,10 +7,6 @@
 //
 // The game object class for temporary data that is not included in save data.
 
-function Game_Temp() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Temp.prototype.initialize = function() {
     this._isPlaytest = Utils.isOptionValid('test');
     this._commonEventId = 0;
@@ -64,10 +60,6 @@ Game_Temp.prototype.destinationY = function() {
 // Game_System
 //
 // The game object class for the system data.
-
-function Game_System() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_System.prototype.initialize = function() {
     this._saveEnabled = true;
@@ -274,10 +266,6 @@ Game_System.prototype.saveWalkingBgm2 = function() {
 //
 // The game object class for the timer.
 
-function Game_Timer() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Timer.prototype.initialize = function() {
     this._frames = 0;
     this._working = false;
@@ -318,10 +306,6 @@ Game_Timer.prototype.onExpire = function() {
 //
 // The game object class for the state of the message window that displays text
 // or selections, etc.
-
-function Game_Message() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Message.prototype.initialize = function() {
     this.clear();
@@ -506,10 +490,6 @@ Game_Message.prototype.allText = function() {
 //
 // The game object class for switches.
 
-function Game_Switches() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Switches.prototype.initialize = function() {
     this.clear();
 };
@@ -538,10 +518,6 @@ Game_Switches.prototype.onChange = function() {
 //
 // The game object class for variables.
 
-function Game_Variables() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Variables.prototype.initialize = function() {
     this.clear();
 };
@@ -562,10 +538,6 @@ Game_Variables.prototype.onChange = function() {
 // Game_SelfSwitches
 //
 // The game object class for self switches.
-
-function Game_SelfSwitches() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_SelfSwitches.prototype.initialize = function() {
     this.clear();
@@ -593,10 +565,6 @@ Game_SelfSwitches.prototype.onChange = function() {
 //
 // The game object class for screen effect data, such as changes in color tone
 // and flashes.
-
-function Game_Screen() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Screen.prototype.initialize = function() {
     this.clear();
@@ -906,10 +874,6 @@ Game_Screen.prototype.erasePicture = function(pictureId) {
 //
 // The game object class for a picture.
 
-function Game_Picture() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Picture.prototype.initialize = function() {
     this.initBasic();
     this.initTarget();
@@ -1078,10 +1042,6 @@ Game_Picture.prototype.updateRotation = function() {
 // The game object class for handling skills, items, weapons, and armor. It is
 // required because save data should not include the database object itself.
 
-function Game_Item() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Item.prototype.initialize = function(item) {
     this._dataClass = '';
     this._itemId = 0;
@@ -1160,10 +1120,6 @@ Game_Item.prototype.setEquip = function(isWeapon, itemId) {
 // Game_Action
 //
 // The game object class for a battle action.
-
-function Game_Action() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Action.EFFECT_RECOVER_HP       = 11;
 Game_Action.EFFECT_RECOVER_MP       = 12;
@@ -1939,10 +1895,6 @@ Game_Action.prototype.applyGlobal = function() {
 // The game object class for a result of a battle action. For convinience, all
 // member variables in this class are public.
 
-function Game_ActionResult() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_ActionResult.prototype.initialize = function() {
     this.clear();
 };
@@ -2042,10 +1994,6 @@ Game_ActionResult.prototype.pushRemovedBuff = function(paramId) {
 // Game_BattlerBase
 //
 // The superclass of Game_Battler. It mainly contains parameters calculation.
-
-function Game_BattlerBase() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_BattlerBase.TRAIT_ELEMENT_RATE   = 11;
 Game_BattlerBase.TRAIT_DEBUFF_RATE    = 12;
@@ -2787,10 +2735,6 @@ Game_BattlerBase.prototype.canGuard = function() {
 // The superclass of Game_Actor and Game_Enemy. It contains methods for sprites
 // and actions.
 
-function Game_Battler() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Battler.prototype = Object.create(Game_BattlerBase.prototype);
 Game_Battler.prototype.constructor = Game_Battler;
 
@@ -3328,10 +3272,6 @@ Game_Battler.prototype.performCollapse = function() {
 // Game_Actor
 //
 // The game object class for an actor.
-
-function Game_Actor() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Actor.prototype = Object.create(Game_Battler.prototype);
 Game_Actor.prototype.constructor = Game_Actor;
@@ -4157,10 +4097,6 @@ Game_Actor.prototype.meetsUsableItemConditions = function(item) {
 //
 // The game object class for an enemy.
 
-function Game_Enemy() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Enemy.prototype = Object.create(Game_Battler.prototype);
 Game_Enemy.prototype.constructor = Game_Enemy;
 
@@ -4447,10 +4383,6 @@ Game_Enemy.prototype.makeActions = function() {
 //
 // The wrapper class for an actor array.
 
-function Game_Actors() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Actors.prototype.initialize = function() {
     this._data = [];
 };
@@ -4459,10 +4391,6 @@ Game_Actors.prototype.initialize = function() {
 // Game_Unit
 //
 // The superclass of Game_Party and Game_Troop.
-
-function Game_Unit() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Unit.prototype.initialize = function() {
     this._inBattle = false;
@@ -4607,10 +4535,6 @@ Game_Unit.prototype.substituteBattler = function() {
 //
 // The game object class for the party. Information such as gold and items is
 // included.
-
-function Game_Party() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Party.prototype = Object.create(Game_Unit.prototype);
 Game_Party.prototype.constructor = Game_Party;
@@ -5022,10 +4946,6 @@ Game_Party.prototype.requestMotionRefresh = function() {
 //
 // The game object class for a troop and the battle-related data.
 
-function Game_Troop() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Troop.prototype = Object.create(Game_Unit.prototype);
 Game_Troop.prototype.constructor = Game_Troop;
 
@@ -5225,10 +5145,6 @@ Game_Troop.prototype.makeDropItems = function() {
 //
 // The game object class for a map. It contains scrolling and passage
 // determination functions.
-
-function Game_Map() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Map.prototype.initialize = function() {
     this._interpreter = new Game_Interpreter();
@@ -5766,10 +5682,6 @@ Game_Map.prototype.setupAutorunCommonEvent = function() {
 // The game object class for a common event. It contains functionality for
 // running parallel process events.
 
-function Game_CommonEvent() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_CommonEvent.prototype.initialize = function(commonEventId) {
     this._commonEventId = commonEventId;
     this.refresh();
@@ -5812,10 +5724,6 @@ Game_CommonEvent.prototype.update = function() {
 //
 // The superclass of Game_Character. It handles basic information, such as
 // coordinates and images, shared by all characters.
-
-function Game_CharacterBase() {
-    this.initialize.apply(this, arguments);
-}
 
 Object.defineProperties(Game_CharacterBase.prototype, {
     x: { get: function() { return this._x; }, configurable: true },
@@ -6367,10 +6275,6 @@ Game_CharacterBase.prototype.endBalloon = function() {
 //
 // The superclass of Game_Player, Game_Follower, GameVehicle, and Game_Event.
 
-function Game_Character() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Character.prototype = Object.create(Game_CharacterBase.prototype);
 Game_Character.prototype.constructor = Game_Character;
 
@@ -6864,10 +6768,6 @@ Game_Character.prototype.findDirectionTo = function(goalX, goalY) {
 //
 // The game object class for the player. It contains event starting
 // determinants and map scrolling functions.
-
-function Game_Player() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Player.prototype = Object.create(Game_Character.prototype);
 Game_Player.prototype.constructor = Game_Player;
@@ -7407,10 +7307,6 @@ Game_Player.prototype.areFollowersGathered = function() {
 // The game object class for a follower. A follower is an allied character,
 // other than the front character, displayed in the party.
 
-function Game_Follower() {
-    this.initialize.apply(this, arguments);
-}
-
 Game_Follower.prototype = Object.create(Game_Character.prototype);
 Game_Follower.prototype.constructor = Game_Follower;
 
@@ -7450,10 +7346,6 @@ Game_Follower.prototype.update = function() {
 // Game_Followers
 //
 // The wrapper class for a follower array.
-
-function Game_Followers() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Followers.prototype.initialize = function() {
     this._visible = $dataSystem.optFollowers;
@@ -7571,10 +7463,6 @@ Game_Followers.prototype.isSomeoneCollided = function(x, y) {
 // Game_Vehicle
 //
 // The game object class for a vehicle.
-
-function Game_Vehicle() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Vehicle.prototype = Object.create(Game_Character.prototype);
 Game_Vehicle.prototype.constructor = Game_Vehicle;
@@ -7806,10 +7694,6 @@ Game_Vehicle.prototype.isLandOk = function(x, y, d) {
 //
 // The game object class for an event. It contains functionality for event page
 // switching and running parallel process events.
-
-function Game_Event() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Event.prototype = Object.create(Game_Character.prototype);
 Game_Event.prototype.constructor = Game_Event;
@@ -8126,10 +8010,6 @@ Game_Event.prototype.forceMoveRoute = function(moveRoute) {
 // Game_Interpreter
 //
 // The interpreter for running event commands.
-
-function Game_Interpreter() {
-    this.initialize.apply(this, arguments);
-}
 
 Game_Interpreter.prototype.initialize = function(depth) {
     this._depth = depth || 0;

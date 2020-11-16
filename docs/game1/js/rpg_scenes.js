@@ -11,10 +11,6 @@
  * @constructor 
  * @extends Stage
  */
-function Scene_Base() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Base.prototype = Object.create(Stage.prototype);
 Scene_Base.prototype.constructor = Scene_Base;
 
@@ -327,10 +323,6 @@ Scene_Base.prototype.slowFadeSpeed = function() {
 //
 // The scene class for initializing the entire game.
 
-function Scene_Boot() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Boot.prototype = Object.create(Scene_Base.prototype);
 Scene_Boot.prototype.constructor = Scene_Boot;
 
@@ -403,10 +395,6 @@ Scene_Boot.prototype.checkPlayerLocation = function() {
 // Scene_Title
 //
 // The scene class of the title screen.
-
-function Scene_Title() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Title.prototype = Object.create(Scene_Base.prototype);
 Scene_Title.prototype.constructor = Scene_Title;
@@ -508,10 +496,6 @@ Scene_Title.prototype.playTitleMusic = function() {
 // Scene_Map
 //
 // The scene class of the map screen.
-
-function Scene_Map() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Map.prototype = Object.create(Scene_Base.prototype);
 Scene_Map.prototype.constructor = Scene_Map;
@@ -871,10 +855,6 @@ Scene_Map.prototype.encounterEffectSpeed = function() {
 //
 // The superclass of all the menu-type scenes.
 
-function Scene_MenuBase() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_MenuBase.prototype = Object.create(Scene_Base.prototype);
 Scene_MenuBase.prototype.constructor = Scene_MenuBase;
 
@@ -931,10 +911,6 @@ Scene_MenuBase.prototype.onActorChange = function() {
 // Scene_Menu
 //
 // The scene class of the menu screen.
-
-function Scene_Menu() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Menu.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Menu.prototype.constructor = Scene_Menu;
@@ -1039,10 +1015,6 @@ Scene_Menu.prototype.onFormationCancel = function() {
 // Scene_ItemBase
 //
 // The superclass of Scene_Item and Scene_Skill.
-
-function Scene_ItemBase() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_ItemBase.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_ItemBase.prototype.constructor = Scene_ItemBase;
@@ -1177,10 +1149,6 @@ Scene_ItemBase.prototype.checkCommonEvent = function() {
 //
 // The scene class of the item screen.
 
-function Scene_Item() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Item.prototype = Object.create(Scene_ItemBase.prototype);
 Scene_Item.prototype.constructor = Scene_Item;
 
@@ -1257,10 +1225,6 @@ Scene_Item.prototype.useItem = function() {
 // Scene_Skill
 //
 // The scene class of the skill screen.
-
-function Scene_Skill() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Skill.prototype = Object.create(Scene_ItemBase.prototype);
 Scene_Skill.prototype.constructor = Scene_Skill;
@@ -1367,10 +1331,6 @@ Scene_Skill.prototype.onActorChange = function() {
 // Scene_Equip
 //
 // The scene class of the equipment screen.
-
-function Scene_Equip() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Equip.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Equip.prototype.constructor = Scene_Equip;
@@ -1499,10 +1459,6 @@ Scene_Equip.prototype.onActorChange = function() {
 //
 // The scene class of the status screen.
 
-function Scene_Status() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Status.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Status.prototype.constructor = Scene_Status;
 
@@ -1540,10 +1496,6 @@ Scene_Status.prototype.onActorChange = function() {
 //
 // The scene class of the options screen.
 
-function Scene_Options() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Options.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Options.prototype.constructor = Scene_Options;
 
@@ -1571,10 +1523,6 @@ Scene_Options.prototype.createOptionsWindow = function() {
 // Scene_File
 //
 // The superclass of Scene_Save and Scene_Load.
-
-function Scene_File() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_File.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_File.prototype.constructor = Scene_File;
@@ -1644,10 +1592,6 @@ Scene_File.prototype.onSavefileOk = function() {
 //
 // The scene class of the save screen.
 
-function Scene_Save() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Save.prototype = Object.create(Scene_File.prototype);
 Scene_Save.prototype.constructor = Scene_Save;
 
@@ -1692,10 +1636,6 @@ Scene_Save.prototype.onSaveFailure = function() {
 // Scene_Load
 //
 // The scene class of the load screen.
-
-function Scene_Load() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Load.prototype = Object.create(Scene_File.prototype);
 Scene_Load.prototype.constructor = Scene_Load;
@@ -1758,10 +1698,6 @@ Scene_Load.prototype.reloadMapIfUpdated = function() {
 //
 // The scene class of the game end screen.
 
-function Scene_GameEnd() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_GameEnd.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_GameEnd.prototype.constructor = Scene_GameEnd;
 
@@ -1800,10 +1736,6 @@ Scene_GameEnd.prototype.commandToTitle = function() {
 // Scene_Shop
 //
 // The scene class of the shop screen.
-
-function Scene_Shop() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Shop.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Shop.prototype.constructor = Scene_Shop;
@@ -2063,10 +1995,6 @@ Scene_Shop.prototype.sellingPrice = function() {
 //
 // The scene class of the name input screen.
 
-function Scene_Name() {
-    this.initialize.apply(this, arguments);
-}
-
 Scene_Name.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Name.prototype.constructor = Scene_Name;
 
@@ -2111,10 +2039,6 @@ Scene_Name.prototype.onInputOk = function() {
 // Scene_Debug
 //
 // The scene class of the debug screen.
-
-function Scene_Debug() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Debug.prototype = Object.create(Scene_MenuBase.prototype);
 Scene_Debug.prototype.constructor = Scene_Debug;
@@ -2189,10 +2113,6 @@ Scene_Debug.prototype.helpText = function() {
 // Scene_Battle
 //
 // The scene class of the battle screen.
-
-function Scene_Battle() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Battle.prototype = Object.create(Scene_Base.prototype);
 Scene_Battle.prototype.constructor = Scene_Battle;
@@ -2594,10 +2514,6 @@ Scene_Battle.prototype.endCommandSelection = function() {
 // Scene_Gameover
 //
 // The scene class of the game over screen.
-
-function Scene_Gameover() {
-    this.initialize.apply(this, arguments);
-}
 
 Scene_Gameover.prototype = Object.create(Scene_Base.prototype);
 Scene_Gameover.prototype.constructor = Scene_Gameover;
