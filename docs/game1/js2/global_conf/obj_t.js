@@ -1205,8 +1205,8 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	//debug.log("Tilemap.prototype._paintTiles");
 	let w=this._mapWidth,h=this._mapHeight;
 	let tableEdgeVirtualId = 1<<14;
-	let mx = startX + (this.horizontalWrap?x.mod(w):x);
-	let my = startY + (this.  verticalWrap?y.mod(h):y);
+	let mx = startX + (this.horizontalWrap&&this._tileCols<w?x.mod(w):x);
+	let my = startY + (this.  verticalWrap&&this._tileRows<h?y.mod(h):y);
 	let mmx=this.horizontalWrap?mx.mod(w):mx;
 	let mmy=this.  verticalWrap?my.mod(h):my;
 	let lx = mx.mod(this._tileCols);
@@ -3814,6 +3814,38 @@ $aaaa$.prototype.scrollUp_th=function(distance_th) {
 $aaaa$.prototype.scrollUp = function(distance) {
 	console.warn(distance);
 	return this.scrollUp_th(this.tileHeight()*distance);
+};
+$aaaa$.prototype.scrollToT=function(tx,ty){
+	let lastDispX=this._displayX_tw;
+	let lastDispY=this._displayY_th;
+	if(lastDispX<tx) this.scrollRight_tw(tx-lastDispX);
+	else this.scrollLeft_tw(lastDispX-tx);
+	if(lastDispY<ty) this.scrollDown_th(ty-lastDispY);
+	else this.scrollUp_th(lastDispY-ty);
+	return true;
+};
+$aaaa$.prototype.scrollToT_gradually_clear=function(){
+	$gameTemp._scrollRest=0;
+};
+$aaaa$.prototype.scrollToT_gradually=function(tx,ty,kargs){
+	let tmp=$gameTemp;
+	tmp._scrollRest^=0;
+	if(tmp._scrollRest===0){
+		let ctrMax=(2048>>>this._scrollSpeed);
+		if(ctrMax===0) return this.scrollToT(tx,ty);
+		tmp._scroll_r=Math.PI/ctrMax;
+		tmp._scrollRest=ctrMax;
+		tmp._scroll_dx=this._displayX_tw-tx;
+		tmp._scroll_dy=this._displayY_th-ty;
+		if(this.isLoopHorizontal() && this._hth<(Math.abs(tmp._scroll_dx)<<1))
+			tmp._scroll_dx+=this._displayX_tw<tx?this._wtw:-this._wtw;
+		if(this.isLoopVertical  () && this._hth<(Math.abs(tmp._scroll_dy)<<1))
+			tmp._scroll_dy+=this._displayY_th<ty?this._hth:-this._hth;
+	}
+	if(--tmp._scrollRest===0) return this.scrollToT(tx,ty);
+	let r=(1-Math.cos(tmp._scrollRest*tmp._scroll_r))/2.0;
+	this.scrollToT(tmp._scroll_dx*r+tx,tmp._scroll_dy*r+ty);
+	return;
 };
 $aaaa$.prototype.screenTileX=function(){ return this._screenTileX^0; };
 $aaaa$.prototype.screenTileY=function(){ return this._screenTileY^0; };

@@ -2,6 +2,7 @@
 // before any .js files
 
 const INF=Infinity,inf=Infinity,NULL=null,UNDEF=undefined,undef=undefined,none=()=>{};
+const PI_64=Math.PI/64.0,PI_128=Math.PI/128.0;
 const blank_1x1='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQYV2NgAAIAAAUAAarVyFEAAAAASUVORK5CYII=';
 const blank_audio='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YQAAAAA=';
 const tm2020strt=new Date("2020-01-01T00:00:00.000Z").getTime();
