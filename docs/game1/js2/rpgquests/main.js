@@ -58,7 +58,7 @@ rpgquests.func.addStateObj=(quest)=>{
 	switch(quest.info.type){
 		default: break;
 		case "evaltrue": { quest.txt.push(sep);
-			quest.txt.push("\n"); quest.txt.push({txt:"====達成下列條件====",color:color.code}); 
+			quest.txt.push("\n"); quest.txt.push({txt:"========達成下列條件========",color:color.code}); 
 			quest.info.codes.forEach((x)=>{ quest.txt.push("\n"); quest.txt.push({color:color.default});
 				Object.defineProperties(quest.txt.back,{ txt: { get:(()=>{
 					let rtv=x[1]&&x[1]+"："||"(不明) : "; rtv+=(eval(x[0])?color.finish:"未")+"完成";
@@ -75,7 +75,7 @@ rpgquests.func.addStateObj=(quest)=>{
 			quest.finish=none;
 		}break;
 		case "collectItems": { quest.txt.push(sep);
-			quest.txt.push("\n"); quest.txt.push({txt:"====蒐集道具====",color:color.item});
+			quest.txt.push("\n"); quest.txt.push({txt:"========蒐集道具========",color:color.item});
 			quest.info.items.forEach((x)=>{ quest.txt.push("\n"); quest.txt.push({color:color.default});
 				Object.defineProperties(quest.txt.back,{ txt:{ get:(()=>{
 					let rtv=$dataItems[x.id].name; rtv+=$gameParty._items[x.id]>=x.amount?color.finish+" ":" ";
@@ -106,7 +106,7 @@ rpgquests.func.addRewardObj=(quest)=>{
 	if(r.gold||items.length||weapons.length||armors.length||codes.length) ; else return;
 	
 	quest.txt.push(sep);
-	quest.txt.push("\n"); quest.txt.push({txt:"====獎勵====",color:color.gain});
+	quest.txt.push("\n"); quest.txt.push({txt:"========獎勵========",color:color.gain});
 	
 	if(items.length){ quest.txt.push("\n"); quest.txt.push({txt:color.item+"道具",color:color.default}); }
 	items.forEach(x=>{ quest.txt.push("\n"); quest.txt.push({

@@ -2188,9 +2188,9 @@ $aaaa$.prototype.redrawtxt=function(forced){
 			this.strt=(this.contents.width-this.drawTextEx(this.txt,0,0))>>1;
 		}break;
 		case 'right':{
-			this.strt=this.contents.width-this.drawTextEx(this.txt,0,0); strtx*=0<strtx;
+			this.strt=this.contents.width-this.drawTextEx(this.txt,0,0); this.strtx*=0<this.strtx;
 		}break;
-	} this.contents.clear(); this.drawTextEx(this.txt,0,0); }
+	} this.contents.clear(); this.drawTextEx(this.txt,this.strt,0); }
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomPopupMsg
 

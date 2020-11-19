@@ -94,6 +94,47 @@ $aaaa$.prototype.destructor=function(){
 	for(let x=r.length;x--;) this.removeChildAt(x);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
+// - Window
+$aaaa$=Window;
+$aaaa$.prototype._refreshCursor = function() { // rewrite: original create bitmap EVERY TIME
+	let pad = this._padding;
+	let x = this._cursorRect.x + pad - this.origin.x;
+	let y = this._cursorRect.y + pad - this.origin.y;
+	let w = this._cursorRect.width;
+	let h = this._cursorRect.height;
+	let m = 4;
+	let x2 = Math.max(x, pad);
+	let y2 = Math.max(y, pad);
+	let ox = x - x2;
+	let oy = y - y2;
+	let w2 = Math.min(w, this._width - pad - x2);
+	let h2 = Math.min(h, this._height - pad - y2);
+	
+	// reuse bitmap object
+	let wcs=this._windowCursorSprite,last=wcs.bitmap;
+	if(!wcs.bitmap) wcs.bitmap = new Bitmap(w2, h2);
+	else wcs.bitmap.initialize(w2,h2);
+	let bitmap=wcs.bitmap;
+	bitmap.clearRect(0,0,w2,h2);
+	
+	wcs.setFrame(0, 0, w2, h2);
+	wcs.move(x2, y2);
+	
+	if (w > 0 && h > 0 && this._windowskin) {
+		let skin = this._windowskin;
+		let p = 96;
+		let q = 48;
+		bitmap.blt(skin, p+m, p+m, q-m*2, q-m*2, ox+m, oy+m, w-m*2, h-m*2);
+		bitmap.blt(skin, p+m, p+0, q-m*2, m, ox+m, oy+0, w-m*2, m);
+		bitmap.blt(skin, p+m, p+q-m, q-m*2, m, ox+m, oy+h-m, w-m*2, m);
+		bitmap.blt(skin, p+0, p+m, m, q-m*2, ox+0, oy+m, m, h-m*2);
+		bitmap.blt(skin, p+q-m, p+m, m, q-m*2, ox+w-m, oy+m, m, h-m*2);
+		bitmap.blt(skin, p+0, p+0, m, m, ox+0, oy+0, m, m);
+		bitmap.blt(skin, p+q-m, p+0, m, m, ox+w-m, oy+0, m, m);
+		bitmap.blt(skin, p+0, p+q-m, m, m, ox+0, oy+h-m, m, m);
+		bitmap.blt(skin, p+q-m, p+q-m, m, m, ox+w-m, oy+h-m, m, m);
+	}
+};
 // - Window_Base
 $aaaa$=Window_Base;
 $rrrr$=$aaaa$.prototype.removeChild;
@@ -583,9 +624,27 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Bitmap;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(w,h){
+	if(this.__canvas){
+		let c=this.__canvas;
+		let r=c.width<w||c.height<h;
+		c.width=w;
+		c.height=h;
+		if(r) this._createBaseTexture(c);
+	}
 	f.ori.call(this,w,h);
 	this._loadListeners=new Queue();
+	this.fontFace=_global_conf.useFont;
+	// debug
+	//if(!window['/tmp/'].bitmaps) window['/tmp/'].bitmaps=new Set();
+	//window['/tmp/'].bitmaps.add(this);
 }; $dddd$.ori=$rrrr$;
+if(0){ // debug
+$rrrr$=$aaaa$.prototype.clearRect;
+$dddd$=$aaaa$.prototype.clearRect=function f(x,y,w,h){
+	if(w||h) if(window['/tmp/'].bitmaps) window['/tmp/'].bitmaps.delete(this);
+	return f.ori.call(this,x,y,w,h);
+}; $dddd$.ori=$rrrr$;
+}
 $rrrr$=$aaaa$.load;
 $dddd$=$aaaa$.load=function f(url,key){ // f(url,key,opt)
 	if(url==="data:,") return ImageManager.loadEmptyBitmap();
@@ -602,11 +661,6 @@ $dddd$=$aaaa$.load=function f(url,key){ // f(url,key,opt)
 	rtv._cacheKey=key;
 	//rtv._opt=opt;
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(w,h){
-	f.ori.call(this,w,h);
-	this.fontFace=_global_conf.useFont;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.measureTextWidth;
 $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
@@ -1320,7 +1374,9 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
 	let lastUpperTiles = this._readLastTiles(4, lx, ly);
 	upperTiles.playerNearby=$gamePlayer.dist2({x:mmx,y:mmy,dist2:true})===0;
-	if(flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby || !upperTiles.equals(lastUpperTiles)){
+	if( flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby 
+		|| !(lastUpperTiles===upperTiles||upperTiles.equals(lastUpperTiles)) 
+	){
 		flag_drawAddUpper=true;
 		this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
 		for(let j=0,revealTp=upperTiles.playerNearby?Tilemap.revealTp:undefined;j!==upperTiles.length;++j) this._drawTile(this._upperBitmap, upperTiles[j], dx, dy , revealTp);
@@ -2708,6 +2764,13 @@ $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
 	$gameParty.saveDynamicEvents();
 	let rtv=f.ori.call(this);
+	
+	if(!ConfigManager._apps) ConfigManager._apps={};
+	let apps_src=rtv.party._apps,apps_dst=ConfigManager._apps;
+	for(let i in apps_src) apps_dst[i]=apps_src[i];
+	for(let i in apps_dst) apps_src[i]=apps_dst[i];
+	ConfigManager.save();
+	
 	f.delAttrs_chr(rtv.player);
 	for(let x=0,arr=rtv.map._events;x!==arr.length;++x){
 		let evt=arr[x]; if(!evt) continue;
@@ -2722,9 +2785,16 @@ $dddd$.delAttrs_chr=function f(chr){
 };
 $dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp",];
 $rrrr$=$aaaa$.extractSaveContents;
-$dddd$=$aaaa$.extractSaveContents=function f(){
+$dddd$=$aaaa$.extractSaveContents=function f(content){
 	debug.log('DataManager.extractSaveContents');
-	f.ori.call(this,arguments[0]);
+	f.ori.call(this,content);
+	
+	if(!ConfigManager._apps) ConfigManager._apps={};
+	let apps_src=content.party._apps,apps_dst=ConfigManager._apps;
+	for(let i in apps_src) apps_dst[i]=apps_src[i];
+	for(let i in apps_dst) apps_src[i]=apps_dst[i];
+	ConfigManager.save();
+	
 	$gameMap.loadDynamicEvents(1);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.maxSavefiles=function(){
@@ -2808,6 +2878,7 @@ $aaaa$.ConfigOptions=[
 	["maxSavefiles"],
 	["_halfFps",$aaaa$.readFlag],
 	["_useFont"],
+	["_apps"]
 ];
 $aaaa$.makeData=function() {
 	let rtv={};
@@ -3167,6 +3238,8 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 				let dd=p._direction-5,d2=dd*dd;
 				p._x+=(d2===1)*dd;
 				p._y+=(d2===9)*(1-((0<dd)<<1));
+				//p._x=$gameMap.roundX(p._x);
+				//p._y=$gameMap.roundY(p._y);
 			}
 		}break;
 		case "R".charCodeAt(): if($gameMap){
@@ -3235,6 +3308,7 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 		// print info
 		case "T".charCodeAt(): if($gamePlayer && $gameMap){ // tiles
 			let p=$gamePlayer,mp=$gameMap;
+			if(!mp.isValid(p.x,p.y)) return;
 			let msgs=[];
 			for(let lv=6;lv--;){
 				let t=$dataMap.data[mp.xy2idx(p.x,p.y,lv)];
@@ -5050,13 +5124,9 @@ $aaaa$.prototype.turnAwayFromCharacter=function(chr){
 	if(Math.abs(sy)<Math.abs(sx)) this.setDirection(0<sx?6:4);
 	else if(sy!==0) this.setDirection(0<sy?2:8);
 };
-$rrrr$=$aaaa$.prototype.findDirectionTo;
-$dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
-	//debug.log('Game_Character.prototype.findDirectionTo');
-	//a; // debug - cracking
-		// when called by $gamePlayer
-			// Game_Player.prototype.update
-				// Game_Player.prototype.moveByInput
+$dddd$=$aaaa$.prototype.findDirTo=function f(goals){
+	// goals = [ [x,y,costAdd] , ... ]
+	//debug.log('Game_Character.prototype.findDirTo');
 	if(f.inited===undefined){
 		f.inited=1;
 		f.chooseX=(self,c_and_deltaX,costs,newIdx,mapWidth,test_passable=0)=>{
@@ -5086,13 +5156,26 @@ $dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
 	// - bfs: mark costs
 	let costs=[]; costs.length=mapWidth*mapHeight; for(let x=0;x!==costs.length;++x) costs[x]=costs.length;
 	//debug.log(costs); // debug
-	let queue=new Queue(); queue.push({x:goalx,y:goaly,c:0});
-	// - - surroundings, prevent from 'clicking on events causes no effect'
-	for(let dir=10;dir-=2;){
-		let newx=$gameMap.roundXWithDirection(goalx,dir);
-		let newy=$gameMap.roundYWithDirection(goaly,dir);
-		if($gameMap.isValid(newx,newy)) queue.push({x:newx,y:newy,c:1});
+	let queue=new Queue();
+	
+	// - init cost near goals
+	for(let gid=0;gid!==goals.length;++gid){
+		let goal=goals[gid];
+		let goalx=goal[0],goaly=goal[1];
+		if($gameMap.isValid(goalx,goaly)) queue.push({x:goalx,y:goaly,c:(goal[2]^0)+(0^0)});
 	}
+	// - - surroundings, prevent from 'clicking on events causes no effect'
+	for(let gid=0;gid!==goals.length;++gid){
+		let goal=goals[gid];
+		let goalx=goal[0],goaly=goal[1];
+		for(let dir=10;dir-=2;){
+			let newx=$gameMap.roundXWithDirection(goalx,dir);
+			let newy=$gameMap.roundYWithDirection(goaly,dir);
+			if($gameMap.isValid(newx,newy)) queue.push({x:newx,y:newy,c:(goal[2]^0)+(1^0)});
+		}
+	}
+	
+	// - strt
 	while(queue.length){
 		let curr=queue.front; queue.pop();
 		let currIdx=curr.y*mapWidth+curr.x;
@@ -5158,6 +5241,17 @@ $dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
 		}
 	}
 	return c_and_dir.dir;
+	
+};
+$dddd$.forEach=function f(v,k,m){ let a=f.c[v[2]]; v.pop(); if(a) a.push(v); };
+$rrrr$=$aaaa$.prototype.findDirectionTo;
+$dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
+	//debug.log('Game_Character.prototype.findDirectionTo');
+	//a; // debug - cracking
+		// when called by $gamePlayer
+			// Game_Player.prototype.update
+				// Game_Player.prototype.moveByInput
+	return this.findDirTo([[goalx,goaly]]);
 }; $dddd$.ori=$rrrr$;
 //$rrrr$=$aaaa$.prototype.isCollidedWithCharacters;
 //$dddd$=$aaaa$.prototype.isCollidedWithCharacters=function(){ // overwrite
@@ -5222,10 +5316,10 @@ $aaaa$.prototype.popup=function(txt,top,kargs){
 	if(!wl) return;
 	if(top){
 		if(!wl._popupLayerTop) wl.addChild(wl._popupLayerTop=new Window_CustomPopups({alignV:'top'}));
-		wl._popupLayerTop.add(txt,undef,{t_remained:kargs&&kargs['t_remained']||2000});
+		wl._popupLayerTop.add(txt,undefined,{t_remained:kargs&&kargs['t_remained']||2000,align:kargs&&kargs.align,});
 	}else{
 		if(!wl._popupLayer) wl.addChildAt(wl._popupLayer=new Window_CustomPopups(),0);
-		wl._popupLayer.add(txt,undef,{t_remained:kargs&&kargs['t_remained']||2000});
+		wl._popupLayer.add(txt,undefined,{t_remained:kargs&&kargs['t_remained']||2000,align:kargs&&kargs.align,});
 	}
 };
 $aaaa$.prototype._isBusy_cache=function(){
@@ -5362,6 +5456,10 @@ $aaaa$.prototype.update = function(sceneActive) {
 	this.updateVehicle();
 	if(!this.isMoving()){
 		this.updateNonmoving(wasMoving || wm2); // if only 'wasMoving', 1-step to goal cause touch-evt not triggered
+		if(wm2){
+			this._realX=this._x=$gameMap.roundX(this._x);
+			this._realY=this._y=$gameMap.roundY(this._y);
+		}
 	}
 	this._followers.update();
 };
@@ -6385,12 +6483,9 @@ $aaaa$.prototype.pushXyToQueue=function(qidx,obj){
 $aaaa$.prototype.findDirFromQueue=function(qidx){ // try from newest to oldest
 	let q=this._queues[qidx^0]; // 'this.pushXyToQueue' // [ ... , [x,y], ... ] 
 	if(!q) return 0;
-	for(let nth=q.length;nth--;){
-		let xy=q.getnth(nth);
-		let res=this.findDirectionTo(xy[0],xy[1]);
-		if(res!==0) return res;
-	}
-	return 0;
+	let goals=[];
+	for(let nth=q.length;nth--;) goals.push(q.getnth(nth));
+	return this.findDirTo(goals);
 };
 $aaaa$.prototype.resetDir=function(alsoSetupPage){
 	let p=this.findProperPageIndex();
