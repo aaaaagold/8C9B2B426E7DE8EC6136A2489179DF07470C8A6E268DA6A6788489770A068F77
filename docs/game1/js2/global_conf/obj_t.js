@@ -2824,7 +2824,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 		// set data
 		this.createGameObjects();
 		let data2;
-		if(kargs.u8arr) data2=LZString.decompressFromUint8Array(data);
+		if(kargs && kargs.u8arr) data2=LZString.decompressFromUint8Array(data);
 		else data2=LZString.decompressFromBase64(data);
 		this.extractSaveContents(JsonEx.parse(data2));
 		this.onlineOk=true;
