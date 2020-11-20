@@ -1300,45 +1300,6 @@ Bitmap.prototype.drawCircle = function(x, y, radius, color) {
 };
 
 /**
- * Draws the outline text to the bitmap.
- *
- * @method drawText
- * @param {String} text The text that will be drawn
- * @param {Number} x The x coordinate for the left of the text
- * @param {Number} y The y coordinate for the top of the text
- * @param {Number} maxWidth The maximum allowed width of the text
- * @param {Number} lineHeight The height of the text line
- * @param {String} align The alignment of the text
- */
-Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
-    // Note: Firefox has a bug with textBaseline: Bug 737852
-    //       So we use 'alphabetic' here.
-    if (text !== undefined) {
-        var tx = x;
-        var ty = y + lineHeight - (lineHeight - this.fontSize * 0.7) / 2;
-        var context = this._context;
-        var alpha = context.globalAlpha;
-        maxWidth = maxWidth || 0xffffffff;
-        if (align === 'center') {
-            tx += maxWidth / 2;
-        }
-        if (align === 'right') {
-            tx += maxWidth;
-        }
-        context.save();
-        context.font = this._makeFontNameText();
-        context.textAlign = align;
-        context.textBaseline = 'alphabetic';
-        context.globalAlpha = 1;
-        this._drawTextOutline(text, tx, ty, maxWidth);
-        context.globalAlpha = alpha;
-        this._drawTextBody(text, tx, ty, maxWidth);
-        context.restore();
-        this._setDirty();
-    }
-};
-
-/**
  * Returns the width of the specified text.
  *
  * @method measureTextWidth

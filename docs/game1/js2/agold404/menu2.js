@@ -859,19 +859,27 @@ function Scene_UserSwitch(){
 $aaaa$=Scene_UserSwitch;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 	debug.log('Scene_UserSwitch.prototype.createOptionsWindow');
-	this._window = new Window_CustomMenu_main(0,0,[
-		[$dataCustom.noGainMsg,"_global_conf;noGainMsg"],
-		[$dataCustom.noGainHint,"_global_conf;noGainHint"],
-		[$dataCustom.noGainSound,"_global_conf;noGainSound"],
-		[$dataCustom.noLeaderHp,"_global_conf;noLeaderHp"],
-		[$dataCustom.noLeaderMp,"_global_conf;noLeaderMp"],
-		[$dataCustom.noAnimation,"_global_conf;noAnimation"],
-		[$dataCustom.noAutotile,"_global_conf;noAutotile"],
+	if(!f.list) f.list=[
 		["FPS減半 (你覺得CPU快燒起來的時候可以用)","_global_conf;halfFps"],
+		[$dataCustom.opts_gainHint,";gainHints;func",1,[
+			[$dataCustom.noGainMsg,"_global_conf;noGainMsg"],
+			[$dataCustom.noGainHint,"_global_conf;noGainHint"],
+			[$dataCustom.noGainSound,"_global_conf;noGainSound"],
+		]],
+		[$dataCustom.opts_leftPanel,";leftPanel;func",1,[
+			[$dataCustom.noLeaderHp,"_global_conf;noLeaderHp"],
+			[$dataCustom.noLeaderMp,"_global_conf;noLeaderMp"],
+		]],
+		[$dataCustom.opts_displayEffect,";displayEffect;func",1,[
+			[$dataCustom.noAnimation,"_global_conf;noAnimation"],
+			[$dataCustom.noAutotile,"_global_conf;noAutotile"],
+		]],
+		["遊戲回饋建議",";;func;call",1,()=>{SceneManager.push(Scene_Feedback);}],
 		["字體(電腦中需有該字體，本遊戲不另外提供)","_global_conf;useFont;text;請輸入想用的字體"],
-	],{statusWidth:()=>360});
+	];
+	this._window = new Window_CustomMenu_main(0,0,f.list,f.mainKargs);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
 	let mh=$gamePlayer.menuHistory,key='Scene_UserSwitch';
 	if(mh[key]){
@@ -890,6 +898,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	});
 	this.addWindow(this._window);
 };
+$dddd$.mainKargs={statusWidth:()=>360};
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_UserSwitch
 
 // - Scene_SaveLocal
@@ -1038,6 +1047,32 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this.addWindow(this._window);
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_SaveOnline
+
+// - Scene_Feedback
+function Scene_Feedback(){
+	this.initialize.apply(this, arguments);
+}
+$aaaa$=Scene_Feedback;
+$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$aaaa$.prototype.constructor = $aaaa$;
+$aaaa$.prototype.createOptionsWindow=function(){
+	let list=[
+		["使用google表單進行回饋",";;func;call",1,()=>{
+			d.ce("a").sa("target","_blank").sa("href","https://docs.google.com/forms/d/e/1FAIpQLSdpwBjZEGg7K0fqFpMWjh3yObUpjQluFmZ2YS-OLu0TvoZkaQ/viewform").click();
+			Input.clear();
+			debug.log("feedback: google form");
+		}],
+		["直接在遊戲內進行回饋(還沒做好)",";;func;call",1,()=>{
+			let msg="錯誤:還沒做好";
+			$gameMessage.popup(msg);
+			$gameMessage.popup(msg,1);
+		}],
+	];
+	this._list=new Window_CustomMenu_main(0,0,list);
+	this._list.setHandler('cancel', this.popScene.bind(this));
+	this.addWindow(this._list);
+};
+$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Feedback
 
 // - Window_DebugMenu2
 
@@ -1638,7 +1673,7 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 	let currx=0,curry=pad,currLine=0;
 	let font_ori={
 		fontSize:this.contents.fontSize,
-		textColor:this.contents.textColor
+		textColor:this.contents.textColor,
 	};
 	for(let s=0,arr=this.txtinfos;s!==arr.length;++s){
 		if(arr[s].match){

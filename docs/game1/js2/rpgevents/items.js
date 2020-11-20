@@ -63,7 +63,7 @@ list.manual=(action)=>{
 	txtarr.push("\n");
 	txtarr.push({txt:"焚木技巧:"});
 	txtarr.push("\n");
-	if($gameParty&&$gameParty._items[44]) txtarr.push({txt:"將"+$dataCustom.noGainMsg+"及\\item[44]開啟後, 按著Ctrl, 再按著確認, 然後走到可燃物旁面對它, 就能將其燃燒。過程中不需要放開Ctrl與確認。"});
+	if($gameParty&&$gameParty._items[44]) txtarr.push({txt:"將\\key'\""+$dataCustom.noGainMsg.replace("\\","\\\\").replace("'","\\'")+"\"'及\\item[44]開啟後, 按著Ctrl, 再按著確認, 然後走到可燃物旁面對它, 就能將其燃燒。過程中不需要放開Ctrl與確認。"});
 	else txtarr.push({txt:"先取得\\item[44], 這個技巧才會顯示。\\item[44]在家裡桌上。"});
 	
 	let w=new Window_CustomTextBoard(txtarr);

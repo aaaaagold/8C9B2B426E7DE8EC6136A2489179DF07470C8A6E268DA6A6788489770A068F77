@@ -662,6 +662,32 @@ $dddd$=$aaaa$.load=function f(url,key){ // f(url,key,opt)
 	//rtv._opt=opt;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align){
+	// rewrite: actual line height is about 1.25x fontsize. draw @ y = 1x fontsize.
+	// Note: Firefox has a bug with textBaseline: Bug 737852
+	//	   So we use 'alphabetic' here.
+	if (text !== undefined) {
+		let tx = x;
+//		let ty = y + lineHeight - ( lineHeight - this.fontSize * 1.25 )/2 - this.fontSize * 0.25;
+		let ty = y + (lineHeight>>1) + this.fontSize * 0.375;
+		let context = this._context;
+		let alpha = context.globalAlpha;
+		maxWidth = maxWidth || 0x7fffffff;
+		if(align === 'center') tx += maxWidth>>1;
+		if(align === 'right') tx += maxWidth;
+		context.save();
+		context.font = this._makeFontNameText();
+		context.textAlign = align;
+		context.textBaseline = 'alphabetic';
+		context.globalAlpha = 1;
+		this._drawTextOutline(text, tx, ty, maxWidth);
+		context.globalAlpha = alpha;
+		this._drawTextBody(text, tx, ty, maxWidth);
+		context.restore();
+		this._setDirty();
+		return ty;
+	}
+};
 $rrrr$=$aaaa$.prototype.measureTextWidth;
 $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	//debug.log(txt,this.fontFace); // mostly are chr not string // debug
@@ -1373,8 +1399,8 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 	
 	let flag_drawAddUpper=($dataMap.hasA1_upper[idx] && this._frameUpdated) || !this._readLastTiles(5, lx, ly).equals(addUpper);
 	let lastUpperTiles = this._readLastTiles(4, lx, ly);
-	upperTiles.playerNearby=$gamePlayer.dist2({x:mmx,y:mmy,dist2:true})===0;
-	if( flag_drawAddUpper || lastUpperTiles.playerNearby!==upperTiles.playerNearby 
+	let lastPlayerNearby=upperTiles.playerNearby; upperTiles.playerNearby=$gamePlayer.dist2({x:mmx,y:mmy,dist2:true})===0;
+	if( flag_drawAddUpper || lastPlayerNearby!==upperTiles.playerNearby 
 		|| !(lastUpperTiles===upperTiles||upperTiles.equals(lastUpperTiles)) 
 	){
 		flag_drawAddUpper=true;
@@ -1746,7 +1772,12 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 	for(let x=0,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x)
 		arr[idx[x]].clear(); // z=3
 	this.upperZLayer.clear(); // z=4
-	return Tilemap.prototype._paintAllTiles.call(this,startX,startY);
+	//return Tilemap.prototype._paintAllTiles.call(this,startX,startY); // ShaderTilemap has no 'this._z2Layers'
+	for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
+		for(let x=0;x!==xs;++x){
+			this._paintTiles(startX, startY, x, y);
+		}
+	}
 };
 $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 	//debug.log('ShaderTilemap.prototype._paintTiles');
@@ -2474,8 +2505,8 @@ $aaaa$.resetData3d=(idx)=>{ // - to 3d data [[x,y],3-z] // 0<=z<=3, z larger -> 
 	if(!$dataMap) return;
 	if(idx!==undefined){ idx|=0;
 		// supposed 'data3d' is inited before: '$dataMap.data3d[idx]' is an array
-		let dst=$dataMap.data3d[idx],sz=$dataMap.width*$dataMap.height,data=$dataMap.data;
-		dst.length=0;
+		let dst=$dataMap.data3d[idx]=[],sz=$dataMap.width*$dataMap.height,data=$dataMap.data;
+		//dst.length=0;
 		for(let lv=sz<<2;lv!==0;){
 			lv-=sz;
 			dst.push(data[idx+lv]);
@@ -5888,7 +5919,7 @@ $aaaa$.prototype.mch=function(mapid){
 	if(mchs[mapid]===undefined) mchs[mapid]={};
 	return mchs[mapid];
 };
-$aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
+$dddd$=$aaaa$.prototype.changeMap=function f(type,data,mapid,noupdate){
 	debug.log('$gameParty.prototype.changeMap');
 	let target=this.mch(mapid);
 	switch(type){
@@ -5907,13 +5938,12 @@ $aaaa$.prototype.changeMap=function(type,data,mapid,noupdate){
 				if(data[i]===undefined) tdata[i]=null;
 				else tdata[i]=data[i];
 			}
-			if(!noupdate){ $gameMap.data(); for(let it=idxset.values(),t;(t=it.next()).done===false;) DataManager.resetData3d(t.value);
-				let sc=SceneManager._scene;
-				if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
-			}
+			$gameMap.data();
+			idxset.forEach(f.forEach);
 		}break;
 	}
 };
+$dddd$.forEach=function(v){ DataManager.resetData3d(v); };
 $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 	let evts=$gameMap._events;
 	let mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef

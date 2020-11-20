@@ -6,6 +6,8 @@ let color=deepcopy($dataCustom.textcolor);
 	for(let i in color) color[i]="_["+color[i]+"]";
 	color.default="_[#FFFFFF]";
 
+const noGainMsg="覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'->\\key'\""+$dataCustom.opts_gainHint+"\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'";
+
 let tmp;
 
 list.theeasiest={
@@ -39,7 +41,7 @@ list.easy_collectLeaves={
 	txt:[
 		{txt:"在浮游城中央下方有座噴水池，噴水池上方有光圈。"},"\n",
 		{txt:"從這個光圈前往\\key'\"林圍\"'，每棵樹第1次被燒時可以獲得\\item[34]"},
-		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'"},
+		"\n\n",{txt:noGainMsg},
 	],
 	info:{
 		type:"collectItems",
@@ -62,7 +64,7 @@ list.easy_leavesWater={
 		{txt:"每棵樹第1次被燒時可以獲得\\item[37]；第3次時可以獲得\\item[36]"},"\n",
 		{txt:"兩者加在一起再加熱好像不錯喝"},"\n",
 		{txt:"各蒐集25個再來"},
-		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'"},
+		"\n\n",{txt:noGainMsg},
 	],
 	info:{
 		type:"collectItems",
@@ -82,7 +84,7 @@ list.easy_tangerine={
 	rank:2,
 	txt:[
 		{txt:"不管哪裡的冰鎮橘子都好，可以蒐集50個給我嗎？"},
-		"\n\n",{txt:"覺得獲得物品的訊息太惱人的話，可以在\\key'\"選單\"'->\\key'\"其他設定\"'把\\key'$dataCustom.noGainMsg'設定為\\key'\"ON\"'"},
+		"\n\n",{txt:noGainMsg},
 	],
 	info:{
 		type:"collectItems",
