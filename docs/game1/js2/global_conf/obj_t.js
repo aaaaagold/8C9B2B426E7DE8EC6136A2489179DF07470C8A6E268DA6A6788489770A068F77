@@ -699,7 +699,8 @@ $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	// return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype._editAccordingToArgs=function(){
-	let src=this._image;
+	if(!this._image_ori) this._image_ori=this._image;
+	let src=this._image_ori;
 	// change color
 	if(!this._colorChanged && src.width!==0 && src.height!==0 && this._args&&this._args.color!==undefined){
 		this._colorChanged=true;
@@ -709,6 +710,7 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 			w[c]=0;
 			for(let x=0,arr=color[c];x!==3;++x) // color[c].length===3
 				w[c]+=arr[x];
+			if(color[c][3]) w[c]+=color[c][3]; // degrade color
 			if(w[c]===0) w[c]=1; // ensurance
 		}
 		let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
@@ -2196,7 +2198,7 @@ $aaaa$.prototype._setBitmap_args=function(){
 		if(c.constructor===Game_Event) meta=c.event().meta;
 	}
 	if(meta){
-		if(meta.color){ hasSth=true; rtv.color=meta.color; }
+		if(rtv.color=c._getColorEdt()) hasSth=true;
 	}
 	return hasSth&&rtv;
 };
@@ -2795,11 +2797,14 @@ $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
 	$gameParty.saveDynamicEvents();
 	let rtv=f.ori.call(this);
+	let tmp;
 	
-	if(!ConfigManager._apps) ConfigManager._apps={};
-	let apps_src=rtv.party._apps,apps_dst=ConfigManager._apps;
-	for(let i in apps_src) apps_dst[i]=apps_src[i];
-	for(let i in apps_dst) apps_src[i]=apps_dst[i];
+	// party apps to config apps
+	if(tmp=rtv.party._apps){
+		let apps_dst=ConfigManager._apps;
+		if(!apps_dst) apps_dst=ConfigManager._apps={};
+		for(let i in tmp) apps_dst[i]=tmp[i];
+	}
 	ConfigManager.save();
 	
 	f.delAttrs_chr(rtv.player);
@@ -2819,11 +2824,14 @@ $rrrr$=$aaaa$.extractSaveContents;
 $dddd$=$aaaa$.extractSaveContents=function f(content){
 	debug.log('DataManager.extractSaveContents');
 	f.ori.call(this,content);
+	let tmp;
 	
-	if(!ConfigManager._apps) ConfigManager._apps={};
-	let apps_src=content.party._apps,apps_dst=ConfigManager._apps;
-	for(let i in apps_src) apps_dst[i]=apps_src[i];
-	for(let i in apps_dst) apps_src[i]=apps_dst[i];
+	// config apps to party apps
+	if(tmp=ConfigManager._apps){
+		let apps_dst=content.party._apps;
+		if(!apps_dst) apps_dst=content.party._apps={};
+		for(let i in tmp) apps_dst[i]=tmp[i];
+	}
 	ConfigManager.save();
 	
 	$gameMap.loadDynamicEvents(1);
@@ -5427,12 +5435,14 @@ $aaaa$.prototype.moveByInput=function f(){
 				let tm=SceneManager.getTilemap(); if(!tm) return;
 				let rf=tm.player._realFrame;
 				let sx=this.scrolledX_tw() , sy=this.scrolledY_th() ;
-				let dx=this.scrolledX_tw()+(rf.width>>1)-TouchInput.x , dy=this.scrolledY_th()+(rf.height)-TouchInput.y ;
-				let dx2=dx*dx,dy2=dy*dy;
-				if(dy2<dx2){
-					if(dx!==0) this._direction=dx<0?6:4;
-				}else{
-					if(dy!==0) this._direction=dy<0?2:8;
+				let dx=this.scrolledX_tw()+(rf.width>>1)-TouchInput.x , dy=this.scrolledY_th()+(rf.height>>1)-TouchInput.y ;
+				let dx2=dx*dx,dy2=dy*dy; // unit:pixel
+				if(dx2+dy2>=9216){ // 48*48*4
+					if(dy2<dx2){
+						if(dx!==0) this._direction=dx<0?6:4;
+					}else{
+						if(dy!==0) this._direction=dy<0?2:8;
+					}
 				}
 			}
 		}
@@ -5891,6 +5901,13 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	let rtv=f.ori.apply(this,arguments);
 	this.mapChanges=[];
 	//this.switches=[]; // use mapId as index // seems not used YET
+	{
+		let cma=ConfigManager._apps;
+		if(cma){
+			let apps=this._apps={};
+			for(let i in cma) apps[i]=cma[i];
+		}
+	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.menuActor = function() {
@@ -6821,6 +6838,20 @@ $aaaa$.prototype.findProperPageIndex=function f(){
 	}
 	return -1;
 };
+$dddd$=$aaaa$.prototype._getColorEdt=function f(){
+	let meta=this.event().meta;
+	if(meta.colors){
+		if(!meta.colors_lazyTbl) meta.colors_lazyTbl=JSON.parse(meta.colors).map(f.toJson);
+		return meta.colors_lazyTbl[this._pageIndex];
+	}
+	else return meta.color;
+};
+$dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
+$rrrr$=$aaaa$.prototype.setupPageSettings;
+$dddd$=$aaaa$.prototype.setupPageSettings=function f(){
+	if(this.event().meta.colors) this.imgModded=true;
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.refresh=function(forced) {
 	let newPageIndex=this._erased?-1:this.findProperPageIndex();
 	if(forced || this._pageIndex!==newPageIndex){
