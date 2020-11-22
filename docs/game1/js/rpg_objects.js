@@ -5652,19 +5652,6 @@ Game_Map.prototype.setupTestEvent = function() {
     return false;
 };
 
-Game_Map.prototype.setupStartingMapEvent = function() {
-    var events = this.events();
-    for (var i = 0; i < events.length; i++) {
-        var event = events[i];
-        if (event.isStarting()) {
-            event.clearStartingFlag();
-            this._interpreter.setup(event.list(), event.eventId());
-            return true;
-        }
-    }
-    return false;
-};
-
 Game_Map.prototype.setupAutorunCommonEvent = function() {
     for (var i = 0; i < $dataCommonEvents.length; i++) {
         var event = $dataCommonEvents[i];
@@ -6387,151 +6374,6 @@ Game_Character.prototype.updateRoutineMove = function() {
             this.processMoveCommand(command);
             this.advanceMoveRouteIndex();
         }
-    }
-};
-
-Game_Character.prototype.processMoveCommand = function(command) {
-    var gc = Game_Character;
-    var params = command.parameters;
-    switch (command.code) {
-    case gc.ROUTE_END:
-        this.processRouteEnd();
-        break;
-    case gc.ROUTE_MOVE_DOWN:
-        this.moveStraight(2);
-        break;
-    case gc.ROUTE_MOVE_LEFT:
-        this.moveStraight(4);
-        break;
-    case gc.ROUTE_MOVE_RIGHT:
-        this.moveStraight(6);
-        break;
-    case gc.ROUTE_MOVE_UP:
-        this.moveStraight(8);
-        break;
-    case gc.ROUTE_MOVE_LOWER_L:
-        this.moveDiagonally(4, 2);
-        break;
-    case gc.ROUTE_MOVE_LOWER_R:
-        this.moveDiagonally(6, 2);
-        break;
-    case gc.ROUTE_MOVE_UPPER_L:
-        this.moveDiagonally(4, 8);
-        break;
-    case gc.ROUTE_MOVE_UPPER_R:
-        this.moveDiagonally(6, 8);
-        break;
-    case gc.ROUTE_MOVE_RANDOM:
-        this.moveRandom();
-        break;
-    case gc.ROUTE_MOVE_TOWARD:
-        this.moveTowardPlayer();
-        break;
-    case gc.ROUTE_MOVE_AWAY:
-        this.moveAwayFromPlayer();
-        break;
-    case gc.ROUTE_MOVE_FORWARD:
-        this.moveForward();
-        break;
-    case gc.ROUTE_MOVE_BACKWARD:
-        this.moveBackward();
-        break;
-    case gc.ROUTE_JUMP:
-        this.jump(params[0], params[1]);
-        break;
-    case gc.ROUTE_WAIT:
-        this._waitCount = params[0] - 1;
-        break;
-    case gc.ROUTE_TURN_DOWN:
-        this.setDirection(2);
-        break;
-    case gc.ROUTE_TURN_LEFT:
-        this.setDirection(4);
-        break;
-    case gc.ROUTE_TURN_RIGHT:
-        this.setDirection(6);
-        break;
-    case gc.ROUTE_TURN_UP:
-        this.setDirection(8);
-        break;
-    case gc.ROUTE_TURN_90D_R:
-        this.turnRight90();
-        break;
-    case gc.ROUTE_TURN_90D_L:
-        this.turnLeft90();
-        break;
-    case gc.ROUTE_TURN_180D:
-        this.turn180();
-        break;
-    case gc.ROUTE_TURN_90D_R_L:
-        this.turnRightOrLeft90();
-        break;
-    case gc.ROUTE_TURN_RANDOM:
-        this.turnRandom();
-        break;
-    case gc.ROUTE_TURN_TOWARD:
-        this.turnTowardPlayer();
-        break;
-    case gc.ROUTE_TURN_AWAY:
-        this.turnAwayFromPlayer();
-        break;
-    case gc.ROUTE_SWITCH_ON:
-        $gameSwitches.setValue(params[0], true);
-        break;
-    case gc.ROUTE_SWITCH_OFF:
-        $gameSwitches.setValue(params[0], false);
-        break;
-    case gc.ROUTE_CHANGE_SPEED:
-        this.setMoveSpeed(params[0]);
-        break;
-    case gc.ROUTE_CHANGE_FREQ:
-        this.setMoveFrequency(params[0]);
-        break;
-    case gc.ROUTE_WALK_ANIME_ON:
-        this.setWalkAnime(true);
-        break;
-    case gc.ROUTE_WALK_ANIME_OFF:
-        this.setWalkAnime(false);
-        break;
-    case gc.ROUTE_STEP_ANIME_ON:
-        this.setStepAnime(true);
-        break;
-    case gc.ROUTE_STEP_ANIME_OFF:
-        this.setStepAnime(false);
-        break;
-    case gc.ROUTE_DIR_FIX_ON:
-        this.setDirectionFix(true);
-        break;
-    case gc.ROUTE_DIR_FIX_OFF:
-        this.setDirectionFix(false);
-        break;
-    case gc.ROUTE_THROUGH_ON:
-        this.setThrough(true);
-        break;
-    case gc.ROUTE_THROUGH_OFF:
-        this.setThrough(false);
-        break;
-    case gc.ROUTE_TRANSPARENT_ON:
-        this.setTransparent(true);
-        break;
-    case gc.ROUTE_TRANSPARENT_OFF:
-        this.setTransparent(false);
-        break;
-    case gc.ROUTE_CHANGE_IMAGE:
-        this.setImage(params[0], params[1]);
-        break;
-    case gc.ROUTE_CHANGE_OPACITY:
-        this.setOpacity(params[0]);
-        break;
-    case gc.ROUTE_CHANGE_BLEND_MODE:
-        this.setBlendMode(params[0]);
-        break;
-    case gc.ROUTE_PLAY_SE:
-        AudioManager.playSe(params[0]);
-        break;
-    case gc.ROUTE_SCRIPT:
-        eval(params[0]);
-        break;
     }
 };
 
@@ -7770,23 +7612,6 @@ Game_Event.prototype.updateStop = function() {
     }
 };
 
-Game_Event.prototype.updateSelfMovement = function() {
-    if (!this._locked && this.isNearTheScreen() &&
-            this.checkStop(this.stopCountThreshold())) {
-        switch (this._moveType) {
-        case 1:
-            this.moveTypeRandom();
-            break;
-        case 2:
-            this.moveTypeTowardPlayer();
-            break;
-        case 3:
-            this.moveTypeCustom();
-            break;
-        }
-    }
-};
-
 Game_Event.prototype.stopCountThreshold = function() {
     return 30 * (5 - this.moveFrequency());
 };
@@ -7852,17 +7677,6 @@ Game_Event.prototype.start = function() {
 Game_Event.prototype.erase = function() {
     this._erased = true;
     this.refresh();
-};
-
-Game_Event.prototype.findProperPageIndex = function() {
-    var pages = this.event().pages;
-    for (var i = pages.length - 1; i >= 0; i--) {
-        var page = pages[i];
-        if (this.meetsConditions(page)) {
-            return i;
-        }
-    }
-    return -1;
 };
 
 Game_Event.prototype.meetsConditions = function(page) {
@@ -7985,15 +7799,6 @@ Game_Event.prototype.update = function() {
     Game_Character.prototype.update.call(this);
     this.checkEventTriggerAuto();
     this.updateParallel();
-};
-
-Game_Event.prototype.updateParallel = function() {
-    if (this._interpreter) {
-        if (!this._interpreter.isRunning()) {
-            this._interpreter.setup(this.list(), this._eventId);
-        }
-        this._interpreter.update();
-    }
 };
 
 Game_Event.prototype.locate = function(x, y) {

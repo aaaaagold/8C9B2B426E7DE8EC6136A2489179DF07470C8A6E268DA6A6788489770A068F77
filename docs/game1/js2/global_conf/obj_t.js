@@ -4611,11 +4611,9 @@ $dddd$=$aaaa$.prototype.setupStartingEvent=function f(){
 	//debug.log('Game_Map.prototype.setupStartingEvent'); // this is polling
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.setupStartingMapEvent;
-$dddd$=$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. looking through everything is slowwwwwwwwww
+$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. looking through everything is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.setupStartingMapEvent'); // this is polling
 	// 'Game_Map.prototype.setupStartingEvent' is polling => 'Game_Map.prototype.setupStartingMapEvent' becomes polling
-	//return f.ori.call(this); // debug
 	let rtv=false,q=$dataMap.strtEvts;
 	while(q.length){
 		let evtStrt=q.front; q.pop();
@@ -4628,7 +4626,7 @@ $dddd$=$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. lookin
 		}
 	}
 	return rtv;
-}; $dddd$.ori=$rrrr$;
+};
 $rrrr$=$aaaa$.prototype.refresh;
 $dddd$=$aaaa$.prototype.refresh=function f(){
 	f.ori.call(this);
@@ -6033,7 +6031,7 @@ Object.defineProperties($aaaa$.prototype, {
 			return this._bRng;
 	}, configurable: false },
 	burnmpcost: { get: function(){
-			return (!this._items[77])*((this.burnrange^0)+1);
+			return (!(this._items&&this._items[77]))*((this.burnrange^0)+1);
 	}, configurable: false },
 	canburn: { get: function(){
 			return this.canplant?undef:this._canB;
@@ -6058,7 +6056,7 @@ Object.defineProperties($aaaa$.prototype, {
 			return this._sRng;
 	}, configurable: false },
 	slashhpcost: { get: function(){
-			return (!this._items[76])*((this.slashrange^0)+1)*((this.canslash==="大斧")*9+1);
+			return (!(this._items&&this._items[76]))*((this.slashrange^0)+1)*((this.canslash==="大斧")*9+1);
 	}, configurable: false },
 	canslash: { get: function(){
 			return this.canplant?undef:this._canS;
@@ -6775,7 +6773,7 @@ $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
 	if(this.canUpdate()) return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.updateParallel=function f(){
+$aaaa$.prototype.updateParallel=function(){
 	if(this._trigger===4){ // parallel
 		if(!this._interpreter) this._interpreter=new Game_Interpreter();
 		if(!this._interpreter.isRunning()) this._interpreter.setup(this.list(), this._eventId);
