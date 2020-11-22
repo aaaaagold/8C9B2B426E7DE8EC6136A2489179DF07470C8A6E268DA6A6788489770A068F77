@@ -2860,7 +2860,7 @@ $dddd$=$aaaa$.saveGame=function f(sfid){
 		let data_raw=JsonEx.stringify(this.makeSaveContents());
 		let data_compressed=LZString.compressToBase64(data_raw);
 		debug.log('',"raw size",data_raw.length,"compressed",data_compressed.length);
-		gasPropagate.parent.postMessage({cmd:"set",data:data_compressed,fname:"test from RPG"},"*");
+		gasPropagate.parent.postMessage({cmd:"set",data:data_compressed,fname:$gameParty.leader().name()||"**** default name ****"},"*");
 		return true;
 	}else return f.ori.call(this,sfid);
 }; $dddd$.ori=$rrrr$;
