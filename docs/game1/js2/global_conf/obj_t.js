@@ -820,7 +820,16 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		Decrypter.decryptImg(url, this);
 	} else {
 		this._loadingState = 'requesting';
-			this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
+		this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
+		{ // cache?
+			let urlWithoutColor=url.replace(/(\?|&)color=[^&]*(&|$)/,'');
+			let c=ImageManager._imageCache.get(urlWithoutColor+":0");
+			if(c){
+				this._image=c._image_ori||c._image;
+				this._loadListener();
+				return;
+			}
+		}
 		if( this._loader && url.slice(0,5)!=="blob:" && !_global_conf.isDataURI(url) ){
 			this._loadListener = Bitmap.prototype._onLoad.bind(this);
 			this._errorListener = this._loader;
@@ -6111,6 +6120,7 @@ $dddd$=$aaaa$.prototype.gainItem=function f(item, amount, includeEquip, noSound)
 	}
 	return txt;
 }; $dddd$.ori=$rrrr$;
+$dddd$=undef;
 $aaaa$.prototype.loseItemAll=function(item, includeEquip, noSound){
 	return this.gainItem(item,-this.numItems(item));
 };
@@ -6225,6 +6235,7 @@ $dddd$.genDoneQList.map=function f(qid){
 };
 $dddd$.genDoneQList.map.list=rpgquests.list;
 $dddd$.genDoneQList.map.show=rpgquests.func.showBoard;
+$dddd$=undef;
 $aaaa$.prototype.openQuestReportWindow=function(rankMin,rankMax,reserveNan){
 	return SceneManager.addWindowB(this.genQuestReportWindow(rankMin,rankMax,reserveNan));
 };
