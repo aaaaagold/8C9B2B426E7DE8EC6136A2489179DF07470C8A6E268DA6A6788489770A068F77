@@ -1,6 +1,13 @@
 ﻿{
 	"testJsonKey_cmd": "test command ----",
 	"questMgr": "任務管理工具",
+		"questMgr_complete": "完成",
+		"questMgr_view": "查看",
+		"questMgr_giveup": "放棄(丟棄任務單)",
+		"questViewAvail": "查看可執行的任務",
+			"questViewAvail_none": "目前沒有可執行的任務",
+		"questHadDone": "查看曾完成的任務",
+			"questHadDone_none": "目前沒有曾完成的任務",
 	"achievementMgr": "成就",
 	"locLogMgr": "位置紀錄",
 	"onlineSaveIdMgr": "已知的網路存檔id列表",

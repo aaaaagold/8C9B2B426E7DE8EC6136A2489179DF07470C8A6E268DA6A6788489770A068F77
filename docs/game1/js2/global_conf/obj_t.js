@@ -6177,7 +6177,7 @@ $aaaa$.prototype.completeQuest=function(itemId,q){
 	}
 	$gamePlayer._noGainMsg=noGainMsg;
 };
-$aaaa$.prototype.genQuestReportWindow=function(rankMin,rankMax,reserveNan){
+$dddd$=$aaaa$.prototype.genQuestReportWindow=function f(rankMin,rankMax,reserveNan){
 	let self=this;
 	let list=rpgquests.list,func=rpgquests.func,w;
 	let map=function(x){
@@ -6194,21 +6194,37 @@ $aaaa$.prototype.genQuestReportWindow=function(rankMin,rankMax,reserveNan){
 			};
 			Object.defineProperty(giveupNext,'title',{get:()=>{return "要丟棄幾個? (0~"+$gameParty._items[x.id]+")";},configurable: false});
 			return [
-				["完成",";;func;call",((self._items[x.id])^0) && q.isSat(self._completedQuests&&self._completedQuests[x.id]),function(){
+				[$dataCustom.questMgr_complete,";;func;call",((self._items[x.id])^0) && q.isSat(self._completedQuests&&self._completedQuests[x.id]),function(){
 					if(self.completeQuest(x.id,q)<0){ SoundManager.playBuzzer(); this.parent.processCancel(1); return; }
 					//let p=this.parent; p.processCancel.ori.call(p,1);
 				}],
-				["查看",";;func;call",($gameParty._items[x.id])^0,function(){this.parent.addWindow({},func.showBoard(q,1));}],
-				["放棄(丟棄任務單)","this;"+x.id+";text;要丟棄幾個? (0~"+$gameParty._items[x.id]+")",($gameParty._items[x.id])^0,giveupNext],
+				[$dataCustom.questMgr_view,";;func;call",($gameParty._items[x.id])^0,function(){this.parent.addWindow({},func.showBoard(q,1));}],
+				[$dataCustom.questMgr_giveup,"this;"+x.id+";text;要丟棄幾個? (0~"+$gameParty._items[x.id]+")",($gameParty._items[x.id])^0,giveupNext],
 			];
 		}];
 	};
 	let quests=this.quests(rankMin,rankMax,reserveNan).map(map);
-	if(quests.length===0) quests.push(["目前沒有接任務",";;func",0]);
-	w=new Window_CustomMenu_main(0,0,quests);
+	if(quests.length===0) quests.push([$dataCustom.questViewAvail_none,";;func",0]);
+	w=new Window_CustomMenu_main(0,0,[
+		[$dataCustom.questViewAvail,";doQuests;func",1,quests],
+		[$dataCustom.questHadDone,";doneQuests;func;list",1,f.genDoneQList],
+	]);
 	return w;
 	//SceneManager.addWindowB(w);
 };
+$dddd$.genDoneQList=function f(){
+	let cq=$gameParty._completedQuests;
+	let rtv=cq?Object.getOwnPropertyNames(cq).map(f.map):[];
+	if(rtv.length===0) rtv.push([$dataCustom.questHadDone_none,";;func",0]);
+	return rtv;
+};
+$dddd$.genDoneQList.map=function f(qid){
+	let q=$dataItems[qid];
+	let ref=q.meta.ref;
+	return [q.name,";;func;call",!!ref,()=>f.show(f.list[ref])];
+};
+$dddd$.genDoneQList.map.list=rpgquests.list;
+$dddd$.genDoneQList.map.show=rpgquests.func.showBoard;
 $aaaa$.prototype.openQuestReportWindow=function(rankMin,rankMax,reserveNan){
 	return SceneManager.addWindowB(this.genQuestReportWindow(rankMin,rankMax,reserveNan));
 };

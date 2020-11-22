@@ -23,17 +23,19 @@ rpgquests.func.reward=(quest)=>{
 };
 rpgquests.func.showBoard=(quest,returnWindow)=>{
 	let txt=[];
-	if(quest.title!==undef){
-		let s=" #### ";
-		txt.push({txt:s+quest.title+s,sizeRate:1.5,align:'center'});
-		txt.push("\n");
+	if(quest){
+		if(quest.title!==undef){
+			let s=" #### ";
+			txt.push({txt:s+quest.title+s,sizeRate:1.5,align:'center'});
+			txt.push("\n");
+		}
+		if(quest.titleMinor!==undef){
+			txt.push({txt:quest.titleMinor,sizeRate:0.5,align:'center',color:"_[rgba(123,123,123,0.125)]"});
+			txt.push("\n");
+		}
+		if(txt.length) txt.push("\n");
+		txt=txt.concat(quest.txt);
 	}
-	if(quest.titleMinor!==undef){
-		txt.push({txt:quest.titleMinor,sizeRate:0.5,align:'center',color:"_[rgba(123,123,123,0.125)]"});
-		txt.push("\n");
-	}
-	if(txt.length) txt.push("\n");
-	txt=txt.concat(quest.txt);
 	let w=new Window_CustomTextBoard(txt);
 	if(returnWindow) return w;
 	SceneManager.addWindowB(w);
