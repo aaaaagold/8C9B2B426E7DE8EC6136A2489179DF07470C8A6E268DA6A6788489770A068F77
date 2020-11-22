@@ -623,7 +623,20 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - Bitmap
 $aaaa$=Bitmap;
 $rrrr$=$aaaa$.prototype.initialize;
+$aaaa$.prototype._reCreateTextureIfNeeded=function(w,h){
+	if(this.__canvas){
+		let c=this.__canvas;
+		let r=c.width<w||c.height<h;
+		c.width=w;
+		c.height=h;
+		if(r){
+			this._createBaseTexture(c);
+			return true;
+		}
+	}
+};
 $dddd$=$aaaa$.prototype.initialize=function f(w,h){
+	//this._reCreateTextureIfNeeded(w,h);
 	if(this.__canvas){
 		let c=this.__canvas;
 		let r=c.width<w||c.height<h;
@@ -822,11 +835,15 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		this._loadingState = 'requesting';
 		this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
 		{ // cache?
-			let urlWithoutColor=url.replace(/(\?|&)color=[^&]*(&|$)/,'');
-			let c=ImageManager._imageCache.get(urlWithoutColor+":0");
-			if(c){
-				this._image=c._image_ori||c._image;
-				this._loadListener();
+			let im=ImageManager;
+			let urlWithoutColor=im._trimColorArg(url);
+			if(urlWithoutColor!==url){
+				let newOnload=(bm)=>{
+					this._image=bm._image_ori||bm._image;
+					this._loadListener();
+				},c=im._imageCache.get(urlWithoutColor+":0");
+				if(c) c.addLoadListener(newOnload);
+				else im.loadNormalBitmap(urlWithoutColor,0).addLoadListener(newOnload);
 				return;
 			}
 		}
@@ -971,7 +988,7 @@ $aaaa$.prototype._refresh=function(){
 	this.pivot.x = frameX - realX;
 	this.pivot.y = frameY - realY;
 	
-	if(realW>0&&realH>0){
+	if(0<realW && 0<realH){
 		if(this._needsTint()){
 			this._createTinter(realW, realH);
 			this._executeTint(realX, realY, realW, realH);
@@ -980,6 +997,13 @@ $aaaa$.prototype._refresh=function(){
 			this.texture.frame = new Rectangle(0, 0, realW, realH);
 		}else{
 			if(this._bitmap) this.texture.baseTexture = this._bitmap.baseTexture;
+			// TODO:WA
+			let w= this._frame.x + this._frame.width;
+			let h= this._frame.y + this._frame.height;
+			let tex=this.texture.baseTexture;
+			if(tex.width<w) tex.width=w;
+			if(tex.height<w) tex.height=h;
+			// 
 			this.texture.frame = this._realFrame;
 		}
 	}else if(this._bitmap) this.texture.frame = Rectangle.emptyRectangle;
@@ -2605,7 +2629,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=Function('"use strict";return (' + curr.cond + ')')();
+			let cond=Function('"use strict";return (' + curr.cond + ')').bind(this)();
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -2624,7 +2648,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=Function('"use strict";return ('+curr.cond+')')();
+			let cond=Function('"use strict";return ('+curr.cond+')').bind(this)();
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -2951,6 +2975,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ImageManager
 $aaaa$=ImageManager;
+$aaaa$._trimColorArg=p=>p.replace(/(\?|&)color=[^&]*(&|$)/g,'');
 $aaaa$.loadCharacter = function(filename, hue, args){ // re-write: add args: 'args': edit img
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
 };
@@ -4847,6 +4872,16 @@ $aaaa$.prototype.command214=function(){ // erase evt
 	if(this.isOnCurrentMap()&&this._eventId.toId()>0) $gameMap.eraseEvent(this._eventId);
 	return true;
 };
+$aaaa$.prototype.command355 = function() {
+	let script = this.currentCommand().parameters[0] + '\n';
+	while (this.nextEventCode() === 655) {
+		++this._index;
+		script += this.currentCommand().parameters[0] + '\n';
+	}
+	//eval(script);
+	Function('"use strict";\nreturn (()=>{\n'+script+'})()').bind(this)();
+	return true;
+};
 // - - expose info
 $aaaa$.prototype.getEvt=function(){ return $gameMap._events[this._eventId] };
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -5134,6 +5169,153 @@ $aaaa$.prototype.isInLoc=function(xL,yL,xH,yH){
 	// L,H included
 	return xL<=this.x&&this.x<=xH&&yL<=this.y&&this.y<=yH;
 };
+// movecmd
+$dddd$=$aaaa$.prototype.processMoveCommand=function f(command){
+	//debug.log('Game_Character.prototype.processMoveCommand');
+	let foo=f.tbl[command.code];
+	return foo&&foo.call(this,command.parameters);
+};
+$dddd$.tbl=[]; { $dddd$.tbl.length=46; let gc=$aaaa$;
+$dddd$.tbl[gc.ROUTE_END]=function(params){
+	this.processRouteEnd();
+};
+$dddd$.tbl[gc.ROUTE_MOVE_DOWN]=function(params){
+	this.moveStraight(2);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_LEFT]=function(params){
+	this.moveStraight(4);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_RIGHT]=function(params){
+	this.moveStraight(6);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_UP]=function(params){
+	this.moveStraight(8);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_LOWER_L]=function(params){
+	this.moveDiagonally(4, 2);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_LOWER_R]=function(params){
+	this.moveDiagonally(6, 2);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_UPPER_L]=function(params){
+	this.moveDiagonally(4, 8);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_UPPER_R]=function(params){
+	this.moveDiagonally(6, 8);
+};
+$dddd$.tbl[gc.ROUTE_MOVE_RANDOM]=function(params){
+	this.moveRandom();
+};
+$dddd$.tbl[gc.ROUTE_MOVE_TOWARD]=function(params){
+	this.moveTowardPlayer();
+};
+$dddd$.tbl[gc.ROUTE_MOVE_AWAY]=function(params){
+	this.moveAwayFromPlayer();
+};
+$dddd$.tbl[gc.ROUTE_MOVE_FORWARD]=function(params){
+	this.moveForward();
+};
+$dddd$.tbl[gc.ROUTE_MOVE_BACKWARD]=function(params){
+	this.moveBackward();
+};
+$dddd$.tbl[gc.ROUTE_JUMP]=function(params){
+	this.jump(params[0], params[1]);
+};
+$dddd$.tbl[gc.ROUTE_WAIT]=function(params){
+	this._waitCount = params[0] - 1;
+};
+$dddd$.tbl[gc.ROUTE_TURN_DOWN]=function(params){
+	this.setDirection(2);
+};
+$dddd$.tbl[gc.ROUTE_TURN_LEFT]=function(params){
+	this.setDirection(4);
+};
+$dddd$.tbl[gc.ROUTE_TURN_RIGHT]=function(params){
+	this.setDirection(6);
+};
+$dddd$.tbl[gc.ROUTE_TURN_UP]=function(params){
+	this.setDirection(8);
+};
+$dddd$.tbl[gc.ROUTE_TURN_90D_R]=function(params){
+	this.turnRight90();
+};
+$dddd$.tbl[gc.ROUTE_TURN_90D_L]=function(params){
+	this.turnLeft90();
+};
+$dddd$.tbl[gc.ROUTE_TURN_180D]=function(params){
+	this.turn180();
+};
+$dddd$.tbl[gc.ROUTE_TURN_90D_R_L]=function(params){
+	this.turnRightOrLeft90();
+};
+$dddd$.tbl[gc.ROUTE_TURN_RANDOM]=function(params){
+	this.turnRandom();
+};
+$dddd$.tbl[gc.ROUTE_TURN_TOWARD]=function(params){
+	this.turnTowardPlayer();
+};
+$dddd$.tbl[gc.ROUTE_TURN_AWAY]=function(params){
+	this.turnAwayFromPlayer();
+};
+$dddd$.tbl[gc.ROUTE_SWITCH_ON]=function(params){
+	$gameSwitches.setValue(params[0], true);
+};
+$dddd$.tbl[gc.ROUTE_SWITCH_OFF]=function(params){
+	$gameSwitches.setValue(params[0], false);
+};
+$dddd$.tbl[gc.ROUTE_CHANGE_SPEED]=function(params){
+	this.setMoveSpeed(params[0]);
+};
+$dddd$.tbl[gc.ROUTE_CHANGE_FREQ]=function(params){
+	this.setMoveFrequency(params[0]);
+};
+$dddd$.tbl[gc.ROUTE_WALK_ANIME_ON]=function(params){
+	this.setWalkAnime(true);
+};
+$dddd$.tbl[gc.ROUTE_WALK_ANIME_OFF]=function(params){
+	this.setWalkAnime(false);
+};
+$dddd$.tbl[gc.ROUTE_STEP_ANIME_ON]=function(params){
+	this.setStepAnime(true);
+};
+$dddd$.tbl[gc.ROUTE_STEP_ANIME_OFF]=function(params){
+	this.setStepAnime(false);
+};
+$dddd$.tbl[gc.ROUTE_DIR_FIX_ON]=function(params){
+	this.setDirectionFix(true);
+};
+$dddd$.tbl[gc.ROUTE_DIR_FIX_OFF]=function(params){
+	this.setDirectionFix(false);
+};
+$dddd$.tbl[gc.ROUTE_THROUGH_ON]=function(params){
+	this.setThrough(true);
+};
+$dddd$.tbl[gc.ROUTE_THROUGH_OFF]=function(params){
+	this.setThrough(false);
+};
+$dddd$.tbl[gc.ROUTE_TRANSPARENT_ON]=function(params){
+	this.setTransparent(true);
+};
+$dddd$.tbl[gc.ROUTE_TRANSPARENT_OFF]=function(params){
+	this.setTransparent(false);
+};
+$dddd$.tbl[gc.ROUTE_CHANGE_IMAGE]=function(params){
+	this.setImage(params[0], params[1]);
+};
+$dddd$.tbl[gc.ROUTE_CHANGE_OPACITY]=function(params){
+	this.setOpacity(params[0]);
+};
+$dddd$.tbl[gc.ROUTE_CHANGE_BLEND_MODE]=function(params){
+	this.setBlendMode(params[0]);
+};
+$dddd$.tbl[gc.ROUTE_PLAY_SE]=function(params){
+	AudioManager.playSe(params[0]);
+};
+$dddd$.tbl[gc.ROUTE_SCRIPT]=function(params){
+	//eval(params[0]);
+	Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
+};
+}
 // - chr: move
 $aaaa$.prototype.searchLimit=function(){ // steps
 	return _global_conf['default searchLimit']||14;
@@ -6928,10 +7110,10 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			} }
 			if(tmp.cond!==undefined){
 				//let cond=eval(tmp.cond);
-				let cond=Function('"use strict";return (' + tmp.cond + ')')();
+				let cond=Function('"use strict";return (' + tmp.cond + ')').bind(this)();
 				if(!cond && tmp.elseSkipN){
 					//let skipN=eval(tmp.elseSkipN);
-					let skipN=Function('"use strict";return (' + tmp.elseSkipN + ')')();
+					let skipN=Function('"use strict";return (' + tmp.elseSkipN + ')').bind(this)();
 					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
 					c+=line;
 				}
@@ -7128,9 +7310,9 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 		}break;
 	}
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
-	if(meta&&meta.func) Function('"use strict";return (' + meta.func.replace(/\(|\)/g,'') + ')')()(this);
+	if(meta&&meta.func) Function('"use strict";return (' + meta.func.replace(/\(|\)/g,'') + ')').bind(this)()(this);
 	//if(meta&&meta.code) eval(meta.code);
-	if(meta&&meta.code) Function('"use strict";return (' + meta.code + ')')();
+	if(meta&&meta.code) Function('"use strict";return (' + meta.code + ')').bind(this)();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);
@@ -7292,7 +7474,7 @@ $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $dddd$.f_keyword=function(){
 	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
 		//eval(arguments[1])+
-		Function('"use strict";return (' + arguments[1] + ')')()+
+		Function('"use strict";return (' + arguments[1] + ')').bind(this)()+
 		"\x1bRGB["+$dataCustom.textcolor.default+"]";
 };
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;

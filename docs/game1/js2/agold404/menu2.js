@@ -1744,15 +1744,17 @@ $dddd$.parseUTF8=function f(txt){return txt.replace(f.re,function(){return (argu
 $dddd$.parseUTF8.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_utf8.toString().slice(5,-2)+
 "",'g');
-$dddd$.parseCODE=function f(txt){return txt.replace(f.re,function(){return (arguments[1]||"")+(arguments[2]||"")+eval(arguments[3]);})};
+$dddd$.parseCODE=function f(txt){return txt.replace(f.re,function(){
+	return (arguments[1]||"")+(arguments[2]||"")+eval(arguments[3]);
+})};
 $dddd$.parseCODE.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_code.toString().slice(5,-2)+
 "",'g');
 $dddd$.parsekeyword=function f(txt){
 	return txt.replace(f.re,function(){
-		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+eval(arguments[3])+"\\RGB["+$dataCustom.textcolor.default+"]";
-		let item=$dataItems[Number(arguments[1])];
-		return "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
+		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+
+			eval(arguments[3])
+		+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
 };
 $dddd$.parsekeyword.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
