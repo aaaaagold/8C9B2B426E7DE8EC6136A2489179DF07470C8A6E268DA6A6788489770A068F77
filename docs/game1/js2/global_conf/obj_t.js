@@ -210,7 +210,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
 $rrrr$=$dddd$=$aaaa$=undef;
 
 $tttt$={};
-if(0) $tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
+if(isDev) $tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
 else $tttt$.doFlow=function f(txt){
 	objs._vars_strArg[objs._vars.length]=f.ua+txt;
 	return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
