@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -42,13 +42,14 @@ button:hover{
 <script>
 "use strict";
 
-var isDev,jss;
-window.objs={};
+var isDev,dev_kkk,dev_kk,jss;
 //jss=undefined; //testing
+isDev=false; //testing
 (()=>{
 let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=(t)=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=(txt)=>d.createTextNode(txt);
-let isDev_=isDev;
+let isDev_=isDev,objs={};
+if(isDev_) window.objs=objs;
 if(!jss) jss=[
 	"test.js",
 	"js/plugins.js",
@@ -85,26 +86,41 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 		let scr=waits[waits_i++];
 		if(scr!==true){ ac(d.body,scr); rc(d.body,scr); }
 	}
-},kkk="",kk="",XHR=(url,callback)=>{
+},kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,callback,onerr,txt)=>{
 	let xhr=new XMLHttpRequest();
-	xhr.responseType='arraybuffer';
+	if(!txt) xhr.responseType='arraybuffer';
+	if(onerr&&onerr.constructor===Function) xhr.onerror=function(){
+		this.onerror=null;
+		onerr();
+	}
 	if(callback&&callback.constructor===Function) xhr.onreadystatechange=function(){
 		if (this.readyState === 4){
 			let s = this.status.toString();
 			if (s.length === 3 && s.slice(0, 1) === '2'){ this.onreadystatechange=null;
-				callback(this.response); return;
-				let u8arr=new Uint8Array(this.response);
-				let s=''; for(let x=0;x!==u8arr.length;++x) s+=String.fromCharCode(u8arr[x]);
-				let ua=navigator.userAgent;
-				kk=s+ua[404%ua.length];
-				f();
+				callback(this.response);
 			}
 		}
 	};
 	xhr.open("GET",url);
 	xhr.send(null);
 	return;
-};
+},vars=[
+"$gameTemp",
+"$gameSystem",
+"$gameScreen",
+"$gameTimer",
+"$gameMessage",
+"$gameSwitches",
+"$gameVariables",
+"$gameSelfSwitches",
+"$gameActors",
+
+"$gameParty",
+"$gameTroop",
+"$gameMap",
+
+"$gamePlayer",
+]; objs._vars=vars; objs._vars_strArg=vars.slice();
 const onloadProc=function f(){
 	if(f.idx===0){
 		if(!f.wait_blk){
@@ -140,7 +156,39 @@ const onloadProc=function f(){
 	f._lastIdx=f.idx;
 	if(f.idx===jss.length){
 		rc(f.wait_blk.parentNode,f.wait_blk); f.wait_blk=undefined;
+		if(!isDev_) delete window.objs;
 		let z,a;
+		
+		// refresh vars
+		a=DataManager.createGameObjects;
+		if(!objs.addScriptViaSrc){
+			let rv=()=>objs._vars_objArg=objs._vars.map(x=>window[x]);
+			z=DataManager.createGameObjects=function f(){ f.ori.call(this); rv(); }; z.ori=a;
+			a=DataManager.extractSaveContents;
+			z=DataManager.extractSaveContents=function f(contents){ f.ori.call(this,contents); rv(); }; z.ori=a;
+		}else if(!a._refreshVars){
+			let rv=()=>{ for(let i in objs._refreshVars) objs._refreshVars[i](); };
+			a=z=DataManager.createGameObjects=function f(){
+				objs.$gameTemp         = new Game_Temp();
+				objs.$gameSystem       = new Game_System();
+				objs.$gameScreen       = new Game_Screen();
+				objs.$gameTimer        = new Game_Timer();
+				objs.$gameMessage      = new Game_Message();
+				objs.$gameSwitches     = new Game_Switches();
+				objs.$gameVariables    = new Game_Variables();
+				objs.$gameSelfSwitches = new Game_SelfSwitches();
+				objs.$gameActors       = new Game_Actors();
+				rv();
+				objs.$gameParty        = new Game_Party();
+				objs.$gameTroop        = new Game_Troop();
+				objs.$gameMap          = new Game_Map();
+				rv();
+				objs.$gamePlayer       = new Game_Player();
+				rv();
+			};
+			a=DataManager.extractSaveContents;
+			z=DataManager.extractSaveContents=function f(contents){ f.ori.call(this,contents); rv(); }; z.ori=a;
+		}
 		
 		// disable some buffers to reduce mem. usage
 		//   not very effective (about 10%) (1GB -> 0.9GB)
@@ -186,7 +234,7 @@ const onloadProc=function f(){
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),(kkk+kk+k).slice(0,32),1);
 					if(isDev_) console.log(plain);
-					ac(d.body, ac(scr,tn(plain)) ); rc(d.body,scr);
+					onloadProc.putScript(scr,plain);
 					f();
 				}
 			}
@@ -199,19 +247,25 @@ const onloadProc=function f(){
 		xhr.onerror=()=>setTimeout(go,404);
 		go();
 	}else{
-		scr.idx=idx;
-		scr.onerror=f.onerr;
-		scr.onload=f.onload;
+		let oriSrc=src;
 		src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
-		scr.src=src;
-		ac(d.body,scr);
+		if(isDev_){
+			objs.addScriptViaSrc=undefined;
+			scr.idx=idx;
+			scr.onerror=f.onerr;
+			scr.onload=f.onload;
+			scr.src=src;
+			ac(d.body,scr);
+		}else{
+			onloadProc.addScriptViaSrc(scr,oriSrc,true);
+		}
 	}
 }; onloadProc.idx=0;
 onloadProc.giveupMsg=()=>{
 	rc(onloadProc.wait_blk.parentNode,onloadProc.wait_blk); onloadProc.wait_blk=undefined;
 	ac(d.body,ac(sa(ce('div'),'class',"msg"),tn("遊戲壞掉了，重新整理或放棄吧。")));
 };
-onloadProc.onload=function(){
+onloadProc.onload=function(){ this.onload=null;
 	rc(this.parentNode,this);
 	onloadProc();
 };
@@ -222,6 +276,58 @@ onloadProc.onerr=function f(){ this.onerror=null;
 	}
 	setTimeout(()=>{this.onerror=f; this.src=src;},404);
 };
+onloadProc.putScript=(scr,txt)=>{
+	ac(d.body, ac(scr,tn(txt)) ); if(!isDev_) rc(d.body,scr);
+};
+onloadProc.addRefreshVars=(txt,src)=>{
+	let us='"use strict";\n';
+	let rtv=us;
+	rtv+="((objs)=>{";
+	rtv+=us;
+	for(let x=0;x!==vars.length;++x) rtv+="var "+vars[x]+";\n";
+	rtv+="\n";
+	rtv+=txt;
+	rtv+="\n";
+	rtv+="if(!objs._refreshVars) objs._refreshVars={";
+	rtv+="};\n";
+	rtv+="objs._refreshVars['"+encodeURI(src)+"']=()=>{";
+	rtv+=us;
+	for(let x=0;x!==vars.length;++x) rtv+=vars[x]+"=objs."+vars[x]+"; if(window."+vars[x]+"!==undefined) window."+vars[x]+"="+vars[x]+"\n";
+	rtv+="objs._vars_objArg=objs._vars.map(x=>window[x]||objs[x]);";
+	rtv+="\n";
+	rtv+="};\n";
+	rtv+="})";
+	return rtv;
+};
+onloadProc.addScriptViaSrc=(scr,src,doNext)=>{
+	let oriSrc=src;
+	src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
+	let isBody = true
+		&& oriSrc.slice(0,8)!=="js/libs/"
+		&& oriSrc!=="js/plugins.js"
+		&& oriSrc!=="js/rpg_core.js"
+		&& oriSrc.indexOf("init")===-1
+		&& oriSrc.slice(-5)!=="_h.js"
+		&& oriSrc.slice(-2)!=="_h"
+		&& true;
+	let cnt=4,req=()=>{
+		if(isDev_) console.log(oriSrc,isBody);
+		if(--cnt===0) return onloadProc.giveupMsg();
+		XHR(src,(txt)=>{
+			let rndkey=encodeURI(src)+Math.random();
+			window[rndkey]=objs;
+			if(isBody){
+				txt=onloadProc.addRefreshVars(txt,oriSrc);
+				txt+="(window['"+rndkey+"']);";
+			}
+			onloadProc.putScript(scr,txt);
+			if(isDev_) window[oriSrc]=scr;
+			delete window[rndkey];
+			if(isDev_) console.log("xhr",oriSrc,onloadProc.idx);
+			if(doNext) onloadProc();
+		},req,1);
+	};req();
+}; objs.addScriptViaSrc=(scr,src)=>onloadProc.addScriptViaSrc(scr,src);
 if(d.body) onloadProc(); else w.onload=()=>{ w.onload=null; onloadProc(); }
 })();
 

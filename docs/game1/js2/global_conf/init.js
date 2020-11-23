@@ -173,7 +173,7 @@ const debug=function f(){
 	f.stack.push(arguments);
 };debug();debug.clear();
 
-let setShorthand = (w)=>{
+let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	let undef=undefined,d=w.document||{},$rrrr$,$dddd$;
 	w.isNone=(a)=>a===undef||a===null;
 	w.sum=(a,b)=>{return a+b};
@@ -385,7 +385,6 @@ let setShorthand = (w)=>{
 	};
 	
 	const hexDigits=['0','1','2','3','4','5','6','7','8','9',"A","B","C","D","E","F"];
-	w.Number.prototype.toId=function(){ return this.valueOf(); };
 	w.Number.prototype.toHexInt=function(unsigned_){
 		let rtv="",i=this.valueOf(),arr=[];
 		if(i===0) return "0";

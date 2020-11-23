@@ -1,5 +1,5 @@
 ﻿"use strict";
-const rpgquests={func:{},list:{},handleRank:{
+const rpgquests=window.rpgquests={func:{},list:{},handleRank:{
 	easy:[0,4,5], // rankMin, rankMax, levelUp needed count
 	normal:[5,9], // rankMin, rankMax, quest.isSat()
 	hard:[11,30],

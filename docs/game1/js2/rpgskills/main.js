@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const rpgskills={func:{},list:{},handleRank:{
+const rpgskills=window.rpgskills={func:{},list:{},handleRank:{
 	easy:[0,5,5], // rankMin, rankMax, levelUp needed count
 	normal:[6,10],
 	hard:[11,30],

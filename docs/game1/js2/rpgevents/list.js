@@ -35,4 +35,18 @@ list.discardLastNChoices=n=>{
 	};
 };
 
+list.crystalcave_dragon_chase=(self)=>{
+	while(self.queueLen(0)>=7) self.queuePop(0);
+	if(self.isNearThePlayer(0,7)) self.moveTypeTowardPlayer();
+	else{
+		let p=$gamePlayer,dir;
+		if(dir=self.findDirectionTo(p.x,p.y)){
+			self.moveStraight(dir);
+			self.pushXyToQueue(0,$gamePlayer);
+		}else if(dir=self.findDirFromQueue(0)){
+			self.moveStraight(dir);
+		}else self.moveRandom();
+	}
+};
+
 })();

@@ -2,12 +2,13 @@
 // rpg_managers.js v1.6.1
 //=============================================================================
 
+if(!window.objs) window.objs={};
+
 //-----------------------------------------------------------------------------
 // DataManager
 //
 // The static class that manages the database and game objects.
 
-if(!window.objs) window.objs={};
 var $gameTemp         = objs.$gameTemp         = null;
 var $gameSystem       = objs.$gameSystem       = null;
 var $gameScreen       = objs.$gameScreen       = null;
@@ -22,6 +23,7 @@ var $gameTroop        = objs.$gameTroop        = null;
 var $gameMap          = objs.$gameMap          = null;
 var $gamePlayer       = objs.$gamePlayer       = null;
 var $testEvent        = objs.$testEvent        = null;
+window.$testEvent=$testEvent;
 
 DataManager._globalId       = 'RPGMV';
 DataManager._lastAccessedId = 1;

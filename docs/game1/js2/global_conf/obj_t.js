@@ -1,6 +1,5 @@
 ﻿"use strict";
 // after rpg_*
-let $aaaa$,$dddd$,$rrrr$;
 
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
@@ -209,6 +208,14 @@ $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
 	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
+
+$tttt$={};
+if(0) $tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
+else $tttt$.doFlow=function f(txt){
+	objs._vars_strArg[objs._vars.length]=f.ua+txt;
+	return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
+};
+$tttt$.doFlow.ua='"use strict";\n';
 
 // core
 
@@ -449,7 +456,7 @@ $rrrr$=$aaaa$.isFontLoaded=function(name){
 };
 $dddd$=$aaaa$.isFontLoaded=function f(name){
 	let rtv=f.ori.call(this,name);
-	if(!rtv){ debug.log("font issue"); debugger; }
+	if(!rtv){ debug.log("font issue"); if(window.isDev) debugger; }
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.playVideo=function(src) {
@@ -3071,7 +3078,7 @@ TextManager.custom=(id)=>$dataCustom[id]||'';
 $aaaa$=SceneManager;
 $rrrr$=$aaaa$.catchException;
 $dddd$=$aaaa$.catchException=function f(e){
-	debugger; // not very useful though
+	if(window.isDev) debugger; // not very useful though
 	return f.ori.call(this,e);
 }; $dddd$.ori=$rrrr$;
 $aaaa$._defaultWidth  = _global_conf["default width"]; // @global_conf/obj_h.js
@@ -3867,8 +3874,8 @@ Object.defineProperties($aaaa$.prototype, {
 	w: { get: function(){return this.width();}, configurable: false },
 	h: { get: function(){return this.height();}, configurable: false },
 	name: { get: function(){return this.displayName();}, configurable: false },
-	_displayX: { get: function(){console.warn('lack of precision'); return this._displayX_tw/this.tileWidth();}, configurable: false },
-	_displayY: { get: function(){console.warn('lack of precision'); return this._displayY_th/this.tileHeight();}, configurable: false },
+	_displayX: { get: function(){ console.warn('lack of precision'); return this._displayX_tw/this.tileWidth();  }, set:(rhs)=>rhs, configurable: false },
+	_displayY: { get: function(){ console.warn('lack of precision'); return this._displayY_th/this.tileHeight(); }, set:(rhs)=>rhs, configurable: false },
 	_parallaxX: { set: function(rhs){this._parallaxX_tw=this.tileWidth()*rhs; return rhs;}, configurable: false },
 	_parallaxY: { set: function(rhs){this._parallaxY_th=this.tileHeight()*rhs; return rhs;}, configurable: false },
 });
@@ -4870,16 +4877,18 @@ $aaaa$.prototype.command214=function(){ // erase evt
 	if(this.isOnCurrentMap()&&this._eventId.toId()>0) $gameMap.eraseEvent(this._eventId);
 	return true;
 };
-$aaaa$.prototype.command355 = function() {
+$dddd$=$aaaa$.prototype.command355 = function f() {
 	let script = this.currentCommand().parameters[0] + '\n';
 	while (this.nextEventCode() === 655) {
 		++this._index;
 		script += this.currentCommand().parameters[0] + '\n';
 	}
 	//eval(script);
-	Function('"use strict";\nreturn (()=>{\n'+script+'})()').bind(this)();
+	f.doFlow.call(this,script);
+	//Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
 	return true;
 };
+$dddd$.doFlow=$tttt$.doFlow;
 // - - expose info
 $aaaa$.prototype.getEvt=function(){ return $gameMap._events[this._eventId] };
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -5309,10 +5318,19 @@ $dddd$.tbl[gc.ROUTE_CHANGE_BLEND_MODE]=function(params){
 $dddd$.tbl[gc.ROUTE_PLAY_SE]=function(params){
 	AudioManager.playSe(params[0]);
 };
-$dddd$.tbl[gc.ROUTE_SCRIPT]=function(params){
+$dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 	//eval(params[0]);
-	Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
+	let p0=params[0];
+	if(p0&&p0[0]===':'&&p0[1]==='!'&&p0.slice){
+		let strs=JSON.parse(p0.slice(2));
+		let curr=rpgevts;
+		for(let x=0;x!==strs.length;++x) curr=curr[strs[x]];
+		return curr(this);
+	}
+	return f.doFlow.call(this,params[0]);
+	//return Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
 };
+$dddd$.tbl[gc.ROUTE_SCRIPT].doFlow=$tttt$.doFlow;
 }
 // - chr: move
 $aaaa$.prototype.searchLimit=function(){ // steps
@@ -8175,6 +8193,7 @@ $aaaa$.prototype.drawGameTitle = function(info, x, y, width) {
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
+$tttt$={};
 
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 

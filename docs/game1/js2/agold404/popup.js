@@ -6,6 +6,7 @@ function Window_CustomPopups(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomPopups;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Selectable.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
