@@ -1004,13 +1004,14 @@ $aaaa$.prototype._refresh=function(){
 			this.texture.frame = new Rectangle(0, 0, realW, realH);
 		}else{
 			if(this._bitmap) this.texture.baseTexture = this._bitmap.baseTexture;
-			// TODO:WA
+			/* // seems not happening
+			// TODO?:WA
 			let w= this._frame.x + this._frame.width;
 			let h= this._frame.y + this._frame.height;
 			let tex=this.texture.baseTexture;
 			if(tex.width<w) tex.width=w;
 			if(tex.height<h) tex.height=h;
-			// 
+			// */
 			this.texture.frame = this._realFrame;
 		}
 	}else if(this._bitmap) this.texture.frame = Rectangle.emptyRectangle;
