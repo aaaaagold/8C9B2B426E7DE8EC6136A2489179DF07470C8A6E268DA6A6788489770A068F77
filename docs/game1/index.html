@@ -44,7 +44,7 @@ button:hover{
 
 var isDev,dev_kkk,dev_kk,jss;
 //jss=undefined; //testing
-isDev=false; //testing
+//isDev=false; //testing
 (()=>{
 let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=(t)=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=(txt)=>d.createTextNode(txt);
@@ -221,8 +221,8 @@ const onloadProc=function f(){
 	let src=jss[f.idx++];
 	if(src[0]===":"){
 		let gas="https://script.google.com/macros/s/AKfycbxKqePNqsycE-Y4FkmZEeCMcILjXaCRoMgUESaEI2iiSzCYmH0G/exec";
-		let files="&file="+encodeURIComponent(src);
-		while(f.idx!==jss.length && jss[f.idx][0]===":") files+="&file="+encodeURIComponent(jss[f.idx++]);
+		let files="&file="+encodeURIComponent(src),isBody=onloadProc.isBody(src);
+		while(f.idx!==jss.length && jss[f.idx][0]===":") if(onloadProc.isBody(jss[f.idx])===isBody) files+="&file="+encodeURIComponent(jss[f.idx++]); else break;
 		if(isDev_) console.log(files);
 		let k=Date.now()+''+Math.random();
 		let xhr=new XMLHttpRequest();
@@ -234,7 +234,14 @@ const onloadProc=function f(){
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),(kkk+kk+k).slice(0,32),1);
 					if(isDev_) console.log(plain);
-					onloadProc.putScript(scr,plain);
+					if(onloadProc.isBody(src)){ if(isDev_) console.log("body",src);
+						let rndkey=encodeURI(src)+Math.random();
+						window[rndkey]=objs;
+						let txt=onloadProc.addRefreshVars(plain,src);
+						txt+="(window['"+rndkey+"']);";
+						onloadProc.putScript(scr,txt);
+						delete window[rndkey];
+					}else onloadProc.putScript(scr,plain);
 					f();
 				}
 			}
@@ -299,17 +306,18 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	rtv+="})";
 	return rtv;
 };
+onloadProc.isBody=(src)=>true
+	&& src.slice(0,8)!=="js/libs/"
+	&& src!=="js/plugins.js"
+	&& src!=="js/rpg_core.js"
+	&& src.indexOf("init")===-1
+	&& src.slice(-5)!=="_h.js"
+	&& src.slice(-2)!=="_h"
+	&& true;
 onloadProc.addScriptViaSrc=(scr,src,doNext)=>{
 	let oriSrc=src;
 	src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
-	let isBody = true
-		&& oriSrc.slice(0,8)!=="js/libs/"
-		&& oriSrc!=="js/plugins.js"
-		&& oriSrc!=="js/rpg_core.js"
-		&& oriSrc.indexOf("init")===-1
-		&& oriSrc.slice(-5)!=="_h.js"
-		&& oriSrc.slice(-2)!=="_h"
-		&& true;
+	let isBody=onloadProc.isBody(oriSrc);
 	let cnt=4,req=()=>{
 		if(isDev_) console.log(oriSrc,isBody);
 		if(--cnt===0) return onloadProc.giveupMsg();
