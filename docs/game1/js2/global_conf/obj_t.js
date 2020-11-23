@@ -1009,7 +1009,7 @@ $aaaa$.prototype._refresh=function(){
 			let h= this._frame.y + this._frame.height;
 			let tex=this.texture.baseTexture;
 			if(tex.width<w) tex.width=w;
-			if(tex.height<w) tex.height=h;
+			if(tex.height<h) tex.height=h;
 			// 
 			this.texture.frame = this._realFrame;
 		}
