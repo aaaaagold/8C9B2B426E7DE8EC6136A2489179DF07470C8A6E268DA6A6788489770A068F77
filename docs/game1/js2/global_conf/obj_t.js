@@ -4402,7 +4402,7 @@ $dddd$=$aaaa$.prototype.data=function f(idx){
 			rtv[i]=rm[i];
 			idxset.add(i%sz);
 		} }
-		for(let it=idxset.values(),t;(t=it.next()).done===false;) DataManager.resetData3d(t.value);
+		idxset.forEach(f.forEach);
 		return rtv;
 	}else{
 		rtv[idx]=$dataMap.data_bak[idx];
@@ -4420,6 +4420,7 @@ $dddd$=$aaaa$.prototype.data=function f(idx){
 		return rtv;
 	}
 }; $dddd$.ori=$rrrr$;
+$dddd$.forEach=v=>DataManager.resetData3d(v);
 $aaaa$.prototype.toBroken=function(permanent){
 	let sz=$gameMap.size;
 	let brokenLvs=$dataMap.meta.brokenLvs.split(',');
@@ -6167,7 +6168,7 @@ $dddd$=$aaaa$.prototype.changeMap=function f(type,data,mapid,noupdate){
 		}break;
 	}
 };
-$dddd$.forEach=function(v){ DataManager.resetData3d(v); };
+$dddd$.forEach=v=>DataManager.resetData3d(v);
 $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 	let evts=$gameMap._events;
 	let mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef

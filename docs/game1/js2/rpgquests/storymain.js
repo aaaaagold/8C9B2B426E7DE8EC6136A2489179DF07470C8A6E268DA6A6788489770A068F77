@@ -54,7 +54,6 @@ list.easy_collectLeaves={
 		gold:89,
 		codes:[]
 	},
-	__dummy:null
 };
 list.easy_leavesWater={
 	title:"蒐集葉子與水",
@@ -77,7 +76,6 @@ list.easy_leavesWater={
 		gold:230,
 		codes:[]
 	},
-	__dummy:null
 };
 list.easy_tangerine={
 	title:"好想吃橘子",
@@ -98,7 +96,6 @@ list.easy_tangerine={
 		gold:230,
 		codes:[] // [[code,msgTxt],[],...]
 	},
-	__dummy:null
 };
 
 $qqqq$=list.normal_finalTest={
@@ -118,7 +115,6 @@ $qqqq$=list.normal_finalTest={
 		items:[{id:67,amount:1}],
 		codes:[] // [[code,msgTxt],[],...]
 	},
-	__dummy:null
 };
 (()=>{ let tmp={},reqCnt=15;
 tmp[0]="$gameParty.completedQuestsCnt(rpgquests.handleRank.easy[0],rpgquests.handleRank.normal[1])>="+reqCnt;
@@ -162,7 +158,6 @@ list.normal_fireflower={
 		gold:500,
 		codes:[]
 	},
-	__dummy:null
 };
 list.normal_branchCrossing={
 	title:"猛男撿樹枝",
@@ -184,7 +179,6 @@ list.normal_branchCrossing={
 		gold:500,
 		codes:[] // [[code,msgTxt],[],...]
 	},
-	__dummy:null
 };
 
 $qqqq$=list.high_burnCore={
@@ -213,7 +207,6 @@ $qqqq$=list.high_burnCore={
 			['delete $gameParty._items[56]',"自動回收身上的\\item[56]"],
 		] // [[code,msgTxt],[],...]
 	},
-	__dummy:null
 };
 $qqqq$.info.codes[0].push(()=>{
 	let mch=$gameParty.mapChanges[73],cnt=mch&&mch.vars.tree;
@@ -270,7 +263,27 @@ list.high_coreFruit={
 		gold:5000,
 		codes:[] // [[code,msgTxt],[],...]
 	},
-	__dummy:null
+};
+
+list.high_sandcityEconomy={
+	title:"調查沙城經濟來源",
+	rank:17,
+	limit:1,
+	txt:[
+		{txt:"據說在\\key'\"沙島\"'有一批人專門種耐熱植物。真是太可惡了，二氧化碳濃度都不夠了，竟然還種植物！"},
+		"\n",{txt:"越過\\key'\"木亥村莊\"'的森林結界，在\\key'\"The World\"'向左下角走，抵達\\key'\"沙島\"'。\n進入\\key'\"三叉路\"'後往右下角走，前往沙城調查他們的經濟來源吧！"},
+	],
+	info:{
+		type:"evaltrue",
+		codes:[
+			[1,"TODO:還沒想好怎麼調查"],
+		]
+	},
+	reward:{
+		items:[],
+		gold:5000,
+		codes:[] // [[code,msgTxt],[],...]
+	},
 };
 
 
