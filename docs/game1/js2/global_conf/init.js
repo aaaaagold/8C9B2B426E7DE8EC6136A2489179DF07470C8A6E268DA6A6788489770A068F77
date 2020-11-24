@@ -1576,3 +1576,4 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return (f.X=(f.a*f.X+f.c)%f.m)&0xFFFF;
 	};
 };
+

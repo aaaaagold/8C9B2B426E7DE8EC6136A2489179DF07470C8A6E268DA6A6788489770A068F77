@@ -1,6 +1,8 @@
 ﻿"use strict";
 // after rpg_*
 
+if(!window.objs) window.objs={};
+
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
@@ -226,10 +228,11 @@ if(isDev){
 {
 	let tmp='"use strict";\n';
 	for(let i in $tttt$){
-		let curr=$tttt$[i];
+		let curr=objs["_"+i]=$tttt$[i];
 		if(curr&&curr.constructor===Function) curr.ua=tmp;
 	}
 }
+$tttt$=undefined;
 
 // core
 
@@ -892,7 +895,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 						break;
 					}
 				}
-			},(1024<<(this._errCnt^0))+4876);
+			},4876);
 		}else{
 			this._image.ae('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
 			//this._image.src=url;
@@ -2632,7 +2635,6 @@ $aaaa$.resetHasA1=(idx)=>{
 		} }
 	}
 };
-$aaaa$.resetPseudoTile_getObj=$tttt$.getObj;
 $aaaa$.resetPseudoTile=()=>{
 	// <addUpper:[{tid,loc,tp,top?,cond?}]>  <addLower:[{tid,loc,cond?}]>
 	// {loc:[x,y]} or {loc:[x,y,xe,ye]}
@@ -2653,7 +2655,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=this.resetPseudoTile_getObj(curr.cond);
+			let cond=objs._getObj(curr.cond);
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -4902,10 +4904,9 @@ $dddd$=$aaaa$.prototype.command355 = function f() {
 		script += this.currentCommand().parameters[0] + '\n';
 	}
 	//eval(script);
-	f.doFlow.call(this,script);
+	objs._doFlow.call(this,script);
 	return true;
 };
-$dddd$.doFlow=$tttt$.doFlow;
 // - - expose info
 $aaaa$.prototype.getEvt=function(){ return $gameMap._events[this._eventId] };
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -5344,9 +5345,8 @@ $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 		for(let x=0;x!==strs.length;++x) curr=curr[strs[x]];
 		return curr(this);
 	}
-	return f.doFlow.call(this,params[0]);
+	return objs._doFlow.call(this,params[0]);
 };
-$dddd$.tbl[gc.ROUTE_SCRIPT].doFlow=$tttt$.doFlow;
 }
 // - chr: move
 $aaaa$.prototype.searchLimit=function(){ // steps
@@ -7142,10 +7142,10 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			} }
 			if(tmp.cond!==undefined){
 				//let cond=eval(tmp.cond);
-				let cond=f.getObj.call(this,tmp.cond);
+				let cond=objs._getObj.call(this,tmp.cond);
 				if(!cond && tmp.elseSkipN){
 					//let skipN=eval(tmp.elseSkipN);
-					let skipN=f.getObj.call(this,tmp.elseSkipN);
+					let skipN=objs._getObj.call(this,tmp.elseSkipN);
 					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
 					c+=line;
 				}
@@ -7158,7 +7158,6 @@ $dddd$=$aaaa$.prototype.list=function f(){
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $dddd$.empty={code: 0, indent: 0, parameters: []};
-$dddd$.getObj=$tttt$.getObj;
 $aaaa$.prototype._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
@@ -7507,10 +7506,9 @@ $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $dddd$.f_keyword=function f(){
 	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
 		//eval(arguments[1])+
-		f.getObj.call(this,arguments[1])+
+		objs._getObj.call(this,arguments[1])+
 		"\x1bRGB["+$dataCustom.textcolor.default+"]";
 };
-$dddd$.f_keyword.getObj=$tttt$.getObj;
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;
 $dddd$.f_item=function(){ return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
