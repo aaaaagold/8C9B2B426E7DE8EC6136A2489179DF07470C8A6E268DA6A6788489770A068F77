@@ -883,7 +883,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 						break;
 						case '2':{ // ok
 							let img=this._image; img.onerror=f.onerr;
-							img.setLoadSrcWithTimeout(url,(1024<<Math.min(Number(localStorage.getItem('_errCnt'))^0,20))+4876);
+							img.setLoadSrcWithTimeout(url,(1024<<Math.min(Number(localStorage.getItem('_errCnt'))^0,20))+8763);
 							break;
 							// too slow
 							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
@@ -906,11 +906,11 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 $dddd$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
 	debug.warn("err:","loading",src);
-	this._errCnt^=0; if(20<++this._errCnt) this._errCnt=20;
-	if(this._errCnt==20) localStorage.setItem('_errCnt',20);
-	else if((Number(localStorage.getItem('_errCnt'))^0)>=this._errCnt) ;
+	this._errCnt^=0;
+	if(20<++this._errCnt){ this._errCnt=20; localStorage.setItem('_errCnt',20); }
+	if((Number(localStorage.getItem('_errCnt'))^0)>=this._errCnt) ;
 	else localStorage.setItem('_errCnt',this._errCnt);
-	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,(1024<<(this._errCnt))+4876); },111);
+	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,(1024<<(this._errCnt))+8763); },111);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 

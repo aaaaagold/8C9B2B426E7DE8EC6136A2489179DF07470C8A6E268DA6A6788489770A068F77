@@ -238,6 +238,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		this.ae('error',f.ae_onerr);
 		this.ae('load',f.ae_onload);
 		this._timeoutAction=()=>{
+			this._timeout=undefined;
 			this.removeEventListener('error',f.ae_onerr);
 			this.removeEventListener('load',f.ae_onload);
 			if(this._errored) return;
@@ -247,11 +248,11 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			}
 		};
 		this.src=src;
-		if(0<(ms^=0)) setTimeout(this._timeoutAction,ms);
+		if(0<(ms^=0)) this._timeout=setTimeout(this._timeoutAction,ms);
 		//debug.log("set img  src,timeout =",[src,ms],"ms");
 	};
-	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onerr=function(){ this._errored=true; this._timeoutAction(); };
-	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onload=function(){ this._loaded=true; this._timeoutAction(); };
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onerr=function(){ this._errored=true; clearTimeout(this._timeout); this._timeoutAction(); };
+	w.HTMLImageElement.prototype.setLoadSrcWithTimeout.ae_onload=function(){ this._loaded=true; clearTimeout(this._timeout); this._timeoutAction(); };
 	if(!w.NodeList.prototype.forEach){ w.NodeList.prototype.forEach=function(f){
 		for(let x=0,xs=this.length;x!==xs;++x) f(this[x],x,this);
 	}; }
