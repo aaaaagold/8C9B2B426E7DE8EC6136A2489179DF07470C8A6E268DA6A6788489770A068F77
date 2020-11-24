@@ -212,7 +212,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
 $rrrr$=$dddd$=$aaaa$=undef;
 
 $tttt$={};
-if(isDev){
+if(!window._objs){
 	$tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
 	$tttt$.getObj=function f(txt){return Function(f.ua+'return ('+txt+')').call(this);};
 }else{
@@ -7342,9 +7342,9 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 		}break;
 	}
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
-	if(meta&&meta.func) Function('"use strict";return (' + meta.func.replace(/\(|\)/g,'') + ')').bind(this)()(this);
+	if(meta&&meta.func) objs._getObj(meta.func.replace(/\(|\)/g,''))(this);
 	//if(meta&&meta.code) eval(meta.code);
-	if(meta&&meta.code) Function('"use strict";return (' + meta.code + ')').bind(this)();
+	if(meta&&meta.code) objs._doFlow(meta.code);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);

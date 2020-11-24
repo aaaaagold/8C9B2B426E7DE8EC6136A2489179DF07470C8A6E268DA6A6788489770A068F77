@@ -44,12 +44,12 @@ button:hover{
 
 var isDev,dev_kkk,dev_kk,jss;
 //jss=undefined; //testing
-//isDev=false; //testing
 (()=>{
 let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=(t)=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=(txt)=>d.createTextNode(txt);
 let isDev_=isDev,objs={};
-if(isDev_) window.objs=objs;
+isDev_=false; //testing
+if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
 if(!jss) jss=[
 	"test.js",
 	"js/plugins.js",
