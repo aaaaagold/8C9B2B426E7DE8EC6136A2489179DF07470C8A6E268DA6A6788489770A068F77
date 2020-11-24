@@ -892,7 +892,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 						break;
 					}
 				}
-			},4876);
+			},(1024<<(this._errCnt^0))+4876);
 		}else{
 			this._image.ae('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
 			//this._image.src=url;
@@ -903,7 +903,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 $dddd$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
 	console.warn("err:","loading",src);
-	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,4876); },111);
+	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,(1024<<(this._errCnt))+4876); },111);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -7506,7 +7506,6 @@ $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
 $dddd$.f_keyword=function f(){
 	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
 		//eval(arguments[1])+
-		//Function('"use strict";return (' + arguments[1] + ')').bind(this)()+
 		f.getObj.call(this,arguments[1])+
 		"\x1bRGB["+$dataCustom.textcolor.default+"]";
 };
