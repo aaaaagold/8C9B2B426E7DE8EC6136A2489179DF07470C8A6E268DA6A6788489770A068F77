@@ -2631,6 +2631,7 @@ $aaaa$.resetHasA1=(idx)=>{
 		} }
 	}
 };
+$aaaa$.resetPseudoTile_getObj=$tttt$.getObj;
 $aaaa$.resetPseudoTile=()=>{
 	// <addUpper:[{tid,loc,tp,top?,cond?}]>  <addLower:[{tid,loc,cond?}]>
 	// {loc:[x,y]} or {loc:[x,y,xe,ye]}
@@ -2651,7 +2652,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=Function('"use strict";return (' + curr.cond + ')').bind(this)();
+			let cond=this.resetPseudoTile_getObj(curr.cond);
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -2670,7 +2671,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=Function('"use strict";return ('+curr.cond+')').bind(this)();
+			let cond=this.resetPseudoTile_getObj(curr.cond);
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
@@ -4901,7 +4902,6 @@ $dddd$=$aaaa$.prototype.command355 = function f() {
 	}
 	//eval(script);
 	f.doFlow.call(this,script);
-	//Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
 	return true;
 };
 $dddd$.doFlow=$tttt$.doFlow;
@@ -5344,7 +5344,6 @@ $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 		return curr(this);
 	}
 	return f.doFlow.call(this,params[0]);
-	//return Function('"use strict";\nreturn (()=>{\n'+params[0]+'\n})()').bind(this)();
 };
 $dddd$.tbl[gc.ROUTE_SCRIPT].doFlow=$tttt$.doFlow;
 }
@@ -7142,10 +7141,10 @@ $dddd$=$aaaa$.prototype.list=function f(){
 			} }
 			if(tmp.cond!==undefined){
 				//let cond=eval(tmp.cond);
-				let cond=Function('"use strict";return (' + tmp.cond + ')').bind(this)();
+				let cond=f.getObj.call(this,tmp.cond);
 				if(!cond && tmp.elseSkipN){
 					//let skipN=eval(tmp.elseSkipN);
-					let skipN=Function('"use strict";return (' + tmp.elseSkipN + ')').bind(this)();
+					let skipN=f.getObj.call(this,tmp.elseSkipN);
 					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
 					c+=line;
 				}
@@ -7158,6 +7157,7 @@ $dddd$=$aaaa$.prototype.list=function f(){
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $dddd$.empty={code: 0, indent: 0, parameters: []};
+$dddd$.getObj=$tttt$.getObj;
 $aaaa$.prototype._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
