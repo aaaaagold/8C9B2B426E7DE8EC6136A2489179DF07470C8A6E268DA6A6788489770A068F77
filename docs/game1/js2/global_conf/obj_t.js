@@ -6849,6 +6849,7 @@ $dddd$=$aaaa$.prototype.start=function f(custom,strtMeta){ // fit $dataMap.strtE
 	//debug.log2('Game_Event.prototype.start');
 	//debug.log2('',this._eventId);
 	//debug.log2('',this._trigger);
+	if(1>=this.page().list.length) return; // empty evt should not start
 	if($gameMap.zaWarudo()&&!this.preventZaWarudo()){
 		$gameMap.zaWarudo_waitToStart(this._eventId);
 		return;
