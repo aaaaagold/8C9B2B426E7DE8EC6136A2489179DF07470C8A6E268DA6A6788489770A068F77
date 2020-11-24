@@ -22,7 +22,7 @@ list.theeasiest={
 	info:{
 		type:"evaltrue",
 		codes:[
-			["$gameSelfSwitches.value([40,7,'D'])","把小樹林的枯樹燒光"],
+			["$gameParty._completedQuests && $gameParty._completedQuests[33] || $gameSelfSwitches.value([40,7,'D'])","把小樹林的枯樹燒光"],
 		]
 	},
 	reward:{
