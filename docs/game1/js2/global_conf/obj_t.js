@@ -903,6 +903,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 $dddd$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
 	console.warn("err:","loading",src);
+	this._errCnt^=0; ++this._errCnt;
 	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,(1024<<(this._errCnt))+4876); },111);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
