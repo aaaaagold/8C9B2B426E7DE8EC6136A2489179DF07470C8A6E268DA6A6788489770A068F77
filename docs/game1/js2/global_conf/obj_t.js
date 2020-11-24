@@ -212,7 +212,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
 $rrrr$=$dddd$=$aaaa$=undef;
 
 $tttt$={};
-if(!window._objs){
+if(isDev&&!window._objs){
 	$tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
 	$tttt$.getObj=function f(txt){return Function(f.ua+'return ('+txt+')').call(this);};
 }else{
