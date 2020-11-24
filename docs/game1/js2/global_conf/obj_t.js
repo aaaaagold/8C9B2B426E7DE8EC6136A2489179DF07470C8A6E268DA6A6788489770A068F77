@@ -905,7 +905,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 };
 $dddd$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
-	console.warn("err:","loading",src);
+	debug.warn("err:","loading",src);
 	this._errCnt^=0; ++this._errCnt;
 	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,(1024<<(this._errCnt))+4876); },111);
 };
@@ -948,7 +948,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 				if(lk[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
 					p.rmc_tree(lk); lk[1]=y;
 					p.addc_tree(lk,this);
-					//console.warn('y',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
+					//debug.warn('y',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
 				}
 			}
 			return this.transform.position.y=rhs;
@@ -965,7 +965,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 					p.rmc_tree(lk); lk[0]=rhs;
 			//	let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight();
 					p.addc_tree(lk,this);
-					//console.warn('z',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
+					//debug.warn('z',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
 				}
 			}
 			return this._z=rhs;

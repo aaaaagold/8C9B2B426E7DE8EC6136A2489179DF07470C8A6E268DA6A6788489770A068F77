@@ -759,13 +759,13 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		if(this.getnth(cnt[0]).data!==node.data){
 			let msg="getnth dismatch";
 			throw new w.Error(msg);
-			console.warn(msg);
+			debug.warn(msg);
 		}
 		++cnt[0];
 		if(!kargs.quiet) console.log(pad,"Lv",lv,node.key,node.data,meta);
 		if(1+((nodeL&&nodeL.meta.cnt)^0)+((nodeR&&nodeR.meta.cnt)^0)!==meta.cnt){
 			let msg="cnt dismatch";
-			console.warn(msg,cnt,node.key);
+			debug.warn(msg,cnt,node.key);
 			throw new w.Error(msg);
 		}
 		if(nodeR) this._goThrough(kargs,nodeR,lv+1,cnt);
