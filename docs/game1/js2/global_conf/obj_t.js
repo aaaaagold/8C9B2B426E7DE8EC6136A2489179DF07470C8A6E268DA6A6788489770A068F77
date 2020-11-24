@@ -2674,7 +2674,7 @@ $aaaa$.resetPseudoTile=()=>{
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
-			let cond=this.resetPseudoTile_getObj(curr.cond);
+			let cond=objs._getObj(curr.cond);
 			if(loc.length===2) dst[loc[1]*w+loc[0]].push([curr.tid,curr.tp,curr.y,cond]);
 			else{ for(let y=loc[1],ys=loc[3],xs=loc[2];y!==ys;++y){ for(let x=loc[0];x!==xs;++x){
 				dst[y*w+x].push([curr.tid,curr.tp,curr.y,cond]);
