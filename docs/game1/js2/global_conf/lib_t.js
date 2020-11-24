@@ -130,6 +130,7 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 				// "Consolas,monospace,'Courier New',Courier,微軟正黑體,標楷體";
 		}, set:function(rhs){
 			let key='_useFont';
+			if(_global_conf.useFont!==rhs) textWidthCache.length=0;
 			if($dataMap) return $gamePlayer[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;

@@ -281,7 +281,7 @@ list.high_sandcityEconomy={
 	},
 	reward:{
 		items:[],
-		gold:5000,
+		gold:81000,
 		codes:[] // [[code,msgTxt],[],...]
 	},
 };

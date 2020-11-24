@@ -210,12 +210,26 @@ $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
 $rrrr$=$dddd$=$aaaa$=undef;
 
 $tttt$={};
-if(isDev) $tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
-else $tttt$.doFlow=function f(txt){
-	objs._vars_strArg[objs._vars.length]=f.ua+txt;
-	return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
-};
-$tttt$.doFlow.ua='"use strict";\n';
+if(isDev){
+	$tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
+	$tttt$.getObj=function f(txt){return Function(f.ua+'return ('+txt+')').call(this);};
+}else{
+	$tttt$.doFlow=function f(txt){
+		objs._vars_strArg[objs._vars.length]=f.ua+txt;
+		return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
+	};
+	$tttt$.getObj=function f(txt){
+		objs._vars_strArg[objs._vars.length]=f.ua+'return ('+txt+')';
+		return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
+	};
+}
+{
+	let tmp='"use strict";\n';
+	for(let i in $tttt$){
+		let curr=$tttt$[i];
+		if(curr&&curr.constructor===Function) curr.ua=tmp;
+	}
+}
 
 // core
 
@@ -1164,7 +1178,7 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	if(!c.z2) c.z2=0;
 	let y=(c.oy===undefined)?c.y:c.oy;
 	let cc=this._character; if(cc) y+=cc.screenY_deltaToParent()*$gameMap.tileHeight();
-	let key=[c.z^0,y^0,c.z2,c.spriteId^0];
+	let key=[c.z^0,y^0,c.z2,c.spriteId^0]; // _tilemapKey
 	// screenZ,screenY(ord=gameMapY),gameMapZ
 	if(c.spriteId===undefined) key.push(this._boundsID);
 	this.addc_tree(key,c);
@@ -2455,7 +2469,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - DataManager
 $aaaa$=DataManager;
-$aaaa$._globalId="agold404";
+$aaaa$._globalId=[97, 103, 111, 108, 100, 52, 48, 52].map(x=>String.fromCharCode(x)).join('');
 $dddd$=$aaaa$._databaseFiles;
 $dddd$.reverse(); [
 	{ name: '$dataCustom',       src: 'custom.json'       },
@@ -6536,7 +6550,7 @@ $aaaa$=Game_Event;
 Object.defineProperties($aaaa$.prototype,{
 	z2:{
 		get:function(){
-			return (this._z2===undefined)?this._priorityType:this._z2;
+			return (this._z2===undefined)?this._priorityType:this._z2; // type=above => default z2=2
 		},set:function(rhs){
 			this._z2=rhs;
 		},
@@ -7489,12 +7503,14 @@ $dddd$.f_code=function(){
 	//return Function('"use strict";return (' + arguments[1] + ')')();
 };
 $dddd$.re_keyword=/\x1bkey'([^']+)'/g;
-$dddd$.f_keyword=function(){
+$dddd$.f_keyword=function f(){
 	return "\x1bRGB["+$dataCustom.textcolor.keyword+"]"+
 		//eval(arguments[1])+
-		Function('"use strict";return (' + arguments[1] + ')').bind(this)()+
+		//Function('"use strict";return (' + arguments[1] + ')').bind(this)()+
+		f.getObj.call(this,arguments[1])+
 		"\x1bRGB["+$dataCustom.textcolor.default+"]";
 };
+$dddd$.f_keyword.getObj=$tttt$.getObj;
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;
 $dddd$.f_item=function(){ return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
