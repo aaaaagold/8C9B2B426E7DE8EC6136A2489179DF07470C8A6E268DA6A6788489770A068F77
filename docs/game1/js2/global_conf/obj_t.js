@@ -3112,7 +3112,8 @@ $aaaa$.ConfigOptions=[
 	["maxSavefiles"],
 	["_halfFps",$aaaa$.readFlag],
 	["_useFont"],
-	["_apps"]
+	["_apps"],
+	["_etc"],
 ];
 $aaaa$.makeData=function() {
 	let rtv={};
@@ -6945,6 +6946,10 @@ $aaaa$.prototype.findDirFromQueue=function(qidx){ // try from newest to oldest
 	for(let nth=q.length;nth--;) goals.push(q.getnth(nth));
 	return this.findDirTo(goals);
 };
+$aaaa$.prototype.isInitPos=function(){
+	let evtd=this.event();
+	return this.x===evtd.x && this.y==evtd.y;
+};
 $aaaa$.prototype.resetDir=function(alsoSetupPage){
 	let p=this.findProperPageIndex();
 	if(p<0) return;
@@ -7382,12 +7387,14 @@ $aaaa$.prototype.playerJumpToMy=function(dx,dy){
 	dy+=this.y-$gamePlayer.y;
 	return $gamePlayer.jump(dx,dy);
 };
-$aaaa$.prototype.canEdited_auth=function(parents){
+$dddd$=$aaaa$.prototype.canEdited_auth=function f(parents){
 	if(this.event().meta.noAuth) return true;
-	parents=parents||$gameMap.parents();
-	return !(parents.indexOf(13)===-1 && parents.indexOf(90)===-1 && parents.indexOf($gameParty.burnAuth)===-1);
-	// 13:forest 90:sky
+	parents=new Set(parents||$gameMap.parents());
+	return parents.has($gameParty.burnAuth) || parents.intersect(f.ignores).size!==0;
+	//return !(parents.indexOf(13)===-1 && parents.indexOf(90)===-1 && parents.indexOf($gameParty.burnAuth)===-1);
+	
 };
+$dddd$.ignores=new Set([13,90,128,]); // 13:forest 90:sky 128:confort
 $aaaa$.prototype.canBurned_auth=function(parents){
 	if($gameParty.burnrange===404) return true;
 	return this.canEdited_auth(parents);

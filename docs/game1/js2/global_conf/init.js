@@ -408,6 +408,13 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		n&=bitlen-1;
 		return n?(( this.valueOf()>>n )&( ( (0xFFFFFFFF<<(bitlen-n))^(~0) ) )):this.valueOf();
 	};
+	w.Set.prototype.intersect=function(set2){
+		let base,search,rtv=new Set();
+		if(this.size<set2.size){ base=this; search=set2; }
+		else{ base=set2; search=this; }
+		base.forEach(x=>search.has(x)&&rtv.add(x));
+		return rtv;
+	};
 	
 	w.Queue=function(){ this.initialize.apply(this,arguments); };
 	w.Queue.prototype.constructor=w.Queue;
