@@ -273,6 +273,9 @@ Utils.isMobileSafari=function(){
 	let agent = navigator.userAgent;
 	return this._isMobileSafari=( !!(agent.match(/iPhone|iPad|iPod/) && agent.indexOf('AppleWebKit') && !agent.indexOf('CriOS')) );
 };
+Utils.rgbToCssColor=function(r,g,b){
+	return 'rgb('+(r^0)+','+(g^0)+','+(b^0)+')';
+};
 
 // - ResourceHandler
 $aaaa$=ResourceHandler;
@@ -430,6 +433,21 @@ $rrrr$=$aaaa$._onKeyDown;
 $dddd$=$aaaa$._onKeyDown=function f(){
 	//debug.keydown('Graphics._onKeyDown');
 	return f.ori.call(this,arguments[0]);
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$._testCanvasBlendModes;
+$dddd$=$aaaa$._testCanvasBlendModes=function f(){
+	f.ori.call(this);
+	let canvas = document.createElement('canvas');
+	canvas.width = 1;
+	canvas.height = 1;
+	let context = canvas.getContext('2d');
+	context.globalCompositeOperation = 'source-over';
+	context.fillStyle = 'black';
+	context.fillRect(0, 0, 1, 1);
+	context.globalCompositeOperation = 'multiply';
+	context.fillStyle = 'white';
+	context.fillRect(0, 0, 1, 1);
+	this._canUseMultiplyBlend = context.getImageData(0, 0, 1, 1).data[0]===0;
 }; $dddd$.ori=$rrrr$;
 $aaaa$._createRenderer=function(){
 	PIXI.dontSayHello=true;
@@ -883,7 +901,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 						break;
 						case '2':{ // ok
 							let img=this._image; img.onerror=f.onerr;
-							img.setLoadSrcWithTimeout(url,(1024<<Math.min(Number(localStorage.getItem('_errCnt'))^0,20))+8763);
+							img.setLoadSrcWithTimeout(url,(1024<<Math.min(Number(localStorage.getItem('_errCnt'))^0,20))+(location.protocol==="https:"?8763:4876));
 							break;
 							// too slow
 							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
@@ -919,9 +937,9 @@ $aaaa$=ScreenSprite;
 $aaaa$.prototype.setColor=function(r, g, b){
 	//debug.log('ScreenSprite.prototype.setColor');
 	if (this._red !== r || this._green !== g || this._blue !== b) {
-		r = Math.round(r || 0).clamp(0, 255);
-		g = Math.round(g || 0).clamp(0, 255);
-		b = Math.round(b || 0).clamp(0, 255);
+		r = (r ^ 0).clamp(0, 255);
+		g = (g ^ 0).clamp(0, 255);
+		b = (b ^ 0).clamp(0, 255);
 		this._red = r;
 		this._green = g;
 		this._blue = b;
@@ -934,6 +952,79 @@ $aaaa$.prototype.setColor=function(r, g, b){
 		graphics.drawRect(0,0, Graphics.width , Graphics.height );
 	}
 };
+$rrrr$=$dddd$=$aaaa$=undef;
+
+// - ToneSprite
+$aaaa$=ToneSprite;
+$dddd$=$aaaa$.prototype._renderCanvas = function f(renderer) { // rewrite: wtf the original one draws 3 times when negtive color values only
+	if (this.visible) {
+		let ctx = renderer.context;
+		let width = Graphics.width;
+		let height = Graphics.height;
+		ctx.save();
+		{
+			let t = this.worldTransform;
+			let r = renderer.resolution;
+			ctx.setTransform(t.a, t.b, t.c, t.d, t.tx * r, t.ty * r);
+		}
+		if (Graphics._canUseSaturationBlend && 0<this._gray) {
+			ctx.globalCompositeOperation = f.saturation;
+			ctx.globalAlpha = this._gray / 255;
+			ctx.fillStyle = f.black;
+			ctx.fillRect(0, 0, width, height);
+			ctx.globalAlpha = 1;
+		}
+		{
+			let r1 = Math.max(0, this._red)>>>0;
+			let g1 = Math.max(0, this._green)>>>0;
+			let b1 = Math.max(0, this._blue)>>>0;
+			if (r1 || g1 || b1) {
+				ctx.globalCompositeOperation = f.lighter;
+				ctx.fillStyle = Utils.rgbToCssColor(r1, g1, b1);
+				ctx.fillRect(0, 0, width, height);
+			}
+		}
+		if(Graphics._canUseMultiplyBlend){
+			let r2 = Math.max(0, -this._red)>>>0;
+			let g2 = Math.max(0, -this._green)>>>0;
+			let b2 = Math.max(0, -this._blue)>>>0;
+			if (r2 || g2 || b2) {
+				let tm;
+				if($gameScreen.limitedView){
+					ctx.fillStyle = '#000000';
+					ctx.globalCompositeOperation='destination-atop';
+					ctx.fillRect(0,0,width,height);
+				}
+				ctx.globalCompositeOperation = f.multiply;
+				// canvas color clamp to [0,255]
+				ctx.fillStyle = Utils.rgbToCssColor(255-r2, 255-g2, 255-b2);
+				ctx.fillRect(0, 0, width, height);
+			}
+		}else if (Graphics._canUseDifferenceBlend) {
+			let r2 = Math.max(0, -this._red)>>>0;
+			let g2 = Math.max(0, -this._green)>>>0;
+			let b2 = Math.max(0, -this._blue)>>>0;
+			if (r2 || g2 || b2) {
+				ctx.globalCompositeOperation = f.difference;
+				ctx.fillStyle = f.white;
+				ctx.fillRect(0, 0, width, height);
+				ctx.globalCompositeOperation = f.lighter;
+				ctx.fillStyle = Utils.rgbToCssColor(r2, g2, b2);
+				ctx.fillRect(0, 0, width, height);
+				ctx.globalCompositeOperation = f.difference;
+				ctx.fillStyle = f.white;
+				ctx.fillRect(0, 0, width, height);
+			}
+		}
+		ctx.restore();
+	}
+};
+$dddd$.black='#000000';
+$dddd$.difference='difference';
+$dddd$.lighter='lighter';
+$dddd$.multiply='multiply';
+$dddd$.saturation='saturation';
+$dddd$.white='#FFFFFF';
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - sprite
@@ -1128,6 +1219,9 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._height = Graphics.height+(this._margin<<1) >>>0;
 	this._tileWidth = 48>>>0;
 	this._tileHeight = 48>>>0;
+	this._tileEdge=Math.max(this._tileWidth,this._tileHeight)>>>0;
+	this._tileEdge4=this._tileEdge*4;
+	this._tileEdge4p2=this._tileEdge4*this._tileEdge4;
 	this._tileWidth_=this._tileWidth>>>1;
 	this._tileHeight_=this._tileHeight>>>1;
 	this._mapWidth = 0;
@@ -1673,17 +1767,42 @@ $dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
 	//debug.log('Tilemap.prototype.renderCanvas');
 	// if not visible or the alpha is 0 then no need to render this
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
-	//if(this._mask) renderer.maskManager.pushMask(this._mask);
-	//if(this._mask) console.log("?");
+	//if(this._mask){ renderer.maskManager.pushMask(this._mask); console.log("?"); }
 	//this._renderCanvas(renderer); // empty function
-	f.forEach.renderer=renderer;
-	// do not render if a child is: 'Sprite_Character' and out of screen
-	//this.children.forEach(f.forEach);
-	this.children.forEach(f.forEach,true); // faster
+	if($gameScreen.limitedView){
+		let ctx=renderer.context,p=this.player;
+		let w=ctx.canvas.width,h=ctx.canvas.height,gco=ctx.globalCompositeOperation;
+		ctx.fillStyle = '#000000';
+		ctx.globalCompositeOperation='source-over';
+		ctx.fillRect(0,0,w,h);
+		ctx.globalCompositeOperation='source-in';
+		ctx.beginPath();
+		ctx.arc(p.x,p.y,Math.max(this.tileWidth,this.tileHeight)*3,0,PI2);
+		ctx.fill();
+		ctx.globalCompositeOperation='source-atop';
+		f.forEach.renderer=renderer;
+		// do not render if a child is: 'Sprite_Character' and out of screen
+		this.children.forEach(f.forEach,true); // faster // AVLTree.prototype.forEach
+		ctx.globalCompositeOperation=gco;
+	}else{
+		f.forEach.renderer=renderer;
+		// do not render if a child is: 'Sprite_Character' and out of screen
+		this.children.forEach(f.forEach,true); // faster // AVLTree.prototype.forEach
+	}
 	//if(this._mask) renderer.maskManager.popMask(renderer);
 };
 $dddd$.forEach=function f(c){
-	if(c.constructor!==Sprite_Character || c.isInView()) return c.renderCanvas(f.renderer);
+	if(c.constructor===Sprite_Character){
+		if(c._character._light){
+			let ctx=f.renderer.context;
+			let gco=ctx.globalCompositeOperation;
+			ctx.globalCompositeOperation='source-over';
+			c.renderCanvas(f.renderer);
+			ctx.globalCompositeOperation=gco;
+			return;
+		}else if(c.isInView()) return c.renderCanvas(f.renderer);
+	}else return c.renderCanvas(f.renderer);
+	//if(c.constructor!==Sprite_Character || c.isInView()) return c.renderCanvas(f.renderer);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -2225,10 +2344,17 @@ $aaaa$.prototype.updateAnimationSprites = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
-$aaaa$.prototype.isInView=function(){
+$aaaa$.prototype.isInView_inScreen=function(){
 	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
 };
-$rrrr$=$aaaa$.prototype.update;
+$aaaa$.prototype.isInView=function(){ // can view?
+	if($gameScreen.limitedView && !this._character._light){
+		let p=this.parent.player; if(!p) return false;
+		let dx=p.x-this.x,dy=p.y-this.y;
+		return dx*dx+dy*dy<this.parent._tileEdge4p2;
+	}else return this.isInView_inScreen();
+};
+$rrrr$=$aaaa$.prototype.update;		
 $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(forced) return f.ori.call(this);
 	let c=this._character;
@@ -2733,7 +2859,14 @@ $aaaa$.loadMapData = function f(mapId) {
 		}
 		// - actually request media
 		SceneManager.preloadMedia.load({img:faces,audio:audios});
-		// pre-cal isChair
+		// pre-cal
+		// - evtd attrs.
+		for(let x=0,evtd,evtds=$dataMap.events;x!==evtds.length;++x){
+			if(!(evtd=evtds[x])) continue;
+			if(evtd.meta.light) evtd.light=JSON.parse(evtd.meta.light);
+		}
+		// - tile structure
+		// - - isChair
 		$dataMap.isChair=[];
 		let chair=$dataTilesets[$dataMap.tilesetId].meta.chair;
 		if(chair){ for(let y=0,ys=$dataMap.height,xs=$dataMap.width,sz=$dataMap.height*$dataMap.width,data=$dataMap.data ;y!==ys;++y){ for(let x=0;x!==xs;++x){
@@ -2746,12 +2879,12 @@ $aaaa$.loadMapData = function f(mapId) {
 				}
 			}
 		} } }
-		// extended map data (including events)
-		// - in-note added pseudo-tiles
+		// - - in-note added pseudo-tiles
 		this.resetPseudoTile();
-		// - pre-cal.
+		// - - pre-cal. tile
 		this.resetData3d();
 		this.resetHasA1();
+		// extended map data (including events)
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
 		if(tmp=$dataTemplateEvtFromMaps[$dataMap.tilesetId]){
@@ -2853,7 +2986,7 @@ $aaaa$.saveGameWithoutRescue = function(savefileId) {
 	this.saveGlobalInfo(globalInfo);
 	return true;
 };
-$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","_imgModded","_imgModded_timestamp",]; 
+$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","_imgModded","_imgModded_timestamp","_light",]; 
 $rrrr$=$aaaa$.makeSaveContents;
 $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
@@ -2871,7 +3004,7 @@ $dddd$=$aaaa$.makeSaveContents=function f(){
 	
 	f.delAttrs_chr(rtv.player);
 	for(let x=0,arr=rtv.map._events;x!==arr.length;++x){
-		let evt=arr[x]; if(!evt) continue;
+		let evt=arr[x]; if(!evt){ arr[x]=0; continue; }
 		f.delAttrs_chr(evt);
 	}
 	return rtv;
@@ -2881,7 +3014,7 @@ $dddd$.delAttrs_chr=function f(chr){
 	let tmp;
 	tmp=chr._mvSpBuf; if(tmp && tmp.buff.length===0&&tmp.debuff.length===0&&tmp.stack.length===0) delete chr._mvSpBuf;
 };
-$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp",];
+$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp","_light"];
 $rrrr$=$aaaa$.extractSaveContents;
 $dddd$=$aaaa$.extractSaveContents=function f(content){
 	debug.log('DataManager.extractSaveContents');
@@ -3607,17 +3740,41 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 	if(!$gamePlayer._noLeaderHp) this._pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty._actors.length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
 	if(!$gamePlayer._noLeaderMp) this._pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty._actors.length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
 	if($gamePlayer.speedup) this._pannel.add($gamePlayer,'speedup',{head:"疾風Lv",align:'center'});
-	if($gameParty.canburn){
-		this._pannel.add($gameParty,'canburn',{align:'center'});
-		let last=this._pannel._windows.back;
+	if($gameParty.canplant){
+		this._pannel.add($gameParty,(pt)=>$dataItems[pt.canplant].name,{align:'center'});
+		let ws=this._pannel._windows;
+		let last=ws.back;
 		let x=last.x+last.width;
-		if($gameParty.burnrange) this._pannel.add($gameParty,'burnrange',{head:"烈火Lv",align:'center',x:x,y:this._pannel._windows.back.y});
-	}
-	if($gameParty.canslash){
-		this._pannel.add($gameParty,'canslash',{align:'center'});
-		let last=this._pannel._windows.back;
-		let x=last.x+last.width;
-		if($gameParty.slashrange) this._pannel.add($gameParty,'slashrange',{head:"伐木Lv",align:'center',x:x,y:this._pannel._windows.back.y});
+		if(0&&$gameParty.plantrange){
+			this._pannel.add($gameParty,'plantrange',{head:"種樹Lv",align:'center',x:x,y:this._pannel._windows.back.y});
+			last=ws.back;
+			x=last.x+last.width;
+		}
+		if($gameParty._canburn){
+			this._pannel.add($gameParty,'_canburn',{align:'center',x:x,y:this._pannel._windows.back.y});
+			last=ws.back;
+			last.alpha=0.5;
+			x=last.x+last.width;
+		}
+		if($gameParty._canslash){
+			this._pannel.add($gameParty,'_canslash',{align:'center',x:x,y:this._pannel._windows.back.y});
+			last=ws.back;
+			last.alpha=0.5;
+			x=last.x+last.width;
+		}
+	}else{
+		if($gameParty.canburn){
+			this._pannel.add($gameParty,'canburn',{align:'center'});
+			let last=this._pannel._windows.back;
+			let x=last.x+last.width;
+			if($gameParty.burnrange) this._pannel.add($gameParty,'burnrange',{head:"烈火Lv",align:'center',x:x,y:this._pannel._windows.back.y});
+		}
+		if($gameParty.canslash){
+			this._pannel.add($gameParty,'canslash',{align:'center'});
+			let last=this._pannel._windows.back;
+			let x=last.x+last.width;
+			if($gameParty.slashrange) this._pannel.add($gameParty,'slashrange',{head:"伐木Lv",align:'center',x:x,y:this._pannel._windows.back.y});
+		}
 	}
 	// fast search table
 	// - $dataMap.coordTbl : (x,y)=>events
@@ -5899,7 +6056,7 @@ $aaaa$.prototype.customEvtStrt=function(){
 		}
 	}
 	// plant
-	if($gameParty.canplant){
+	if($gameParty.canplant && (Input.isTriggered("ok")||Input.isLongPressed("ok")) ){
 		rtv=true;
 		let items=$gameParty._items;
 		if(items[$gameParty.canplant]){
@@ -6070,6 +6227,7 @@ Object.defineProperties($aaaa$.prototype, {
 	burnmpcost: { get: function(){
 			return (!(this._items&&this._items[77]))*((this.burnrange^0)+1);
 	}, configurable: false },
+	_canburn: { get: function(){return this._canB;}, set: function(rhs){return this._canB=rhs;}, configurable: false },
 	canburn: { get: function(){
 			return this.canplant?undef:this._canB;
 		}, set: function(rhs){
@@ -6095,6 +6253,7 @@ Object.defineProperties($aaaa$.prototype, {
 	slashhpcost: { get: function(){
 			return (!(this._items&&this._items[76]))*((this.slashrange^0)+1)*((this.canslash==="大斧")*9+1);
 	}, configurable: false },
+	_canslash: { get: function(){return this._canS;}, set: function(rhs){return this._canS=rhs;}, configurable: false },
 	canslash: { get: function(){
 			return this.canplant?undef:this._canS;
 		}, set: function(rhs){
@@ -6107,6 +6266,7 @@ Object.defineProperties($aaaa$.prototype, {
 			}
 			return this._canS;
 	}, configurable: false },
+	_canplant: { get: function(){return this._canP;}, set: function(rhs){return this._canP=rhs;}, configurable: false },
 	canplant: { get: function(){
 			return this._canP;
 		}, set: function(rhs){
@@ -6591,11 +6751,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	let evtd=this.event();
 	let meta=evtd.meta;
 	
-	if(meta.strtByAny) this._strtByAny=meta.strtByAny;
-	if(meta.stopCount){
-		let tmp=Number(meta.stopCount);
-		if(!isNaN(tmp)) this._stopCount=tmp;
-	}
+	// display
 	if(meta.z){
 		let tmp=Number(meta.z);
 		if(!isNaN(tmp)) this._z=tmp;
@@ -6603,6 +6759,17 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	if(meta.z2){
 		let tmp=Number(meta.z2);
 		if(!isNaN(tmp)) this._z2=tmp;
+	}
+	if(meta.light){
+		let tmp=Number(meta.light);
+		if(0<tmp) this._light=tmp; // is light src if > 0
+	}
+	// interact
+	if(meta.strtByAny) this._strtByAny=meta.strtByAny;
+	// moving
+	if(meta.stopCount){
+		let tmp=Number(meta.stopCount);
+		if(!isNaN(tmp)) this._stopCount=tmp;
 	}
 	if(meta.longDistDetection){
 		this._lld=meta.longDistDetection===true?true:Number(meta.longDistDetection);
@@ -6849,7 +7016,7 @@ $dddd$=$aaaa$.prototype.start=function f(custom,strtMeta){ // fit $dataMap.strtE
 	//debug.log2('Game_Event.prototype.start');
 	//debug.log2('',this._eventId);
 	//debug.log2('',this._trigger);
-	{ let page=this.page(); if(!page||1>=page.list.length) return; }// empty evt should not start
+	{ let page=this.page(); if(!page||page.list.length<2) return; } // empty evt should not start // list.back==={code:0,...}
 	if($gameMap.zaWarudo()&&!this.preventZaWarudo()){
 		$gameMap.zaWarudo_waitToStart(this._eventId);
 		return;
@@ -7092,9 +7259,17 @@ $dddd$=$aaaa$.prototype._getColorEdt=function f(){
 	else return meta.color;
 };
 $dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
+$rrrr$=$aaaa$.prototype.clearPageSettings;
+$dddd$=$aaaa$.prototype.clearPageSettings=function f(){
+	delete this._light;
+	this.imgModded=true;
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.setupPageSettings;
 $dddd$=$aaaa$.prototype.setupPageSettings=function f(){
-	if(this.event().meta.colors) this.imgModded=true;
+	let evtd=this.event();
+	if(evtd.meta.colors) this.imgModded=true;
+	if(evtd.light && evtd.light.constructor===Array) this._light=evtd.light[this._pageIndex]^0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.refresh=function(forced) {
