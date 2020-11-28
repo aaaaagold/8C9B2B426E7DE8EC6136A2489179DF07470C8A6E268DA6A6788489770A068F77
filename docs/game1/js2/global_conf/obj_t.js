@@ -3658,28 +3658,29 @@ $aaaa$.prototype.create=function(){
 	this.createStatusWindow();
 };
 $aaaa$.prototype.createCommandWindow=function(){
-	this._commandWindow = new Window_MenuCommand(0, 0 ,{maxHeight:this._goldWindow.y});
-	this._commandWindow.setHandler('item',   this.commandItem.bind(this));
-	this._commandWindow.setHandler('skill',	 this.commandPersonal.bind(this));
-	this._commandWindow.setHandler('equip',	 this.commandPersonal.bind(this));
-	this._commandWindow.setHandler('status', this.commandPersonal.bind(this));
-	this._commandWindow.setHandler('formation', this.commandFormation.bind(this));
-	this._commandWindow.setHandler('options', this.commandOptions.bind(this));
-	this._commandWindow.setHandler('save',	 this.commandSave.bind(this));
-	this._commandWindow.setHandler('gameEnd', this.commandGameEnd.bind(this));
-	this._commandWindow.setHandler('cancel', this.popScene.bind(this));
+	let cmdw=this._commandWindow = new Window_MenuCommand(0, 0 ,{maxHeight:this._goldWindow.y});
+	cmdw.setHandler('item',   this.commandItem.bind(this));
+	cmdw.setHandler('skill',	 this.commandPersonal.bind(this));
+	cmdw.setHandler('equip',	 this.commandPersonal.bind(this));
+	cmdw.setHandler('status', this.commandPersonal.bind(this));
+	cmdw.setHandler('formation', this.commandFormation.bind(this));
+	cmdw.setHandler('options', this.commandOptions.bind(this));
+	cmdw.setHandler('save',	 this.commandSave.bind(this));
+	cmdw.setHandler('gameEnd', this.commandGameEnd.bind(this));
+	cmdw.setHandler('cancel', this.popScene.bind(this));
 	if(this.addCustomCommands) this.addCustomCommands();
-	this.addWindow(this._commandWindow);
+	this.addWindow(cmdw);
 };
 $aaaa$.prototype.addCustomCommands=function f(){
-	this._commandWindow.setHandler('debugMenu2', ()=>{SceneManager.push(Scene_DebugMenu2);} );
+	let cmdw=this._commandWindow;
+	cmdw.setHandler('debugMenu2', ()=>{SceneManager.push(Scene_DebugMenu2);} );
 	if(this.addV_I_M) this.addV_I_M();
-	this._commandWindow.setHandler('apps', ()=>{SceneManager.push(Scene_Apps);} );
-		//this._commandWindow.setHandler('questMgr', ()=>{SceneManager.push(Scene_Quest);} );
-		//this._commandWindow.setHandler('achievement', ()=>{SceneManager.push(Scene_Achievement);} );
-	this._commandWindow.setHandler('usrSwitch', ()=>{SceneManager.push(Scene_UserSwitch);} );
-	this._commandWindow.setHandler('saveLocal', ()=>{SceneManager.push(Scene_SaveLocal);} );
-	return this._commandWindow.setHandler('saveOnline', ()=>{SceneManager.push(Scene_SaveOnline);} );
+	cmdw.setHandler('apps', ()=>{SceneManager.push(Scene_Apps);} );
+		//cmdw.setHandler('questMgr', ()=>{SceneManager.push(Scene_Quest);} );
+		//cmdw.setHandler('achievement', ()=>{SceneManager.push(Scene_Achievement);} );
+	cmdw.setHandler('usrSwitch', ()=>{SceneManager.push(Scene_UserSwitch);} );
+	cmdw.setHandler('saveLocal', ()=>{SceneManager.push(Scene_SaveLocal);} );
+	return cmdw.setHandler('saveOnline', ()=>{SceneManager.push(Scene_SaveOnline);} );
 };
 $aaaa$.prototype.addCustomCommands.setCancel=(w,f)=>{w.setHandler('cancel');return w;};
 // - menu: V_I_M
