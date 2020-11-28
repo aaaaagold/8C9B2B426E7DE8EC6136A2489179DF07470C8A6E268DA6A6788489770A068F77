@@ -891,6 +891,7 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 		]],
 		["遊戲回饋建議",";;func;call",1,()=>{SceneManager.push(Scene_Feedback);}],
 		["字體(電腦中需有該字體，本遊戲不另外提供)","_global_conf;useFont;text;請輸入想用的字體"],
+		["遊戲暫停(節省計算資源)",";;func;call",1,()=>SceneManager.pause()],
 	];
 	this._window = new Window_CustomMenu_main(0,0,f.list,f.mainKargs);
 	if(!$gamePlayer.menuHistory) $gamePlayer.menuHistory={};
