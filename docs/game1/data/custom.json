@@ -71,6 +71,8 @@
 		["錢是假的","直接修改目前擁有的錢的值而不是使用函式","作者 is watching you"],
 		["空間支配者","使用app:位置紀錄得到成就\\RGB[\\CODE'$dataCustom.textcolor.achievement']\\CODE'$dataCustom.achievement[6][0]'\\RGB[\\CODE'$dataCustom.textcolor.default']","SO EASY! 耐心個屁!"],
 		["土豪","以\"\\key'\"很一般的村莊\"'的村長\"所接受的最大金額，購買偽裝器","作者：「爸爸，養我好嗎？」"],
+		["懂玩","開啟在\\key'\"開始4\"'的寶箱","玩遊戲可不能傻傻的"],
+		["你真的懂玩","在\\key'\"開始3\"'不帶著炸彈抵達\\key'\"開始4\"'，並開啟寶箱","你真的好懂"],
 		"_END"
 	],
 	"_code":{

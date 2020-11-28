@@ -206,7 +206,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=PIXI.tilemap.CompositeRectTileLayer;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
-	texPerChild=texPerChild||16; // cannot >16 ?_?
+	texPerChild=texPerChild||(objs.testing<<4)+16; // cannot >16 ?_?
 	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -878,7 +878,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
 		{ // cache?
 			let im=ImageManager;
-			let urlWithoutColor=im._trimColorArg(url);
+			let urlWithoutColor=im._trimColorArg(im._trimRndArg(url));
 			if(urlWithoutColor!==url){
 				let newOnload=(bm)=>{
 					this._image=bm._image_ori||bm._image;
@@ -2529,32 +2529,21 @@ $aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap n
 	if(!f.cache) f.cache=new CacheSystem(1);
 	if(this._tileset=$gameMap.tileset()){
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
-		for(let i=0,cache=f.cache,texPerChild=isWebGL?tm.lowerLayer.texPerChild||16:0,len=tilesetNames.length;i!==len;++i){
+		for(let i=0,cache=f.cache,texPerChild=isWebGL?tm.lowerLayer.texPerChild:0,len=tilesetNames.length;i!==len;++i){
 			let x=i,curr=tm.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
 			if(isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
 				let fname=bitmap._fname; if(!fname){ tm.bitmaps[x+len]=ImageManager.loadEmptyBitmap(); return; }
-				let i=x+len,alpha=0.25;
+				let i=x+len,alpha=0.25*(~~(i/len));
 				let cacheKey=fname+"-"+alpha;
 				let b2=cache.get(cacheKey); if(b2){ tm.bitmaps[i]=b2; return; }
+				let newBitmap=tm.bitmaps[i]=ImageManager.loadTileset(tilesetNames[x],undefined,{rnd:Math.random()});
 				let src=bitmap._baseTexture.source;
 				let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
 				let ctx=c.getContext('2d'); // ctx.clearRect(0,0,c.width,c.height);
 				ctx.globalAlpha=alpha;
 				ctx.drawImage(src,0,0);
-if(0){ // tiles flash (to black) when new 'onload'
-				c.toBlob((blob)=>{
-					let url=URL.createObjectURL(blob);
-					tm.bitmaps[x+len]=b2=Bitmap.load(url,cacheKey);
-					b2.addLoadListener(()=>{
-						URL.revokeObjectURL(url);
-						tm.refreshTileset();
-					});
-					cache.add(cacheKey,b2);
-				});
-}else{ // lag at start
-				tm.bitmaps[i]=b2=Bitmap.load(c.toDataURL(),cacheKey);
-				cache.add(cacheKey,b2);
-}
+				newBitmap._image_ori=newBitmap._image_ori||newBitmap._image;
+				newBitmap._baseTexture.source=newBitmap._image=c;
 			});
 		}
 		let newTilesetFlags=$gameMap.tilesetFlags();
@@ -3139,6 +3128,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - ImageManager
 $aaaa$=ImageManager;
 $aaaa$._trimColorArg=p=>p.replace(/(\?|&)color=[^&]*(&|$)/g,'');
+$aaaa$._trimRndArg=p=>p.replace(/(\?|&)rnd=[^&]*(&|$)/g,'');
 $aaaa$.loadCharacter = function(filename, hue, args){ // re-write: add args: 'args': edit img
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
 };
@@ -3351,7 +3341,7 @@ $dddd$=$aaaa$.update=function f(){
 }; $dddd$.ori=$rrrr$;
 $aaaa$.isMap=function(){return this._scene && this._scene.constructor===Scene_Map};
 $aaaa$.getTilemap=function(){
-	let sc; if((sc=this._scene).constructor===Scene_Map) return sc._spriteset._tilemap;
+	let sc=this._scene; if(sc&&sc.constructor===Scene_Map) return sc._spriteset._tilemap;
 };
 $aaaa$._alphas=[];
 $aaaa$.pushAlpha=function(a){this._alphas.push(this._scene.alpha);this._scene.alpha=a;};
@@ -5500,11 +5490,20 @@ $dddd$.tbl[gc.ROUTE_PLAY_SE]=function(params){
 $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 	//eval(params[0]);
 	let p0=params[0];
-	if(p0&&p0[0]===':'&&p0[1]==='!'&&p0.slice){
+	if(p0&&p0.slice&&p0.slice(0,2)===":!"){
 		let strs=JSON.parse(p0.slice(2));
-		let curr=rpgevts;
-		for(let x=0;x!==strs.length;++x) curr=curr[strs[x]];
-		return curr(this);
+		if(0 in strs){
+			if(strs[0] in rpgevts){
+				let curr=rpgevts;
+				for(let x=0;x!==strs.length;++x) curr=curr[strs[x]];
+				return curr(this);
+			}else switch(strs[0]){
+				case "ss":{
+					if(this._eventId) this.ssStateSet(strs[1],!strs[2]);
+				}break;
+			}
+		}
+		return;
 	}
 	return objs._doFlow.call(this,params[0]);
 };

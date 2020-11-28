@@ -122,8 +122,10 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 
 "$gamePlayer",
 ]; objs._vars=vars; objs._vars_strArg=vars.slice();
+objs.testing=0;
 const onloadProc=function f(){
 	if(f.idx===0){
+		if(window.sha256 && sha256(location.hash==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5")) objs.testing|=1;
 		if(!f.wait_blk){
 			f.wait_blk=ce('div');
 			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));
@@ -256,7 +258,7 @@ const onloadProc=function f(){
 		go();
 	}else{
 		let oriSrc=src;
-		src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
+		src+=src.indexOf("?")===-1?"?":"&"; if(!objs.testing) src+=Date.now();
 		if(isDev_){
 			objs.addScriptViaSrc=undefined;
 			scr.idx=idx;
