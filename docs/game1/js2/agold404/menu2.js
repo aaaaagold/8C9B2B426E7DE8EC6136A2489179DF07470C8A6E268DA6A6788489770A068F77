@@ -7,6 +7,7 @@ function Scene_CustomMenu2(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_CustomMenu2;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=none;
@@ -58,6 +59,7 @@ function Scene_Black(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_Black;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.create;
@@ -84,6 +86,7 @@ function Scene_OnlineLoadFail(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_OnlineLoadFail;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_Black.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.create;
@@ -111,6 +114,7 @@ function Scene_DebugMenu2(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_DebugMenu2;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 
@@ -470,6 +474,7 @@ function Scene_LoadLocal(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_LoadLocal;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.loadLocalFile=(_window)=>{
@@ -572,6 +577,7 @@ function Scene_LoadOnline(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_LoadOnline;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
@@ -604,6 +610,7 @@ function Scene_LotteryList(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_LotteryList;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
@@ -651,6 +658,7 @@ function Scene_Apps(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_Apps;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
@@ -689,6 +697,7 @@ function Scene_Quest(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_Quest;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
@@ -718,6 +727,7 @@ function Scene_Achievement(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_Achievement;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function(){
@@ -748,6 +758,7 @@ function Scene_LocLog(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_LocLog;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function(){
@@ -812,6 +823,7 @@ function Scene_OnlineSaves(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_OnlineSaves;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function(){
@@ -857,6 +869,7 @@ function Scene_UserSwitch(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_UserSwitch;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
@@ -907,6 +920,7 @@ function Scene_SaveLocal(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_SaveLocal;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.downloadSave=(compressedBase64Data)=>{
@@ -982,6 +996,7 @@ function Scene_SaveOnline(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_SaveOnline;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function f(){
@@ -1053,6 +1068,7 @@ function Scene_Feedback(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Scene_Feedback;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.createOptionsWindow=function(){
@@ -1090,6 +1106,7 @@ function Window_CustomMenu_main(){
     this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomMenu_main;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Command.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.destructor = function(){
@@ -1221,6 +1238,7 @@ function Window_CustomMenu_child() {
     this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomMenu_child;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Command.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -1483,6 +1501,7 @@ function Window_CustomTextBase(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomTextBase;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Selectable.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.destructor=function(){
@@ -1564,6 +1583,7 @@ function Window_CustomTextBoard(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomTextBoard;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
@@ -1794,6 +1814,7 @@ function Window_CustomTextInput(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomTextInput;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
@@ -2162,6 +2183,7 @@ function Window_CustomPopupMsg(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomPopupMsg;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.destructor=none;
@@ -2239,6 +2261,7 @@ function Window_CustomRealtimeMsg(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomRealtimeMsg;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.destructor;
@@ -2310,6 +2333,7 @@ function Window_CustomRealtimeMsgs(){
 	this.initialize.apply(this, arguments);
 }
 $aaaa$=Window_CustomRealtimeMsgs;
+window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Base.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -2340,6 +2364,5 @@ $dddd$=$aaaa$.prototype.add=function f(obj,key_or_getter,kargs){
 };
 $dddd$.no=Window_CustomRealtimeMsg.prototype._update.no;
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsgs
-
 
 
