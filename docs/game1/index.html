@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -50,6 +50,7 @@ let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=(t)=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=(txt)=>d.createTextNode(txt);
 let isDev_=isDev,objs={};
 //isDev_=false; //testing: hide vars
+if(window.sha256 && sha256(location.hash==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269")) isDev_=false;
 if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
 if(!jss) jss=[
 	"test.js",
