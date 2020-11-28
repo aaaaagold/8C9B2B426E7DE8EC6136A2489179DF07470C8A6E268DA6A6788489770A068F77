@@ -206,7 +206,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=PIXI.tilemap.CompositeRectTileLayer;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
-	texPerChild=texPerChild||(objs.testing<<4)+16; // cannot >16 ?_?
+	texPerChild=texPerChild||16; // cannot >16 ?_?
 	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
