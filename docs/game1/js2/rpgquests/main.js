@@ -148,7 +148,6 @@ const add=(src)=>{
 	},100);
 };
 
-add("test");
 add("storymain");
 add("core");
 // end

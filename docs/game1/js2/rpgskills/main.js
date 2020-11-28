@@ -19,7 +19,6 @@ const add=(src)=>{
 	},100);
 };
 
-add("test");
 add("agold404");
 // end
 })();
