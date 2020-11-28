@@ -3,7 +3,8 @@
 
 
 
-
+{
+const hexDigits=['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F',];
 Number.prototype.rot_r=function(n){
 	let bitlen=32;
 	// n%=bitlen; n+=bitlen; n%=bitlen;
@@ -11,6 +12,15 @@ Number.prototype.rot_r=function(n){
 	let v=this.valueOf();
 	return (((0xFFFFFFFF<<(bitlen-n))^(~0))&(v>>n)) | (v<<(bitlen-n));
 };
+Number.prototype.toHexInt=function(unsigned_){
+	let rtv="",i=this.valueOf(),arr=[];
+	if(i===0) return "0";
+	if(!unsigned_ && i<0){ rtv+='-'; i=-parseInt(i); }
+	while(i){ arr.push(hexDigits[i&0xF]); i>>=4; i&=0x0FFFFFFF; }
+	while(arr.length!==0) rtv+=arr.pop();
+	return rtv;
+};
+}
 
 
 window.sha256=function w(input_str_orOthersTreatedAsArrayOfBytes,encode){
