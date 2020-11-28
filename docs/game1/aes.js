@@ -12,6 +12,173 @@ Number.prototype.rot_r=function(n){
 	return (((0xFFFFFFFF<<(bitlen-n))^(~0))&(v>>n)) | (v<<(bitlen-n));
 };
 
+
+window.sha256=function w(input_str_orOthersTreatedAsArrayOfBytes,encode){
+	// https://en.wikipedia.org/wiki/UTF-8#Encoding
+	w.bytes2str=function bytes2str(bytes){ // UTF-8
+		let rtv='';
+		for(let x=0;x!==bytes.length;++x){
+			let b=bytes[x];
+			if(b&0x80){
+				if((b>>5)>=6){ // 110xxxxx
+					if((b>>4)>=14){ // 1110xxxx
+						if((b>>3)>=30){ // 11110xxx
+							let code=b&7;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							rtv+=String.fromCharCode(code);
+						}else{
+							let code=b&0xF;
+							code<<=6; code|=bytes[++x]&63;
+							code<<=6; code|=bytes[++x]&63;
+							rtv+=String.fromCharCode(code);
+						}
+					}else rtv+=String.fromCharCode( ((b&0x1F)<<6)|(bytes[++x]&63) );
+				}else throw new Error("not a utf8 string");
+			}else rtv+=String.fromCharCode(b);
+		}
+		return rtv;
+	};
+	w.str2bytes=function str2bytes(input_str){ // UTF-8
+		input_str=input_str||"";
+		let arr=[];
+		// to byte string
+		for(let mask=0x7FFFFFFF,x=0;x!==input_str.length;++x){
+			let c=input_str.charCodeAt(x)&mask; // make sure to be unsigned
+			if(c>0x7F){ // 2 bytes or more
+				let rev_arr=[c&0x3F|0x80],r=(c>>6);
+				if(c>0x7FF){ // 3 bytes or more
+					rev_arr.push(r&0x3F|0x80); r>>=6;
+					if(c>0xFFFF){ // 4 bytes
+						rev_arr.push(r&0x3F|0x80); r>>=6;
+						if(c>0x10FFFF){ // wtf
+							rev_arr.push(r&0x3F); r>>=6;
+							rev_arr.push(r|0xF8); // &0x3
+						}else rev_arr.push(r|0xF); // &0x7
+					}else rev_arr.push(r|0xE0); // &0xF
+				}else rev_arr.push(r|0xC0); // &0x1F
+				for(let z=rev_arr.length;z--;) arr.push(rev_arr[z]);
+			}else arr.push(c);
+		}
+		return arr;
+	};
+	w.bytes2words=function bytes2words(bytesarr){
+		let rtv=[];
+		for(let x=0;x<bytesarr.length;x+=4){
+			let tmp=0;
+			for(let z=0;z!==4;++z){ tmp<<=8; tmp|=bytesarr[x|z]&0xFF; } // will use undefined to do bitwise operation
+			rtv.push(tmp);
+		}
+		return rtv;
+	};
+	
+	w.sha256=function sha256(input_str_orOthersTreatedAsArrayOfBytes,encode){
+		// https://en.wikipedia.org/wiki/SHA-2#Pseudocode
+		let h0 = 0x6a09e667;
+		let h1 = 0xbb67ae85;
+		let h2 = 0x3c6ef372;
+		let h3 = 0xa54ff53a;
+		let h4 = 0x510e527f;
+		let h5 = 0x9b05688c;
+		let h6 = 0x1f83d9ab;
+		let h7 = 0x5be0cd19;
+		let input_str=input_str_orOthersTreatedAsArrayOfBytes;
+		input_str=input_str||"";
+		let arr=[];
+		if(typeof input_str==='string') arr=w.str2bytes(input_str);
+		else for(let x=0;x!==input_str.length;++x) arr.push(input_str[x]&0xFF);
+		let trueStrLen=arr.length;
+		// padding K
+		let K=(512-((arr.length*8)+1+64)%512)%512; // L +1 +64
+		// L +1 +K +64 ===     0 (mod 512)
+		//      +K     === -L-65 (mod 512)
+		if((K&7)!==7) throw new Error("char is not 8bits?");
+		K-=7;arr.push(0x80);
+		while(K){K-=8;arr.push(0x0);}
+		// padding L 64-bit big-endian
+		let L64big=(trueStrLen*8).toString(16); L64big=("0".repeat(16-L64big.length)+L64big).slice(-16);
+		for(let x=0;x!==L64big.length;x+=2) arr.push(Number("0x"+L64big.slice(x,x+2)));
+		if(arr.length%64) throw new Error("I did it wrong");
+		for(let base=0;base!==arr.length;base+=64){
+			let w=[]; for(let x=0;x!==64;++x) w[x]=0;
+			let words=[]; for(let x=0;x!==64;x+=4) words.push((arr[base+x]<<24)|(arr[base+x+1]<<16)|(arr[base+x+2]<<8)|arr[base+x+3]);
+			for(let x=0;x!==16;++x) w[x]=words[x];
+			for(let i=16;i!==64;++i){
+				let s0=w[i-15].rot_r(7)^w[i-15].rot_r(18)^(w[i-15]>>>3);
+				let s1=w[i-2].rot_r(17)^w[i- 2].rot_r(19)^(w[i-2]>>>10);
+				w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
+			}
+			let a = h0;
+			let b = h1;
+			let c = h2;
+			let d = h3;
+			let e = h4;
+			let f = h5;
+			let g = h6;
+			let h = h7;
+			for(let i=0;i!==64;++i){
+				let S1=e.rot_r(6)^e.rot_r(11)^e.rot_r(25);
+				let ch=(e&f)^((~e)&g);
+				let temp1=(h+S1+ch+sha256.k[i]+w[i])|0;
+				let S0=a.rot_r(2)^a.rot_r(13)^a.rot_r(22);
+				let maj=(a&b)^(a&c)^(b&c);
+				let temp2=(S0+maj)|0;
+				h = g;
+				g = f;
+				f = e;
+				e = (d + temp1)|0;
+				d = c;
+				c = b;
+				b = a;
+				a = (temp1 + temp2)|0;
+			}
+			h0 = (h0 + a)|0;
+			h1 = (h1 + b)|0;
+			h2 = (h2 + c)|0;
+			h3 = (h3 + d)|0;
+			h4 = (h4 + e)|0;
+			h5 = (h5 + f)|0;
+			h6 = (h6 + g)|0;
+			h7 = (h7 + h)|0;
+		}
+		let rtvtmp=[h0,h1,h2,h3,h4,h5,h6,h7];
+		let rtv="";
+		if(encode){
+			for(let x=0;x!==rtvtmp.length;++x){
+				for(let h=rtvtmp[x],sh=32;sh;){
+					sh-=8;
+					rtv+=String.fromCharCode((h>>>sh)&0xFF);
+				}
+			}
+		}else{
+			rtv+="0x";
+			for(let x=0;x!==rtvtmp.length;++x){
+				for(let h=rtvtmp[x],sh=32;sh;){
+					sh-=8;
+					let tmp=((h>>>sh)&0xFF).toHexInt();
+					if(tmp.length===2) rtv+=tmp;
+					else rtv+="0"+tmp;
+				}
+			}
+		}
+		return rtv;
+	};
+	w.sha256.k=[
+0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+		];
+	
+	return w.sha256(input_str_orOthersTreatedAsArrayOfBytes,encode);
+};
+
+
 window.aes=function f(data,key,enc0dec1){
 	if(!f.init){
 		f.init=true;
