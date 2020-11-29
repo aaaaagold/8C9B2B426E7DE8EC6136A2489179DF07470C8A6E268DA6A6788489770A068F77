@@ -270,7 +270,8 @@ list.slowingBead=(action)=>{
 	if($gameMap._mapId===103 && $gameMap._events[65].pos(xy.x,xy.y) && !$gameSelfSwitches._data[103]['65,B'] ) $gameMap._events[65].ssStateSet("A");
 	else $gameMap.cpevt($dataMap.templateStrt_item+5,xy.x,xy.y,1,1,1);
 	$gameParty.loseItem(dataitem,1);
-	backToMap();
+	$gameMessage.popup("放置了1顆\\item["+dataitem.id+"]",1);
+	//backToMap();
 };
 list.hasteningBead=(action)=>{
 	let dataitem=action.item();
@@ -281,7 +282,8 @@ list.hasteningBead=(action)=>{
 	}
 	$gameMap.cpevt($dataMap.templateStrt_item+6,xy.x,xy.y,1,1,1);
 	$gameParty.loseItem(dataitem,1);
-	backToMap();
+	$gameMessage.popup("放置了1顆\\item["+dataitem.id+"]",1);
+	//backToMap();
 };
 
 // end

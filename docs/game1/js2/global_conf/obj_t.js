@@ -273,9 +273,16 @@ Utils.isMobileSafari=function(){
 	let agent = navigator.userAgent;
 	return this._isMobileSafari=( !!(agent.match(/iPhone|iPad|iPod/) && agent.indexOf('AppleWebKit') && !agent.indexOf('CriOS')) );
 };
-Utils.rgbToCssColor=function(r,g,b){
-	return 'rgb('+(r^0)+','+(g^0)+','+(b^0)+')';
+$dddd$=Utils.rgbToCssColor=function f(r,g,b){
+	return "#"+f.toHex(r)+f.toHex(g)+f.toHex(b);
 };
+$dddd$.toHex=function f(n){
+	return f.tbltxt[255<n?255:f.tblclamp[n]|0];
+};
+$dddd$.toHex.tblclamp=[]; for(let x=0;x!==256;++x) $dddd$.toHex.tblclamp[x]=x;
+$dddd$.toHex.tbltxt=[]; for(let x=0;x!==256;++x) $dddd$.toHex.tbltxt[x]=x.toString(16).padZero(2);
+$rrrr$=$dddd$=$aaaa$=undef;
+
 
 // - ResourceHandler
 $aaaa$=ResourceHandler;
@@ -3720,7 +3727,7 @@ $dddd$=$aaaa$.prototype._createPannels=function f(){
 		else this._windowLayer.addChildAt(this._pannel,idx);
 	}
 	let p=this._pannel;
-	f.burn(p);
+	f.burnLv(p);
 	f.chr(p);
 	f.speedup(p);
 	if($gameParty.canplant) f.plant(p);
@@ -3729,8 +3736,19 @@ $dddd$=$aaaa$.prototype._createPannels=function f(){
 		f.slash(p);
 	}
 };
-$dddd$.burn=function(pannel){
-	if($gameParty.burnLv) $dataMap.burnlv_pannel=pannel.add($gameParty,'burnLv',{head:"燃燒等級",align:'center'});
+$dddd$.burnLv=function(pannel){
+	if($gameParty.burnLv){
+		let arr=pannel._windows,bl=$dataMap.burnlv_pannel=pannel.add($gameParty,'burnLv',{head:"燃燒等級",align:'center'});
+		if(arr.length!==1){
+			let top=arr[0].y;
+			let btm=bl.y+bl.height;
+			for(let x=0,xs=arr.length-1;x!==xs;++x) arr[x].y+=bl.height;
+			bl.y=top;
+			let empty=pannel.add(window,'',{updateItvl:"no"});
+			empty.y=$dataMap.burnlv_pannel.y;
+			empty.visible=false;
+		}
+	}
 };
 $dddd$.chr=function(pannel){
 	if(!$gamePlayer._noLeaderHp) pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty._actors.length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
@@ -3845,10 +3863,10 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 		}
 		
 		// _strtByAny (meta.strtByAny)
-		tbl=$dataMap.coordTbl_strtByAny=[];
+		tbl=$dataMap.coordTbl_strtByAny=[]; // for _pri===0
 		tbl.length=$dataMap.height*w; for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue(); // .coordTblNt
 		for(let x=0,evts=$gameMap._events;x!==evts.length;++x){ let evt=evts[x];
-			if( !evt || !$gameMap.isValid(evt.x,evt.y) || !evt._strtByAny ) continue;
+			if( !evt || evt._pri!==0 || !evt._strtByAny || !$gameMap.isValid(evt.x,evt.y) ) continue;
 			tbl[evt.x+evt.y*w].push(evt);
 		}
 	}
@@ -6260,7 +6278,7 @@ Object.defineProperties($aaaa$.prototype, {
 			let rtv=this._bLv=rhs;
 			if($dataMap){
 				if($dataMap.burnlv_pannel) $dataMap.burnlv_pannel.redrawtxt();
-				else if(!lv_o && sc && sc.constructor===Scene_Map && sc._pannel) $dataMap.burnlv_pannel=sc._pannel.add($gameParty,'burnLv',{head:"燃燒等級"});
+				else if(!lv_o && sc && sc.constructor===Scene_Map && sc._pannel) sc._createPannels.burnLv(sc._pannel);
 			}
 			return rtv;
 	}, configurable: false },
@@ -6326,6 +6344,8 @@ Object.defineProperties($aaaa$.prototype, {
 			}else{
 				this._canP=rhs;
 				$gameMessage.popup("使用\\RGB["+$dataCustom.textcolor.item+"]"+$dataItems[rhs].name+"\\RGB["+$dataCustom.textcolor.default+"]種樹",1);
+				let sc=SceneManager._scene;
+				if(sc&&sc.constructor===Scene_Map) sc._createPannels.plant(sc._pannel); // will remove itself and re-contruct burn,slash if '$dataItems[$gameParty.canplant]' becomes undefined when updating
 			}
 			return this._canP;
 	}, configurable: false },
@@ -7019,11 +7039,13 @@ $dddd$=$aaaa$.prototype.moveStraight=function f(d){ // strtByAny
 $rrrr$=$aaaa$.prototype.checkEventTriggerTouch;
 $dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(x,y){ // strtByAny
 	//debug.log('Game_Event.prototype.checkEventTriggerTouch');
-	let strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)];
-	if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
-		let strtMeta={startBy:this._eventId};
-		strtByAny.forEach(evt=>evt.start(undefined,strtMeta));
-		return;
+	if(this.x===x&&this.y===y){
+		let strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)]; // for _pri===0
+		if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
+			let strtMeta={startBy:this._eventId};
+			strtByAny.forEach(evt=>evt.start(undefined,strtMeta));
+			return;
+		}
 	}
 	f.ori.call(this,x,y);
 }; $dddd$.ori=$rrrr$;
