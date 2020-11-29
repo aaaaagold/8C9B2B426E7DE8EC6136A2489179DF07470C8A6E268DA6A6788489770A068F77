@@ -50,7 +50,7 @@ let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=(t)=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=(txt)=>d.createTextNode(txt);
 let isDev_=isDev,objs={};
 //isDev_=false; //testing: hide vars
-if(window.sha256 && sha256(location.hash==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269")) isDev_=false;
+if(window.sha256 && sha256(location.hash)==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
 if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
 if(!jss) jss=[
 	"test.js",
@@ -126,7 +126,7 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 objs.testing=0;
 const onloadProc=function f(){
 	if(f.idx===0){
-		if(window.sha256 && sha256(location.hash==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5")) objs.testing|=1;
+		if(window.sha256 && sha256(location.hash)==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
 		if(!f.wait_blk){
 			f.wait_blk=ce('div');
 			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));

@@ -3712,6 +3712,100 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	//let arr={}; for(let i in this) arr[i]=this[i];
 	//debug.log(this.constructor.name,arr);
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.prototype._createPannels=function f(){
+	if(!this._pannel){
+		let idx=this._windowLayer.children.indexOf(this._messageWindow);
+		this._pannel=new Window_CustomRealtimeMsgs();
+		if(idx===-1) this._windowLayer.addChild(this._pannel);
+		else this._windowLayer.addChildAt(this._pannel,idx);
+	}
+	let p=this._pannel;
+	f.burn(p);
+	f.chr(p);
+	f.speedup(p);
+	if($gameParty.canplant) f.plant(p);
+	else{
+		f.burn(p);
+		f.slash(p);
+	}
+};
+$dddd$.burn=function(pannel){
+	if($gameParty.burnLv) $dataMap.burnlv_pannel=pannel.add($gameParty,'burnLv',{head:"燃燒等級",align:'center'});
+};
+$dddd$.chr=function(pannel){
+	if(!$gamePlayer._noLeaderHp) pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty._actors.length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
+	if(!$gamePlayer._noLeaderMp) pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty._actors.length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
+};
+$dddd$.speedup=function(pannel){
+	if($gamePlayer.speedup) pannel.add($gamePlayer,'speedup',{head:"疾風Lv",align:'center'});
+};
+$dddd$.plant=function(pannel){
+	if(!$gameParty.canplant) return;
+	let rmc=c=>pannel.del(c);
+	if(pannel._slashSet){
+		pannel._slashSet.forEach(rmc);
+		pannel._slashSet.length=0;
+	}
+	if(pannel._burnSet){
+		pannel._burnSet.forEach(rmc);
+		pannel._burnSet.length=0;
+	}
+	if(!pannel._plantSet) pannel._plantSet=[];
+	let arr=pannel._plantSet;
+	arr.push(pannel.add($gameParty,(pt)=>{
+		if($dataItems[pt.canplant]) return $dataItems[pt.canplant].name;
+		else{
+			pannel._plantSet.forEach(rmc);
+			pannel._plantSet.length=0;
+			this.burn(pannel);
+			this.slash(pannel);
+		}
+	},{align:'center'}));
+	let ws=pannel._windows;
+	let last=ws.back;
+	let x=last.x+last.width;
+	if(0&&$gameParty.plantrange){
+		let w=pannel.add($gameParty,'plantrange',{head:"種樹Lv",align:'center',x:x,y:ws.back.y});
+		arr.push(last=w);
+		x=last.x+last.width;
+	}
+	if($gameParty._canburn){
+		let w=pannel.add($gameParty,'_canburn',{align:'center',x:x,y:ws.back.y});
+		arr.push(last=w);
+		last.alpha=0.5;
+		x=last.x+last.width;
+	}
+	if($gameParty._canslash){
+		let w=pannel.add($gameParty,'_canslash',{align:'center',x:x,y:ws.back.y});
+		arr.push(last=w);
+		last.alpha=0.5;
+		x=last.x+last.width;
+	}
+};
+$dddd$.burn=function(pannel){
+	if(pannel._burnSet){
+		if(pannel._burnSet.length) return;
+	}else pannel._burnSet=[];
+	let arr=pannel._burnSet;
+	if($gameParty.canburn){
+		let last=pannel.add($gameParty,'canburn',{align:'center'});
+		arr.push(last);
+		let x=last.x+last.width;
+		if($gameParty.burnrange) arr.push(pannel.add($gameParty,'burnrange',{head:"烈火Lv",align:'center',x:x,y:pannel._windows.back.y}));
+	}
+};
+$dddd$.slash=function(pannel){
+	if(pannel._slashSet){
+		if(pannel._slashSet.length) return;
+	}else pannel._slashSet=[];
+	let arr=pannel._slashSet;
+	if($gameParty.canslash){
+		let last=pannel.add($gameParty,'canslash',{align:'center'});
+		arr.push(last);
+		let x=last.x+last.width;
+		if($gameParty.slashrange) arr.push(pannel.add($gameParty,'slashrange',{head:"伐木Lv",align:'center',x:x,y:pannel._windows.back.y}));
+	}
+};
 $rrrr$=$aaaa$.prototype.onMapLoaded;
 $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 	debug.log('Scene_Map.prototype.onMapLoaded');
@@ -3722,52 +3816,7 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 	f.ori.call(this); // update '$gameMap' (and maybe others)
 	Graphics._preCalScreenTileCoord(); // pre-cal. $gameMap.screenTileX(); $gameMap.screenTileY();
 	// custom pannels
-	if(!this._pannel){
-		let idx=this._windowLayer.children.indexOf(this._messageWindow);
-		this._pannel=new Window_CustomRealtimeMsgs();
-		if(idx===-1) this._windowLayer.addChild(this._pannel);
-		else this._windowLayer.addChildAt(this._pannel,idx);
-	}
-	if($gameParty.burnLv) $dataMap.burnlv_pannel=this._pannel.add($gameParty,'burnLv',{head:"燃燒等級",align:'center'});
-	if(!$gamePlayer._noLeaderHp) this._pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty._actors.length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
-	if(!$gamePlayer._noLeaderMp) this._pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty._actors.length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
-	if($gamePlayer.speedup) this._pannel.add($gamePlayer,'speedup',{head:"疾風Lv",align:'center'});
-	if($gameParty.canplant){
-		this._pannel.add($gameParty,(pt)=>$dataItems[pt.canplant].name,{align:'center'});
-		let ws=this._pannel._windows;
-		let last=ws.back;
-		let x=last.x+last.width;
-		if(0&&$gameParty.plantrange){
-			this._pannel.add($gameParty,'plantrange',{head:"種樹Lv",align:'center',x:x,y:this._pannel._windows.back.y});
-			last=ws.back;
-			x=last.x+last.width;
-		}
-		if($gameParty._canburn){
-			this._pannel.add($gameParty,'_canburn',{align:'center',x:x,y:this._pannel._windows.back.y});
-			last=ws.back;
-			last.alpha=0.5;
-			x=last.x+last.width;
-		}
-		if($gameParty._canslash){
-			this._pannel.add($gameParty,'_canslash',{align:'center',x:x,y:this._pannel._windows.back.y});
-			last=ws.back;
-			last.alpha=0.5;
-			x=last.x+last.width;
-		}
-	}else{
-		if($gameParty.canburn){
-			this._pannel.add($gameParty,'canburn',{align:'center'});
-			let last=this._pannel._windows.back;
-			let x=last.x+last.width;
-			if($gameParty.burnrange) this._pannel.add($gameParty,'burnrange',{head:"烈火Lv",align:'center',x:x,y:this._pannel._windows.back.y});
-		}
-		if($gameParty.canslash){
-			this._pannel.add($gameParty,'canslash',{align:'center'});
-			let last=this._pannel._windows.back;
-			let x=last.x+last.width;
-			if($gameParty.slashrange) this._pannel.add($gameParty,'slashrange',{head:"伐木Lv",align:'center',x:x,y:this._pannel._windows.back.y});
-		}
-	}
+	this._createPannels();
 	// fast search table
 	// - $dataMap.coordTbl : (x,y)=>events
 	if(!($dataMap.coordTbl&&$dataMap.coordTbl.mapid===$gameMap._mapId)){

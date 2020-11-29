@@ -2364,6 +2364,14 @@ $dddd$=$aaaa$.prototype.add=function f(obj,key_or_getter,kargs){
 	return child;
 };
 $dddd$.no=Window_CustomRealtimeMsg.prototype._update.no;
+$aaaa$.prototype.del=function(c){
+	let idx=this._windows.indexOf(c);
+	if(idx===-1) return;
+	let arr=this._windows;
+	for(let x=idx+1;x!==arr.length;++x) arr[x-1]=arr[x];
+	arr.pop();
+	return this.removeChild(c);
+};
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsgs
 
 
