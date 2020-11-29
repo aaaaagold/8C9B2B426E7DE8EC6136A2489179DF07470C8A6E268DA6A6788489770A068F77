@@ -760,11 +760,24 @@ $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	// //this.fontFace=ff;
 	// return rtv;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype._editAccordingToArgs_scale=function(src){
+	let scale=Number(this._args.scale);
+	if(isNaN(scale)) return;
+	let c=d.ce('canvas'); c.width=src.width*scale; c.height=src.height*scale;
+	let ctx=c.getContext('2d');
+	ctx.drawImage(src,0,0);
+	return c;
+};
 $aaaa$.prototype._editAccordingToArgs=function(){
 	if(!this._image_ori) this._image_ori=this._image;
 	let src=this._image_ori;
+	let commonFlags = src.width!==0 && src.height!==0;
+	// scale (TODO)
+	if( !this._scaleChanged && commonFlags && this._args&&this._args.scale!==undefined ){
+		src=this._editAccordingToArgs_scale(src);
+	}
 	// change color
-	if(!this._colorChanged && src.width!==0 && src.height!==0 && this._args&&this._args.color!==undefined){
+	if( !this._colorChanged && commonFlags && this._args&&this._args.color!==undefined ){
 		this._colorChanged=true;
 		let color=JSON.parse(this._args.color);
 		let invert=!!color[3],w=[];
@@ -885,14 +898,14 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
 		{ // cache?
 			let im=ImageManager;
-			let urlWithoutColor=im._trimColorArg(im._trimRndArg(url));
-			if(urlWithoutColor!==url){
+			let urlWithoutArgs=im._trimColorArg(im._trimScaleArg(im._trimRndArg(url)));
+			if(urlWithoutArgs!==url){
 				let newOnload=(bm)=>{
 					this._image=bm._image_ori||bm._image;
 					this._loadListener();
-				},c=im._imageCache.get(urlWithoutColor+":0");
+				},c=im._imageCache.get(urlWithoutArgs+":0");
 				if(c) c.addLoadListener(newOnload);
-				else im.loadNormalBitmap(urlWithoutColor,0).addLoadListener(newOnload);
+				else im.loadNormalBitmap(urlWithoutArgs,0).addLoadListener(newOnload);
 				return;
 			}
 		}
@@ -3135,6 +3148,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - ImageManager
 $aaaa$=ImageManager;
 $aaaa$._trimColorArg=p=>p.replace(/(\?|&)color=[^&]*(&|$)/g,'');
+$aaaa$._trimScaleArg=p=>p.replace(/(\?|&)scale=[^&]*(&|$)/g,'');
 $aaaa$._trimRndArg=p=>p.replace(/(\?|&)rnd=[^&]*(&|$)/g,'');
 $aaaa$.loadCharacter = function(filename, hue, args){ // re-write: add args: 'args': edit img
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
