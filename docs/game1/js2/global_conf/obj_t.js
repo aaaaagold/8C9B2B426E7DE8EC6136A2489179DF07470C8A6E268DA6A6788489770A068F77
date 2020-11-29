@@ -5261,9 +5261,10 @@ $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 $dddd$.dirbit=[0,0,1,0,2,0,1,0,2,0]; // none:0 +:1 -:2
 $rrrr$=$aaaa$.prototype.moveDiagonally;
 $dddd$=$aaaa$.prototype.moveDiagonally=function f(dh,dv){
-	let d=this._direction;
+	//let d=this._direction;
 	f.ori.call(this,dh,dv);
-	if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
+	//if(this.isMovementSucceeded()||this._direction!==d) this.moveSpeedBuff_ctr();
+	if(this.isMovementSucceeded()) this.moveSpeedBuff_ctr();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.moveStraight;
 $dddd$=$aaaa$.prototype.moveStraight=function f(dir){
@@ -5362,7 +5363,7 @@ $aaaa$.prototype.genBlood=function(permanent){ // tile
 };
 $rrrr$=$aaaa$.prototype.requestAnimation;
 $dddd$=$aaaa$.prototype.requestAnimation=function f(id){
-	f.ori.call(this,_global_conf.noAnimation?0:id);
+	if(!this._erased) f.ori.call(this,_global_conf.noAnimation?0:id);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
