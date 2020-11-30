@@ -5207,13 +5207,12 @@ $aaaa$.prototype.command111=function(){ // cond branch
 		if(s&&s[0]===":"&&s[1]==="!"){ // ===":!"
 			result=false;
 			let j=JSON.parse(s.slice(2));
-			let obj;
+			let obj=false;
 			switch(j[0]){
 			case "func":{
-				obj=false;
 				if(j[1] in rpgevts){
 					let curr=rpgevts,argv;
-					for(let x=1;x!==strs.length&&curr;++x){ let next=strs[x];
+					for(let x=1;x!==j.length&&curr;++x){ let next=j[x];
 						if(next&&next.constructor===Array){ argv=next; break; }
 						else curr=curr[next];
 					}
@@ -5235,8 +5234,11 @@ $aaaa$.prototype.command111=function(){ // cond branch
 				for(let x=1;x!==j.length;++x) obj=obj[j[x]];
 				result=obj;
 			}
-		}else result=!!eval(s);
-		//result=!!Function('"use strict";return (' + this._params[1] + ')').bind(this)();
+		}else{
+			//result=eval(s);
+			result=objs._getObj.call(this,s);
+		}
+		result=!!result;
 	}break;
 	case 13:{ // Vehicle
 		result=($gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]));
