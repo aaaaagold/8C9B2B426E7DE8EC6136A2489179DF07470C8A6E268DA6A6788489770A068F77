@@ -205,7 +205,6 @@ Sprite_Character.prototype.isTile = function() {
 };
 
 Sprite_Character.prototype.updateBitmap;
-
 Sprite_Character.prototype.setTileBitmap;
 Sprite_Character.prototype.setCharacterBitmap;
 

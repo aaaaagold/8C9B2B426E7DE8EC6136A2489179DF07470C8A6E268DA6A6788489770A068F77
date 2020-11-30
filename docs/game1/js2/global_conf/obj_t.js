@@ -2410,20 +2410,6 @@ $aaaa$.prototype.updateAnimationSprites = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
-$rrrr$=$aaaa$.prototype.setCharacter;
-$dddd$=$aaaa$.prototype.setCharacter=function f(chr){
-	this.patternWidth  = this.patternWidth0;
-	this.patternHeight = this.patternHeight0;
-	f.ori.call(this,chr);
-	this.setScale();
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setScale=function(){
-	let args=this._setBitmap_args();
-	if(args&&args.scale){
-		let s=Number(args.scale);
-		if(s>=0) this._scale=s;
-	}else this._scale=1;
-};
 $aaaa$.prototype.isInView_inScreen=function(){
 	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
 };
@@ -2485,31 +2471,19 @@ $aaaa$.prototype._setBitmap_args=function(){
 	return hasSth&&rtv;
 };
 $aaaa$.prototype.setTileBitmap=function f(){
-	this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
-	if(this._scale===1){
-		if(this.patternWidth!==this.patternWidth0){
-			this.patternWidth  = this.patternWidth0;
-			this.patternHeight = this.patternHeight0;
-		}
-	}else{
-		if(this.patternWidth!==this.patternWidth2){
-			this.patternWidth  = this.patternWidth2;
-			this.patternHeight = this.patternHeight2;
-		}
-	}
+	let bm = this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
+	let scale=Number(bm._args&&bm._args.scale);
+	if(isNaN(scale)) scale=1;
+	bm._pw=($gameMap.tileWidth ()*scale)>>0;
+	bm._ph=($gameMap.tileHeight()*scale)>>0;
 };
 $aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
 	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,this._setBitmap_args());
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
-	if(this.patternWidth!==this.patternWidth0){
-		this.patternWidth  = this.patternWidth0;
-		this.patternHeight = this.patternHeight0;
-	}
 };
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
 	if(!this._imgCh) return;
 	else{
-		this.setScale();
 		let pw = ~~this.patternWidth();
 		let ph = this.patternHeight();
 		let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
@@ -2569,23 +2543,15 @@ $aaaa$.prototype.characterPatternY=function(){ // overwrite: ori use '/' , '%'
 	return (this._character.direction()>>1)-1;
 };
 $aaaa$.prototype.patternWidth=function(){
-	if(0<this._tileId) return $gameMap.tileWidth()>>0;
+	if(0<this._tileId) return this.bitmap._pw;
 	else if (this._isBigCharacter) return (this.bitmap.width/3)>>0;
 	else return (this.bitmap.width/12)>>0;
 };
-$rrrr$=$aaaa$.prototype.patternWidth0=$aaaa$.prototype.patternWidth;
-$dddd$=$aaaa$.prototype.patternWidth2=function f(){
-	return ($gameMap.tileWidth()*this._scaley)>>0;
-}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
 	// fast enough
-	if(this._tileId>0) return $gameMap.tileHeight()>>0;
+	if(0<this._tileId) return this.bitmap._ph;
 	else return this.bitmap.height>>(2+!this._isBigCharacter);
 };
-$rrrr$=$aaaa$.prototype.patternHeight0=$aaaa$.prototype.patternHeight;
-$dddd$=$aaaa$.prototype.patternHeight2=function(){
-	return ($gameMap.tileHeight()*this._scaley)>>0;
-}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updatePosition;
 $dddd$=$aaaa$.prototype.updatePosition=function f(){
 	f.ori.call(this);
