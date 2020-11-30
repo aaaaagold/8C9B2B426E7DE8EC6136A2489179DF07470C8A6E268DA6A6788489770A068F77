@@ -760,6 +760,7 @@ $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	// //this.fontFace=ff;
 	// return rtv;
 }; $dddd$.ori=$rrrr$;
+if(0&&0){
 $aaaa$.prototype._addNoteRefresh=function(sprite){
 	if(!(Graphics.isWebGL()&&this._args)) return; // no need
 	if(!this._noteRefresh) this._noteRefresh=new Set();
@@ -772,13 +773,16 @@ $dddd$=$aaaa$.prototype._doNoteRefresh=function f(){
 	console.log(this._url);
 };
 $dddd$.forEach=c=>c._refresh();
+}
 $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 	let scale=Number(this._args.scale);
 	if(isNaN(scale)) return src;
+	this._scale=scale;
+	this._scaleChanged=true;
 	let c=d.ce('canvas');
 	if(this._isTile){
 		// draw seperately, prevent edge blur
-		let pw=$gameMap.tileWidth()>>0,ph=$gameMap.tileHeight()>>0;
+		let pw=$gameMap.tileWidth()|0,ph=$gameMap.tileHeight()|0;
 		let pwS=~~(pw*scale),phS=~~(ph*scale);
 		let xs=~~(src.width/pw),ys=~~(src.height/ph);
 		c.width=pwS*xs; c.height=phS*ys;
@@ -790,6 +794,7 @@ $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 			tmpctx.drawImage(src, x*pw,y*ph,pw,ph, 0,0,pw,ph);
 			ctx.drawImage(tmpc, x*pwS,y*phS,pwS,phS);
 		} }
+		this._pw=pwS; this._ph=phS; 
 	}else{
 		let pw=src.width/3,ph=src.height>>2;
 		if(!this._isBigChr){
@@ -797,6 +802,7 @@ $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 			ph>>=1;
 		}
 		let pwS=~~(pw*scale),phS=~~(ph*scale);
+		this._pw=pwS; this._ph=phS; 
 		let xs=~~(src.width/pw),ys=~~(src.height/ph);
 		c.width=pwS*xs; c.height=phS*ys;
 		c.getContext('2d').drawImage(src,0,0,c.width,c.height);
@@ -806,10 +812,6 @@ $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 };
 $rrrr$=$dddd$.tileCanvas=document.createElement('canvas');
 $rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
-$rrrr$=$dddd$.varCanvas=document.createElement('canvas');
-$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
-$rrrr$=$dddd$.varCanvas2=document.createElement('canvas');
-$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
 $aaaa$.prototype._editAccordingToArgs=function(){
 	if(!this._image_ori) this._image_ori=this._image;
 	let src=this._image_ori;
@@ -817,7 +819,6 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 	if(!commonFlags || !this._args) return;
 	// scale (TODO)
 	if( !this._scaleChanged && commonFlags && this._args.scale!==undefined ){
-		this._scaleChanged=true;
 		src=this._editAccordingToArgs_scale(src);
 	}
 	// change color
@@ -1215,10 +1216,8 @@ $aaaa$.prototype.refresh=function(){
 	this._lastTiles.length=0;
 };
 $aaaa$.prototype.usetree=none; // prepare
-$aaaa$.prototype.rmc_tree=function(key){ // prepare
-};
-$aaaa$.prototype.addc_tree=function(key,data){ // prepare
-};
+$aaaa$.prototype.rmc_tree=function(key){}; // prepare
+$aaaa$.prototype.addc_tree=function(key,data){}; // prepare
 Object.defineProperties(Tilemap.prototype,{
 	frameCount_2:{ get:function(){return this._fc_2;}, set:function(rhs){
 		let fc_2=Number(rhs)^0;
@@ -1246,32 +1245,11 @@ $dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
 	//this.children.forEach(c=>c&&c.update&&c.update());
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
 }; $dddd$.ori=$rrrr$;
-$dddd$.updateChildren=Sprite.prototype.update;
-$rrrr$=$aaaa$.prototype._compareChildOrder;
-$dddd$=$aaaa$.prototype._compareChildOrder=function f(a,b){
-	let ac=a._character,bc=b._character;
-
-	let ae=!(ac&&ac._erased),be=!(bc&&bc._erased);
-	let erasedCmp=ae-be;
-	if(erasedCmp) return -erasedCmp; // erased last
-	else if(ae+be===0){ // both erased
-		let aniPlayCmp=ac._animationPlaying-bc._animationPlaying;
-		if(aniPlayCmp) return -aniPlayCmp; // none play last
-	}
-	return f.ori.call(this,a,b);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype._sortChildren;
-$dddd$=$aaaa$.prototype._sortChildren=function f(){
-	//f.ori.call(this);
-	this.children.sort(this._compareChildOrder);
-	// Container.prototype.removeChildAt -> _utils.removeItems
-	// -> module.exports = function removeItems(arr,strtIdx,cnt) // remove [strtIdx,strtIdx+cnt) // it's efficient as an array
-	for(let bc=this.children.back._character;(bc&&bc._erased&&!bc._animationPlaying);bc=this.children.back._character) this.removeChildAt(this.children.length-1);
-}; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.update.updateChildren=function f(){
-	return this.children.forEach(f.forEach);
+$dddd$.updateChildren=function f(){
+	this.children.forEach(f.forEach);
+	return this.doWaitRemove();
 };
-$dddd$.forEach=c=>c&&c.update&&c.update();
+$dddd$.updateChildren.forEach=c=>c&&c.update&&c.update();
 $aaaa$.prototype._sortChildren=none;
 $aaaa$.prototype.usetree=function(){ this.children=new AVLTree(); };
 $rrrr$=$aaaa$.prototype.initialize;
@@ -1279,6 +1257,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	//debug.log("Tilemap.prototype.initialize"); // also ShaderTilemap;
 	PIXI.Container.call(this);
 	this.usetree(); // tilemap refreshed at the end of 'initialize'
+	this._waitRemoves=new Set();
 	
 	this._margin = 0^0;
 	this._width = Graphics.width+(this._margin<<1) >>>0;
@@ -1368,6 +1347,13 @@ $dddd$=$aaaa$.prototype.removeChild=function f(c){
 	c.emit('removed', this);
 	return c;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.waitRemove=function(c){
+	if(c&&c.parent===this) this._waitRemoves.add(c);
+};
+$aaaa$.prototype.doWaitRemove=function(c){
+	this._waitRemoves.forEach(c=>c.parent===this&&this.removeChild(c));
+	return this._waitRemoves.clear();
+};
 $dddd$=$aaaa$.prototype.updateTransform_tail=function f(){
 	this._boundsID++;
 	
@@ -2420,20 +2406,34 @@ $aaaa$.prototype.isInView=function(){ // can view?
 		return dx*dx+dy*dy<this.parent._tileEdge4p2;
 	}else return this.isInView_inScreen();
 };
+$aaaa$.prototype.remove=function(){
+	if(this.parent) this.parent.waitRemove(this);
+};
 $rrrr$=$aaaa$.prototype.update;		
 $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(forced) return f.ori.call(this);
 	let c=this._character;
 	if(!c) return f.ori.call(this);
-	if(this.isInView()===false){ // give up full update if too far
+	let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
+	if(!playing){
+		if(c._erased){
+			if(this.parent) this.parent.removeChild(this);
+			return;
+		}else if(this.isInView()===false){
+			return this.updatePosition(); // give up update if too far
+		}
+	}
+	if(0&&this.isInView()===false){ // give up full update if too far
 		let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
 		if(playing){
 			this.updateAnimation();
 			this.updateBalloon();
 		}else if(c._erased){
-			if(this.parent) this.parent.removeChild(this);
+			this.remove();
+			//if(this.parent) this.parent.removeChild(this);
 			return;
 		}
+		return this.updatePosition();
 		if(!c._erased) this.updatePosition();
 		return;
 	}
@@ -2449,9 +2449,7 @@ $dddd$=$aaaa$.prototype.updateBitmap=function f(){ // rewrite: rec if ch via '._
 		if(0<this._tileId) this.setTileBitmap();
 		else this.setCharacterBitmap();
 		this._character.imgModded=false;
-		return this._imgCh=true;
 	}
-	return this._imgCh=false;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.isImageChanged=function(){ // rewrite
 	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
@@ -2471,25 +2469,18 @@ $aaaa$.prototype._setBitmap_args=function(){
 	return hasSth&&rtv;
 };
 $aaaa$.prototype.setTileBitmap=function f(){
-	let bm = this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
-	let scale=Number(bm._args&&bm._args.scale);
-	if(isNaN(scale)) scale=1;
-	bm._pw=($gameMap.tileWidth ()*scale)>>0;
-	bm._ph=($gameMap.tileHeight()*scale)>>0;
+	this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
 };
 $aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
 	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,this._setBitmap_args());
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
 };
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
-	if(!this._imgCh) return;
-	else{
-		let pw = ~~this.patternWidth();
-		let ph = this.patternHeight();
-		let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
-		let sy = ( (this._tileId>>3)&15 ) * ph;
-		return this.setFrame(sx, sy, pw, ph);
-	}
+	let pw = this.patternWidth();
+	let ph = this.patternHeight();
+	let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
+	let sy = ( (this._tileId>>3)&15 ) * ph;
+	return this.setFrame(sx, sy, pw, ph);
 };
 $aaaa$.prototype.updateCharacterFrame_sit=function(){
 	if(0<this._bushDepth){
@@ -2543,14 +2534,10 @@ $aaaa$.prototype.characterPatternY=function(){ // overwrite: ori use '/' , '%'
 	return (this._character.direction()>>1)-1;
 };
 $aaaa$.prototype.patternWidth=function(){
-	if(0<this._tileId) return this.bitmap._pw;
-	else if (this._isBigCharacter) return (this.bitmap.width/3)>>0;
-	else return (this.bitmap.width/12)>>0;
+	return this.bitmap._pw;
 };
 $aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
-	// fast enough
-	if(0<this._tileId) return this.bitmap._ph;
-	else return this.bitmap.height>>(2+!this._isBigCharacter);
+	return this.bitmap._ph;
 };
 $rrrr$=$aaaa$.prototype.updatePosition;
 $dddd$=$aaaa$.prototype.updatePosition=function f(){
@@ -3250,6 +3237,9 @@ $dddd$=$aaaa$.loadBitmap=function f(folder, filename, hue, smooth, args){ // re-
 		let bitmap = this.loadNormalBitmap(path, hue || 0, a!=='');
 		if(folder.slice(-10)===f.tilesets) bitmap._isTile=true;
 		else if(ImageManager.isBigCharacter(filename)) bitmap._isBigChr=true;
+		bitmap._pw|=0;
+		bitmap._ph|=0;
+		bitmap.addLoadListener(f.putPatternSize);
 		bitmap.smooth = smooth;
 		return bitmap;
 	}else{
@@ -3257,6 +3247,18 @@ $dddd$=$aaaa$.loadBitmap=function f(folder, filename, hue, smooth, args){ // re-
 	}
 };
 $dddd$.tilesets="/tilesets/";
+$dddd$.putPatternSize=bm=>{
+	if(bm._scaleChanged) return;
+	if(bm._isTile) bm._pw=bm._ph=48;
+	else{
+		bm._pw=bm.width/3;
+		bm._ph=bm.height>>2;
+		if(!bm._isBigChr){
+			bm._pw>>=2;
+			bm._ph>>=1;
+		}
+	}
+};
 $dddd$=$aaaa$.loadNormalBitmap=function f(path, hue, hasArgs){
 	let key = this._generateCacheKey(path, hue);
 	let bitmap=this._imageCache.get(key);
@@ -5201,7 +5203,39 @@ $aaaa$.prototype.command111=function(){ // cond branch
 		result=Input.isPressed(this._params[1]);
 	}break;
 	case 12:{ // Script
-		result=!!eval(this._params[1]);
+		const s=this._params[1];
+		if(s&&s[0]===":"&&s[1]==="!"){ // ===":!"
+			result=false;
+			let j=JSON.parse(s.slice(2));
+			let obj;
+			switch(j[0]){
+			case "func":{
+				obj=false;
+				if(j[1] in rpgevts){
+					let curr=rpgevts,argv;
+					for(let x=1;x!==strs.length&&curr;++x){ let next=strs[x];
+						if(next&&next.constructor===Array){ argv=next; break; }
+						else curr=curr[next];
+					}
+					result=curr(this.getEvt(),argv);
+				}
+			}break;
+			case "pt": obj=$gameParty; break;
+			case "pl": obj=$gamePlayer; break;
+			case "mp": obj=$gameMap; break;
+			case "evt": obj=this.getEvt(); break;
+			case "evtd": obj=this.getEvt().event(); break;
+			case "dataMp": obj=$dataMap; break;
+			case "dataIt": obj=$dataItems; break;
+			case "dataAm": obj=$dataArmors; break;
+			case "dataSk": obj=$dataSkills; break;
+			case "dataWp": obj=$dataWeapons; break;
+			}
+			if(obj){
+				for(let x=1;x!==j.length;++x) obj=obj[j[x]];
+				result=obj;
+			}
+		}else result=!!eval(s);
 		//result=!!Function('"use strict";return (' + this._params[1] + ')').bind(this)();
 	}break;
 	case 13:{ // Vehicle
@@ -5288,8 +5322,14 @@ $aaaa$.prototype.screenY_deltaToParent=function(){
 	let rtv=0;
 	if(this._priorityType===2 && this.parentId){
 		let p=$gameMap._events[this.parentId];
-		if(p===undefined) console.warn("no parent found:",this.parentId);
-		else if(p._priorityType!==2) rtv+=p.y-this.y;
+		if(p===undefined){
+			//console.warn("no parent found:",this.parentId);
+			if(this.constructor===Game_Event){ // parent is gone
+				this.erase();
+				let sp=this.getSprite();
+				if(sp) sp.remove();
+			}
+		}else if(p._priorityType!==2) rtv+=p.y-this.y;
 	}
 	return rtv;
 };
@@ -5664,23 +5704,44 @@ $dddd$.tbl[gc.ROUTE_PLAY_SE]=function(params){
 };
 $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 	//eval(params[0]);
-	let p0=params[0];
-	if(p0&&p0.slice&&p0.slice(0,2)===":!"){
+	const p0=params[0];
+	if(p0&&p0[0]===":"&&p0[1]==="!"){ // ===":!"
 		let strs=JSON.parse(p0.slice(2));
-		if(0 in strs){
-			if(strs[0] in rpgevts){
-				let curr=rpgevts;
-				for(let x=0;x!==strs.length;++x) curr=curr[strs[x]];
-				return curr(this);
-			}else switch(strs[0]){
-				case "ss":{
-					if(this._eventId) this.ssStateSet(strs[1],!strs[2]);
-				}break;
+		if(strs[0] in rpgevts){
+			let curr=rpgevts,argv;
+			for(let x=0;x!==strs.length;++x){ let next=strs[x];
+				if(next&&next.constructor===Array){ argv=next; break; }
+				else curr=curr[next];
 			}
-		}
+			return curr(this);
+		}else{ switch(strs[0]){
+		default:{
+			// [ (ss,selfswitch,val) | (jmp,( (abs,xy)|(ref,Cxy)|(rlt,xy) )) ]
+		}break;
+		case "ss":{
+			if(this._eventId) this.ssStateSet(strs[1],!strs[2]);
+		}break;
+		case "jmp":{ // jump
+			switch(strs[1]){
+			case "abs":{ // absolute
+				let xy=strs[2];
+				if(xy) this.jumpAbs(xy[0],xy[1]);
+			}break;
+			case "ref":{ // to other's relative location
+				if(strs[2]){
+					let ref=strs[2][0]==='p'?$gamePlayer:$gameMap._events[strs[2][0]];
+					this.jumpAbs(strs[2][1]+ref.x,strs[2][2]+ref.y);
+				}
+			}break;
+			case "rlt":{ // relative
+				if(strs[2]) this.jump(strs[2][0],strs[2][1]);
+			}break;
+			}
+		}break;
+		} }
 		return;
 	}
-	return objs._doFlow.call(this,params[0]);
+	return objs._doFlow.call(this,p0);
 };
 }
 // - chr: move
@@ -5876,7 +5937,9 @@ $rrrr$=$aaaa$.prototype.clear;
 $dddd$=$aaaa$.prototype.clear=function f(){
 	this._evtName=undef;
 	this._nameField=undef;
+	this._lastMsgType=undef;
 	this._lastFinish=undef;
+	this._lastGain=undef;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.isBusy;
@@ -5886,7 +5949,7 @@ $dddd$=$aaaa$.prototype.isBusy=function f(){
 $aaaa$.prototype.add_finishQuest=function f(qname){
 	if(f.prefix===undefined) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
 	let txt=f.prefix+qname;
-	if(qname!==undefined && qname!==null&&qname===this._lastFinish){
+	if(this._lastMsgType==="qc"&&qname!==undefined && qname!==null&&qname===this._lastFinish){
 		++this._lastFinish_cnt;
 		this._texts.pop();
 		txt+="\\RGB["+$dataCustom.textcolor.default+"] * "+this._lastFinish_cnt;
@@ -5894,6 +5957,20 @@ $aaaa$.prototype.add_finishQuest=function f(qname){
 		this._lastFinish=qname;
 		this._lastFinish_cnt=1^0;
 	}
+	this._lastMsgType="qc";
+	return this.add(txt);
+};
+$aaaa$.prototype.add_gainItem=function f(txt,cnt,dataitem){
+	cnt|=0;
+	if(this._lastMsgType==="gi" && 0<this._lastGain_cnt*cnt && dataitem && this._lastGain===dataitem){
+		this._lastGain_cnt+=cnt;
+		this._texts.pop();
+	}else{
+		this._lastGain=dataitem;
+		this._lastGain_cnt=cnt;
+	}
+	txt+=Math.abs(this._lastGain_cnt);
+	this._lastMsgType="gi";
 	return this.add(txt);
 };
 $aaaa$.prototype.addWindow=function(w){
@@ -6664,9 +6741,10 @@ $dddd$=$aaaa$.prototype.gainItem=function f(item, amount, includeEquip, noSound)
 			if(i!==-1) head+="\\RGB["+color[c.attr[i]]+"]"+c.text[i]+"\\RGB["+color.default+"] ";
 		}
 	}
-	let txt=head+(arguments[0].name.replace(/\\/g,"\\\\"))+"\\RGB["+color.default+"] * "+Math.abs(cnt);
-	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt);
-	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
+	let txt=head+(arguments[0].name.replace(/\\/g,"\\\\"))+"\\RGB["+color.default+"] * ";
+	//if(!$gamePlayer._noGainMsg) $gameMessage.add(txt+Math.abs(cnt));
+	if(!$gamePlayer._noGainMsg) $gameMessage.add_gainItem(txt,cnt,item);
+	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt+Math.abs(cnt),1);
 	if(0&&debug.isdebug()){
 		let re=Window_Base.prototype.processEscapeCharacter.re.toString();
 		re=new RegExp("(^|[^\\\\\])((\\\\\\\\)+|[^\\\\]+)*\\\\RGBA?("+re.slice(2,-1)+")","g");

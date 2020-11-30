@@ -36,6 +36,7 @@ list.discardLastNChoices=n=>{
 };
 
 list.crystalcave_dragon_chase=(self)=>{
+	//:! ["list","crystalcave_dragon_chase"]
 	while(self.queueLen(0)>=7) self.queuePop(0);
 	if(self.isNearThePlayer(0,7)) self.moveTypeTowardPlayer();
 	else{
@@ -47,6 +48,17 @@ list.crystalcave_dragon_chase=(self)=>{
 			self.moveStraight(dir);
 		}else self.moveRandom();
 	}
+};
+
+list.getSS=(self,argv)=>{
+	if(!argv) return false;
+	return $gameMap.ss(argv[0],argv[1]);
+};
+
+list.gameoverIfSameLoc=(self)=>{
+	//:! ["list","gameoverIfSameLoc"]
+	// too frequent cause stuck @ changing scene
+	if(self.dist2($gamePlayer)===0) SceneManager.goto(Scene_Gameover);
 };
 
 })();
