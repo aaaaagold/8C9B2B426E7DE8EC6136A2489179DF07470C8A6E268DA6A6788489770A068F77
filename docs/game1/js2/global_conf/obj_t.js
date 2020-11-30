@@ -760,24 +760,68 @@ $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	// //this.fontFace=ff;
 	// return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._editAccordingToArgs_scale=function(src){
+$aaaa$.prototype._addNoteRefresh=function(sprite){
+	if(!(Graphics.isWebGL()&&this._args)) return; // no need
+	if(!this._noteRefresh) this._noteRefresh=new Set();
+	if(sprite&&sprite._refresh) this._noteRefresh.add(sprite);
+};
+$dddd$=$aaaa$.prototype._doNoteRefresh=function f(){
+	if(!this._noteRefresh) return;
+	if(Graphics.isWebGL()&&this._args) this._noteRefresh.forEach(f.forEach);
+	this._noteRefresh.clear();
+	console.log(this._url);
+};
+$dddd$.forEach=c=>c._refresh();
+$dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 	let scale=Number(this._args.scale);
-	if(isNaN(scale)) return;
-	let c=d.ce('canvas'); c.width=src.width*scale; c.height=src.height*scale;
-	let ctx=c.getContext('2d');
-	ctx.drawImage(src,0,0);
+	if(isNaN(scale)) return src;
+	let c=d.ce('canvas');
+	if(this._isTile){
+		// draw seperately, prevent edge blur
+		let pw=$gameMap.tileWidth()>>0,ph=$gameMap.tileHeight()>>0;
+		let pwS=~~(pw*scale),phS=~~(ph*scale);
+		let xs=~~(src.width/pw),ys=~~(src.height/ph);
+		c.width=pwS*xs; c.height=phS*ys;
+		let ctx=c.getContext('2d');
+		let tmpc=f.tileCanvas; tmpc.width=pw; tmpc.height=ph;
+		let tmpctx=tmpc.getContext('2d');
+		for(let y=0;y!==ys;++y){ for(let x=0;x!==xs;++x){
+			tmpctx.clearRect(0,0,pw,ph);
+			tmpctx.drawImage(src, x*pw,y*ph,pw,ph, 0,0,pw,ph);
+			ctx.drawImage(tmpc, x*pwS,y*phS,pwS,phS);
+		} }
+	}else{
+		let pw=src.width/3,ph=src.height>>2;
+		if(!this._isBigChr){
+			pw>>=2;
+			ph>>=1;
+		}
+		let pwS=~~(pw*scale),phS=~~(ph*scale);
+		let xs=~~(src.width/pw),ys=~~(src.height/ph);
+		c.width=pwS*xs; c.height=phS*ys;
+		c.getContext('2d').drawImage(src,0,0,c.width,c.height);
+	}
+	this._reCreateTextureIfNeeded(c.width,c.height);
 	return c;
 };
+$rrrr$=$dddd$.tileCanvas=document.createElement('canvas');
+$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
+$rrrr$=$dddd$.varCanvas=document.createElement('canvas');
+$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
+$rrrr$=$dddd$.varCanvas2=document.createElement('canvas');
+$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
 $aaaa$.prototype._editAccordingToArgs=function(){
 	if(!this._image_ori) this._image_ori=this._image;
 	let src=this._image_ori;
-	let commonFlags = src.width!==0 && src.height!==0;
+	let commonFlags = src.width*src.height>=2;
+	if(!commonFlags || !this._args) return;
 	// scale (TODO)
-	if( !this._scaleChanged && commonFlags && this._args&&this._args.scale!==undefined ){
+	if( !this._scaleChanged && commonFlags && this._args.scale!==undefined ){
+		this._scaleChanged=true;
 		src=this._editAccordingToArgs_scale(src);
 	}
 	// change color
-	if( !this._colorChanged && commonFlags && this._args&&this._args.color!==undefined ){
+	if( !this._colorChanged && commonFlags && this._args.color!==undefined ){
 		this._colorChanged=true;
 		let color=JSON.parse(this._args.color);
 		let invert=!!color[3],w=[];
@@ -805,6 +849,7 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 		src=c;
 	}
 	this._image=src;
+	return true;
 };
 $aaaa$.prototype._createCanvas=function(width, height){
 	this.__canvas = this.__canvas || document.ce('canvas');
@@ -821,7 +866,7 @@ $aaaa$.prototype._createCanvas=function(width, height){
 		this.__canvas.height = h;
 		this._createBaseTexture(this._canvas);
 		
-		this._editAccordingToArgs();
+		min&=this._editAccordingToArgs();
 		
 		// change alpha (TODO: _opt is deprecated, adjusted to _args)
 		let ga;
@@ -1223,9 +1268,10 @@ $dddd$=$aaaa$.prototype._sortChildren=function f(){
 	// -> module.exports = function removeItems(arr,strtIdx,cnt) // remove [strtIdx,strtIdx+cnt) // it's efficient as an array
 	for(let bc=this.children.back._character;(bc&&bc._erased&&!bc._animationPlaying);bc=this.children.back._character) this.removeChildAt(this.children.length-1);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.update.updateChildren=function(){
-	return this.children.forEach(c=>c&&c.update&&c.update());
+$dddd$=$aaaa$.prototype.update.updateChildren=function f(){
+	return this.children.forEach(f.forEach);
 };
+$dddd$.forEach=c=>c&&c.update&&c.update();
 $aaaa$.prototype._sortChildren=none;
 $aaaa$.prototype.usetree=function(){ this.children=new AVLTree(); };
 $rrrr$=$aaaa$.prototype.initialize;
@@ -2364,6 +2410,20 @@ $aaaa$.prototype.updateAnimationSprites = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
+$rrrr$=$aaaa$.prototype.setCharacter;
+$dddd$=$aaaa$.prototype.setCharacter=function f(chr){
+	this.patternWidth  = this.patternWidth0;
+	this.patternHeight = this.patternHeight0;
+	f.ori.call(this,chr);
+	this.setScale();
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.setScale=function(){
+	let args=this._setBitmap_args();
+	if(args&&args.scale){
+		let s=Number(args.scale);
+		if(s>=0) this._scale=s;
+	}else this._scale=1;
+};
 $aaaa$.prototype.isInView_inScreen=function(){
 	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
 };
@@ -2379,21 +2439,33 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 	if(forced) return f.ori.call(this);
 	let c=this._character;
 	if(!c) return f.ori.call(this);
-	let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
-	if(!playing){
-		if(c._erased){
+	if(this.isInView()===false){ // give up full update if too far
+		let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
+		if(playing){
+			this.updateAnimation();
+			this.updateBalloon();
+		}else if(c._erased){
 			if(this.parent) this.parent.removeChild(this);
 			return;
-		}else if(this.isInView()===false){
-			return this.updatePosition(); // give up update if too far
 		}
+		if(!c._erased) this.updatePosition();
+		return;
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updateBitmap;
-$dddd$=$aaaa$.prototype.updateBitmap=function f(){
-	f.ori.call(this);
-	this._character.imgModded=false;
+$dddd$=$aaaa$.prototype.updateBitmap=function f(){ // rewrite: rec if ch via '._imgCh'
+	if(this.isImageChanged()){
+		this._tilesetId = $gameMap.tilesetId();
+		this._tileId = this._character.tileId();
+		this._characterName = this._character.characterName();
+		this._characterIndex = this._character.characterIndex();
+		if(0<this._tileId) this.setTileBitmap();
+		else this.setCharacterBitmap();
+		this._character.imgModded=false;
+		return this._imgCh=true;
+	}
+	return this._imgCh=false;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.isImageChanged=function(){ // rewrite
 	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
@@ -2406,23 +2478,44 @@ $aaaa$.prototype._setBitmap_args=function(){
 		if(c.constructor===Game_Event) meta=c.event().meta;
 	}
 	if(meta){
-		if(rtv.color=c._getColorEdt()) hasSth=true;
+		let tmp;
+		if(tmp=c._getColorEdt()){ rtv.color=tmp; hasSth=true; }
+		if(tmp=c._getScaleEdt()){ rtv.scale=tmp; hasSth=true; }
 	}
 	return hasSth&&rtv;
 };
-$aaaa$.prototype.setTileBitmap=function(){
+$aaaa$.prototype.setTileBitmap=function f(){
 	this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
+	if(this._scale===1){
+		if(this.patternWidth!==this.patternWidth0){
+			this.patternWidth  = this.patternWidth0;
+			this.patternHeight = this.patternHeight0;
+		}
+	}else{
+		if(this.patternWidth!==this.patternWidth2){
+			this.patternWidth  = this.patternWidth2;
+			this.patternHeight = this.patternHeight2;
+		}
+	}
 };
 $aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
 	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,this._setBitmap_args());
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
+	if(this.patternWidth!==this.patternWidth0){
+		this.patternWidth  = this.patternWidth0;
+		this.patternHeight = this.patternHeight0;
+	}
 };
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
-	let pw = ~~this.patternWidth();
-	let ph = this.patternHeight();
-	let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
-	let sy = ( (this._tileId>>3)&15 ) * ph;
-	return this.setFrame(sx, sy, pw, ph);
+	if(!this._imgCh) return;
+	else{
+		this.setScale();
+		let pw = ~~this.patternWidth();
+		let ph = this.patternHeight();
+		let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
+		let sy = ( (this._tileId>>3)&15 ) * ph;
+		return this.setFrame(sx, sy, pw, ph);
+	}
 };
 $aaaa$.prototype.updateCharacterFrame_sit=function(){
 	if(0<this._bushDepth){
@@ -2442,7 +2535,7 @@ $aaaa$.prototype.updateCharacterFrame_sit=function(){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.updateCharacterFrame;
+$rrrr$=$aaaa$.prototype.updateCharacterFrame; // e.g. walking frames
 $dddd$=$aaaa$.prototype.updateCharacterFrame=function f(){ // add on chair facing up
 	//debug.log('Sprite_Character.prototype.updateCharacterFrame');
 	if(this._characterName){ // not tiles
@@ -2475,11 +2568,24 @@ $aaaa$.prototype.characterBlockY=function(){ // overwrite: ori use '/' , '%'
 $aaaa$.prototype.characterPatternY=function(){ // overwrite: ori use '/' , '%'
 	return (this._character.direction()>>1)-1;
 };
+$aaaa$.prototype.patternWidth=function(){
+	if(0<this._tileId) return $gameMap.tileWidth()>>0;
+	else if (this._isBigCharacter) return (this.bitmap.width/3)>>0;
+	else return (this.bitmap.width/12)>>0;
+};
+$rrrr$=$aaaa$.prototype.patternWidth0=$aaaa$.prototype.patternWidth;
+$dddd$=$aaaa$.prototype.patternWidth2=function f(){
+	return ($gameMap.tileWidth()*this._scaley)>>0;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
 	// fast enough
-	if(this._tileId>0) return $gameMap.tileHeight();
+	if(this._tileId>0) return $gameMap.tileHeight()>>0;
 	else return this.bitmap.height>>(2+!this._isBigCharacter);
 };
+$rrrr$=$aaaa$.prototype.patternHeight0=$aaaa$.prototype.patternHeight;
+$dddd$=$aaaa$.prototype.patternHeight2=function(){
+	return ($gameMap.tileHeight()*this._scaley)>>0;
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.updatePosition;
 $dddd$=$aaaa$.prototype.updatePosition=function f(){
 	f.ori.call(this);
@@ -3160,7 +3266,7 @@ $dddd$=$aaaa$.loadTileset=function f(filename,hue,args){
 	rtv._fname=filename;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.loadBitmap=function(folder, filename, hue, smooth, args){ // re-write: add args: 'args': edit img
+$dddd$=$aaaa$.loadBitmap=function f(folder, filename, hue, smooth, args){ // re-write: add args: 'args': edit img
 	if(filename){
 		let path = folder + filename + '.png',a='';
 		for(let i in args){
@@ -3176,12 +3282,15 @@ $aaaa$.loadBitmap=function(folder, filename, hue, smooth, args){ // re-write: ad
 			path+=a;
 		}
 		let bitmap = this.loadNormalBitmap(path, hue || 0, a!=='');
+		if(folder.slice(-10)===f.tilesets) bitmap._isTile=true;
+		else if(ImageManager.isBigCharacter(filename)) bitmap._isBigChr=true;
 		bitmap.smooth = smooth;
 		return bitmap;
 	}else{
 		return this.loadEmptyBitmap();
 	}
 };
+$dddd$.tilesets="/tilesets/";
 $dddd$=$aaaa$.loadNormalBitmap=function f(path, hue, hasArgs){
 	let key = this._generateCacheKey(path, hue);
 	let bitmap=this._imageCache.get(key);
@@ -3294,6 +3403,21 @@ $dddd$.load.tbl={
 	ani:"loadAnimation",
 	face:"loadFace",
 };
+$rrrr$=$aaaa$.updateMain;
+$dddd$=$aaaa$.updateMain2=function f(){
+	let strted=this._sceneStarted;
+	f.ori.call(this);
+	if(!strted && this._sceneStarted){
+		this.updateMain=f.ori;
+		if(this.isMap()) this.getTilemap().children.forEach(f.refreshSpriteChr);
+	}
+}; $dddd$.ori=$rrrr$;
+$dddd$.refreshSpriteChr=x=>x.bitmap&&x.bitmap._args&&x._refresh&&x._refresh();
+$rrrr$=SceneManager.onSceneCreate;
+$dddd$=SceneManager.onSceneCreate=function f(){
+	if(this.isMap()&&Graphics.isWebGL()) this.updateMain=this.updateMain2;
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
 	if(this._resuming) return;
@@ -4089,6 +4213,8 @@ $dddd$=$aaaa$.prototype.start=function f(){
 	return this._mapNameWindow.open();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
+
+
 
 // - gameover
 $aaaa$=Scene_Gameover;
@@ -6538,14 +6664,19 @@ $aaaa$.prototype.gainGold=function f(amount,noSound){
 };
 $aaaa$.prototype.maxGold=()=>99999999;
 $rrrr$=$aaaa$.prototype.consumeItem;
-$dddd$=$aaaa$.prototype.consumeItem=function f(){
+$dddd$=$aaaa$.prototype.consumeItem=function f(item,forced){
 	debug.log('Game_Party.prototype.consumeItem');
 	let snd=$gamePlayer._noGainSound,hnt=$gamePlayer._noGainHint,msg=$gamePlayer._noGainMsg;
 	$gamePlayer._noGainSound=1;
 	$gamePlayer._noGainHint=1;
 	$gamePlayer._noGainMsg=1;
 	this.____byConsume=1;
-	f.ori.call(this,arguments[0]);
+	if(item && forced){
+		let consumable=item.consumable;
+		item.consumable=true;
+		f.ori.call(this,item);
+		item.consumable=consumable;
+	}else f.ori.call(this,item);
 	delete this.____byConsume;
 	$gamePlayer._noGainMsg=msg||0;
 	$gamePlayer._noGainHint=hnt||0;
@@ -7350,6 +7481,15 @@ $dddd$=$aaaa$.prototype._getColorEdt=function f(){
 	else return meta.color;
 };
 $dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
+$dddd$=$aaaa$.prototype._getScaleEdt=function f(){
+	let meta=this.event().meta;
+	if(meta.scales){
+		if(!meta.scales_lazyTbl) meta.scales_lazyTbl=JSON.parse(meta.scales).map(f.toJson);
+		return meta.scales_lazyTbl[this._pageIndex];
+	}
+	else return meta.scale;
+};
+$dddd$.toJson=$aaaa$.prototype._getColorEdt.toJson;
 $rrrr$=$aaaa$.prototype.clearPageSettings;
 $dddd$=$aaaa$.prototype.clearPageSettings=function f(){
 	delete this._light;
@@ -7359,7 +7499,7 @@ $dddd$=$aaaa$.prototype.clearPageSettings=function f(){
 $rrrr$=$aaaa$.prototype.setupPageSettings;
 $dddd$=$aaaa$.prototype.setupPageSettings=function f(){
 	let evtd=this.event();
-	if(evtd.meta.colors) this.imgModded=true;
+	if(evtd.meta.colors || evtd.meta.scales) this.imgModded=true;
 	if(evtd.light && evtd.light.constructor===Array) this._light=evtd.light[this._pageIndex]^0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;

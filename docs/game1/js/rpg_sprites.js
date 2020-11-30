@@ -204,19 +204,7 @@ Sprite_Character.prototype.isTile = function() {
     return this._character.tileId > 0;
 };
 
-Sprite_Character.prototype.updateBitmap = function() {
-    if (this.isImageChanged()) {
-        this._tilesetId = $gameMap.tilesetId();
-        this._tileId = this._character.tileId();
-        this._characterName = this._character.characterName();
-        this._characterIndex = this._character.characterIndex();
-        if (this._tileId > 0) {
-            this.setTileBitmap();
-        } else {
-            this.setCharacterBitmap();
-        }
-    }
-};
+Sprite_Character.prototype.updateBitmap;
 
 Sprite_Character.prototype.setTileBitmap;
 Sprite_Character.prototype.setCharacterBitmap;
@@ -249,15 +237,8 @@ Sprite_Character.prototype.characterPatternX = function() {
     return this._character.pattern();
 };
 
-Sprite_Character.prototype.patternWidth = function() {
-    if (this._tileId > 0) {
-        return $gameMap.tileWidth();
-    } else if (this._isBigCharacter) {
-        return this.bitmap.width / 3;
-    } else {
-        return this.bitmap.width / 12;
-    }
-};
+Sprite_Character.prototype.patternWidth;
+Sprite_Character.prototype.patternHeight;
 
 Sprite_Character.prototype.updateHalfBodySprites = function() {
     if (this._bushDepth > 0) {

@@ -2,10 +2,11 @@
 
 if(!window.objs) window.objs={};
 
-String.prototype.toId=function(){
-	let tmp=this.match(/^([0-9]+)(-[0-9A-Z_a-z]+)?$/);
-	return (tmp||undef)&&Number(tmp[1]);
+$dddd$=String.prototype.toId=function f(){
+	let tmp=this.match(f.regex);
+	return (tmp||undefined)&&Number(tmp[1]);
 };
+$dddd$.regex=/^([0-9]+)(-[0-9A-Z_a-z]+)?$/;
 Number.prototype.toId=function(){ return this.valueOf(); };
 
 const dialog=window.dialog=(txtarr,windowSetting,clear=true)=>{
@@ -91,3 +92,5 @@ CacheSystem.prototype.add=function(key,val){
 CacheSystem.prototype.get=function(key){ return this.__caches[key]; };
 CacheSystem.prototype.del=function(key){ delete this.__caches[key]; };
 CacheSystem.prototype.set=function(key,val){ return this.__caches[key]=val; };
+
+$rrrr$=$dddd$=$aaaa$=undef;
