@@ -282,6 +282,15 @@ onloadProc.onerr=function f(){ this.onerror=null;
 onloadProc.putScript=(scr,txt)=>{
 	ac(d.body, ac(scr,tn(txt)) ); if(!isDev_) rc(d.body,scr);
 };
+onloadProc.putScript_isBody=(scr,oriSrc,plain)=>{
+	let rndkey=encodeURI(oriSrc)+Math.random();
+	window[rndkey]=objs;
+	let txt=onloadProc.addRefreshVars(plain,oriSrc);
+	txt+="(window['"+rndkey+"']);";
+	onloadProc.putScript(scr,txt);
+	if(isDev_) window[oriSrc]=scr;
+	delete window[rndkey];
+};
 onloadProc.addRefreshVars=(txt,src)=>{
 	let us='"use strict";\n';
 	let rtv=us;
@@ -314,14 +323,7 @@ onloadProc.addScriptFromGas=wait=>{ // if(isDev_){ console.warn(wait); debugger;
 	let scr=ce('script'),src=wait.src,plain=wait.plain;
 	if(onloadProc.isBody(src)){ if(isDev_) console.log("body",src);
 		if(isDev_) onloadProc.putScript(scr,plain);
-		else{
-			let rndkey=encodeURI(src)+Math.random();
-			window[rndkey]=objs;
-			let txt=onloadProc.addRefreshVars(plain,src);
-			txt+="(window['"+rndkey+"']);";
-			onloadProc.putScript(scr,txt);
-			delete window[rndkey];
-		}
+		else onloadProc.putScript_isBody(scr,src,plain);
 	}else onloadProc.putScript(scr,plain);
 	onloadProc.idx+=wait.cnt-1;
 	onloadProc();
@@ -334,16 +336,8 @@ onloadProc.addScriptViaSrc=(scr,src,doNext)=>{
 		if(isDev_) console.log(oriSrc,isBody);
 		if(--cnt===0) return onloadProc.giveupMsg();
 		XHR(src,(txt)=>{
-			let rndkey=encodeURI(src)+Math.random();
-			window[rndkey]=objs;
-			if(isBody){
-				txt=onloadProc.addRefreshVars(txt,oriSrc);
-				txt+="(window['"+rndkey+"']);";
-			}
-			onloadProc.putScript(scr,txt);
-			if(isDev_) window[oriSrc]=scr;
-			delete window[rndkey];
-			if(isDev_) console.log("xhr",oriSrc,onloadProc.idx);
+			if(isBody) onloadProc.putScript_isBody(scr,oriSrc,txt);
+			else onloadProc.putScript(scr,txt);
 			if(doNext) onloadProc();
 		},req,1);
 	};req();
