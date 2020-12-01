@@ -2911,13 +2911,14 @@ $aaaa$.loadMapData = function f(mapId) {
 		// defaults
 		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
 		// preload
-		// - preload face image according to events' character image
-		let faceSet=new Set(),faces=[];
+		// - preload face&&body image according to events' character image
+		let faceSet=new Set(),chrSet=new Set(),imgs=[];
 		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
 			let evt=arr[x]; if(!evt) continue;
 			for(let p=0,arr=evt.pages;p!==arr.length;++p){
 				let img=arr[p].image;
 				let cname=img.characterName;
+				// face
 				if(img.tileId===0&&cname!==''&&
 					!ImageManager.isObjectCharacter(cname)&&
 					!ImageManager.isBigCharacter(cname)&&
@@ -2927,9 +2928,12 @@ $aaaa$.loadMapData = function f(mapId) {
 					faceSet.add(img.characterName);
 					img.hasFaceImg=true;
 				}
+				// body
+				if(img.tileId===0&&cname!=='') chrSet.add(img.characterName);
 			}
 		}
-		faceSet.forEach(x=>faces.push(["face",x]));
+		faceSet.forEach(x=>imgs.push(["face",x]));
+		chrSet.forEach(x=>imgs.push(["chr",x]));
 		// - preload bgm,bgs
 		let audios=[];
 		{
@@ -2941,7 +2945,7 @@ $aaaa$.loadMapData = function f(mapId) {
 			if(dbgs && dbgs!==abgs) audios.push(["bgs",dbgs]);
 		}
 		// - actually request media
-		SceneManager.preloadMedia.load({img:faces,audio:audios});
+		SceneManager.preloadMedia.load({img:imgs,audio:audios});
 		// pre-cal
 		// - evtd attrs.
 		for(let x=0,evtd,evtds=$dataMap.events;x!==evtds.length;++x){
@@ -2990,7 +2994,7 @@ $aaaa$.loadMapData = function f(mapId) {
 			$dataTemplateEvtFromMaps.others_sorted=true;
 			let src=$dataTemplateEvtFromMaps.others,arr=[];
 			for(let i in src) arr.push([i,src[i]]);
-			arr.sort((a,b)=>{ return ((a[0]<b[0])<<1)-1; }); // no dup
+			arr.sort((a,b)=>((a[0]<b[0])<<1)-1); // no dup
 			src=$dataTemplateEvtFromMaps.others={};
 			for(let x=0;x!==arr.length;++x) src[arr[x][0]]=arr[x][1];
 		}
@@ -3384,6 +3388,7 @@ $dddd$.load=function f(list){
 };
 $dddd$.load.tbl={
 	ani:"loadAnimation",
+	chr:"loadCharacter",
 	face:"loadFace",
 };
 $rrrr$=$aaaa$.updateMain;
@@ -6147,6 +6152,21 @@ $aaaa$.prototype.moveByInput=function f(){
 };
 $aaaa$.prototype.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
+};
+$aaaa$.prototype.canMove=function(){ // discard '$gameMap.isEventRunning()'
+	if($gameMessage.isBusy()){
+		return false;
+	}
+	if(this.isMoveRouteForcing() || this.areFollowersGathering()){
+		return false;
+	}
+	if(this._vehicleGettingOn || this._vehicleGettingOff){
+		return false;
+	}
+	if(this.isInVehicle() && !this.vehicle().canMove()){
+		return false;
+	}
+	return true;
 };
 $aaaa$.prototype.executeMove=function(direction){ // redraw last and next standing tile
 	let last_x=this.x,last_y=this.y;

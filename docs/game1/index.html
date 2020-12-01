@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -52,7 +52,7 @@ let isDev_=isDev,objs={};
 //isDev_=false; //testing: hide vars
 if(window.sha256 && sha256(location.hash)==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
 if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
-if(!jss) jss=[
+if(!jss || window.sha256 && sha256(location.hash)==="0x4209486CEAF58233C23112B094A4503542EC339D44358042185724DC2C4ABD4D") jss=[
 	"test.js",
 	"js/plugins.js",
 	":init",
@@ -122,7 +122,7 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 "$gameMap",
 
 "$gamePlayer",
-]; objs._vars=vars; objs._vars_strArg=vars.slice();
+]; objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice();
 objs.testing=0;
 const onloadProc=function f(){
 	if(f.idx===0){
@@ -220,33 +220,24 @@ const onloadProc=function f(){
 		
 		return;
 	}
-	let scr=ce('script');
-	let idx=f.idx;
-	let src=jss[f.idx++];
-	if(src[0]===":"){
-		let gas="https://script.google.com/macros/s/AKfycbxKqePNqsycE-Y4FkmZEeCMcILjXaCRoMgUESaEI2iiSzCYmH0G/exec";
-		let files="&file="+encodeURIComponent(src),isBody=onloadProc.isBody(src);
-		while(f.idx!==jss.length && jss[f.idx][0]===":") if(onloadProc.isBody(jss[f.idx])===isBody) files+="&file="+encodeURIComponent(jss[f.idx++]); else break;
+	// req. all gas
+	for(let x=0,gas="https://script.google.com/macros/s/AKfycbxKqePNqsycE-Y4FkmZEeCMcILjXaCRoMgUESaEI2iiSzCYmH0G/exec";x!==jss.length;){
+		let src=jss[x]; if(src[0]!==":"){ ++x; continue; }
+		let idx=x++,files="&file="+encodeURIComponent(src),isBody=onloadProc.isBody(src);
+		while(x!==jss.length && jss[x][0]===":") if(onloadProc.isBody(jss[x])===isBody) files+="&file="+encodeURIComponent(jss[x++]); else break;
 		if(isDev_) console.log(files);
-		let k=Date.now()+''+Math.random();
-		let xhr=new XMLHttpRequest();
+		let idxcnt=x-idx,k=Date.now()+''+Math.random(),xhr=new XMLHttpRequest();
 		xhr.onreadystatechange=function() {
 			if (this.readyState === 4) {
 				let s = this.status.toString();
 				if (s.length === 3 && s.slice(0, 1) === '2') {
 					this.onreadystatechange=null;
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
-					let plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),(kkk+kk+k).slice(0,32),1);
+					let wait={}; wait.src=src; wait.cnt=idxcnt;
+					let plain=wait.plain=aes(this.responseText.split(' ').map(x=>parseInt(x,16)),(kkk+kk+k).slice(0,32),1);
 					if(isDev_) console.log(plain);
-					if(onloadProc.isBody(src)){ if(isDev_) console.log("body",src);
-						let rndkey=encodeURI(src)+Math.random();
-						window[rndkey]=objs;
-						let txt=onloadProc.addRefreshVars(plain,src);
-						txt+="(window['"+rndkey+"']);";
-						onloadProc.putScript(scr,txt);
-						delete window[rndkey];
-					}else onloadProc.putScript(scr,plain);
-					f();
+					if(idx+1===f.idx) onloadProc.addScriptFromGas(wait);
+					else waits[idx]=wait;
 				}
 			}
 		}
@@ -257,8 +248,13 @@ const onloadProc=function f(){
 		};
 		xhr.onerror=()=>setTimeout(go,404);
 		go();
+	}
+	let idx=f.idx;
+	let src=jss[f.idx++];
+	if(src[0]===":"){
+		if(waits[idx]) onloadProc.addScriptFromGas(waits[idx]);
 	}else{
-		let oriSrc=src;
+		let scr=ce('script'),oriSrc=src;
 		src+=src.indexOf("?")===-1?"?":"&"; if(!objs.testing) src+=Date.now();
 		if(isDev_){
 			objs.addScriptViaSrc=undefined;
@@ -310,7 +306,7 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	rtv+="})";
 	return rtv;
 };
-onloadProc.isBody=(src)=>true
+onloadProc.isBody=src=>true
 	&& src.slice(0,8)!=="js/libs/"
 	&& src!=="js/plugins.js"
 	&& src!=="js/rpg_core.js"
@@ -318,6 +314,22 @@ onloadProc.isBody=(src)=>true
 	&& src.slice(-5)!=="_h.js"
 	&& src.slice(-2)!=="_h"
 	&& true;
+onloadProc.addScriptFromGas=wait=>{ // if(isDev_){ console.warn(wait); debugger; }
+	let scr=ce('script'),src=wait.src,plain=wait.plain;
+	if(onloadProc.isBody(src)){ if(isDev_) console.log("body",src);
+		if(isDev_) onloadProc.putScript(scr,plain);
+		else{
+			let rndkey=encodeURI(src)+Math.random();
+			window[rndkey]=objs;
+			let txt=onloadProc.addRefreshVars(plain,src);
+			txt+="(window['"+rndkey+"']);";
+			onloadProc.putScript(scr,txt);
+			delete window[rndkey];
+		}
+	}else onloadProc.putScript(scr,plain);
+	onloadProc.idx+=wait.cnt-1;
+	onloadProc();
+};
 onloadProc.addScriptViaSrc=(scr,src,doNext)=>{
 	let oriSrc=src;
 	src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
