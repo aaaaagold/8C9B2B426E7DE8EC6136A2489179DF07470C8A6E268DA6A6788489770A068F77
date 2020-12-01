@@ -2474,11 +2474,9 @@ $aaaa$.prototype.isImageChanged=function(){ // rewrite
 $aaaa$.prototype._setBitmap_args=function(){
 	let hasSth=false,rtv={}; // args
 	let c=this._character,meta;
-	if(c){
-		if(c.constructor===Game_Actor) meta=c.actor().meta;
-		if(c.constructor===Game_Event) meta=c.event().meta;
-	}
-	if(meta){
+	let data=c.getData();
+	if(data.meta){
+		if(data.anchory!==undefined) this.anchor.y=Number(data.anchory);
 		let tmp;
 		if(tmp=c._getColorEdt()){ rtv.color=tmp; hasSth=true; }
 		if(tmp=c._getScaleEdt()){ rtv.scale=tmp; hasSth=true; }
@@ -2949,6 +2947,7 @@ $aaaa$.loadMapData = function f(mapId) {
 		for(let x=0,evtd,evtds=$dataMap.events;x!==evtds.length;++x){
 			if(!(evtd=evtds[x])) continue;
 			if(evtd.meta.light) evtd.light=JSON.parse(evtd.meta.light);
+			if(evtd.meta.anchory) evtd.anchory=Number(evtd.meta.anchory);
 		}
 		// - tile structure
 		// - - isChair
@@ -5272,6 +5271,11 @@ $aaaa$.prototype.command214=function(){ // erase evt
 	if(this.isOnCurrentMap()&&this._eventId.toId()>0) $gameMap.eraseEvent(this._eventId);
 	return true;
 };
+$dddd$=$aaaa$.prototype.command314 = function f(){
+	this.iterateActorEx(this._params[0], this._params[1], f.recover);
+	return true;
+};
+$dddd$.recover=actor=>actor.recoverAll(true);
 $dddd$=$aaaa$.prototype.command355 = function f() {
 	let script = this.currentCommand().parameters[0] + '\n';
 	let flag=script[0]===":"&&script[1]==="!"; // ===":!"
@@ -5497,8 +5501,11 @@ $dddd$=$aaaa$.prototype.jump=function f(dx,dy){
 $aaaa$.prototype.jumpAbs=function(x,y){
 	if(isNaN(x)||isNaN(y)) ; else{
 		let dx=Number(x)-this.x,dy=Number(y)-this.y;
-		this.jump(dx,dy);
+		return this.jump(dx,dy);
 	}
+};
+$aaaa$.prototype.jumpToChr=function(chr){
+	return this.jumpAbs(chr.x,chr.y);
 };
 $aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is making a new array and then search
 	//debug.log('Game_CharacterBase.prototype.isCollidedWithEvents');
@@ -5523,6 +5530,35 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - chr
 $aaaa$=Game_Character;
+// - chr: getData
+$dddd$=$aaaa$.prototype.getData=function f(){
+	return f.obj;
+};
+$dddd$.obj={};
+Object.defineProperty($dddd$.obj,'meta',{get:none,set:none,configurable:false});
+$dddd$=$aaaa$.prototype._getColorEdt=function f(){
+	let meta=this.getData().meta;
+	if(meta.colors){
+		if(!meta.colors_lazyTbl) meta.colors_lazyTbl=JSON.parse(meta.colors).map(f.toJson);
+		return meta.colors_lazyTbl[this._pageIndex];
+	}else return meta.color;
+};
+$dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
+$dddd$=$aaaa$.prototype._getScaleEdt=function f(){
+	let meta=this.getData().meta;
+	if(meta.scales){
+		if(!meta.scales_lazyTbl) meta.scales_lazyTbl=JSON.parse(meta.scales).map(f.toJson);
+		return meta.scales_lazyTbl[this._pageIndex];
+	}else return meta.scale;
+};
+$dddd$.toJson=$aaaa$.prototype._getColorEdt.toJson;
+$aaaa$.prototype._getAnchoryEdt=function f(){
+	let meta=this.getData().meta;
+	if(meta.anchorys){
+		if(!meta.anchorys_lazyTbl) meta.anchorys_lazyTbl=JSON.parse(meta.scales);
+		return meta.anchorys_lazyTbl[this._pageIndex];
+	}else return Number(meta.anchory);
+};
 // - chr: expose info
 $aaaa$.prototype.dist1=function(chr,real){
 	let rtv; if(chr.dist1){
@@ -5738,10 +5774,10 @@ $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 			return curr(this);
 		}else{ switch(strs[0]){
 		default:{
-			// [ (ss,selfswitch,val) | (jmp,( (abs,xy)|(ref,Cxy)|(rlt,xy) )) ]
+			// usage: [ (ss,selfswitch,val) | (jmp,( (abs,xy)|(ref,Cxy)|(rlt,xy) )) ]
 		}break;
-		case "ss":{
-			if(this._eventId) this.ssStateSet(strs[1],!strs[2]);
+		case "ani":{
+			this.requestAnimation(strs[1]);
 		}break;
 		case "jmp":{ // jump
 			switch(strs[1]){
@@ -5759,6 +5795,9 @@ $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 				if(strs[2]) this.jump(strs[2][0],strs[2][1]);
 			}break;
 			}
+		}break;
+		case "ss":{
+			if(this._eventId) this.ssStateSet(strs[1],!strs[2]);
 		}break;
 		} }
 		return;
@@ -6992,6 +7031,9 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - event
 
 $aaaa$=Game_Event;
+$aaaa$.prototype.getData=function(){
+	return this.event();
+};
 Object.defineProperties($aaaa$.prototype,{
 	z2:{
 		get:function(){
@@ -7538,24 +7580,6 @@ $aaaa$.prototype.findProperPageIndex=function f(){
 	}
 	return -1;
 };
-$dddd$=$aaaa$.prototype._getColorEdt=function f(){
-	let meta=this.event().meta;
-	if(meta.colors){
-		if(!meta.colors_lazyTbl) meta.colors_lazyTbl=JSON.parse(meta.colors).map(f.toJson);
-		return meta.colors_lazyTbl[this._pageIndex];
-	}
-	else return meta.color;
-};
-$dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
-$dddd$=$aaaa$.prototype._getScaleEdt=function f(){
-	let meta=this.event().meta;
-	if(meta.scales){
-		if(!meta.scales_lazyTbl) meta.scales_lazyTbl=JSON.parse(meta.scales).map(f.toJson);
-		return meta.scales_lazyTbl[this._pageIndex];
-	}
-	else return meta.scale;
-};
-$dddd$.toJson=$aaaa$.prototype._getColorEdt.toJson;
 $rrrr$=$aaaa$.prototype.clearPageSettings;
 $dddd$=$aaaa$.prototype.clearPageSettings=function f(){
 	delete this._light;
@@ -7832,6 +7856,29 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - actor
 $aaaa$=Game_Actor;
+$aaaa$.prototype.getData=function(){
+	return this.actor();
+};
+$rrrr$=$aaaa$.prototype.recoverAll;
+$dddd$=$aaaa$.prototype.recoverAll=function f(ignoreBuff){
+	if(ignoreBuff){
+		let arr=this._states.filter(f.filter);
+		let steps={},turns={};
+		for(let x=0;x!==arr.length;++x){
+			let id=arr[x];
+			steps[id]=this._stateSteps[id];
+			turns[id]=this._stateTurns[id];
+		}
+		f.ori.call(this);
+		for(let x=0;x!==arr.length;++x){
+			let id=arr[x];
+			this._states.push(id);
+			this._stateSteps[id]=steps[id];
+			this._stateTurns[id]=turns[id];
+		}
+	}else return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$dddd$.filter=x=>$dataStates[x.toId()].meta.buff;
 $aaaa$.prototype.paramMax = function(paramId) {
 	if (paramId === 0) {
 		return 999999; // MHP

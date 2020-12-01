@@ -65,5 +65,14 @@ list.gameoverIfSameLoc=(self)=>{
 	// too frequent cause stuck @ changing scene
 	if(self.dist2($gamePlayer)===0) SceneManager.goto(Scene_Gameover);
 };
+list.playerJumpToMe=(self,argv)=>{
+	// argv = dx,dy
+	let x=self.x,y=self.y;
+	if(argv){
+		x+=argv[0]|0;
+		y+=argv[1]|0;
+	}
+	return $gamePlayer.jumpAbs(x,y);
+};
 
 })();
