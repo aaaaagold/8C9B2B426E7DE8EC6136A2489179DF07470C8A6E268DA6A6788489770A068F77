@@ -54,6 +54,11 @@ list.getSS=(self,argv)=>{
 	if(!argv) return false;
 	return $gameMap.ss(argv[0],argv[1]);
 };
+list.setSS=(self,argv)=>{
+	if(!argv) return false;
+	return $gameMap._events[argv[0]].ssStateSet(argv[1],!argv[2]);
+};
+list.treeRemain=self=>$gameParty.mch().vars.tree;
 
 list.gameoverIfSameLoc=(self)=>{
 	//:! ["list","gameoverIfSameLoc"]

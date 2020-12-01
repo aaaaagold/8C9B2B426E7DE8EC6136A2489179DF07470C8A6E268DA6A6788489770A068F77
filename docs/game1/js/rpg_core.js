@@ -861,25 +861,6 @@ Bitmap.prototype.initialize = function(width, height) {
 };
 
 /**
- * Loads a image file and returns a new bitmap object.
- *
- * @static
- * @method load
- * @param {String} url The image url of the texture
- * @return Bitmap
- */
-Bitmap.load = function(url) {
-    var bitmap = Object.create(Bitmap.prototype);
-    bitmap._defer = true;
-    bitmap.initialize();
-
-    bitmap._decodeAfterRequest = true;
-    bitmap._requestImage(url);
-
-    return bitmap;
-};
-
-/**
  * Takes a snapshot of the game screen and returns a new bitmap object.
  *
  * @static

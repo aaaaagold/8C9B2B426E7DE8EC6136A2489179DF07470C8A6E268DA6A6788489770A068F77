@@ -190,6 +190,27 @@ $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1,
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
+// - Texture
+$aaaa$=PIXI.Texture;
+$rrrr$=Object.getOwnPropertyDescriptor($aaaa$.prototype,'frame').get;
+$dddd$=function set(frame){ // rewrite: much useful debug info
+	this._frame = frame;
+	this.noFrame = false;
+	if (frame.x + frame.width > this.baseTexture.width || frame.y + frame.height > this.baseTexture.height) {
+		console.warn(this); debugger;
+		throw new Error('Texture Error: frame does not fit inside the base Texture dimensions: ' + ('X: ' + frame.x + ' + ' + frame.width + ' = ' + (frame.x + frame.width) + ' > ' + this.baseTexture.width + ' ') + ('Y: ' + frame.y + ' + ' + frame.height + ' = ' + (frame.y + frame.height) + ' > ' + this.baseTexture.height));
+	}
+	// this.valid = frame && frame.width && frame.height && this.baseTexture.source && this.baseTexture.hasLoaded;
+	this.valid = frame && frame.width && frame.height && this.baseTexture.hasLoaded;
+	if (!this.trim && !this.rotate) {
+		this.orig = frame;
+	}
+	if (this.valid) {
+		this._updateUvs();
+	}
+};
+Object.defineProperty($aaaa$.prototype,'frame',{get:$rrrr$,set:$dddd$});
+$rrrr$=$dddd$=$aaaa$=undef;
 // - TileRenderer
 PIXI.tilemap.TileRenderer.prototype.getVb = function (id) {
 	// 雷ㄛ 變數名稱寫錯是在衝三小
@@ -685,43 +706,38 @@ $aaaa$.prototype._reCreateTextureIfNeeded=function(w,h){
 	}
 };
 $dddd$=$aaaa$.prototype.initialize=function f(w,h){
-	//this._reCreateTextureIfNeeded(w,h);
-	if(this.__canvas){
-		let c=this.__canvas;
-		let r=c.width<w||c.height<h;
-		c.width=w;
-		c.height=h;
-		if(r) this._createBaseTexture(c);
-	}
+	this._reCreateTextureIfNeeded(w,h);
 	f.ori.call(this,w,h);
 	this._loadListeners=new Queue();
 	this.fontFace=_global_conf.useFont;
-	// debug
-	//if(!window['/tmp/'].bitmaps) window['/tmp/'].bitmaps=new Set();
-	//window['/tmp/'].bitmaps.add(this);
+	this.clearRect(0,0,1,1);
 }; $dddd$.ori=$rrrr$;
-if(0){ // debug
-$rrrr$=$aaaa$.prototype.clearRect;
-$dddd$=$aaaa$.prototype.clearRect=function f(x,y,w,h){
-	if(w||h) if(window['/tmp/'].bitmaps) window['/tmp/'].bitmaps.delete(this);
-	return f.ori.call(this,x,y,w,h);
-}; $dddd$.ori=$rrrr$;
-}
 $rrrr$=$aaaa$.load;
-$dddd$=$aaaa$.load=function f(url,key){ // f(url,key,opt)
+$dddd$=$aaaa$.load=function f(url,key,type){
 	if(url==="data:,") return ImageManager.loadEmptyBitmap();
-	let rtv=f.ori.call(this,url);
-	let idx=url.indexOf("?");
+	//let rtv=f.ori.call(this,url);
+	let idx=url.indexOf("?"),args;
 	if(idx!==-1){
-		let arr=url.slice(idx+1).split("&"),args=rtv._args={};
+		let arr=url.slice(idx+1).split("&");
+		args={};
 		for(let x=0;x!==arr.length;++x){
 			let s=arr[x]; if(s.length===0) continue;
 			let tmp=s.split('=');
 			args[decodeURIComponent(tmp[0])]=tmp[1]===undefined?true:decodeURIComponent(tmp[1]);
 		}
 	}
+	
+	// ori: Bitmap.load
+	let rtv = Object.create(Bitmap.prototype);
+	rtv._defer = true;
+	if(args) rtv._args=args; // added
+	for(let i in type) rtv[i]=type[i];
+	rtv.initialize();
+	rtv._decodeAfterRequest = true;
+	rtv._requestImage(url);
+	//return rtv;
+	
 	rtv._cacheKey=key;
-	//rtv._opt=opt;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align){
@@ -730,7 +746,7 @@ $aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align){
 	//	   So we use 'alphabetic' here.
 	if (text !== undefined) {
 		let tx = x;
-//		let ty = y + lineHeight - ( lineHeight - this.fontSize * 1.25 )/2 - this.fontSize * 0.25;
+		// let ty = y + lineHeight - ( lineHeight - this.fontSize * 1.25 )/2 - this.fontSize * 0.25;
 		let ty = y + (lineHeight>>1) + this.fontSize * 0.375;
 		let context = this._context;
 		let alpha = context.globalAlpha;
@@ -753,12 +769,8 @@ $aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align){
 $rrrr$=$aaaa$.prototype.measureTextWidth;
 $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	//debug.log(txt,this.fontFace); // mostly are chr not string // debug
-	//let ff=this.fontFace; this.fontFace="標楷體,"+this.fontFace;
 	txt=txt.replace(/(\碧|\筵|\綰)/g,'一'); // bug: https://zh.wikipedia.org/zh-tw/%E5%BE%AE%E8%BB%9F%E6%AD%A3%E9%BB%91%E9%AB%94#%E5%B7%B2%E7%9F%A5%E5%95%8F%E9%A1%8C
 	return f.ori.call(this,txt);
-	// let rtv=f.ori.call(this,txt);
-	// //this.fontFace=ff;
-	// return rtv;
 }; $dddd$.ori=$rrrr$;
 if(0&&0){
 $aaaa$.prototype._addNoteRefresh=function(sprite){
@@ -811,8 +823,10 @@ $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 	return c;
 };
 $rrrr$=$dddd$.tileCanvas=document.createElement('canvas');
-$rrrr$.width=$rrrr$.height=1; $rrrr$.getContext('2d').clearRect(0,0,1,1);
+$rrrr$.width=$rrrr$.height=48; $rrrr$.getContext('2d').clearRect(0,0,$rrrr$.width,$rrrr$.height);
 $aaaa$.prototype._editAccordingToArgs=function(){
+	// this function cannot exec twice if scaling happens
+	// * reserve this behavior for debugging
 	if(!this._image_ori) this._image_ori=this._image;
 	let src=this._image_ori;
 	let commonFlags = src.width*src.height>=2;
@@ -865,9 +879,9 @@ $aaaa$.prototype._createCanvas=function(width, height){
 		let h = this._image.height>>>0||min;
 		this.__canvas.width = w;
 		this.__canvas.height = h;
-		this._createBaseTexture(this._canvas);
 		
 		min&=this._editAccordingToArgs();
+		this._createBaseTexture(this._canvas);
 		
 		// change alpha (TODO: _opt is deprecated, adjusted to _args)
 		let ga;
@@ -1182,7 +1196,7 @@ $aaaa$.prototype._refresh=function(){
 			this.texture.frame = new Rectangle(0, 0, realW, realH);
 		}else{
 			if(this._bitmap) this.texture.baseTexture = this._bitmap.baseTexture;
-			/* // seems not happening
+			/* / // seems should not happen
 			// TODO?:WA
 			let w= this._frame.x + this._frame.width;
 			let h= this._frame.y + this._frame.height;
@@ -2439,8 +2453,11 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.updateBitmap;
-$dddd$=$aaaa$.prototype.updateBitmap=function f(){ // rewrite: rec if ch via '._imgCh'
+$aaaa$.prototype.updateBitmap_forced=function(){
+	this._character._imgModded=true;
+	this.updateBitmap();
+};
+$aaaa$.prototype.updateBitmap=function(){ // rewrite: just rewrite
 	if(this.isImageChanged()){
 		this._tilesetId = $gameMap.tilesetId();
 		this._tileId = this._character.tileId();
@@ -2450,7 +2467,7 @@ $dddd$=$aaaa$.prototype.updateBitmap=function f(){ // rewrite: rec if ch via '._
 		else this.setCharacterBitmap();
 		this._character.imgModded=false;
 	}
-}; $dddd$.ori=$rrrr$;
+};
 $aaaa$.prototype.isImageChanged=function(){ // rewrite
 	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
 };
@@ -2476,8 +2493,8 @@ $aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according t
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
 };
 $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
-	let pw = this.patternWidth();
-	let ph = this.patternHeight();
+	let pw = ~~this.patternWidth();
+	let ph = ~~this.patternHeight();
 	let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
 	let sy = ( (this._tileId>>3)&15 ) * ph;
 	return this.setFrame(sx, sy, pw, ph);
@@ -3234,9 +3251,10 @@ $dddd$=$aaaa$.loadBitmap=function f(folder, filename, hue, smooth, args){ // re-
 			path+="?";
 			path+=a;
 		}
-		let bitmap = this.loadNormalBitmap(path, hue || 0, a!=='');
-		if(folder.slice(-10)===f.tilesets) bitmap._isTile=true;
-		else if(ImageManager.isBigCharacter(filename)) bitmap._isBigChr=true;
+		let type={};
+		if(folder.slice(-10)===f.tilesets) type._isTile=true;
+		else if(ImageManager.isBigCharacter(filename)) type._isBigChr=true;
+		let bitmap = this.loadNormalBitmap(path, hue || 0, type);
 		bitmap._pw|=0;
 		bitmap._ph|=0;
 		bitmap.addLoadListener(f.putPatternSize);
@@ -3259,12 +3277,11 @@ $dddd$.putPatternSize=bm=>{
 		}
 	}
 };
-$dddd$=$aaaa$.loadNormalBitmap=function f(path, hue, hasArgs){
+$dddd$=$aaaa$.loadNormalBitmap=function f(path, hue, type){
 	let key = this._generateCacheKey(path, hue);
 	let bitmap=this._imageCache.get(key);
 	if (!bitmap) {
-		bitmap=Bitmap.load(path,key);
-		if(hasArgs) bitmap.addLoadListener(f.cc);
+		bitmap=Bitmap.load(path,key,type);
 		bitmap._hue=hue;
 		bitmap.addLoadListener(f.rh);
 		this._imageCache.add(key, bitmap);
@@ -3273,7 +3290,6 @@ $dddd$=$aaaa$.loadNormalBitmap=function f(path, hue, hasArgs){
 	}
 	return bitmap;
 };
-$dddd$.cc=(bm)=>bm._createCanvas();
 $dddd$.rh=(bm)=>{ let hue=bm._hue; delete bm._hue; bm.rotateHue(hue); };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -3383,6 +3399,7 @@ $dddd$=$aaaa$.updateMain2=function f(){
 $dddd$.refreshSpriteChr=x=>x.bitmap&&x.bitmap._args&&x._refresh&&x._refresh();
 $rrrr$=SceneManager.onSceneCreate;
 $dddd$=SceneManager.onSceneCreate=function f(){
+	// still need it even 'bitmap._createCanvas' is not dup
 	if(this.isMap()&&Graphics.isWebGL()) this.updateMain=this.updateMain2;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
@@ -5084,7 +5101,7 @@ $dddd$.re_faceExt=/^\[([0-9]+)\]/;
 $aaaa$.prototype.ssKey=function(){ // not used ?
 	return [this._mapId, this._eventId, this._params[1]];
 };
-$aaaa$.prototype.command111=function(){ // cond branch
+$dddd$=$aaaa$.prototype.command111=function f(){ // cond branch
 	let result=false;
 	switch(this._params[0]){
 	case 0:{ // switch
@@ -5203,42 +5220,8 @@ $aaaa$.prototype.command111=function(){ // cond branch
 		result=Input.isPressed(this._params[1]);
 	}break;
 	case 12:{ // Script
-		const s=this._params[1];
-		if(s&&s[0]===":"&&s[1]==="!"){ // ===":!"
-			result=false;
-			let j=JSON.parse(s.slice(2));
-			let obj=false;
-			switch(j[0]){
-			case "func":{
-				if(j[1] in rpgevts){
-					let curr=rpgevts,argv;
-					for(let x=1;x!==j.length&&curr;++x){ let next=j[x];
-						if(next&&next.constructor===Array){ argv=next; break; }
-						else curr=curr[next];
-					}
-					result=curr(this.getEvt(),argv);
-				}
-			}break;
-			case "pt": obj=$gameParty; break;
-			case "pl": obj=$gamePlayer; break;
-			case "mp": obj=$gameMap; break;
-			case "evt": obj=this.getEvt(); break;
-			case "evtd": obj=this.getEvt().event(); break;
-			case "dataMp": obj=$dataMap; break;
-			case "dataIt": obj=$dataItems; break;
-			case "dataAm": obj=$dataArmors; break;
-			case "dataSk": obj=$dataSkills; break;
-			case "dataWp": obj=$dataWeapons; break;
-			}
-			if(obj){
-				for(let x=1;x!==j.length;++x) obj=obj[j[x]];
-				result=obj;
-			}
-		}else{
-			//result=eval(s);
-			result=objs._getObj.call(this,s);
-		}
-		result=!!result;
+		if(this._params[1][0]===":"&&this._params[1][1]==="!") result=!!f.script.call(this,this._params[1].slice(2));
+		else result=!!objs._getObj.call(this,this._params[1]);
 	}break;
 	case 13:{ // Vehicle
 		result=($gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]));
@@ -5246,6 +5229,37 @@ $aaaa$.prototype.command111=function(){ // cond branch
 	}
 	if((this._branch[this._indent]=result)===false) this.skipBranch();
 	return true;
+};
+$dddd$.script=function(j){
+	j=JSON.parse(j);
+	let obj=false;
+	switch(j[0]){
+	case "func":{
+		if(j[1] in rpgevts){
+			let curr=rpgevts,argv;
+			for(let x=1;x!==j.length&&curr;++x){ let next=j[x];
+				if(next&&next.constructor===Array){ argv=next; break; }
+				else curr=curr[next];
+			}
+			return curr(this.getEvt(),argv);
+		}
+		return;
+	}break;
+	case "pt": obj=$gameParty; break;
+	case "pl": obj=$gamePlayer; break;
+	case "mp": obj=$gameMap; break;
+	case "evt": obj=this.getEvt(); break;
+	case "evtd": obj=this.getEvt().event(); break;
+	case "dataMp": obj=$dataMap; break;
+	case "dataIt": obj=$dataItems; break;
+	case "dataAm": obj=$dataArmors; break;
+	case "dataSk": obj=$dataSkills; break;
+	case "dataWp": obj=$dataWeapons; break;
+	}
+	if(obj){
+		for(let x=1;x!==j.length;++x) obj=obj[j[x]];
+		return obj;
+	}
 };
 $aaaa$.prototype.command123=function(){ // ctrl ss
 	if(this._eventId.toId()>0){
@@ -5260,14 +5274,20 @@ $aaaa$.prototype.command214=function(){ // erase evt
 };
 $dddd$=$aaaa$.prototype.command355 = function f() {
 	let script = this.currentCommand().parameters[0] + '\n';
+	let flag=script[0]===":"&&script[1]==="!"; // ===":!"
+	if(flag) script=script.slice(2);
 	while (this.nextEventCode() === 655) {
 		++this._index;
 		script += this.currentCommand().parameters[0] + '\n';
 	}
-	//eval(script);
-	objs._doFlow.call(this,script);
+	if(flag) f.script.call(this,script);
+	else{
+		//eval(script);
+		objs._doFlow.call(this,script);
+	}
 	return true;
 };
+$dddd$.script=$aaaa$.prototype.command111.script;
 // - - expose info
 $aaaa$.prototype.getEvt=function(){ return $gameMap._events[this._eventId] };
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -5745,7 +5765,7 @@ $dddd$.tbl[gc.ROUTE_SCRIPT]=function f(params){
 	}
 	return objs._doFlow.call(this,p0);
 };
-}
+} //
 // - chr: move
 $aaaa$.prototype.searchLimit=function(){ // steps
 	return _global_conf['default searchLimit']||14;
