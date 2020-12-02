@@ -1114,9 +1114,8 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs^=0; // this.y=rhs;
-		if(this._character===$gamePlayer||(this.oy===undefined&&this.y!==rhs)){
-			let lk=this._lastKey;
-			if(lk){
+		if(this._character===$gamePlayer || this.oy===undefined && this.y!==rhs){
+			let lk=this._lastKey; if(lk){
 				let p=this.parent,y=rhs+$gameMap._displayY_th;
 				let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight(); // so that player won't "split" multi-event events
 				if(lk[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
@@ -1132,8 +1131,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		return this._z;
 	},set:function(rhs){ rhs^=0; // this.z=rhs;
 		if(this.z!==rhs){
-			let lk=this._lastKey;
-			if(lk){
+			let lk=this._lastKey; if(lk){
 				let p=this.parent;
 				if(lk[0]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
 					p.rmc_tree(lk); lk[0]=rhs;
@@ -1149,8 +1147,7 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		return this._z2;
 	},set:function(rhs){ rhs^=0; // this.z2=rhs;
 		if(this.z2!==rhs){
-			let lk=this._lastKey;
-			if(lk){
+			let lk=this._lastKey; if(lk){
 				let p=this.parent;
 				if(lk[2]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
 					p.rmc_tree(lk); lk[2]=rhs;
@@ -1265,7 +1262,7 @@ $dddd$.updateChildren=function f(){
 };
 $dddd$.updateChildren.forEach=c=>c&&c.update&&c.update();
 $aaaa$.prototype._sortChildren=none;
-$aaaa$.prototype.usetree=function(){ this.children=new AVLTree(); };
+$aaaa$.prototype.usetree=function(){ this.children=new AVLTree(true); };
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
 	//debug.log("Tilemap.prototype.initialize"); // also ShaderTilemap;
@@ -1320,10 +1317,10 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this.refresh(); // ShaderTilemap access children
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.rmc_tree=function(key){
-	return this.children.del(key);
+	return this.children._del(key);
 };
 $aaaa$.prototype.addc_tree=function(key,data){
-	this.children.add(key,data);
+	this.children._add(key,data);
 	//console.log(key,data); this.children._goThrough_iter({quiet:1}); // debug
 	data._lastKey=key;
 	if(data._character) data._character._tilemapKey=key;
@@ -1338,7 +1335,7 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	if(!c.z2) c.z2=0;
 	let y=(c.oy===undefined)?c.y:c.oy;
 	let cc=this._character; if(cc) y+=cc.screenY_deltaToParent()*$gameMap.tileHeight();
-	let key=[c.z^0,y^0,c.z2,c.spriteId^0]; // _tilemapKey
+	let key=[c.z^0,y^0,c.z2^0,c.spriteId^0]; // _tilemapKey
 	// screenZ,screenY(ord=gameMapY),gameMapZ
 	if(c.spriteId===undefined) key.push(this._boundsID);
 	this.addc_tree(key,c);
@@ -2410,6 +2407,11 @@ $aaaa$.prototype.updateAnimationSprites = function() {
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
+$rrrr$=$aaaa$.prototype.setCharacter;
+$dddd$=$aaaa$.prototype.setCharacter=function f(chr){
+	chr.setSprite(this);
+	return f.ori.call(this,chr);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.isInView_inScreen=function(){
 	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
 };
@@ -3064,68 +3066,6 @@ $aaaa$.classData=function(item){
 };
 $aaaa$.classAttr=function(item){ return this.class.attr[this.class(item)]; };
 $aaaa$.classText=function(item){ return this.class.text[this.class(item)]; };
-$aaaa$.saveGameWithoutRescue = function(savefileId) {
-	let json = JsonEx.stringify(this.makeSaveContents());
-	if (json.length >= 262144) console.warn('Save data too big!',savefileId,json.length);
-	StorageManager.save(savefileId, json);
-	this._lastAccessedId = savefileId;
-	let globalInfo = this.loadGlobalInfo() || [];
-	globalInfo[savefileId] = this.makeSavefileInfo();
-	this.saveGlobalInfo(globalInfo);
-	return true;
-};
-$aaaa$._delAttrs_dynamicEvt=["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts","_interpreter","_imgModded","_imgModded_timestamp","_light",]; 
-$rrrr$=$aaaa$.makeSaveContents;
-$dddd$=$aaaa$.makeSaveContents=function f(){
-	debug.log('DataManager.makeSaveContents');
-	$gameParty.saveDynamicEvents();
-	let rtv=f.ori.call(this);
-	let tmp;
-	
-	// party apps to config apps
-	if(tmp=rtv.party._apps){
-		let apps_dst=ConfigManager._apps;
-		if(!apps_dst) apps_dst=ConfigManager._apps={};
-		for(let i in tmp) apps_dst[i]=tmp[i];
-	}
-	ConfigManager.save();
-	
-	f.delAttrs_chr(rtv.player);
-	for(let x=0,arr=rtv.map._events;x!==arr.length;++x){
-		let evt=arr[x]; if(!evt){ arr[x]=0; continue; }
-		f.delAttrs_chr(evt);
-	}
-	return rtv;
-}; $dddd$.ori=$rrrr$;
-$dddd$.delAttrs_chr=function f(chr){
-	for(let x=0,arr=f.list;x!==arr.length;++x) delete chr[arr[x]];
-	let tmp;
-	tmp=chr._mvSpBuf; if(tmp && tmp.buff.length===0&&tmp.debuff.length===0&&tmp.stack.length===0) delete chr._mvSpBuf;
-};
-$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp","_light"];
-$rrrr$=$aaaa$.extractSaveContents;
-$dddd$=$aaaa$.extractSaveContents=function f(content){
-	debug.log('DataManager.extractSaveContents');
-	f.ori.call(this,content);
-	let tmp;
-	
-	// config apps to party apps
-	if(tmp=ConfigManager._apps){
-		let apps_dst=content.party._apps;
-		if(!apps_dst) apps_dst=content.party._apps={};
-		for(let i in tmp) apps_dst[i]=tmp[i];
-	}
-	ConfigManager.save();
-	
-	$gameMap.loadDynamicEvents(1);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.maxSavefiles=function(){
-	let rtv=_global_conf["default max savefiles"]||64;
-	if(ConfigManager)
-		if(ConfigManager.maxSavefiles===0) rtv=0;
-		else rtv=ConfigManager.maxSavefiles||rtv;
-	return rtv;
-};
 $rrrr$=$aaaa$.saveGame;
 $dddd$=$aaaa$.saveGame=function f(sfid){
 	debug.log('DataManager.saveGame');
@@ -3179,6 +3119,93 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 		return this.onlineOk;
 	}else return f.ori.call(this,sfid);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.saveGameWithoutRescue = function(savefileId) {
+	let json = JsonEx.stringify(this.makeSaveContents());
+	if (json.length >= 262144) setTimeout(()=>console.log('Save data too big!',savefileId,json.length),1);
+	StorageManager.save(savefileId, json);
+	this._lastAccessedId = savefileId;
+	let globalInfo = this.loadGlobalInfo() || [];
+	globalInfo[savefileId] = this.makeSavefileInfo();
+	this.saveGlobalInfo(globalInfo);
+	return true;
+};
+$rrrr$=$aaaa$.makeSaveContents;
+$dddd$=$aaaa$.makeSaveContents=function f(){
+	debug.log('DataManager.makeSaveContents');
+	$gameParty.saveDynamicEvents();
+	let rtv=f.ori.call(this);
+	let tmp;
+	
+	// party apps to config apps
+	if(tmp=rtv.party._apps){
+		let apps_dst=ConfigManager._apps;
+		if(!apps_dst) apps_dst=ConfigManager._apps={};
+		for(let i in tmp) apps_dst[i]=tmp[i];
+	}
+	ConfigManager.save();
+	
+	// trim mapChanges to JSON
+	if(rtv.party.mapChanges){
+		if(this._mapId) f.delAttrs_evts(rtv.party.mapChanges[this._mapId]);
+		else{ for(let x=0,mcs=rtv.party.mapChanges;x!==mcs.length;++x){
+			if(!mcs[x]){ mcs[x]=0; continue; }
+			f.delAttrs_evts(mcs[x]=deepcopy(mcs[x]));
+		} }
+	}
+	
+	// trim online chrs: player,events,vehicles
+	f.delAttrs_chr(rtv.player);
+	for(let x=0,arr=rtv.map._events;x!==arr.length;++x){
+		let evt=arr[x]; if(!evt){ arr[x]=0; continue; }
+		f.delAttrs_chr(evt);
+	}
+	for(let x=0,arr=rtv.map._vehicles;x!==arr.length;++x){
+		let v=arr[x]; if(!v){ arr[x]=0; continue; }
+		f.delAttrs_chr(v);
+	}
+	return rtv;
+}; $dddd$.ori=$rrrr$;
+$dddd$.delAttrs_chr=function f(chr){
+	for(let x=0,arr=f.list;x!==arr.length;++x) delete chr[arr[x]];
+	let tmp;
+	tmp=chr._mvSpBuf; if(tmp && tmp.buff.length===0&&tmp.debuff.length===0&&tmp.stack.length===0) delete chr._mvSpBuf;
+};
+$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp","_light","_sprite","_tmp",];
+$dddd$.delAttrs_evts=function(mc){
+	if(!mc) return 0;
+	let evts=mc.events,delAttrs=DataManager._delAttrs_dynamicEvt,delKeys=[];
+	for(let i in evts){
+		let evt=evts[i];
+		if(!evt) delKeys.push(i);
+		for(let a=0;a!==delAttrs.length;++a) delete evt[delAttrs[a]];
+	}
+	for(let x=0;x!==delKeys.length;++x) delete evts[delKeys[x]];
+	return mc;
+};
+$aaaa$._delAttrs_dynamicEvt=$dddd$.delAttrs_chr.list.concat(["_moveSpeed","_moveFrequency","_opacity","_blendMode","_pattern","_priorityType","_tileId","_characterName","_characterIndex","_isObjectCharacter","_walkAnime","_stepAnime","_directionFix","_through","_transparent","_bushDepth","_animationId","_balloonId","_animationPlaying","_balloonPlaying","_animationCount","_stopCount","_jumpCount","_jumpPeak","_movementSuccess","_moveRouteForcing","_moveRoute","_moveRouteIndex","_originalMoveRoute","_originalMoveRouteIndex","_waitCount","_moveType","_trigger","_starting","_erased","_pageIndex","_originalPattern","_originalDirection","_prelockDirection","_locked","_mapId", "_addedCnt_strtEvts",]);
+$rrrr$=$aaaa$.extractSaveContents;
+$dddd$=$aaaa$.extractSaveContents=function f(content){
+	debug.log('DataManager.extractSaveContents');
+	f.ori.call(this,content);
+	let tmp;
+	
+	// config apps to party apps
+	if(tmp=ConfigManager._apps){
+		let apps_dst=content.party._apps;
+		if(!apps_dst) apps_dst=content.party._apps={};
+		for(let i in tmp) apps_dst[i]=tmp[i];
+	}
+	ConfigManager.save();
+	
+	$gameMap.loadDynamicEvents(1);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.maxSavefiles=function(){
+	let rtv=_global_conf["default max savefiles"]||64;
+	if(ConfigManager)
+		if(ConfigManager.maxSavefiles===0) rtv=0;
+		else rtv=ConfigManager.maxSavefiles||rtv;
+	return rtv;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - ConfigManager
@@ -5360,6 +5387,7 @@ $aaaa$.prototype.screenY_deltaToParent=function(){
 				let sp=this.getSprite();
 				if(sp) sp.remove();
 			}
+			return false;
 		}else if(p._priorityType!==2) rtv+=p.y-this.y;
 	}
 	return rtv;
@@ -5541,6 +5569,11 @@ $dddd$=$aaaa$.prototype.getData=function f(){
 };
 $dddd$.obj={};
 Object.defineProperty($dddd$.obj,'meta',{get:none,set:none,configurable:false});
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(){
+	this._tmp=[];
+	return f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.prototype._getColorEdt=function f(){
 	let meta=this.getData().meta;
 	if(meta.colors){
@@ -5987,7 +6020,13 @@ $aaaa$.prototype.moveRandom = function() {
 	let d=(Math.randomInt(4)+1)<<1;
 	if(this.canPass(this.x,this.y,d)) this.moveStraight(d);
 };
+// - chr: sprite
+$aaaa$.prototype.setSprite=function(sp){
+	if(!this._tmp) this._tmp=[]; // ver-diff exception
+	return this._tmp._sprite=sp;
+};
 $aaaa$.prototype.getSprite=function(){
+	if(this._tmp._sprite) return this._tmp._sprite;
 	let k=this._tilemapKey;
 	if(!k) return;
 	let tm=SceneManager.getTilemap();
@@ -6711,7 +6750,7 @@ $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 			delete mc.events[evtid];
 		}
 	}
-	mc.events=deepcopy(mc.events); // remain only json data
+	mc.events=deepcopy(mc.events); // remain only json data ; take advantage of: '[].attrs' will be discarded
 	let arr=DataManager._delAttrs_dynamicEvt;
 	for(let i in mc.events){ // remove un-used||unchanged attrs
 		let evt=mc.events[i];
@@ -7682,7 +7721,7 @@ $aaaa$.prototype._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
 	// Sprite_Character.prototype.patternHeight
-	c=c||SceneManager._scene._spriteset._tilemap.children.find(this._tilemapKey).data;
+	c=c||this.getSprite&&this.getSprite();
 	if(!c) return;
 	let frm=c._realFrame; // c._isBigCharacter; this._isObjectCharacter;
 	// let r=Math.min(Window_Base._faceWidth/frm.width,Window_Base._faceHeight/frm.height);

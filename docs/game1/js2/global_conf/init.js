@@ -408,11 +408,20 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		n&=bitlen-1;
 		return n?(( this.valueOf()>>n )&( ( (0xFFFFFFFF<<(bitlen-n))^(~0) ) )):this.valueOf();
 	};
+	
 	w.Set.prototype.intersect=function(set2){
 		let base,search,rtv=new Set();
 		if(this.size<set2.size){ base=this; search=set2; }
 		else{ base=set2; search=this; }
 		base.forEach(x=>search.has(x)&&rtv.add(x));
+		return rtv;
+	};
+	w.Set.prototype.union=function(set2){
+		let base,add;
+		if(this.size<set2.size){ add=this; base=new Set(set2); }
+		else{ add=set2; base=new Set(this); }
+		let rtv=new Set(base);
+		add.forEach(x=>rtv.add(x));
 		return rtv;
 	};
 	
@@ -786,12 +795,15 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			this._keyLt(key,curr.key)?curr.meta.L:curr.meta.R
 		,curr);
 	};
+	w.AVLTree.prototype._find=function(key){
+		let res=this._find_r(key,this._root)[0];
+		return res?{key:res.key,data:res.data}:undef;
+	};
 	w.AVLTree.prototype.find=function(key){
 		// dup keys are allowed, but it'll return any {key,data} of them or undefined
 		if(!this.keyOk(key)) throw new w.Error("find: 'key' provided is not a Number or is not an Array of Number: "+(key&&key.toString()));
 		if(key.length===undef) key=[key];
-		let res=this._find_r(key,this._root)[0];
-		return res?{key:res.key,data:res.data}:undef;
+		return this._find(key);
 	};
 	w.AVLTree.prototype._getnth_r=function(n,curr){
 		// for debugging, do not check if 'curr' is undefined
@@ -815,8 +827,8 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	w.AVLTree.prototype._updateCnt=(curr)=>{
 		let meta=curr.meta;
 		meta.cnt=1;
-		if(meta.L) meta.cnt+=meta.L.meta.cnt^0;
-		if(meta.R) meta.cnt+=meta.R.meta.cnt^0;
+		if(meta.L) meta.cnt+=meta.L.meta.cnt;
+		if(meta.R) meta.cnt+=meta.R.meta.cnt;
 	};
 	w.AVLTree.prototype._updateLv=function(node){
 		let meta=node.meta;
@@ -922,7 +934,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			this._updateLv(this._root);
 			this._updateCnt(this._root);
 		}
-	};	
+	};
 	w.AVLTree.prototype._add_r=function(curr,newNode){
 		// return #lv of this subtree (root=curr)
 		curr.meta.cnt+=(newNode.meta.cnt)^0;
@@ -947,35 +959,24 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			}
 		}
 		return Math.max(curr.meta.Llv,curr.meta.Rlv)+1;
-		// // slow: constructing new string
-		//let dir=(this._keyEqu(newNode.key,curr.key)?(curr.meta.Llv<curr.meta.Rlv):this._keyLt(newNode.key,curr.key))?"L":"R";
-		//if(curr.meta[dir]){
-		//	curr.meta[dir+"lv"]=this._add_r(curr.meta[dir],newNode);
-		//	this._rot(curr.meta[dir],curr,dir);
-		//	//this._updateCnt(curr.meta[dir]);
-		//}else{
-		//	let meta=newNode.meta;
-		//	curr.meta[dir+"lv"]=Math.max(meta.Llv,meta.Rlv)+1;
-		//	curr.meta[dir]=newNode;
-		//}
-		//return Math.max(curr.meta.Llv,curr.meta.Rlv)+1;
+	};
+	w.AVLTree.prototype._add=function(key,data){
+		if(!this._root) return this._root=new w.TreeNode(key,data,{L:undefined,R:undefined,Llv:0>>0,Rlv:0>>0,cnt:1>>0});
+		else{
+			this._add_r( this._root,new w.TreeNode(key,data,{L:undefined,R:undefined,Llv:0>>0,Rlv:0>>0,cnt:1>>0}) );
+			this._rot(this._root); // this._root might be changed
+		}
 	};
 	w.AVLTree.prototype.add=function(key,data){
 		// dup keys are allowed
 		if(!this.keyOk(key)) throw new w.Error("add: 'key' provided is not a Number or is not an Array of Number: "+(key&&key.toString()));
 		if(!(key instanceof Array)) key=[key];
-		let newNode=new w.TreeNode(key,data,{L:undef,R:undef,Llv:0,Rlv:0,cnt:1});
-		// lv: amount of levels of a subtree
-		// Lcnt: amount of nodes of left subtree // TODO
-		if(!this._root) return this._root=newNode;
-		else{
-			this._add_r(this._root,newNode);
-			this._rot(this._root); // this._root might be changed
-		}
+		return this._add(key,data);
 	};
 	w.AVLTree.prototype.adds=function(key_data_arr){ for(let x=0,arr=key_data_arr;x!==arr.length;++x) this.add(arr[x].key,arr[x].data); };
 	// 
 	w.AVLTree.prototype._del_btm_r=function(curr,dir){
+		// get bottom node
 		let tmp,rtv;
 		if(tmp=curr.meta[dir]){
 			--curr.meta.cnt;
@@ -991,11 +992,6 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 					let meta_=meta.L&&meta.L.meta;
 					meta.Llv=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
 				}
-				// // slow: constructing new string
-				//let meta=curr.meta;
-				//meta[dir]=rtv.meta[dir==="L"?"R":"L"];
-				//let meta_=meta[dir]&&meta[dir].meta;
-				//meta[dir+"lv"]=meta_?Math.max(meta_.Llv,meta_.Rlv)+1:0;
 			}else{
 				this._rot(tmp,curr,dir);
 			}
@@ -1004,6 +1000,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	};
 	w.AVLTree.prototype._del_r=function(key,curr,parent,dir){
 		if(this._keyEqu(key,curr.key)){
+			//this._recycledNodes.push(curr); // slow
 			if(parent){
 				let cmeta=curr.meta,pmeta=parent.meta;
 				let lt=cmeta.Llv<cmeta.Rlv;
@@ -1028,7 +1025,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 						pmeta.Rlv=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
 						this._updateCnt(n);
 						this._rot(n,parent,dir);
-					}else pmeta.Rlv=0;
+					}else pmeta.Rlv=0>>0;
 				}else{
 					let n=pmeta.L;
 					if(n){
@@ -1036,16 +1033,8 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 						pmeta.Llv=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
 						this._updateCnt(n);
 						this._rot(n,parent,dir);
-					}else pmeta.Llv=0;
+					}else pmeta.Llv=0>>0;
 				}
-				// // slow: constructing new string
-				//let n=pmeta[dir];
-				//if(n){
-				//	this._updateLv(n);
-				//	pmeta[dir+"lv"]=Math.max(n.meta.Llv,n.meta.Rlv)+1; // rot pmeta[dir] later
-				//	this._updateCnt(n);
-				//	this._rot(n,parent,dir);
-				//}else pmeta[dir+"lv"]=0;
 			}else{ // root
 				let cmeta=curr.meta;
 				let lt=cmeta.Llv<cmeta.Rlv;
@@ -1081,17 +1070,20 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			return rtv;
 		} // else: END, del fail
 	};
-	w.AVLTree.prototype.del=function(key){
-		// dup keys are allowed, but it'll delete any of them
-		// return true if do deletion
-		if(!this.keyOk(key)) throw new w.Error("del: 'key' provided is not a Number or is not an Array of Number: "+(key&&key.toString()));
-		if(key.length===undef) key=[key];
+	w.AVLTree.prototype._del=function(key){
 		let rtv=this._del_r(key,this._root);
 		if(this._root){
 			this._rot(this._root);
 			this._updateCnt(this._root);
 		}
 		return rtv;
+	};
+	w.AVLTree.prototype.del=function(key){
+		// dup keys are allowed, but it'll delete any of them
+		// return true if do deletion
+		if(!this.keyOk(key)) throw new w.Error("del: 'key' provided is not a Number or is not an Array of Number: "+(key&&key.toString()));
+		if(key.length===undef) key=[key];
+		return this._del(key);
 	};
 	w.AVLTree.prototype._keyOk_number=key=>((key instanceof Number)||(typeof key==='number'));
 	w.AVLTree.prototype._keyOk_arr=function(key){
