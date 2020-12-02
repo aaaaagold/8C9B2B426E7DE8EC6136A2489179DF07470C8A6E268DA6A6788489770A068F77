@@ -720,12 +720,22 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return this.top;
 	};
 	
-	w.TreeNode=function(){ this.initialize.apply(this,arguments); };
+	//w.TreeNode=function(){ this.initialize.apply(this,arguments); };
+	w.TreeNode=function(key,data,meta){
+		this.nothing();
+		this.meta=meta;
+		this.data=data;
+		this.key=key;
+		return this;
+		//this.initialize.apply(this,arguments);
+	};
 	w.TreeNode.prototype.constructor=w.TreeNode;
+	w.TreeNode.prototype.nothing=none;
 	w.TreeNode.prototype.initialize=function(key,data,meta){
 		this.meta=meta;
 		this.data=data;
 		this.key=key;
+		return this;
 	};
 	
 	w.AVLTree=function(){ this.initialize.apply(this,arguments); };
@@ -733,7 +743,9 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	w.AVLTree.prototype.initialize=function(arbKey){
 		this._arbKey=arbKey; // (bool) use arbitary keys, no type checking on keys. use at your own risk.
 		this._root=undef; // root node
+		return this;
 	};
+	//w.AVLTree.prototype.recycle=[]; // slow
 	w.AVLTree._testcode=()=>{
 		var sz=1e5,t=new AVLTree(); for(let x=sz^0;x--;){ let n=Math.random(); t.add(n,n); }
 		(arr=t.forEach().map(x=>x.data)).forEach((e,i,a)=>{if(i===0)return;if(a[i]<a[i-1])console.log("!");});
@@ -1000,7 +1012,6 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	};
 	w.AVLTree.prototype._del_r=function(key,curr,parent,dir){
 		if(this._keyEqu(key,curr.key)){
-			//this._recycledNodes.push(curr); // slow
 			if(parent){
 				let cmeta=curr.meta,pmeta=parent.meta;
 				let lt=cmeta.Llv<cmeta.Rlv;
@@ -1122,8 +1133,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			while(stack.length){
 				let tmp=stack.pop();
 				callback(tmp.data,tmp.key,this,tmp);
-				let meta=tmp.meta;
-				for(let curr=meta.R;curr;curr=curr.meta.L) stack.push(curr);
+				for(let curr=tmp.meta.R;curr;curr=curr.meta.L) stack.push(curr);
 			}
 		}else{
 			let cnt=0,arr=[]; arr.length=this.length;
@@ -1153,8 +1163,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			while(stack.length){
 				let tmp=stack.pop();
 				callback(tmp.data,tmp.key,this,tmp);
-				let meta=tmp.meta;
-				for(let curr=meta.L;curr;curr=curr.meta.R) stack.push(curr);
+				for(let curr=tmp.meta.L;curr;curr=curr.meta.R) stack.push(curr);
 			}
 		}else{
 			let cnt=0,arr=[]; arr.length=this.length;

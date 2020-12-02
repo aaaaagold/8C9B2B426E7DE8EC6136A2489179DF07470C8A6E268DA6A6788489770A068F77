@@ -403,6 +403,7 @@ $aaaa$.prototype.initialize=function(url){
 	}
 	this.clear();
 	
+	this._loader=undefined;
 	if(!WebAudio._standAlone){
 		this._loader = ResourceHandler.createLoader('audio',url, this._load.bind(this, url), function(){ this._hasError=true; }.bind(this) );
 	}
@@ -730,7 +731,7 @@ $dddd$=$aaaa$.load=function f(url,key,type){
 	// ori: Bitmap.load
 	let rtv = Object.create(Bitmap.prototype);
 	rtv._defer = true;
-	if(args) rtv._args=args; // added
+	rtv._args=args; // added
 	for(let i in type) rtv[i]=type[i];
 	rtv.initialize();
 	rtv._decodeAfterRequest = true;
@@ -883,14 +884,7 @@ $aaaa$.prototype._createCanvas=function(width, height){
 		min&=this._editAccordingToArgs();
 		this._createBaseTexture(this._canvas);
 		
-		// change alpha (TODO: _opt is deprecated, adjusted to _args)
-		let ga;
-		if(this._opt&&this._opt.globalAlpha!==undefined){
-			ga=this.__context.globalAlpha;
-			this.__context.globalAlpha=this._opt.globalAlpha;
-		}
 		this.__context.drawImage(this._image, 0, 0);
-		if(ga!==undefined) this.__context.globalAlpha=ga;
 	}
 	this._setDirty();
 };
@@ -983,10 +977,6 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 							let img=this._image; img.onerror=f.onerr;
 							img.setLoadSrcWithTimeout(url,(1024<<Math.min(Number(localStorage.getItem('_errCnt'))^0,20))+(location.protocol==="https:"?8763:4876));
 							break;
-							// too slow
-							let arr=new Uint8Array(xhr.response),s=''; for(let x=0;x!==arr.length;++x) s+=String.fromCharCode(arr[x]);
-							this._image.src="data:image/png;base64," + btoa(s);
-							if(this._cacheKey!==undefined && url===blank_1x1) delete ImageManager._imageCache._items[this._cacheKey]; // this is blank_1x1, coded in 'init.js'
 						}break;
 						case '4': // fail
 							this._errorListener(inf);
@@ -1110,6 +1100,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - sprite
 $aaaa$=Sprite;
 // notify parent:Tilemap
+//
 Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
@@ -1118,10 +1109,13 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 			let lk=this._lastKey; if(lk){
 				let p=this.parent,y=rhs+$gameMap._displayY_th;
 				let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight(); // so that player won't "split" multi-event events
-				if(lk[1]!==y && p && (p instanceof Tilemap)){ // remove it from AVLTree, and then add it back to AVLTree with new key
-					p.rmc_tree(lk); lk[1]=y;
-					p.addc_tree(lk,this);
-					//debug.warn('y',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
+				if(p && (p instanceof Tilemap)){
+					let oldy=lk[0]&0xFFFF0;
+					y+=p._tileHeight; y*=y>=0; y&=0xFFFF; y<<=4;
+					if(oldy!==y){
+						p.rmc_tree(lk); lk[0]+=y-oldy;
+						p.addc_tree(lk,this);
+					}
 				}
 			}
 			return this.transform.position.y=rhs;
@@ -1133,11 +1127,13 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		if(this.z!==rhs){
 			let lk=this._lastKey; if(lk){
 				let p=this.parent;
-				if(lk[0]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
-					p.rmc_tree(lk); lk[0]=rhs;
-			//	let c=this._character; if(c) y+=c.screenY_deltaToParent()*$gameMap.tileHeight();
-					p.addc_tree(lk,this);
-					//debug.warn('z',this.spriteId,this.parent.children.indexOf(this),this._lastKey.join(),'->',key.join(),this);
+				if(p && (p instanceof Tilemap)){
+					let oldz=lk[0]&0xF00000;
+					let z=rhs; z*=z>=0;  z<<=20; if(z<0) debugger;
+					if(oldz!==z){
+						p.rmc_tree(lk); lk[0]+=z-oldz;
+						p.addc_tree(lk,this);
+					}
 				}
 			}
 			return this._z=rhs;
@@ -1149,9 +1145,13 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		if(this.z2!==rhs){
 			let lk=this._lastKey; if(lk){
 				let p=this.parent;
-				if(lk[2]!==rhs && p && (p instanceof Tilemap)){ // remove it from AVLTree, add it back to AVLTree with new key
-					p.rmc_tree(lk); lk[2]=rhs;
-					p.addc_tree(lk,this);
+				if(p && (p instanceof Tilemap)){
+					let oldz2=lk[0]&0xF;
+					let z2=rhs; z2*=z2>=0; z2&=0xF;
+					if(oldz2!==z2){
+						p.rmc_tree(lk); lk[0]+=z2-oldz2;
+						p.addc_tree(lk,this);
+					}
 				}
 			}
 			return this._z2=rhs;
@@ -1287,13 +1287,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._layerHeight = 0;
 	this._lastTiles = [];
 	
-	/**
-	 * The bitmaps used as a tileset.
-	 *
-	 * @property bitmaps
-	 * @type Array
-	 */
-	this.bitmaps = [];
+	this.bitmaps = []; // as a tileset
 	
 	this.origin = new Point(); // The origin point of the tilemap for scrolling.
 	
@@ -1325,6 +1319,21 @@ $aaaa$.prototype.addc_tree=function(key,data){
 	data._lastKey=key;
 	if(data._character) data._character._tilemapKey=key;
 };
+$aaaa$.prototype.parseKey=function(key){
+	// z,y,z2
+	let tmp=key[0];
+	return [tmp>>20,(tmp>>4)&0xFFFF,tmp&0xF];
+};
+$aaaa$.prototype.genKeyFromChild=function(c){
+	if(!c.z2) c.z2=0;
+	let z=c.z; z*=z>=0;
+	let y=(c.oy===undefined)?c.y:c.oy;
+	y+=this._tileHeight; y*=y>=0;
+	let z2=c.z2; z2*=z2>=0;
+	let key=[(((z<<16)|y)<<4)|z2,c.spriteId^0];
+	if(c.spriteId===undefined) key.push(this._boundsID);
+	return key;
+};
 $rrrr$=$aaaa$.prototype.addChild;
 $dddd$=$aaaa$.prototype.addChild=function f(c){
 	if(c.parent && c.parent!==this) c.parent.removeChild(c);
@@ -1332,13 +1341,7 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	
 	c.transform._parentID=-1;
 	
-	if(!c.z2) c.z2=0;
-	let y=(c.oy===undefined)?c.y:c.oy;
-	let cc=this._character; if(cc) y+=cc.screenY_deltaToParent()*$gameMap.tileHeight();
-	let key=[c.z^0,y^0,c.z2^0,c.spriteId^0]; // _tilemapKey
-	// screenZ,screenY(ord=gameMapY),gameMapZ
-	if(c.spriteId===undefined) key.push(this._boundsID);
-	this.addc_tree(key,c);
+	this.addc_tree(this.genKeyFromChild(c),c);
 	
 	++this._boundsID;
 	c.emit('added', this);
@@ -1700,8 +1703,6 @@ $dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
 	f.by = 0;
 	f.isTable = false;
 	
-	//let setNumber=this._tileId2setNumber[tileId];
-	//if(setNumber===undefined) setNumber=this._tileId2setNumber[tileId]=f.toAn(tileId);
 	let setNumber=Tilemap.tileAn[tileId]^0;
 	f.an[setNumber]();
 	setNumber-=setNumber!==0;
@@ -2093,7 +2094,7 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		} else {
 			this._drawTile(lowerLayer, tileId3, dx, dy);
 		}
-}
+	}
 	if(idx!==undefined){
 		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x){
 			let curr=arr[x]; if(!curr[3]||curr[3]()) this._drawTile(lowerLayer, curr[0], dx, dy, curr[1]);
@@ -2410,7 +2411,8 @@ $aaaa$=Sprite_Character;
 $rrrr$=$aaaa$.prototype.setCharacter;
 $dddd$=$aaaa$.prototype.setCharacter=function f(chr){
 	chr.setSprite(this);
-	return f.ori.call(this,chr);
+	f.ori.call(this,chr);
+	this._old_anchor_y=undefined;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.isInView_inScreen=function(){
 	return parseInt((this.x+Graphics._boxWidth_pad3)/Graphics._boxWidth_pad2)===1&&parseInt((this.y+Graphics._boxHeight_pad3)/Graphics._boxHeight_pad2)===1;
@@ -2952,8 +2954,10 @@ $aaaa$.loadMapData = function f(mapId) {
 		// - evtd attrs.
 		for(let x=0,evtd,evtds=$dataMap.events;x!==evtds.length;++x){
 			if(!(evtd=evtds[x])) continue;
-			if(evtd.meta.light) evtd.light=JSON.parse(evtd.meta.light);
-			if(evtd.meta.anchory) evtd.anchory=Number(evtd.meta.anchory);
+			let meta=evtd.meta;
+			evtd.strtByAny=meta.strtByAny;
+			evtd.light=undefined; if(meta.light) evtd.light=JSON.parse(meta.light);
+			evtd.anchory=undefined; if(meta.anchory) evtd.anchory=Number(meta.anchory);
 		}
 		// - tile structure
 		// - - isChair
@@ -3170,7 +3174,7 @@ $dddd$.delAttrs_chr=function f(chr){
 	let tmp;
 	tmp=chr._mvSpBuf; if(tmp && tmp.buff.length===0&&tmp.debuff.length===0&&tmp.stack.length===0) delete chr._mvSpBuf;
 };
-$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp","_light","_sprite","_tmp",];
+$dddd$.delAttrs_chr.list=["_tilemapKey","_interpreter","_imgModded","_imgModded_timestamp","_z","_z2","_light","_sprite","_tmp",];
 $dddd$.delAttrs_evts=function(mc){
 	if(!mc) return 0;
 	let evts=mc.events,delAttrs=DataManager._delAttrs_dynamicEvt,delKeys=[];
@@ -4016,7 +4020,7 @@ $dddd$=$aaaa$.prototype.onMapLoaded=function f(){
 			tbl[evt.x+evt.y*w].push(evt);
 		}
 		
-		// _strtByAny (meta.strtByAny)
+		// _strtByAny
 		tbl=$dataMap.coordTbl_strtByAny=[]; // for _pri===0
 		tbl.length=$dataMap.height*w; for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue(); // .coordTblNt
 		for(let x=0,evts=$gameMap._events;x!==evts.length;++x){ let evt=evts[x];
@@ -5073,7 +5077,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Game_Interpreter;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
-	this._strtMeta=undef;
+	this._strtMeta=undefined;
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.setup;
@@ -5394,12 +5398,9 @@ $aaaa$.prototype.screenY_deltaToParent=function(){
 };
 $aaaa$.prototype.screenZ=function(){
 	if(this._z!==undefined) return this._z;
-	if(this._priorityType===2){
+	if(this._priorityType===2&&this!==$gamePlayer){
 		let rtv=0;
-		if($gamePlayer){
-			let tk=$gamePlayer._tilemapKey;
-			if(tk) rtv+=tk[0]^0;
-		}
+		if($gamePlayer) rtv+=$gamePlayer.screenZ();
 		if(!rtv) rtv+=3; // 3, same as Sprite_Chr($gamePlayer)'s z
 		return rtv;
 	}
@@ -5571,8 +5572,8 @@ $dddd$.obj={};
 Object.defineProperty($dddd$.obj,'meta',{get:none,set:none,configurable:false});
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
+	f.ori.call(this);
 	this._tmp=[];
-	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.prototype._getColorEdt=function f(){
 	let meta=this.getData().meta;
@@ -5633,20 +5634,20 @@ $aaaa$.prototype.dist2=function(chr,real){
 };
 $aaaa$.prototype.dist2_r=function(chr){ return this.dist2(chr,1); };
 $aaaa$.prototype.xy2idx=function f(lv){ return $gameMap.xy2idx(this.x,this.y,lv); };
-$aaaa$.prototype.frontPos=function f(){
-	if(f.deltas===undefined) f.deltas=[ {x:0,y:0},
-			/*
-				2,+y
-			4,-x		6,+x
-				8,-y
-			*/
-				{x:0,y:1},
-			{x:-1,y:0},	{x:1,y:0},
-				{x:0,y:-1},
-		];
-	let delta=f.deltas[(this._direction>>1)];
+$dddd$=$aaaa$.prototype.frontPos=function f(){
+	let delta=f.tbl[(this._direction>>1)];
 	return {x:this._x+delta.x,y:this._y+delta.y};
 };
+$dddd$.tbl=[ {x:0,y:0},
+	/*
+		2,+y
+	4,-x		6,+x
+		8,-y
+	*/
+		{x:0,y:1},
+	{x:-1,y:0},	{x:1,y:0},
+		{x:0,y:-1},
+];
 Object.defineProperties($aaaa$.prototype, {
 	frontx: { get: function() { return this.frontPos().x; }, configurable: false },
 	fronty: { get: function() { return this.frontPos().y; }, configurable: false },
@@ -6151,6 +6152,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 		"_noAnimation","_noAutotile",
 	].forEach(x=>(x in ConfigManager)&&(this[x]=ConfigManager[x]));
 	this._rndid=Date.now()+''+Math.random();
+	this.canDiag=true;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.refresh=function(){
 	let actor=$gameParty.leader();
@@ -6527,9 +6529,6 @@ $aaaa$.prototype.adjDecRate=function(what,rate,useMax){
 $aaaa$.prototype.addOnlineSaveId=function(id){
 	if(this._onlineSaveIds===undefined){
 		this._onlineSaveIds=[];
-		//$gameMessage.popup($dataCustom.gainApps.onlineSaveIdMgr,1,{t_remained:5000});
-		//if(!$gameParty._apps) $gameParty._apps={};
-		//$gameParty._apps.onlineSaves=1;
 	}
 	let data=[id,Date.now()];
 	this._onlineSaveIds.push(data);
@@ -6661,6 +6660,8 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	let rtv=f.ori.apply(this,arguments);
 	this.mapChanges=[];
 	//this.switches=[]; // use mapId as index // seems not used YET
+	this._achievement=[0];
+	this._apps=0;
 	{
 		let cma=ConfigManager._apps;
 		if(cma){
@@ -6690,7 +6691,6 @@ $aaaa$.prototype.speak=function(txt,n,kargs){
 	return $gameMessage.add(txt);
 };
 $aaaa$.prototype.mch=function(mapid){
-	if(this.mapChanges===undefined) this.mapChanges={};
 	let mchs=this.mapChanges;
 	if(mapid===undefined) mapid=$gameMap._mapId;
 	if(mchs[mapid]===undefined) mchs[mapid]={};
@@ -7135,20 +7135,23 @@ $dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
 	let meta=evtd.meta;
 	
 	// display
+	this._z=undefined;
 	if(meta.z){
 		let tmp=Number(meta.z);
 		if(!isNaN(tmp)) this._z=tmp;
 	}
+	this._z2=undefined;
 	if(meta.z2){
 		let tmp=Number(meta.z2);
 		if(!isNaN(tmp)) this._z2=tmp;
 	}
+	this._light=undefined;
 	if(meta.light){
 		let tmp=Number(meta.light);
 		if(0<tmp) this._light=tmp; // is light src if > 0
 	}
 	// interact
-	if(meta.strtByAny) this._strtByAny=meta.strtByAny;
+	this._strtByAny=!!meta.strtByAny;
 	// moving
 	if(meta.stopCount){
 		let tmp=Number(meta.stopCount);
@@ -7386,9 +7389,7 @@ $aaaa$.prototype.event=function(){ return $dataMap.events[this._eventId.toId()];
 $aaaa$.prototype.isNearThePlayer=function(p,dist){
 	p=p||$gamePlayer;
 	dist=dist===undefined?20:dist; dist^=0;
-	let sx = Math.abs(this.deltaXFrom(p.x));
-	let sy = Math.abs(this.deltaYFrom(p.y));
-	return sx + sy < dist;
+	return Math.abs(this.deltaXFrom(p.x)) + Math.abs(this.deltaYFrom(p.y)) < dist;
 };
 $aaaa$.prototype.hasStrtType=function(key){
 	// strtType will be clear when 'this.start'
@@ -7641,7 +7642,7 @@ $aaaa$.prototype.findProperPageIndex=function f(){
 };
 $rrrr$=$aaaa$.prototype.clearPageSettings;
 $dddd$=$aaaa$.prototype.clearPageSettings=function f(){
-	delete this._light;
+	this._light=undefined;
 	this.imgModded=true;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;

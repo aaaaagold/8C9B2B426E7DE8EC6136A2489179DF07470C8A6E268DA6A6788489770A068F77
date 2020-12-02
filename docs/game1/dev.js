@@ -1,0 +1,28 @@
+﻿"use strict";
+
+var isDev=true,dev_kkk="b12644b5",dev_kk="3",jss=[
+	"test.js",
+	"js2/global_conf/init.js",
+	"js/plugins.js",
+	"js2/global_conf/lib_h.js",
+	"js2/global_conf/obj_h.js",
+	"js/libs/pixi.js",
+	"js/libs/pixi-tilemap.js",
+	"js/libs/pixi-picture.js",
+	"js/libs/fpsmeter.js",
+	"js/libs/lz-string.js",
+	"js/libs/iphone-inline-video.browser.js",
+	"js2/global_conf/lib_t.js",
+	"js/rpg_core.js",
+	"js/rpg_all_h.js",
+	"js/rpg_managers.js",
+	"js/rpg_objects.js",
+	"js/rpg_scenes.js",
+	"js/rpg_sprites.js",
+	"js/rpg_windows.js",
+	"js2/global_conf/obj_t.js",
+	"js2/global_conf/obj_t2.js",
+	"js2/global_conf/strt.js",
+	"js2/agold404/chainWithGAS.js",
+//	"js/main.js",
+];
