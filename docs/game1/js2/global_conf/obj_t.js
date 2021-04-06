@@ -8405,9 +8405,9 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 		}break;
 	}
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
-	if(meta&&meta.func) objs._getObj(meta.func.replace(/\(|\)/g,''))(this);
+	if(meta&&meta.func) objs._getObj.call(none,meta.func.replace(/\(|\)/g,''))(this);
 	//if(meta&&meta.code) eval(meta.code);
-	if(meta&&meta.code) objs._doFlow(meta.code);
+	if(meta&&meta.code) objs._doFlow.call(this,meta.code);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);
@@ -9823,6 +9823,7 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	text = text.replace(f.re_code, f.f_code);
 	text = text.replace(f.re_keyword, f.f_keyword);
 	text = text.replace(f.re_txtin, f.f_txtin);
+	text = text.replace(f.re_txtarea, f.f_txtarea.bind(this));
 	text = text.replace(f.re_skill, f.f_skill);
 	text = text.replace(f.re_item, f.f_item);
 	text = text.replace(f.re_quest, f.f_quest);
@@ -9870,6 +9871,43 @@ $dddd$.f_txtin=function(){
 		if(nf&&nf.enabled&&nf._openness===255) m._moveTxtInput();
 	} } }
 	return "";
+};
+$dddd$.re_txtarea=/\x1bTXTAREA'([^']*)'/g;
+$dddd$.f_txtarea=function f(){
+	if(!$gameTemp.txtareainfo) $gameTemp.txtareainfo={lines:[],curAt:0,scrolledLine:0,}; // should be given first if needed
+	const txtobj=$gameTemp.txtareainfo;
+	const w=new Window_CustomMenu_main(0,0, [
+		["編輯回答",";edit;func;call",1,function(){
+			const leave=Scene_NoteApp.prototype.makeLeaveBtn();
+			let w=leave.ref=new Window_CustomTextArea(txtobj);
+			w.height-=(w.y=leave.height);
+			SceneManager._scene.addWindow(leave);
+			let r=w.destructor; w.destructor=function f(){
+				leave.parent.removeChild(leave);
+				leave.ref=undefined;
+				let val=this._lines;
+				let vxo=this._vxo;
+				let ca=this.getCurAt();
+				let sline=this._scrolledLine;
+				f.ori.call(this);
+				if(txtobj.lines.equals(val)){
+					txtobj.curAt=ca;
+					txtobj.scrolledLine=sline;
+					return;
+				}
+			}; w.destructor.ori=r;
+			this.parent.addWindow({},w);
+		}],
+		["確認送出",";;func;call",1,function(){this.parent.processCancel();}],
+	]);
+	const back=w._windows.back;
+	back._openness=0;
+	SceneManager.addWindowB(w);
+	back.open();
+	return "";
+};
+$dddd$.f_txtarea.ok=function(){
+	
 };
 $dddd$.re_skill=/\x1bskill\[(\d+)\]/g;
 $dddd$.f_skill=function(){ return "\x1bRGB["+$dataCustom.textcolor.skill+"]"+$dataSkills[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
@@ -10462,8 +10500,8 @@ $aaaa$.prototype.updateInput=function(){
 	}
 	if(this.pause){
 		if(this.isTriggered()){
-			Input.update();
 			if(this.printMinor){
+				Input.update();
 				this.printMinor=false;
 				this._msg2._canStart=true;
 				this._msg2.startMessage();
@@ -10471,8 +10509,11 @@ $aaaa$.prototype.updateInput=function(){
 				this.pause = false;
 				if(!this._textState){
 					if($gameMessage._windowCnt) this.pause=true;
-					else this.terminateMessage();
-				}
+					else{
+						Input.update();
+						this.terminateMessage();
+					}
+				}else Input.update();
 			}
 		}
 		return true;

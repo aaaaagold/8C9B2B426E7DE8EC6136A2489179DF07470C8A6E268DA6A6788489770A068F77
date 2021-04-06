@@ -491,10 +491,10 @@ $dddd$.buf=new ArrayBuffer(0);
 $rrrr$=$dddd$=$aaaa$=undef;
 
 $tttt$={};
-if(isDev&&!window._objs){
-	$tttt$.doFlow=function f(txt){return Function(f.ua+txt).call(this);};
-	$tttt$.getObj=function f(txt){return Function(f.ua+'return ('+txt+')').call(this);};
+if(isDev&&!window._objs){ // dev , will eventually becomes non-dev
 }else{
+}
+{
 	$tttt$.doFlow=function f(txt,blockVars,replaceWith){
 		objs._vars_strArg.length=objs._vars.length;
 		if(blockVars && blockVars.length){
@@ -521,8 +521,14 @@ if(isDev&&!window._objs){
 	$tttt$.getObj=function f(txt,blockVars,replaceWith){
 		objs._vars_strArg.length=objs._vars.length;
 		if(blockVars && blockVars.length){
-			const argStrs=objs._vars_strArg.slice();
-			const argObjs=objs._vars_objArg.slice();
+			const set=new Set(blockVars);
+			const argStrs=[];
+			const argObjs=[];
+			for(let x=0,arr=objs._vars_strArg;x!==arr.length;++x){
+				if(set.has(arr[x])) continue;
+				argStrs.push(arr[x]);
+				argObjs.push(objs._vars_objArg[x]);
+			}
 			const dummy={};
 			for(let x=0;x!==blockVars.length;++x){
 				argStrs.push(blockVars[x]);
@@ -535,8 +541,6 @@ if(isDev&&!window._objs){
 			return Function.apply(null,objs._vars_strArg).apply(this,objs._vars_objArg);
 		}
 	};
-}
-{
 	let tmp='"use strict";\n';
 	for(let i in $tttt$){
 		let curr=objs["_"+i]=$tttt$[i];

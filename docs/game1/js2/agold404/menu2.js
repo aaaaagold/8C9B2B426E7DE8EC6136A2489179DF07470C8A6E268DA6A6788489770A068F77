@@ -1998,7 +1998,7 @@ $dddd$=$aaaa$.prototype.initialize = function f(x,y,w,h) {
 $aaaa$.prototype.drawlinetext=function(text,line,align,startX){
 	// line: 0-base ; align: 'left','center','right'
 	align=align||'left';
-	let strtx=startX||0,strty=line*this.lineHeight(),textw=this.textWidth(text);
+	let strtx=startX||0,strty=line*this.lineHeight(),textw=this.textWidth(this.padTab(text));
 	let maxWidth=this.contents.width-(this.textPadding()<<1)-strtx;
 	switch(align){
 		default:
@@ -2904,7 +2904,7 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(kargs){
 	kargs=kargs||{};
-	let self=this;
+	const self=this;
 	
 	let x=kargs[  'x'  ]||        0         ,y=kargs[   'y'  ]||    0              ;
 	let w=kargs['width']||Graphics.boxWidth ,h=kargs['height']||Graphics.boxHeight ;
@@ -3268,37 +3268,37 @@ $aaaa$.prototype.redrawtxt=function(){ // TODO: rect select
 	this.drawcursor();
 	
 	// cursor
-	let startxy=this._lineXys[nu];
+	const startxy=this._lineXys[nu];
 	let startx=startxy.x,r=startxy.w/startxy.ow; if(isNaN(r)) r=1;
 	let tmp=(++this._textCursorBlinkCtr)<this.cursorBlinkPeriod;
 	this._textCursorBlinkCtr*=tmp;
-	let cursor=(this.cursorBlinkState^=!tmp)?" ":"|";
-	let shx_s=this.textWidth(this._lines[nu_s],this._textCursorAt_s-this._lineOffsets[nu_s]);
-	let shx_e=this.textWidth(this._lines[nu_e],this._textCursorAt_e-this._lineOffsets[nu_e]);
+	const cursor=(this.cursorBlinkState^=!tmp)?" ":"|";
+	const shx_s=this.textWidth('-')*this.toViewLen(this._lines[nu_s],this._textCursorAt_s-this._lineOffsets[nu_s]);
+	const shx_e=this.textWidth('-')*this.toViewLen(this._lines[nu_e],this._textCursorAt_e-this._lineOffsets[nu_e]);
 	// - text selected background
 	this.contents._context.fillStyle="rgba(0,0,123,0.25)";
 	if(nu_s===nu_e) this.contents._context.fillRect(startx+parseInt(shx_s*r),startxy.y,parseInt((shx_e-shx_s)*r),this.lineHeight());
 	else{
 		{
-			let startxy=this._lineXys[nu_s];
+			const startxy=this._lineXys[nu_s];
 			let r=startxy.w/startxy.ow; if(isNaN(r)) r=1;
-			this.contents._context.fillRect(startxy.x+parseInt(shx_s*r),startxy.y,parseInt(this.textWidth(this._lines[nu_s])*r)-shx_s,this.lineHeight());
+			this.contents._context.fillRect(startxy.x+parseInt(shx_s*r),startxy.y,parseInt(this.textWidth('-')*this.toViewLen(this._lines[nu_s])*r)-shx_s,this.lineHeight());
 		}
 		for(let n=Math.max(nu_s+1,this._scrolledLine),ns=Math.min(this._scrolledLine+al,arr.length,nu_e);n<ns;++n){
-			let startxy=this._lineXys[n];
+			const startxy=this._lineXys[n];
 			let r=startxy.w/startxy.ow; if(isNaN(r)) r=1;
-			this.contents._context.fillRect(startxy.x,startxy.y,parseInt(this.textWidth(this._lines[n])*r),this.lineHeight());
+			this.contents._context.fillRect(startxy.x,startxy.y,parseInt(this.textWidth('-')*this.toViewLen(this._lines[n])*r),this.lineHeight());
 		}
 		{
-			let startxy=this._lineXys[nu_e];
+			const startxy=this._lineXys[nu_e];
 			let r=startxy.w/startxy.ow; if(isNaN(r)) r=1;
 			this.contents._context.fillRect(startxy.x,startxy.y,parseInt(shx_e*r),this.lineHeight());
 		}
 	}
 	// - verticle cursor
 	startx+=backward?shx_s:shx_e;
-	startx-=this.textWidth(cursor)>>1;
-	startx=parseInt((startx-padp)*r)+padp;
+	startx=(startx-padp)*r+padp;
+	startx-=this.textWidth(cursor)/2.0;
 	this.drawText(cursor,startx,this.lineHeight()*(nu-this._scrolledLine));
 	
 	{ let t=this.node_input.style; if(t.display!=='') t.display=''; }
