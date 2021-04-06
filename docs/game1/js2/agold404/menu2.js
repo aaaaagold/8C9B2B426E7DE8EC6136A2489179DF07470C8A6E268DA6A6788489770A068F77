@@ -1998,7 +1998,7 @@ $dddd$=$aaaa$.prototype.initialize = function f(x,y,w,h) {
 $aaaa$.prototype.drawlinetext=function(text,line,align,startX){
 	// line: 0-base ; align: 'left','center','right'
 	align=align||'left';
-	let strtx=startX||0,strty=line*this.lineHeight(),textw=this.textWidth(this.padTab(text));
+	let strtx=startX||0,strty=line*this.lineHeight(),textw=this.textWidth(this.padTab?this.padTab(text):text);
 	let maxWidth=this.contents.width-(this.textPadding()<<1)-strtx;
 	switch(align){
 		default:
