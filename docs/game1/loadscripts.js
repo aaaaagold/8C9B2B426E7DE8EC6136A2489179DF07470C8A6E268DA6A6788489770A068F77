@@ -214,9 +214,9 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 				if (s.length === 3 && s.slice(0, 1) === '2') { this.onreadystatechange=null;
 					if(isDev_){ console.log(files,k); console.log(this.responseText); }
 					const kkkkkk=kkk+kk+k;
-					localStorage.setItem(confPrefix+'v'+src,verStr);
 					localStorage.setItem(confPrefix+'s'+src,this.responseText);
 					localStorage.setItem(confPrefix+'k'+src,kkkkkk);
+					localStorage.setItem(confPrefix+'v'+src,verStr); // last
 					putck(f,idx,idxcnt,src,this.responseText,kkkkkk);
 				}
 			}
