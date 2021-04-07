@@ -216,8 +216,8 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 					const kkkkkk=kkk+kk+k;
 					localStorage.setItem(confPrefix+'s'+src,this.responseText);
 					localStorage.setItem(confPrefix+'k'+src,kkkkkk);
-					localStorage.setItem(confPrefix+'v'+src,verStr); // last
 					putck(f,idx,idxcnt,src,this.responseText,kkkkkk);
+					localStorage.setItem(confPrefix+'v'+src,verStr); // last
 				}
 			}
 		}
