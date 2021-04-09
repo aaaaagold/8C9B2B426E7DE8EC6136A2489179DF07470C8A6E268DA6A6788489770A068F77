@@ -3970,10 +3970,6 @@ Window_BattleLog.prototype.windowHeight = function() {
     return this.fittingHeight(this.maxLines());
 };
 
-Window_BattleLog.prototype.maxLines = function() {
-    return 10;
-};
-
 Window_BattleLog.prototype.createBackBitmap = function() {
     this._backBitmap = new Bitmap(this.width, this.height);
 };
@@ -3983,10 +3979,6 @@ Window_BattleLog.prototype.createBackSprite = function() {
     this._backSprite.bitmap = this._backBitmap;
     this._backSprite.y = this.y;
     this.addChildToBack(this._backSprite);
-};
-
-Window_BattleLog.prototype.numLines = function() {
-    return this._lines.length;
 };
 
 Window_BattleLog.prototype.isBusy = function() {
@@ -4203,12 +4195,6 @@ Window_BattleLog.prototype.backColor = function() {
 
 Window_BattleLog.prototype.backPaintOpacity = function() {
     return 64;
-};
-
-Window_BattleLog.prototype.drawLineText = function(index) {
-    var rect = this.itemRectForText(index);
-    this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
-    this.drawTextEx(this._lines[index], rect.x, rect.y, rect.width);
 };
 
 Window_BattleLog.prototype.startTurn = function() {

@@ -2104,17 +2104,7 @@ Scene_Battle.prototype.isAnyInputWindowActive = function() {
             this._enemyWindow.active);
 };
 
-Scene_Battle.prototype.changeInputWindow = function() {
-    if (BattleManager.isInputting()) {
-        if (BattleManager.actor()) {
-            this.startActorCommandSelection();
-        } else {
-            this.startPartyCommandSelection();
-        }
-    } else {
-        this.endCommandSelection();
-    }
-};
+Scene_Battle.prototype.changeInputWindow;
 
 Scene_Battle.prototype.stop = function() {
     Scene_Base.prototype.stop.call(this);
