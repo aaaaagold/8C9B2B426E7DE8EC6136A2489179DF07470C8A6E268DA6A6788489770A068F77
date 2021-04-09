@@ -2723,7 +2723,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Scene_Battle
 $aaaa$=Scene_Battle;
-Scene_Battle.prototype.changeInputWindow = function() {
+$aaaa$.prototype.changeInputWindow=function(){
 	if(BattleManager.isInputting()){
 		if(BattleManager.actor()) this.startActorCommandSelection();
 		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
@@ -10242,8 +10242,11 @@ $dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggere
 	if(this.index() !== lastIndex) SoundManager.playCursor();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.processTouchOutsideFrame=none;
-$aaaa$.prototype.refresh=function(){
+$aaaa$.prototype.refresh_do=function(){
 	if(this.clearContents()) this.drawAllItems();
+};
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
 };
 $aaaa$.prototype.drawAllItems=function(){
 	let i=this.topIndex();
@@ -10706,7 +10709,7 @@ $aaaa$.prototype.setTopRow=function(row){ // setBottomRow use this function
 		this.updateCursor();
 	}
 };
-$aaaa$.prototype.refresh=function(){
+$aaaa$.prototype.refresh_do=function(){
 if(this._mode==="h"){
 	this.drawBackground();
 	const viewCount=this.numLines() , scrollIdx=(this._scrollIdx|=0) , head=this._historyLines.length+". ";
@@ -10731,6 +10734,9 @@ if(this._mode==="h"){
 	}
 	this._lastLines.length=this._lines.length;
 }
+};
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
 };
 $aaaa$.prototype.isRepeatedAnimationAction=function(action){
 	return action.isKindOfAttack() && action.numRepeats()>0;
@@ -10903,18 +10909,21 @@ $aaaa$.prototype.maxCols=function(){
 // - Window_Help
 $aaaa$=Window_Help;
 makeDummyWindowProto($aaaa$,true);
-$aaaa$.prototype.refresh=function(){
+$aaaa$.prototype.refresh_do=function(){
 	if(this._lastText===this._text) return;
 	if(this.contents){
 		this.createContents();
 		this.drawTextEx(this._lastText=this._text, this.textPadding(), 0);
 	}
 };
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Window_BattleStatus
 $aaaa$=Window_BattleStatus;
-$dddd$=$aaaa$.prototype.refresh=function f(){
+$dddd$=$aaaa$.prototype.refresh_do=function f(){
 	if(this.noRefresh) return;
 	if(BattleManager._phase===f.key){
 		let idx=$gameTemp._pt_battleMembers_actor2idx.get(BattleManager._subject);
@@ -10923,6 +10932,9 @@ $dddd$=$aaaa$.prototype.refresh=function f(){
 	if(this.clearContents()) this.drawAllItems();
 };
 $dddd$.key="action";
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
+};
 $rrrr$=$aaaa$.prototype.drawBasicArea;
 $dddd$=$aaaa$.prototype.drawBasicArea=function f(r,a){
 	if(a.stp!==undefined){
@@ -11098,7 +11110,7 @@ $dddd$=$aaaa$.prototype.update=function f(){
 	f.ori.call(this);
 	if(this._commandWindow.active) this._arrowsFloating();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.refresh=function(){
+$aaaa$.prototype.refresh_do=function(){
 	if(this.clearContents() && this._actor){
 		this.drawActorName(this._actor, this.textPadding(), 0);
 		const h=this.lineHeight();
@@ -11122,6 +11134,9 @@ $aaaa$.prototype.refresh=function(){
 		//for(let i=0,sz=this._actor._paramPlus.length;i!==sz;++i) this.drawItem(0, y+=h, i);
 		for(let i=-2,sz=$dataSystem.terms.params.length;i!==sz;++i) this.drawItem(0, y+=h, i);
 	}
+};
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
 };
 $aaaa$.prototype.setTempActor=function(tempActor){
 	if(this._tempActor !== tempActor){
@@ -11636,9 +11651,12 @@ $dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
 };
 $dddd$.max=()=>Infinity;
 $dddd$.min=()=>-Infinity;
-$aaaa$.prototype.refresh=function(){
+$aaaa$.prototype.refresh_do=function(){
 	if(!this.clearContents()) return;
 	this.drawItemEffect(this._item);
+};
+$aaaa$.prototype.refresh=function(){
+	SceneManager._scene._needRefreshes.add(this);
 };
 //$aaaa$.prototype.drawEquipInfo=0;
 $aaaa$.prototype.currentEquippedItem = function(actor, etypeId){

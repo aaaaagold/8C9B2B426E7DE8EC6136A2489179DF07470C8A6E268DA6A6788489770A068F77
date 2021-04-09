@@ -89,7 +89,8 @@ $aaaa$.changeScene = function(forced) {
 			this._previousClass = this._scene.constructor;
 		}
 		this._scene = this._nextScene;
-		if (this._scene) {
+		if(this._scene){
+			this._scene._needRefreshes=new Set();
 			this._scene.attachReservation();
 			this._scene.create();
 			this._nextScene = null;
@@ -100,6 +101,19 @@ $aaaa$.changeScene = function(forced) {
 			this.terminate();
 		}
 	}
+};
+$rrrr$=$aaaa$.renderScene;
+$dddd$=$aaaa$.renderScene=function f(){
+	{
+		const set=this._scene._needRefreshes;
+		set.forEach(f.forEach);
+		set.clear();
+	}
+	f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$dddd$.forEach=sp=>sp.refresh_do();
+$aaaa$.addRefresh=function(sp){
+	this._scene._needRefreshes.add(sp);
 };
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
