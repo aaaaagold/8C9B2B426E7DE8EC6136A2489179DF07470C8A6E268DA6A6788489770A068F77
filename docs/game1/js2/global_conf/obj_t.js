@@ -477,6 +477,16 @@ $dddd$=$aaaa$.prototype.startBalloon=function f(){
 $aaaa$.prototype.updateBalloon=$aaaa$.prototype.setupBalloon; // following will not exec
 $aaaa$.prototype.endBalloon=none; // will not exec 'if' block
 $aaaa$.prototype.isBalloonPlaying=none; // always false
+if(0)Sprite_Character.prototype._renderCanvas=function f(renderer){
+	// note
+	const bitmap=this.bitmap;
+	if(bitmap){
+		const pos=this.getGlobalPosition(),scale=this.scale,anchor=this.anchor;
+		const w=bitmap.width*scale.x,h=bitmap.height*scale.y;
+		const x=pos.x-w*anchor.x,y=pos.y-w*anchor.y;
+		if(x>=SceneManager._boxWidth || y>=SceneManager._boxHeight || x+w<0 || y+h<0) ; else return Sprite.prototype._renderCanvas.call(this,renderer);
+	}else return Sprite.prototype._renderCanvas.call(this,renderer);
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Sprite_Battler
@@ -2713,6 +2723,12 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Scene_Battle
 $aaaa$=Scene_Battle;
+Scene_Battle.prototype.changeInputWindow = function() {
+	if(BattleManager.isInputting()){
+		if(BattleManager.actor()) this.startActorCommandSelection();
+		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
+	}else this.endCommandSelection();
+};
 $aaaa$.prototype.createSpriteset=function(){
 	this._chr2sp=new Map();
 	this.addChild(this._spriteset = new Spriteset_Battle(this));
@@ -2724,6 +2740,7 @@ $dddd$=$aaaa$.prototype.createPartyCommandWindow=function f(){
 	this._partyCommandWindow.setHandler('allGuard',    this.commandGuardAll.bind(this));
 	this._partyCommandWindow.setHandler('allSpaceout', this.commandSpaceoutAll.bind(this));
 	this._partyCommandWindow.setHandler('usePlan',     this.commandUsePlan.bind(this));
+	this._partyCommandWindow.setHandler('viewLog',     this.commandViewLog.bind(this));
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.createActorCommandWindow;
 $dddd$=$aaaa$.prototype.createActorCommandWindow=function f(){
@@ -2807,6 +2824,29 @@ $aaaa$.prototype.commandUsePlan=function(){
 		plan.visible=plan.active=true;
 		plan.refresh();
 	}
+};
+$aaaa$.prototype.commandViewLog=function(){
+	const lw=this._logWindow;
+	if(lw._scene!==this){
+		lw._scene=this;
+		lw.setHandler('cancel',()=>{
+			lw._mode=undefined;
+			lw.deactivate();
+			lw.deselect();
+			lw.clearContents();
+			lw._scrollY=0;
+			lw.refresh();
+			this._partyCommandWindow.activate();
+		});
+	}
+	const len=lw._historyLines.length;
+	if(len){
+		this._partyCommandWindow.deactivate();
+		lw._mode='h';
+		lw.select(len-1);
+		lw.refresh();
+		lw.activate();
+	}else $gameMessage.popup("no log",true);
 };
 $aaaa$.prototype.commandSpaceout=function(){
 	BattleManager.inputtingAction().setSpaceout();
@@ -10574,9 +10614,54 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._historyLines=[];
 	f.ori.call(this);
 	this._methods=new Queue();
-	this._maxLines=10;
+	this._historyNumLines=new Queue();
+	this._fc=22;
+	this._lastNumLines=undefined;
+	this._maxLines=this.maxLines();
+	this._mode=undefined;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.maxLines=function(){
+	return this._maxLines===undefined?10:this._maxLines;
+};
+$aaaa$.prototype.numLines_arrange=function(curr){
+	// **** O(N) CODE WARNING ****
+	
+	const q=this._historyNumLines;
+	if(!q) return curr;
+	
+	while(q.length && q.front.fc+this._fc<=q.frameCount) q.pop();
+	if(q.frameCount===Graphics.frameCount){
+		const last=q.back;
+		if(last && curr>=last.val) last.val=curr;
+	}else{
+		q.frameCount=Graphics.frameCount;
+		q.push({val:curr,fc:q.frameCount,next:undefined,});
+	}
+	let rtv=0;
+	q.forEach(obj=>(rtv<obj.val)&&(rtv=obj.val));
+	return rtv;
+};
+$aaaa$.prototype.numLines=function(){
+	if(this._mode==='h'){
+		const rtv=this._historyLines.length;
+		return rtv<this._maxLines?rtv:this._maxLines;
+	}else return this.numLines_arrange(this._lines.length);
+};
 $aaaa$.prototype.messageSpeed=()=>0; // ori:16
+$rrrr$=$aaaa$.prototype.update;
+$dddd$=$aaaa$.prototype.update=function f(){
+	if(this._mode==='h'){
+		this._historyNumLines.clear();
+		Window_Selectable.prototype.update.call(this);
+	}else{
+		f.ori.call(this);
+		const curr=this.numLines_arrange(this._lines.length);
+		if(this._lastNumLines!==curr){
+			this._lastNumLines=curr;
+			this.refresh();
+		}
+	}
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.skipMeta=function(){
 	let rtv=0;
 	for(let q=this._methods;q.length&&q.front.name[0]==="-";q.shift())
@@ -10611,25 +10696,25 @@ $aaaa$.prototype.clearLine=function(index){
 $aaaa$.prototype.maxItems=function(){
 	return this._historyLines.length;
 };
-$aaaa$.prototype.refresh=function(){
-if(0){
-	let drawFrom=0;
-	const lines=this._maxLines||0,ende=this._historyLines.length,strt=ende>lines?ende-lines:0,hist=this._historyLines,arr=this._lines;
-	if(this._lastLines){
-		for(let x=strt,x2=0,last=this._lastLines;x!==ende;++x,++x2){
-			if(last[x2]!==hist[x]){ drawFrom=x; break; }
-		}
-	}else this._lastLines=[];
-	const last=this._lastLines;
-	this._lines=last;
-	for(let x=drawFrom,x2=drawFrom-strt,sz=Math.max(last.length,ende-strt);x2!==sz;++x,++x2){
-		if(last[x2]===hist[x]) continue;
-		last[x2]=hist[x];
-		this.drawLineText(x2);
+$aaaa$.prototype.setTopRow=function(row){ // setBottomRow use this function
+	if(!(row>=0)) row=0;
+	{ const t=this.maxTopRow(); if(row>=t) row=t; }
+	const scrollY=(this._scrollIdx=row)* this.itemHeight();
+	if(this._scrollY !== scrollY){
+		this._scrollY = scrollY;
+		this.refresh();
+		this.updateCursor();
 	}
-	last.length=ende-strt;
+};
+$aaaa$.prototype.refresh=function(){
+if(this._mode==="h"){
 	this.drawBackground();
-	this._lines=arr;
+	const viewCount=this.numLines() , scrollIdx=(this._scrollIdx|=0) , head=this._historyLines.length+". ";
+	const headLen=head.length,headWidth=this.textWidth(head);
+	this._scrollY=this.itemHeight()*scrollIdx;
+	this.clearContents();
+	this.resetTextColor();
+	for(let x=0;x!==viewCount;++x) this.drawItem( scrollIdx+x , headLen , headWidth );
 }else{
 	let drawFrom=0;
 	if(this._lastLines){
@@ -10649,6 +10734,23 @@ if(0){
 };
 $aaaa$.prototype.isRepeatedAnimationAction=function(action){
 	return action.isKindOfAttack() && action.numRepeats()>0;
+};
+$aaaa$.prototype.drawItem=function(index,headLength,headWidth){
+	const rect=this.itemRect(index) , pad=this.textPadding();
+	rect.x+=pad;
+	rect.width-=pad<<1;
+	if(headLength && headWidth){
+		this.drawText((index+1+". ").padStart(headLength,' '), rect.x, rect.y, headWidth);
+		rect.x+=headWidth;
+		rect.width-=headWidth;
+	}
+	this.drawTextEx(this._historyLines[index], rect.x, rect.y, rect.width);
+};
+$aaaa$.prototype.drawLineText=function(index,txt){
+	const rect=this.itemRect(index);
+	this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
+	const pad=this.textPadding();
+	this.drawTextEx(txt===undefined?this._lines[index]:txt, rect.x+pad, rect.y, rect.width-(pad<<1));
 };
 $aaaa$.prototype.startAction=function(subject, action, targets){
 	const item = action.item();
@@ -10727,6 +10829,7 @@ $dddd$=$aaaa$.prototype.makeCommandList=function f(){
 	this.addCommand($dataCustom.battle.allGuard,  'allGuard');
 	this.addCommand($dataCustom.battle.allSpaceout,  'allSpaceout');
 	this.addCommand($dataCustom.plan.use,  'usePlan');
+	this.addCommand($dataCustom.battle.viewLog,  'viewLog');
 	this.addCommand(TextManager.escape, 'escape', BattleManager.canEscape());
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setup=function(){
