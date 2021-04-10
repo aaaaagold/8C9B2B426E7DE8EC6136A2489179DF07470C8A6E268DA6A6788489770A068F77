@@ -252,10 +252,6 @@ Window_Base.prototype.processCharacter = function(textState) {
     }
 };
 
-Window_Base.prototype.processNewPage = function(textState) {
-    textState.index++;
-};
-
 Window_Base.prototype.obtainEscapeParam = function(textState) {
     var arr = /^\[\d+\]/.exec(textState.text.slice(textState.index));
     if (arr) {
@@ -281,15 +277,6 @@ Window_Base.prototype.makeFontSmaller = function() {
     if (this.contents.fontSize >= 24) {
         this.contents.fontSize -= 12;
     }
-};
-
-Window_Base.prototype.drawIcon = function(iconIndex, x, y) {
-    var bitmap = ImageManager.loadSystem('IconSet');
-    var pw = Window_Base._iconWidth;
-    var ph = Window_Base._iconHeight;
-    var sx = iconIndex % 16 * pw;
-    var sy = Math.floor(iconIndex / 16) * ph;
-    this.contents.blt(bitmap, sx, sy, pw, ph, x, y);
 };
 
 Window_Base.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
