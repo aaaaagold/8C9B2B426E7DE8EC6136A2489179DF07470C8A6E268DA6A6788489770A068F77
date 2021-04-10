@@ -1965,6 +1965,14 @@ $aaaa$.prototype._edt=function f(){
 		$dataSystem.title1Name+="?color="+encodeURIComponent("[[4,"+burnLv+",0],["+burnLv+",44,0],[0,0,1]]");
 		$dataSystem.currencyUnit="B幣";
 	}break;
+	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
+		$dataSystem. title1Name = "Fountain";
+		$dataSystem. gameTitle  = "做一堆遊戲都用同一份檔案，好省";
+		$dataSystem. startMapId = 272 ;
+		$dataSystem. partyMembers = [21];
+		$dataSystem. titleBgm={name: "03_Lonely_Departure", pan: 0, pitch: 119, volume: 50};
+		$dataSystem.currencyUnit="D幣";
+	}break;
 	default:
 		useDefault=true;
 	case "0x780D88ACF70DF7B68290F99F4E4544C267562B3E8FCFD1D75DAC6842942575CF":{
@@ -10006,7 +10014,7 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 		if(!res.length) break;
 		if(res.length>1){
 			if(!this._iconloop) this._iconloop=[];
-			this._iconloop.push([res,textState.x,textState.y,0,0,this._drawingIdx]);
+			this._iconloop.push([res,textState.x,textState.y,0,res[0][1],this._drawingIdx]);
 		}
 		this.processDrawIcon(res[0][0], textState);
 	}break;
@@ -11154,7 +11162,7 @@ $aaaa$.prototype.refresh_do=function(){
 			this.drawText($dataCustom.currExp+' / '+$dataCustom.nextExp,x1,y+=h,w,'left');
 			
 			{ let tmp=a.currentExp()+' / ';
-			tmp+=a.isMaxLevel()?"-".repeat(7):a.currentExp();
+			tmp+=a.isMaxLevel()?"-".repeat(7):a.nextLevelExp();
 			this.resetTextColor();
 			this.drawText(tmp,x2,y,w,'right');
 			}
