@@ -664,9 +664,23 @@ $aaaa$.prototype.createHpMpSprite=function(){
 	bm.fontSize=16;
 	sp.alpha=0.75;
 };
+$aaaa$.prototype.refreshMotion=none;
+$aaaa$.prototype.breathSpeed=function(){
+	return Sprite_Actor.prototype.breathSpeed.call(this);
+};
+$aaaa$.prototype.motionSpeed=function(){
+	return Sprite_Actor.prototype.motionSpeed.call(this);
+};
 $aaaa$.prototype.update=function(){
 	Sprite_Battler.prototype.update.call(this);
-	if (this._enemy) {
+	if(this._enemy){
+		if(this._enemy._refActor){
+			this._motionCount|=0;
+			this._pattern|=0;
+			this._breathCnt|=0;
+			if(!this._motion) this._motion={loop:true};
+			Sprite_Actor.prototype.updateMotionCount.call(this);
+		}
 		this.updateEffect();
 		this.updateStateSprite();
 		this.updateHpMpSprite();
@@ -9713,58 +9727,43 @@ if(window.Scenen_Debug) window.Scenen_Debug=undefined;
 
 // - base
 $aaaa$=Window_Base;
-Object.defineProperties($aaaa$.prototype,{
-	fontSize:{
-		get:function(){return this._fontSize;},
-		set:function(rhs){
-			this._fontSize=rhs;
-			this._lineHeight=(rhs>>2)+(rhs!==0)+rhs;
-			return rhs;
-		},
-	configurable:true},
-});
-$aaaa$.prototype.lineHeight=function(){
-	return this.fontSize&&this._lineHeight||36;
-};
-$aaaa$.prototype.standardFontSize=function(){
-	return this.fontSize||28;
-};
-$aaaa$.prototype.setFontsize=function(sz){
-	this.fontSize=sz;
-	if(this.contents) this.contents.fontSize=sz;
-};
-$aaaa$.prototype.standardFontFace = function() {
-	if($gameSystem.isKorean()) {
-		return _global_conf.useFont+',Dotum, AppleGothic, sans-serif';
-	} else {
-		return _global_conf.useFont;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
+	f.ori.call(this,x,y,w,h);
+	this._iconloop=undefined;
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.update;
+$dddd$=$aaaa$.prototype.update=function f(){
+	if(this._iconloop) this._iconloop.forEach(f.forEach,this);
+	f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
+$dddd$.forEach=function(info){
+	const icons=info[0] , idx=info[3] , fc=info[4];
+	if(Graphics.frameCount>=fc+icons[idx][1]){
+		this.drawLoopIcon();
+		//this.refresh();
 	}
 };
-$aaaa$.prototype.createContents = function(){
-	const w=this.contentsWidth() , h=this.contentsHeight();
-	// TODO: BUG: [webgl] sprite.bitmap.reCreate dismatch sprite.texture size // 'w._windowContentsSprite.texture._updateUvs();' AFTER first render can fix it
-	if(Graphics.isWebGL()){
-		if(this._lstw!==w || this._lsth!==h){
-			this._lstw=w;
-			this._lsth=h;
-			this.contents = new Bitmap(w,h);
-		}else this.clearContents();
-	}else if(!this.clearContents()) this.contents = new Bitmap(w,h);
-	this.resetFontSettings();
+$dddd$=$aaaa$.prototype.drawLoopIcon=function f(){
+	if(this._iconloop && this._iconloop.length) this._iconloop.forEach(f.forEach,this);
 };
-$aaaa$.prototype.hpCostColor=function(){
-	return this.hpGaugeColor2();
+$dddd$.forEach=function f(info){
+	const icons=info[0];
+	let idx=info[3] , fc=info[4];
+	if(Graphics.frameCount<icons[idx][1]+fc) return;
+	while(Graphics.frameCount>=fc+icons[idx][1]){
+		fc+=icons[idx][1];
+		if(!fc) return;
+		++idx;
+		idx%=icons.length;
+	}
+	f.tbl.x=info[1];
+	f.tbl.y=info[2];
+	this.processDrawIcon(icons[idx][0],f.tbl);
 };
-$aaaa$.prototype.stpColor = function(actor) {
-	if(actor.isStarving()) return this.deathColor();
-	else if(actor.isHungry()) return this.crisisColor();
-	else return this.normalColor();
-};
-$aaaa$.prototype.stpGaugeColor1=function(){
-	return '#8040e0';
-};
-$aaaa$.prototype.stpGaugeColor2=function(){
-	return '#c040f0';
+$dddd$.forEach.tbl={x:0,y:0};
+if(0)$aaaa$.prototype.refresh=function(){
+	SceneManager.addRefresh(this);
 };
 $aaaa$.prototype.drawActorFace = function(actor, x, y, width, height) {
 	this.drawFace(actor.faceName(), actor.faceIndex(), x, y, width, height);
@@ -9867,20 +9866,9 @@ $dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
 	text = text.replace(f.re_skill, f.f_skill);
 	text = text.replace(f.re_item, f.f_item);
 	text = text.replace(f.re_quest, f.f_quest);
-	text = text.replace(/\x1bV\[(\d+)\]/gi, function() {
-		return $gameVariables.value(arguments[1]);
-	}.bind(this));
-	text = text.replace(/\x1bN\[([^\]]+)\]/gi, function() {
-		let arg1=arguments[1],h="\x1bRGB["+$dataCustom.textcolor.keyword+"]",t="\x1bRGB["+$dataCustom.textcolor.default+"]";
-		if(arg1==="my") return h+this._evtName+t;
-		if(arg1.match(/evt-[0-9]+/g)) return h+$gameMap._events[parseInt(arg1.slice(4))].event().meta.name+t;
-		let val=parseInt(arg1);
-		if(!isNaN(val)) return this.actorName(val);
-		return '';
-	}.bind(this));
-	text = text.replace(/\x1bP\[(\d+)\]/gi, function() {
-		return this.partyMemberName(parseInt(arguments[1]));
-	}.bind(this));
+	text = text.replace(f.re_vars, f.f_vars);
+	text = text.replace(f.re_name, f.f_name.bind(this));
+	text = text.replace(f.re_party, f.f_party.bind(this));
 	text = text.replace(/\x1bG/gi, TextManager.currencyUnit);
 	return text;
 };
@@ -9913,7 +9901,7 @@ $dddd$.f_txtin=function(){
 	return "";
 };
 $dddd$.re_txtarea=/\x1bTXTAREA'([^']*)'/g;
-$dddd$.f_txtarea=function f(){
+$dddd$.f_txtarea=function(){
 	if(!$gameTemp.txtareainfo) $gameTemp.txtareainfo={lines:[],curAt:0,scrolledLine:0,}; // should be given first if needed
 	const txtobj=$gameTemp.txtareainfo;
 	const w=new Window_CustomMenu_main(0,0, [
@@ -9946,15 +9934,25 @@ $dddd$.f_txtarea=function f(){
 	back.open();
 	return "";
 };
-$dddd$.f_txtarea.ok=function(){
-	
-};
 $dddd$.re_skill=/\x1bskill\[(\d+)\]/g;
 $dddd$.f_skill=function(){ return "\x1bRGB["+$dataCustom.textcolor.skill+"]"+$dataSkills[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;
 $dddd$.f_item=function(){ return "\x1bRGB["+$dataCustom.textcolor.item+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_quest=/\x1bquest\[(\d+)\]/g;
 $dddd$.f_quest=function(){ return "\x1bRGB["+$dataCustom.textcolor.quest+"]"+$dataItems[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
+$dddd$.re_vars=/\x1bV\[(\d+)\]/gi;
+$dddd$.f_vars=function(){ return $gameVariables.value(arguments[1]); };
+$dddd$.re_name=/\x1bN\[([^\]]+)\]/gi;
+$dddd$.f_name=function(){
+	let arg1=arguments[1],h="\x1bRGB["+$dataCustom.textcolor.keyword+"]",t="\x1bRGB["+$dataCustom.textcolor.default+"]";
+	if(arg1==="my") return h+this._evtName+t;
+	if(arg1.match(/evt-[0-9]+/g)) return h+$gameMap._events[parseInt(arg1.slice(4))].event().meta.name+t;
+	let val=parseInt(arg1);
+	if(!isNaN(val)) return this.actorName(val);
+	return '';
+};
+$dddd$.re_party=/\x1bP\[(\d+)\]/gi;
+$dddd$.f_party=function(){ return this.partyMemberName(parseInt(arguments[1])); };
 $aaaa$.prototype.processNormalCharacter = function(textState) {
 	let c = textState.text[textState.index++];
 	let w = this.textWidth(c);
@@ -9978,8 +9976,12 @@ $aaaa$.prototype.processNewLine=function(textState) {
 	if(textState.texts) ++textState.texts.idx;
 	textState.height = this.calcTextHeight(textState, false);
 };
+$aaaa$.prototype.processNewPage=function(){
+	if(this._iconloop) this._iconloop.length=0;
+	++textState.index;
+};
 $dddd$=$aaaa$.prototype.obtainEscapeCode=function f(textState){
-	textState.index++;
+	++textState.index;
 	const arr = f.regExp.exec(textState.text.slice(textState.index));
 	if(arr){
 		textState.index += arr[0].length;
@@ -9994,6 +9996,18 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 	case 'MINOR': { // only function in Window_Message
 		if(this.constructor!==Window_Message) break;
 		this.printMinor=true;
+	}break;
+	case 'ICONLOOP':{
+		let res = f.re_iconloop.exec(textState.text.slice(textState.index));
+		if(!res) break;
+		textState.index += res[0].length;
+		res=JSON.parse(res[0]);
+		if(!res.length) break;
+		if(res.length>1){
+			if(!this._iconloop) this._iconloop=[];
+			this._iconloop.push([res,textState.x,textState.y,0,Graphics.frameCount]);
+		}
+		this.processDrawIcon(res[0][0], textState);
 	}break;
 	case 'RGB':
 	case 'RGBA': {
@@ -10025,6 +10039,7 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 	}
 };
 $dddd$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
+$dddd$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*\])/;
 $aaaa$.prototype.calcTextHeight=function f(textState, all){
 	let textHeight = 0; // rtv
 	
@@ -10246,7 +10261,7 @@ $aaaa$.prototype.refresh_do=function(){
 	if(this.clearContents()) this.drawAllItems();
 };
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 $aaaa$.prototype.drawAllItems=function(){
 	let i=this.topIndex();
@@ -10453,6 +10468,11 @@ $rrrr$=$aaaa$.prototype.onEndOfText;
 $dddd$=$aaaa$.prototype.onEndOfText=function f(){
 	f.ori.call(this);
 	this.inaline=false;
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.newPage;
+$dddd$=$aaaa$.prototype.newPage=function f(txtstat){
+	if(this._iconloop) this._iconloop.length=0;
+	f.ori.call(this,txtstat);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
@@ -10736,7 +10756,7 @@ if(this._mode==="h"){
 }
 };
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 $aaaa$.prototype.isRepeatedAnimationAction=function(action){
 	return action.isKindOfAttack() && action.numRepeats()>0;
@@ -10917,7 +10937,7 @@ $aaaa$.prototype.refresh_do=function(){
 	}
 };
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -10933,7 +10953,7 @@ $dddd$=$aaaa$.prototype.refresh_do=function f(){
 };
 $dddd$.key="action";
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 $rrrr$=$aaaa$.prototype.drawBasicArea;
 $dddd$=$aaaa$.prototype.drawBasicArea=function f(r,a){
@@ -11136,7 +11156,7 @@ $aaaa$.prototype.refresh_do=function(){
 	}
 };
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 $aaaa$.prototype.setTempActor=function(tempActor){
 	if(this._tempActor !== tempActor){
@@ -11656,7 +11676,7 @@ $aaaa$.prototype.refresh_do=function(){
 	this.drawItemEffect(this._item);
 };
 $aaaa$.prototype.refresh=function(){
-	SceneManager._scene._needRefreshes.add(this);
+	SceneManager.addRefresh(this);
 };
 //$aaaa$.prototype.drawEquipInfo=0;
 $aaaa$.prototype.currentEquippedItem = function(actor, etypeId){

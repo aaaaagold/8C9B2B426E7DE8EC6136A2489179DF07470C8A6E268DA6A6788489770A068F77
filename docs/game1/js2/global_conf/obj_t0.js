@@ -218,7 +218,56 @@ $dddd$=$aaaa$.prototype._arrowsFloating=function f(){
 	}
 };
 $dddd$.rad1=PI_64;
-$dddd$=$aaaa$.prototype._updateArrows
+Object.defineProperties($aaaa$.prototype,{
+	fontSize:{
+		get:function(){return this._fontSize;},
+		set:function(rhs){
+			this._fontSize=rhs;
+			this._lineHeight=(rhs>>2)+(rhs!==0)+rhs;
+			return rhs;
+		},
+	configurable:true},
+});
+$aaaa$.prototype.lineHeight=function(){
+	return this.fontSize&&this._lineHeight||36;
+};
+$aaaa$.prototype.standardFontSize=function(){
+	return this.fontSize||28;
+};
+$aaaa$.prototype.setFontsize=function(sz){
+	this.fontSize=sz;
+	if(this.contents) this.contents.fontSize=sz;
+};
+$aaaa$.prototype.standardFontFace=function(){
+	if($gameSystem.isKorean()) return _global_conf.useFont+',Dotum, AppleGothic, sans-serif';
+	else return _global_conf.useFont;
+};
+$aaaa$.prototype.createContents=function(){
+	const w=this.contentsWidth() , h=this.contentsHeight();
+	// TODO: BUG: [webgl] sprite.bitmap.reCreate dismatch sprite.texture size // 'w._windowContentsSprite.texture._updateUvs();' AFTER first render can fix it
+	if(Graphics.isWebGL()){
+		if(this._lstw!==w || this._lsth!==h){
+			this._lstw=w;
+			this._lsth=h;
+			this.contents = new Bitmap(w,h);
+		}else this.clearContents();
+	}else if(!this.clearContents()) this.contents = new Bitmap(w,h);
+	this.resetFontSettings();
+};
+$aaaa$.prototype.hpCostColor=function(){
+	return this.hpGaugeColor2();
+};
+$aaaa$.prototype.stpColor = function(actor) {
+	if(actor.isStarving()) return this.deathColor();
+	else if(actor.isHungry()) return this.crisisColor();
+	else return this.normalColor();
+};
+$aaaa$.prototype.stpGaugeColor1=function(){
+	return '#8040e0';
+};
+$aaaa$.prototype.stpGaugeColor2=function(){
+	return '#c040f0';
+};
 $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 	if(triggered && targetWindow.upArrowVisible){
 		const ua=targetWindow.  _upArrowSprite;
@@ -244,6 +293,16 @@ $dddd$=$aaaa$.prototype.textColor=function f(n){
 	return rtv;
 };
 $dddd$.tbl=new Map();
+$aaaa$.prototype.drawIcon=function(iconIndex, x, y){
+	const pw = Window_Base._iconWidth;
+	const ph = Window_Base._iconHeight;
+	if(iconIndex>=0){
+		const bitmap = ImageManager.loadSystem('IconSet');
+		const sx = (iconIndex&15) * pw;
+		const sy = (iconIndex>>4) * ph;
+		this.contents.blt(bitmap, sx, sy, pw, ph, x, y);
+	}else this.contents.clearRect(x,y,pw,ph);
+};
 $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1, color2, valWidth) {
 	const labelWidth = this.textWidth('HP');
 	const valueWidth = valWidth||this.textWidth('000');
