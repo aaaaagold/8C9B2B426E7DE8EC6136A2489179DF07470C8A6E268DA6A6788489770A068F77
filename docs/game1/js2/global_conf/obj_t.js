@@ -9797,14 +9797,15 @@ $aaaa$.prototype.drawActorStp=function(actor, x, y, width){
 };
 $aaaa$.prototype.drawActorExp=function(actor, x, y, width){
 	width = width || 186;
-	const color1 = this.stpGaugeColor1(),color2 = this.stpGaugeColor2();
+	const color1 = this.expGaugeColor1(),color2 = this.expGaugeColor2();
 	const clvexp=actor.currentLevelExp();
 	const c=actor.currentExp()-clvexp;
 	const m=actor.isMaxLevel()?inf:(actor.nextLevelExp()-clvexp);
 	this.drawGauge(x, y, width, c/m, color1, color2);
 	this.changeTextColor(this.systemColor());
 	this.drawText(TextManager.exp, x, y, 44);
-	this.drawCurrentAndMax(c, m, x, y, width, this.stpColor(actor), this.normalColor(), width>>2);
+	const color=this.normalColor();
+	this.drawCurrentAndMax(c, m, x, y, width, color, color, width>>2);
 };
 $aaaa$.prototype.drawActorSimpleStatus=function(actor, x, y, width) {
 	const lineHeight = this.lineHeight();

@@ -262,6 +262,12 @@ $aaaa$.prototype.stpColor = function(actor) {
 	else if(actor.isHungry()) return this.crisisColor();
 	else return this.normalColor();
 };
+$aaaa$.prototype.expGaugeColor1=function(){
+	return '#80e040';
+};
+$aaaa$.prototype.expGaugeColor2=function(){
+	return '#c0f040';
+};
 $aaaa$.prototype.stpGaugeColor1=function(){
 	return '#8040e0';
 };
