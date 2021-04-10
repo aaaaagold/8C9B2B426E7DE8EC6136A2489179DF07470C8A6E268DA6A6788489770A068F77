@@ -9734,36 +9734,37 @@ $dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
-	if(this._iconloop) this._iconloop.forEach(f.forEach,this);
+	if(this._iconloop){
+		for(let x=0,arr=this._iconloop;x!==arr.length;++x){
+			const info=arr[x]; if(this._index===info[5]) f.forEach.call(this,info,x);
+		}
+	}
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.forEach=function(info){
-	const icons=info[0] , idx=info[3] , fc=info[4];
-	if(Graphics.frameCount>=fc+icons[idx][1]){
-		this.drawLoopIcon();
-		//this.refresh();
+$dddd$.forEach=function(info,index){
+	const icons=info[0];
+	if(!(--info[4]>0)){
+		++info[3];
+		const idx=(info[3]%=icons.length);
+		info[4]=icons[idx][1];
+		this.drawLoopIcon(index);
 	}
 };
-$dddd$=$aaaa$.prototype.drawLoopIcon=function f(){
-	if(this._iconloop && this._iconloop.length) this._iconloop.forEach(f.forEach,this);
+$dddd$=$aaaa$.prototype.drawLoopIcon=function f(idx){
+	if(this._iconloop && this._iconloop.length){
+		if(idx===undefined) this._iconloop.forEach(f.forEach,this);
+		else f.forEach.call(this,this._iconloop[idx]);
+	}
 };
 $dddd$.forEach=function f(info){
-	const icons=info[0];
-	let idx=info[3] , fc=info[4];
-	if(Graphics.frameCount<icons[idx][1]+fc) return;
-	while(Graphics.frameCount>=fc+icons[idx][1]){
-		fc+=icons[idx][1];
-		if(!fc) return;
-		++idx;
-		idx%=icons.length;
-	}
+	const icons=info[0] , idx=info[3];
 	f.tbl.x=info[1];
 	f.tbl.y=info[2];
 	this.processDrawIcon(icons[idx][0],f.tbl);
 };
 $dddd$.forEach.tbl={x:0,y:0};
 if(0)$aaaa$.prototype.refresh=function(){
-	SceneManager.addRefresh(this);
+	//SceneManager.addRefresh(this);
 };
 $aaaa$.prototype.drawActorFace = function(actor, x, y, width, height) {
 	this.drawFace(actor.faceName(), actor.faceIndex(), x, y, width, height);
@@ -10005,7 +10006,7 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 		if(!res.length) break;
 		if(res.length>1){
 			if(!this._iconloop) this._iconloop=[];
-			this._iconloop.push([res,textState.x,textState.y,0,Graphics.frameCount]);
+			this._iconloop.push([res,textState.x,textState.y,0,0,this._drawingIdx]);
 		}
 		this.processDrawIcon(res[0][0], textState);
 	}break;
@@ -10095,6 +10096,12 @@ $aaaa$.prototype.lineHeight=function(){
 $aaaa$.prototype.standardFontSize=function(){ 
 	return this.fontSize||((Utils.isMobileDevice()<<2)+28);
 };
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
+	f.ori.call(this,x,y,w,h);
+	this._maxCols=undefined;
+	this._drawingIdx=undefined;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.maxCols=function(){
 	return this._maxCols===undefined?1:this._maxCols;
 };
@@ -10267,6 +10274,7 @@ $aaaa$.prototype.drawAllItems=function(){
 	let i=this.topIndex();
 	const ende=Math.min(this.maxItems(),this.maxPageItems()+i);
 	if(ende>i) for(;ende!==i;++i){
+		this._drawingIdx=i;
 		this.drawItem(i);
 	}
 };
