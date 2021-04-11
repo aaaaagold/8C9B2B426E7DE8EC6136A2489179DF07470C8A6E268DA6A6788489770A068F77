@@ -1726,8 +1726,26 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		ord<<=1; ord|=!meta.quest;
 		x.ord=ord;
 	});
+{
+	const makeTraitsMap=dataobj=>{
+		const tarr=dataobj.traits;
+		const tmapS=dataobj.tmapS=new Map();
+		const tmapP=dataobj.tmapP=new Map();
+		let tmp;
+		// same type(code) most likely calculated in the same
+		for(let x=0;x!==tarr.length;++x){
+			tmp=tmapS.get(tarr[x].code);
+			if(tmp===undefined) tmapS.set(tarr[x].code,tarr[x].value);
+			else tmapS.set(tarr[x].code,tarr[x].value+tmp);
+			tmp=tmapP.get(tarr[x].code);
+			if(tmp===undefined) tmapP.set(tarr[x].code,tarr[x].value);
+			else tmapP.set(tarr[x].code,tarr[x].value*tmp);
+		}
+		if(tmp=tmapS.get(61)) dataobj.params.push(tmp*1e6); // +act times
+	};
 	{ const wtypeLen=$dataSystem.weaponTypes.length.ceilPow2();
 	$dataWeapons.forEach(x=>{ if(!x) return;
+		makeTraitsMap(x);
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1736,6 +1754,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	}); }
 	{ const etypeLen=$dataSystem.equipTypes.length.ceilPow2() , atypeLen=$dataSystem.armorTypes.length.ceilPow2();
 	$dataArmors.forEach(x=>{ if(!x) return;
+		makeTraitsMap(x);
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1744,6 +1763,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		ord*=atypeLen; ord|=x.atypeId;
 		x.ord=ord;
 	}); }
+}
 	
 	// make def, spaceout much faster
 	$dataSkills[3].speed=$dataSkills[2].speed<<=10;
