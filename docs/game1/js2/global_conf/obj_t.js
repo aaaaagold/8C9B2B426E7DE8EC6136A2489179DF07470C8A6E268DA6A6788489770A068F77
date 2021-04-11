@@ -594,7 +594,7 @@ $aaaa$.prototype.updateMotionCount=function(){
 				this._breathCnt=0;
 				++this._pattern; this._pattern&=3;
 			}
-		}else if(this._pattern < 2) this._pattern++;
+		}else if(this._pattern < 2) ++this._pattern;
 		else this.refreshMotion();
 		this._motionCount = 0;
 	}
@@ -678,7 +678,7 @@ $aaaa$.prototype.update=function(){
 			this._motionCount|=0;
 			this._pattern|=0;
 			this._breathCnt|=0;
-			if(!this._motion) this._motion={loop:true};
+			if(!this._motion) this._motion={loop:true,index:0};
 			Sprite_Actor.prototype.updateMotionCount.call(this);
 		}
 		this.updateEffect();
@@ -9652,7 +9652,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 		case true: {
 			const ids=$gameParty._acs;
 			if(ids.length===0) break;
-			this._mimic=this._refActor=ids.rnd();
+			const n=this._mimic=this._refActor=ids.rnd();
+			const a=$gameActors.actor(n);
+			for(let x=0,arr=this._paramPlus;x!==arr.length;++x){
+				arr[x]=a.paramBase(x)+a.paramPlus(x);
+			}
+			this.recoverAll(true);
 		}break;
 		case undefined: break;
 		}
@@ -11677,7 +11682,8 @@ $dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
 				this.changeTextColor(this.systemColor());
 				this.drawText(TextManager.param(i), ox, y, w3);
 				this.changeTextColor(this.paramchangeTextColor(i===-2?p-1:p));
-				if(p>0) p="+"+p;
+				if(i===-2) p="*"+p;
+				else if(p>0) p="+"+p;
 				this.drawText(p, x3, y, w2_4, 'right');
 				y+=h;
 				if(y>=ch) break; // out of draw bound

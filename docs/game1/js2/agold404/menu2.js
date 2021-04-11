@@ -1940,7 +1940,7 @@ $aaaa$.prototype.update=function(){
 		this.scrolly=this.scrolly+TouchInput.wheelY;
 	}
 	{
-		const lh=this.lineHeight(),nvh=this.numVisibleRows()*lh,up="up",dn="down",pgup="pageup",pgdn="pagedown";
+		const lh=this.lineHeight(),nvh=this.numVisibleRows()*lh,up="up",dn="down",pgup="pageup",pgdn="pagedown",home="home",ende="end";
 		if(Input.isTriggered(up) || Input.isRepeated(up)){
 			this.scrolly -= lh;
 		}
@@ -1952,6 +1952,12 @@ $aaaa$.prototype.update=function(){
 		}
 		if(Input.isTriggered(pgdn) || Input.isRepeated(pgdn)){
 			this.scrolly += nvh;
+		}
+		if(Input.isTriggered(home)){
+			this.scrolly = 0;
+		}
+		if(Input.isTriggered(ende)){
+			this.scrolly = this._canScrolly;
 		}
 	}
 	this.scrolly=this.scrolly.clamp(0,this._canScrolly);
