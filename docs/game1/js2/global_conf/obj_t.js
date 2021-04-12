@@ -1702,6 +1702,59 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	$dataSystem.currencyUnit_ori=$dataSystem.currencyUnit;
 	$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
 	
+	// make traits map
+	{ const makeTraitsMap=dataobj=>{
+		const tarr=dataobj.traits;
+		if(!tarr) return;
+		const tmapS=dataobj.tmapS=new Map();
+		const tmapP=dataobj.tmapP=new Map();
+		let tmp;
+		// same type(code) most likely calculated in the same
+		for(let x=0;x!==tarr.length;++x){
+			const code=tarr[x].code , id=tarr[x].dataId , val=tarr[x].value;
+			tmp=tmapS.get(code);
+			if(tmp===undefined){
+				const m=new Map();
+				m.set(id,tmapS.v=val);
+				tmapS.set(code,m);
+			}else{
+				const v=tmp.get(id);
+				if(v===undefined) tmp.set(id,val);
+				else tmp.set(id,val+v);
+				tmp.v+=val;
+			}
+			tmp=tmapP.get(code);
+			if(tmp===undefined){
+				const m=new Map();
+				m.set(id,tmapP.v=val);
+				tmapP.set(code,m);
+			}else{
+				const v=tmp.get(id);
+				if(v===undefined) tmp.set(id,val);
+				else tmp.set(id,val*v);
+				tmp.v*=val;
+			}
+		}
+		if( dataobj.params && (tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) ) dataobj.params.push(tmp.v*1e6); // +act times
+	};
+	$dataArmors.forEach(x=>{ if(!x) return;
+		const meta=x.meta;
+		makeTraitsMap(x);
+	});
+	$dataSkills.forEach(x=>{ if(!x) return;
+		const meta=x.meta;
+		makeTraitsMap(x);
+	});
+	$dataStates.forEach(x=>{ if(!x) return;
+		const meta=x.meta;
+		makeTraitsMap(x);
+	});
+	$dataWeapons.forEach(x=>{ if(!x) return;
+		const meta=x.meta;
+		makeTraitsMap(x);
+	});
+	}
+	
 	// sorting order
 	{ const arr=$dataCustom.skillOrder.flat(),c2=arr.length.ceilPow2();
 	$dataSkills.forEach(x=>{ if(!x) return;
@@ -1726,26 +1779,8 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		ord<<=1; ord|=!meta.quest;
 		x.ord=ord;
 	});
-{
-	const makeTraitsMap=dataobj=>{
-		const tarr=dataobj.traits;
-		const tmapS=dataobj.tmapS=new Map();
-		const tmapP=dataobj.tmapP=new Map();
-		let tmp;
-		// same type(code) most likely calculated in the same
-		for(let x=0;x!==tarr.length;++x){
-			tmp=tmapS.get(tarr[x].code);
-			if(tmp===undefined) tmapS.set(tarr[x].code,tarr[x].value);
-			else tmapS.set(tarr[x].code,tarr[x].value+tmp);
-			tmp=tmapP.get(tarr[x].code);
-			if(tmp===undefined) tmapP.set(tarr[x].code,tarr[x].value);
-			else tmapP.set(tarr[x].code,tarr[x].value*tmp);
-		}
-		if(tmp=tmapS.get(61)) dataobj.params.push(tmp*1e6); // +act times
-	};
 	{ const wtypeLen=$dataSystem.weaponTypes.length.ceilPow2();
 	$dataWeapons.forEach(x=>{ if(!x) return;
-		makeTraitsMap(x);
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1754,7 +1789,6 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	}); }
 	{ const etypeLen=$dataSystem.equipTypes.length.ceilPow2() , atypeLen=$dataSystem.armorTypes.length.ceilPow2();
 	$dataArmors.forEach(x=>{ if(!x) return;
-		makeTraitsMap(x);
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1763,7 +1797,6 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		ord*=atypeLen; ord|=x.atypeId;
 		x.ord=ord;
 	}); }
-}
 	
 	// make def, spaceout much faster
 	$dataSkills[3].speed=$dataSkills[2].speed<<=10;
@@ -4283,6 +4316,9 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Game_BattlerBase;
 Game_BattlerBase.currMaxEnum=70;
 Game_BattlerBase.addEnum=objs._addEnum;
+Game_BattlerBase.addEnum('CACHEKEY_EQUIP');
+Game_BattlerBase.addEnum('CACHEKEY_SKILL');
+Game_BattlerBase.addEnum('CACHEKEY_STATE');
 Object.defineProperties($aaaa$.prototype, {
 	mtp: { get: function() { return this.maxTp(); }, configurable: false },
 	stp: { get: function() { return this._stp; }, configurable: false },
@@ -4295,6 +4331,125 @@ $dddd$=$aaaa$.prototype.updateStateTurns=function f(){
 $dddd$.forEach=function(stateId) {
 	this[stateId]>0 && --this[stateId];
 };
+$aaaa$.prototype.clearStates=function(){
+	this._states_delCache();
+	this._stateTurns={};
+	if(this._states) this._states.length=0;
+	else this._states=[];
+};
+$aaaa$.prototype.eraseState=function(stateId){
+	const index=this._states.indexOf(stateId);
+	if(index>=0){
+		this._states.splice(index, 1);
+		const stat=this._states_getCache();
+		if(stat){
+			stat.splice(index, 1);
+			stat.a.delete(stateId);
+		}
+	}
+	delete this._stateTurns[stateId];
+};
+$aaaa$.prototype.isStateAffected=function(stateId){
+	return (this._states_getCache()||this._states_updateCache()).a.has(stateId);
+};
+$dddd$=$aaaa$.prototype._states_delCache=function f(){
+	$gameTemp.delCache(this,f.key);
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
+$dddd$=$aaaa$.prototype._states_getCache=function f(){
+	return $gameTemp.getCache(this,f.key);
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
+$dddd$=$aaaa$.prototype._states_updateCache=function f(){
+	let rtv;
+	$gameTemp.updateCache(this,f.key,rtv=this._states.map(f.map));
+	rtv.a=new Set(this._states);
+	return rtv;
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
+$tttt$=$dddd$.map=id=>$dataStates[id];
+$dddd$=$aaaa$.prototype.states=function f(){
+	return (this._states_getCache()||this._states_updateCache()).slice();
+};
+$dddd$=$aaaa$.prototype._addNewState_updateCache=function f(stateId){
+	this._states.push(stateId);
+	const stat=this._states_getCache();
+	if(stat){
+		stat.push(f.map(stateId));
+		stat.a.add(stateId);
+	}
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
+$dddd$.map=$tttt$;
+$tttt$=undef;
+$aaaa$.prototype.addNewState=function(stateId){
+	let cancel=false;
+	if(stateId === this.deathStateId()){
+		this.die();
+		if(this.isAbleToAutoRevive()){
+			cancel=true;
+			this._hp=1;
+		}
+	}
+	if(!cancel){
+		this._addNewState_updateCache(stateId);
+		const restricted = this.isRestricted();
+		this._states.push(stateId);
+		this.sortStates();
+		if(!restricted && this.isRestricted()){
+			this.onRestrict();
+		}
+	}
+};
+$dddd$=$aaaa$.prototype.sortStates=function f(){
+	this._states.sort(f.cmp[0]);
+	const stat=this._states_getCache();
+	if(stat){
+		stat.sort(f.cmp[1]);
+	}
+};
+$dddd$.cmp=[
+	(a, b)=>{
+	        const pa=$dataStates[a].priority , pb=$dataStates[b].priority;
+		return (pa===pb)?(a - b):(pb - pa);
+	},
+	(a,b)=>{
+	        const pa=a.priority , pb=b.priority;
+		return (pa===pb)?(a.id - b.id):(pb - pa);
+	},
+];
+$aaaa$.prototype.stateIcons=function(){
+	const rtv=[],arr=this.states();
+	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) rtv.push(arr[x].iconIndex);
+	return rtv;
+};
+$aaaa$.prototype.allIcons = function() {
+	const rtv=this.stateIcons(),arr=this.buffIcons();
+	for(let x=0;x!==arr.length;++x) if(arr[x]>0) rtv.push(arr[x]);
+	return rtv;
+};
+$dddd$=$aaaa$.prototype.allTraits = function f(code) {
+	const rtv=[]; rtv.code=code;
+	return this.traitObjects().reduce(f.reduce, rtv);
+};
+$dddd$.reduce=(r, obj)=>{
+	const arr=obj.traits;
+	for(let x=0,xs=arr.length;x!==xs;++x){
+		const tmp=arr[x];
+		if(r.code===undefined||r.code===tmp.code) r.push(tmp);
+	}
+	return r;
+};
+$aaaa$.prototype.traits=function f(code){
+	return code===undefined?[]:this.allTraits(code);
+};
+$aaaa$.prototype.traitsWithId = function(code, id) {
+	return this.allTraits(code).filter(trait=>trait.dataId===id);
+};
+$dddd$=$aaaa$.prototype.traitsSet=function f(code){ // ori: use array.reduce as array.map
+	return this.traits(code).map(f.forEach);
+};
+$dddd$.forEach=trait=>trait.dataId;
 $aaaa$.prototype.paramMax=function(paramId){
 	return 999999;
 /*
@@ -4331,32 +4486,6 @@ $aaaa$.prototype.param=function(paramId){
 	} }
 	return value;
 };
-$dddd$=$aaaa$.prototype.states=function f(){
-	return this._states.map(f.forEach);
-};
-$dddd$.forEach=id=>$dataStates[id];
-$dddd$=$aaaa$.prototype.allTraits = function f(code) {
-	const rtv=[]; rtv.code=code;
-	return this.traitObjects().reduce(f.reduce, rtv);
-};
-$dddd$.reduce=(r, obj)=>{
-	const arr=obj.traits;
-	for(let x=0,xs=arr.length;x!==xs;++x){
-		const tmp=arr[x];
-		if(r.code===undefined||r.code===tmp.code) r.push(tmp);
-	}
-	return r;
-};
-$aaaa$.prototype.traits=function f(code){
-	return code===undefined?[]:this.allTraits(code);
-};
-$aaaa$.prototype.traitsWithId = function(code, id) {
-	return this.allTraits(code).filter(trait=>trait.dataId===id);
-};
-$dddd$=$aaaa$.prototype.traitsSet=function f(code){ // ori: use array.reduce as array.map
-	return this.traits(code).map(f.forEach);
-};
-$dddd$.forEach=trait=>trait.dataId;
 $aaaa$.prototype.addedSkillTypes_arranged=function(omits){
 	const h=new Heap(undefined,this.addedSkillTypes(),true),s=new Set(omits);
 	const rtv=[];
@@ -4468,27 +4597,6 @@ $aaaa$.prototype.isStarving=function(){
 };
 $aaaa$.prototype.isHungry=function(){
 	return this.stpRate()<0.1;
-};
-$aaaa$.prototype._addNewState_updateCache=function(stateId){
-};
-$aaaa$.prototype.addNewState=function(stateId){
-	let cancel=false;
-	if(stateId === this.deathStateId()){
-		this.die();
-		if(this.isAbleToAutoRevive()){
-			cancel=true;
-			this._hp=1;
-		}
-	}
-	if(!cancel){
-		this._addNewState_updateCache(stateId);
-		const restricted = this.isRestricted();
-		this._states.push(stateId);
-		this.sortStates();
-		if(!restricted && this.isRestricted()){
-			this.onRestrict();
-		}
-	}
 };
 $aaaa$.prototype.skillHpCost=function(skill){
 	return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
@@ -4607,7 +4715,7 @@ $aaaa$.prototype.clearActions=function(){
 };
 $aaaa$.prototype.removeStatesAuto=function(timing){
 	this._states.forEach(stateId=>{
-		const state=this.states.forEach(stateId);
+		const state=$dataStates[stateId];
 		if(this.isStateExpired(stateId) && state.autoRemovalTiming === timing) {
 			this.removeState(stateId);
 		}
@@ -8920,15 +9028,14 @@ $aaaa$.prototype._equipR_ch=function(theSlotArr,slotIdExt,ori,item){
 		}else theSlotArr.splice(slotIdExt,1);
 	}
 };
-$tttt$='chE';
 $dddd$=$aaaa$.prototype._equips_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
-$dddd$.key=$tttt$;
+$dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
 $dddd$=$aaaa$.prototype._equips_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
-$dddd$.key=$tttt$;
+$dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
 $dddd$=$aaaa$.prototype.equips=function f(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
 	let rtv=this._equips_getCache();
 	if(refresh||!rtv){
@@ -8937,15 +9044,17 @@ $dddd$=$aaaa$.prototype.equips=function f(refresh){ // called every time when a 
 	}
 	/*
 		rtv.a	'Actor.traitObjects()' 
+		rtv.k	all skills 
+		rtv.p	trait.code->Set([trait.dataId]) with * each
 		rtv.r	data of equipped armors 
-		rtv.s	trait.code->Set([trait.dataId]) 
+		rtv.s	trait.code->Set([trait.dataId]) with + each
 		rtv.t	'rtv.a' but only equipments 
 		rtv.u	id -> plus by equips in 'this.paramPlus(id)'
 		rtv.w	data of equipped weapons 
 	*/
 	return rtv; 
 };
-$dddd$.key=$tttt$;
+$dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
 $dddd$.map=function f(item){
 	return item.constructor===Array?item.map(x=>f(x)):item.object();
 };
@@ -9141,37 +9250,51 @@ $aaaa$.prototype.refresh=function(noReleaseEquips){
 	if(!noReleaseEquips) this.releaseUnequippableItems(false);
 	Game_Battler.prototype.refresh.call(this);
 };
-{ $tttt$='skill';
 $dddd$=$aaaa$.prototype._skills_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
-$dddd$.key=$tttt$;
+$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$=$aaaa$.prototype._skills_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
+$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$=$aaaa$.prototype._skills_updateCache=function f(){
 	let rtv;
 	this._skills.sort(f.cmp);
 	$gameTemp.updateCache(this,f.key,rtv=new Set(this._skills));
 	return rtv;
 };
-$dddd$.key=$tttt$;
-const cmp=$dddd$.cmp=(a,b)=>$dataSkills[a].ord-$dataSkills[b].ord||a-b;
+$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
+$tttt$=$dddd$.cmp=(a,b)=>$dataSkills[a].ord-$dataSkills[b].ord||a-b;
+$aaaa$.prototype._skills_delCache_added=function(){
+	const c=this._skills_getCache();
+	if(c) c.added=0;
+};
 $dddd$=$aaaa$.prototype.skills=function f(){
 	let rtv;
 	let s=this._skills_getCache();
-	if(s){ rtv=[]; s.forEach( v=>rtv.push(f.map(v)) ); }
-	else{
+	const added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	if(s){
+		if(s.added===added) return s.all;
+		s.added=added;
+		rtv=[];
+		s.forEach( v=>rtv.push(f.map(v)) );
+	}else{
 		s=this._skills_updateCache();
+		s.added=added;
 		rtv=this._skills.map(f.map);
 	}
-	this.addedSkills().sort(f.cmp).forEach( id=>!s.has(id)&&rtv.push($dataSkills[id]) ); // is already unique
-	return rtv;
+	{
+		const arr=[];
+		s.added.forEach((v,k)=>arr.push(k));
+		arr.sort(f.cmp).forEach(id=>!s.has(id)&&rtv.push($dataSkills[id])); // addeds are already unique
+	}
+	return s.all=rtv;
 };
-$dddd$.key=$tttt$;
-$dddd$.cmp=cmp;
+$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
+$dddd$.cmp=$tttt$;
 $dddd$.map=id=>$dataSkills[id];
-} $tttt$=undef;
+$tttt$=undef;
 $dddd$=$aaaa$.prototype._traitObjects=function f(){
 	// add every obj (related to 'this' actor) that contains traits
 	const eqs=this.equips(),objects=Game_Battler.prototype.traitObjects.call(this);
@@ -9312,43 +9435,55 @@ $aaaa$.prototype.specialFlag=function(flagId){
 $aaaa$.prototype.partyAbility=function(abilityId){
 	this.traitSet(Game_BattlerBase.TRAIT_PARTY_ABILITY).has(abilityId);
 };
+$aaaa$.prototype.clearStates = function() {
+	if(this._states && this._states.length){
+		const c=this._equips_getCache();
+		if(c) c.s=undefined;
+		this._skills_delCache_added();
+	}
+	Game_Battler.prototype.clearStates.call(this);
+	this._stateSteps = {};
+};
+$dddd$=$aaaa$.prototype.eraseState=function f(stateId){
+	const ori=this._states.length,c=this._equips_getCache();
+	Game_Battler.prototype.eraseState.call(this, stateId);
+	if(ori!==this._states.length){ // states changed
+		const stat=$dataStates[stateId];
+		const traits=stat&&stat.traits||[];
+		if(traits.some(x=>x.code===Game_BattlerBase.TRAIT_SLOT_TYPE)) this._equips_delCache();
+		else this.equips().s=undefined;
+		if(stat.tmapS.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
+	}
+	delete this._stateSteps[stateId];
+};
+$dddd$.forEach=[
+	x=>Game_BattlerBase.TRAIT_SLOT_TYPE===x.code, // slot type
+	x=>Game_BattlerBase.TRAIT_SKILL_ADD===x.code, // add skill
+];
 $aaaa$.prototype._addNewState_updateCache=function(stateId){
+	Game_BattlerBase.prototype._addNewState_updateCache.call(this,stateId);
 	const c=this._equips_getCache();
-	if(c){ if(c.s){
+	if(!c) return;
+	let skillChanged=false;
+	if(c.s||c.p){
 		const stat=$dataStates[stateId];
 		if(stat){ for(let arr=stat.traits,x=arr.length;x--;){
 			const curr=arr[x];
-			{ const s=c.s.get(curr.code); if(s){
+			skillChanged|=Game_BattlerBase.TRAIT_SKILL_ADD===curr.code;
+			if(c.s){ const s=c.s.get(curr.code); if(s){
 				const id=curr.dataId;
 				const value=s.get(id)||0;
 				s.set(id,curr.value+value);
 			} }
-			{ const p=c.p.get(curr.code); if(p){
+			if(c.p){ const p=c.p.get(curr.code); if(p){
 				const id=curr.dataId;
 				let value=p.get(id); if(value===undefined) value=1;
 				p.set(id,curr.value*value);
 			} }
 		} }
-	} c.stateChanged=true; }
-	
-};
-$aaaa$.prototype.clearStates = function() {
-	if(this._states && this._states.length){
-		const c=this._equips_getCache();
-		if(c) c.s=undefined;
 	}
-	Game_Battler.prototype.clearStates.call(this);
-	this._stateSteps = {};
-};
-$aaaa$.prototype.eraseState=function(stateId){
-	const ori=this._states.length;
-	Game_Battler.prototype.eraseState.call(this, stateId);
-	if(ori!==this._states.length){
-		const traits=$dataStates[stateId]&&$dataStates[stateId].traits;
-		if(traits.some(x=>x.code===Game_BattlerBase.TRAIT_SLOT_TYPE)) this._equips_delCache();
-		else this.equips().s=undefined;
-	}
-	delete this._stateSteps[stateId];
+	c.stateChanged=true;
+	if(skillChanged) this._skills_delCache();
 };
 $aaaa$.prototype.paramPlus=function(paramId){
 	let rtv = Game_Battler.prototype.paramPlus.call(this, paramId);
@@ -9395,7 +9530,7 @@ $aaaa$.prototype.performAttack=function(){
 $aaaa$.prototype.onPlayerWalk=function(){
 	this.clearResult();
 	this.checkFloorEffect();
-	if ($gamePlayer.isNormal()) {
+	if($gamePlayer.isNormal()){
 		this.turnEndOnMap();
 		this._states.forEach(this.updateStateSteps, this);
 		this.showAddedStates();
@@ -9403,7 +9538,7 @@ $aaaa$.prototype.onPlayerWalk=function(){
 	}
 };
 $aaaa$.prototype.updateStateSteps = function(stateId){
-	if(this.states.forEach(stateId).removeByWalking && !(--this._stateSteps[stateId]>0)){
+	if($dataStates[stateId].removeByWalking && !(--this._stateSteps[stateId]>0)){
 		this.removeState(stateId);
 	}
 };
