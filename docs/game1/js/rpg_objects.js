@@ -1899,23 +1899,6 @@ Game_BattlerBase.prototype.clearParamPlus = function() {
     this._paramPlus = [0,0,0,0,0,0,0,0];
 };
 
-Game_BattlerBase.prototype.clearStates = function() {
-    this._states = [];
-    this._stateTurns = {};
-};
-
-Game_BattlerBase.prototype.eraseState = function(stateId) {
-    var index = this._states.indexOf(stateId);
-    if (index >= 0) {
-        this._states.splice(index, 1);
-    }
-    delete this._stateTurns[stateId];
-};
-
-Game_BattlerBase.prototype.isStateAffected = function(stateId) {
-    return this._states.contains(stateId);
-};
-
 Game_BattlerBase.prototype.isDeathStateAffected = function() {
     return this.isStateAffected(this.deathStateId());
 };
@@ -2014,14 +1997,6 @@ Game_BattlerBase.prototype.revive = function() {
     }
 };
 
-Game_BattlerBase.prototype.stateIcons = function() {
-    return this.states().map(function(state) {
-        return state.iconIndex;
-    }).filter(function(iconIndex) {
-        return iconIndex > 0;
-    });
-};
-
 Game_BattlerBase.prototype.buffIcons = function() {
     var icons = [];
     for (var i = 0; i < this._buffs.length; i++) {
@@ -2040,10 +2015,6 @@ Game_BattlerBase.prototype.buffIconIndex = function(buffLevel, paramId) {
     } else {
         return 0;
     }
-};
-
-Game_BattlerBase.prototype.allIcons = function() {
-    return this.stateIcons().concat(this.buffIcons());
 };
 
 Game_BattlerBase.prototype.traitObjects = function() {
@@ -2308,17 +2279,6 @@ Game_BattlerBase.prototype.isActor = function() {
 
 Game_BattlerBase.prototype.isEnemy = function() {
     return false;
-};
-
-Game_BattlerBase.prototype.sortStates = function() {
-    this._states.sort(function(a, b) {
-        var p1 = $dataStates[a].priority;
-        var p2 = $dataStates[b].priority;
-        if (p1 !== p2) {
-            return p2 - p1;
-        }
-        return a - b;
-    });
 };
 
 Game_BattlerBase.prototype.restriction = function() {
