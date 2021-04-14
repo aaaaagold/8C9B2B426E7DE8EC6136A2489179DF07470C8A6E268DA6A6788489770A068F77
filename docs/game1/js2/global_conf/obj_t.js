@@ -1587,15 +1587,16 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - boot
 $aaaa$=Scene_Boot;
-$aaaa$.prototype.isGameFontLoaded = function() {
+$aaaa$.prototype.isGameFontLoaded=function(){
 	if(Graphics.isFontLoaded( _global_conf.useFont ) || Graphics.canUseCssFontLoading()) return true;
 	else if(Date.now()-this._startDate>=20000) throw new Error('Failed to load font');
 };
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){ // only exec once
+$dddd$=$aaaa$.prototype.arrangeData=function f(){
 	
 	// extend texts
-	{ const arr=$dataSystem.terms.params,texts=$dataCustom.params;
+	if(!$dataSystem.terms.extended){
+		$dataSystem.terms.extended=true;
+		const arr=$dataSystem.terms.params,texts=$dataCustom.params;
 		arr[-2]=texts.exr;
 		arr[-1]=texts.act;
 		arr.push(texts.cri);
@@ -1639,23 +1640,23 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 			}
 		}
 	};
-	$dataActors.forEach(f);
-	$dataArmors.forEach(f);
-	$dataClasses.forEach(f);
-	$dataEnemies.forEach(f);
-	$dataStates.forEach(f);
-	$dataWeapons.forEach(f);
+	$dataActors  .slice($dataActors  .arrangeStart||1).forEach(f);
+	$dataArmors  .slice($dataArmors  .arrangeStart||1).forEach(f);
+	$dataClasses .slice($dataClasses .arrangeStart||1).forEach(f);
+	$dataEnemies .slice($dataEnemies .arrangeStart||1).forEach(f);
+	$dataStates  .slice($dataStates  .arrangeStart||1).forEach(f);
+	$dataWeapons .slice($dataWeapons .arrangeStart||1).forEach(f);
 }
 	
 	// arrange classes.learnings
-	$dataClasses.forEach(x=>{ if(!x) return;
+	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const arr=x.learnings,r=new Map();
 		arr.forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
 		arr.byLv=r;
 	});
 	
 	// stomach
-	$dataItems.forEach(x=>{ if(!x) return;
+	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.stomach){
 			const stp=Number(meta.stomach);
@@ -1669,7 +1670,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	// items with maxDay limit
 	if(!$dataItems.maxDayItems){
 		const mdi=$dataItems.maxDayItems=[];
-		$dataItems.slice(1).forEach(x=>{
+		$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{
 			const maxDay=Number(x.meta.maxDay)+1;
 			if(isNaN(maxDay)||!maxDay) return;
 			const days=[0];
@@ -1686,7 +1687,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	}
 	
 	// drops
-	$dataEnemies.forEach(x=>{ if(!x) return;
+	$dataEnemies.slice($dataEnemies.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.drop){
 			const drops=JSON.parse(meta.drop); // [{"k":kind,"i":id,"d":denominator,"a":amount}]
@@ -1698,73 +1699,32 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	});
 	
 	// terms backup
-	$dataCustom.apps_ori=$dataCustom.apps;
-	$dataSystem.currencyUnit_ori=$dataSystem.currencyUnit;
-	$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
+	if(!$dataSystem.termsBackuped){
+		$dataSystem.termsBackuped=true;
+		$dataCustom.apps_ori=$dataCustom.apps;
+		$dataSystem.currencyUnit_ori=$dataSystem.currencyUnit;
+		$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
+	}
 	
 	// make traits map
-	{ const makeTraitsMap=dataobj=>{
-		const tarr=dataobj.traits;
-		if(!tarr) return;
-		const tmapS=dataobj.tmapS=new Map();
-		const tmapP=dataobj.tmapP=new Map();
-		let tmp;
-		// same type(code) most likely calculated in the same
-		for(let x=0;x!==tarr.length;++x){
-			const code=tarr[x].code , id=tarr[x].dataId , val=tarr[x].value;
-			tmp=tmapS.get(code);
-			if(tmp===undefined){
-				const m=new Map();
-				m.set(id,tmapS.v=val);
-				tmapS.set(code,m);
-			}else{
-				const v=tmp.get(id);
-				if(v===undefined) tmp.set(id,val);
-				else tmp.set(id,val+v);
-				tmapS.v+=val;
-			}
-			tmp=tmapP.get(code);
-			if(tmp===undefined){
-				const m=new Map();
-				m.set(id,tmapP.v=val);
-				tmapP.set(code,m);
-			}else{
-				const v=tmp.get(id);
-				if(v===undefined) tmp.set(id,val);
-				else tmp.set(id,val*v);
-				tmapP.v*=val;
-			}
-		}
-		if( dataobj.params && (tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) ) dataobj.params.push(tmp.v*1e6); // +act times
-	};
-	$dataArmors.forEach(x=>{ if(!x) return;
-		const meta=x.meta;
-		makeTraitsMap(x);
-	});
-	$dataSkills.forEach(x=>{ if(!x) return;
-		const meta=x.meta;
-		makeTraitsMap(x);
-	});
-	$dataStates.forEach(x=>{ if(!x) return;
-		const meta=x.meta;
-		makeTraitsMap(x);
-	});
-	$dataWeapons.forEach(x=>{ if(!x) return;
-		const meta=x.meta;
-		makeTraitsMap(x);
-	});
-	}
+	$dataActors.slice($dataActors.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataEnemies.slice($dataEnemies.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataStates.slice($dataStates.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(f.makeTraitsMap);
 	
 	// sorting order
 	{ const arr=$dataCustom.skillOrder.flat(),c2=arr.length.ceilPow2();
-	$dataSkills.forEach(x=>{ if(!x) return;
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		if(meta.hpCost) x.hpCost=Number(meta.hpCost)|0;
 		let ord=0;
 		x.ord=ord*c2;
 	}); arr.forEach((x,i)=>$dataSkills[x]&&($dataSkills[x].ord|=i)); }
-	$dataItems.forEach(x=>{ if(!x) return;
+	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1780,7 +1740,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		x.ord=ord;
 	});
 	{ const wtypeLen=$dataSystem.weaponTypes.length.ceilPow2();
-	$dataWeapons.forEach(x=>{ if(!x) return;
+	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1788,7 +1748,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 		x.ord=ord;
 	}); }
 	{ const etypeLen=$dataSystem.equipTypes.length.ceilPow2() , atypeLen=$dataSystem.armorTypes.length.ceilPow2();
-	$dataArmors.forEach(x=>{ if(!x) return;
+	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		let ord=0;
@@ -1799,25 +1759,68 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	}); }
 	
 	// make def, spaceout much faster
-	$dataSkills[3].speed=$dataSkills[2].speed<<=10;
+	if(!$dataSkills.speedUp){
+		$dataSkills.speedUp=true;
+		$dataSkills[3].speed=$dataSkills[2].speed<<=10;
+	}
 	
 	// **** recursive def (_*) ****
-	$dataSkills.forEach(x=>{ if(!x) return;
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataSkills;
 		x.itemType='s';
 	});
-	$dataItems.forEach(x=>{ if(!x) return;
+	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataItems;
 		x.itemType='i';
 	});
-	$dataWeapons.forEach(x=>{ if(!x) return;
+	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataWeapons;
 		x.itemType='w';
 	});
-	$dataArmors.forEach(x=>{ if(!x) return;
+	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataArmors;
 		x.itemType='a';
 	});
+	
+	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataWeapons,].forEach(x=>x.arrangeStart=x.length);
+};
+$dddd$.makeTraitsMap=dataobj=>{
+	const tarr=dataobj.traits;
+	if(!tarr) return;
+	const tmapS=dataobj.tmapS=new Map();
+	const tmapP=dataobj.tmapP=new Map();
+	let tmp;
+	// same type(code) most likely calculated in the same
+	for(let x=0;x!==tarr.length;++x){
+		const code=tarr[x].code , id=tarr[x].dataId , val=tarr[x].value;
+		tmp=tmapS.get(code);
+		if(tmp===undefined){
+			const m=new Map();
+			m.set(id,tmapS.v=val);
+			tmapS.set(code,m);
+		}else{
+			const v=tmp.get(id);
+			if(v===undefined) tmp.set(id,val);
+			else tmp.set(id,val+v);
+			tmapS.v+=val;
+		}
+		tmp=tmapP.get(code);
+		if(tmp===undefined){
+			const m=new Map();
+			m.set(id,tmapP.v=val);
+			tmapP.set(code,m);
+		}else{
+			const v=tmp.get(id);
+			if(v===undefined) tmp.set(id,val);
+			else tmp.set(id,val*v);
+			tmapP.v*=val;
+		}
+	}
+	if( dataobj.params && (tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) ) dataobj.params.push(tmp.v*1e6); // +act times
+};
+$rrrr$=$aaaa$.prototype.start;
+$dddd$=$aaaa$.prototype.start=function f(){ // only exec once
+	this.arrangeData();
 	DataManager._itemArrs={s:$dataSkills,i:$dataItems,w:$dataWeapons,a:$dataArmors,};
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
