@@ -214,7 +214,7 @@ $aaaa$.prototype.itemRect=function(index){
 	return rect;
 };
 $aaaa$.prototype.updateArrows=function(){
-	this.rightArrowVisible = this._scrollIdx + this._maxCols < this.maxItems();
+	this.rightArrowVisible = this._scrollIdx + this.maxCols() < this.maxItems();
 	this.leftArrowVisible = this._scrollIdx !== 0;
 };
 $aaaa$.prototype._getActor=Window_BattlePlan.prototype._getActor;
@@ -242,15 +242,15 @@ $aaaa$.prototype.cursorDown=none;
 $aaaa$.prototype.cursorUp=none;
 $aaaa$.prototype.ensureCursorVisible=function(){
 	if(!(this._index>=0)) return;
-	const lastScrollIdx=this._scrollIdx;
-	const ende=lastScrollIdx+this._maxCols;
-	if(this._index>=ende) this._scrollIdx=this._index-this._maxCols+1;
+	const maxCols=this.maxCols() , lastScrollIdx=this._scrollIdx;
+	const ende=lastScrollIdx+maxCols;
+	if(this._index>=ende) this._scrollIdx=this._index-maxCols+1;
 	else if(this._index<lastScrollIdx) this._scrollIdx=this._index;
 	if(this._scrollIdx!==lastScrollIdx){
 		this.refresh();
 		//this.updateCursor();
 		if(this._planWindows){
-			/* // TODO
+			/* // TODO: move windows to reduce the calculation
 			const newEnde=this._scrollIdx+this._maxCols;
 			if(lastScrollIdx<newEnde){ // TODO
 			}else if(this._scrollIdx<ende){ // TODO
