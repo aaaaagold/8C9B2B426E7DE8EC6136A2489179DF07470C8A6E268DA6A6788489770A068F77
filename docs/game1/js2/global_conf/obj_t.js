@@ -1056,7 +1056,7 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - ConfigManager
 $aaaa$=ConfigManager;
 $aaaa$.maxSavefiles=DataManager.maxSavefiles();
-$aaaa$.ConfigOptionsWithPlayer=[
+$aaaa$.ConfigOptionsWithSystem=[
 	["_noGainMsg",$aaaa$.readFlag],
 	["_noGainHint",$aaaa$.readFlag],
 	["_noGainSound",$aaaa$.readFlag],
@@ -1070,7 +1070,7 @@ $aaaa$.ConfigOptionsWithPlayer=[
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
 ];
-$aaaa$.ConfigOptions=$aaaa$.ConfigOptionsWithPlayer.concat([
+$aaaa$.ConfigOptions=$aaaa$.ConfigOptionsWithSystem.concat([
 	["alwaysDash",$aaaa$.readFlag],
 	["commandRemember",$aaaa$.readFlag],
 	["bgmVolume",$aaaa$.readVolume],
@@ -2082,6 +2082,7 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	$gamePlayer=objs.$gamePlayer=null;
 	let refreshes=objs._refreshVars;
 	for(let i in refreshes) refreshes[i]();
+	$gameSystem._usr=0;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.createBackground=function(){
 	let t;
@@ -3120,8 +3121,20 @@ $aaaa$.prototype.gameoverMsg_ok=function(){
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
-// - map
+// - sys
+$aaaa$=Game_System;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(){
+	f.ori.call(this);
+	this._usr={};
+	ConfigManager.ConfigOptionsWithSystem.forEach(x=>{
+		if(!(x[0] in ConfigManager)) return;
+		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
+	});
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$dddd$=$aaaa$=undef;
 
+// - map
 $aaaa$=Game_Map;
 Object.defineProperties($aaaa$.prototype, {
 	size: { get: function() { return $dataMap ? $gameMap.width()*$gameMap.height() : undefined; }, configurable: false },
@@ -4339,7 +4352,8 @@ $aaaa$.prototype.clearStates=function(){
 };
 $aaaa$.prototype.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
-	if(index>=0){
+	const rtv=index>=0;
+	if(rtv){
 		this._states.splice(index, 1);
 		const stat=this._states_getCache();
 		if(stat){
@@ -4348,6 +4362,7 @@ $aaaa$.prototype.eraseState=function(stateId){
 		}
 	}
 	delete this._stateTurns[stateId];
+	return rtv;
 };
 $aaaa$.prototype.isStateAffected=function(stateId){
 	return (this._states_getCache()||this._states_updateCache()).a.has(stateId);
@@ -5864,9 +5879,8 @@ $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
 	f.ori.call(this);
 	this.maxSavefiles=DataManager.maxSavefiles();
-	ConfigManager.ConfigOptionsWithPlayer.forEach(x=>(x in ConfigManager)&&(this[x]=ConfigManager[x]));
 	this._rndid=Date.now()+''+Math.random();
-	this.canDiag=true;
+	if(this.canDiag===undefined) this.canDiag=true;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.maxFollowers=function(){
 	return _global_conf["default maxFollowers"]||4040;
@@ -9477,8 +9491,7 @@ $dddd$=$aaaa$.prototype.eraseState=function f(stateId){
 	Game_Battler.prototype.eraseState.call(this, stateId);
 	if(ori!==this._states.length){ // states changed
 		const stat=$dataStates[stateId];
-		const traits=stat&&stat.traits||[];
-		if(traits.some(x=>x.code===Game_BattlerBase.TRAIT_SLOT_TYPE)) this._equips_delCache();
+		if(stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE)) this._equips_delCache();
 		else this.equips().s=undefined;
 		if(stat.tmapS.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
 	}

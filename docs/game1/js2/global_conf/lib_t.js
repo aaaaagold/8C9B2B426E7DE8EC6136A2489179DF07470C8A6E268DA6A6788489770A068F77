@@ -32,10 +32,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	halfFps: {
 		get:function(){
 			let key='_halfFps';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem && $gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_halfFps';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -45,10 +45,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noGainMsg: {
 		get:function(){
 			let key='_noGainMsg';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noGainMsg';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -58,10 +58,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noGainHint: {
 		get:function(){
 			let key='_noGainHint';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noGainHint';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -71,10 +71,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noGainSound: {
 		get:function(){
 			let key='_noGainSound';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noGainSound';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -84,10 +84,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	lvUpMsg: {
 		get:function(){
 			let key='_lvUpMsg';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_lvUpMsg';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -97,10 +97,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	lvUpHint: {
 		get:function(){
 			let key='_lvUpHint';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_lvUpHint';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -110,10 +110,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noLeaderHp: {
 		get:function(){
 			let key='_noLeaderHp';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noLeaderHp';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -123,10 +123,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noLeaderMp: {
 		get:function(){
 			let key='_noLeaderMp';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noLeaderMp';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -136,10 +136,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	flwingMsg: {
 		get:function(){
 			let key='_flwingMsg';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_flwingMsg';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -149,10 +149,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noAnimation: {
 		get:function(){
 			let key='_noAnimation';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noAnimation';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -162,10 +162,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	noAutotile: {
 		get:function(){
 			let key='_noAutotile';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_noAutotile';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -175,10 +175,10 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	simpleTouchMove: {
 		get:function(){
 			let key='_simpleTouchMove';
-			return ($gamePlayer && $gamePlayer[key]!==undef)?$gamePlayer[key]:ConfigManager[key];
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
 		},set:function(rhs){
 			let key='_simpleTouchMove';
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
@@ -187,13 +187,13 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 	configurable: false},
 	useFont: {
 		get:function(){
-			return $gamePlayer && $gamePlayer._useFont || ConfigManager._useFont
+			return $gameSystem && $gameSystem._usr && $gameSystem._usr._useFont || ConfigManager._useFont
 				|| "Consolas,'Courier New',Courier,微軟正黑體,標楷體,monospace"; // monospace in firefox cause 新細明體
 				// "Consolas,monospace,'Courier New',Courier,微軟正黑體,標楷體";
 		}, set:function(rhs){
 			let key='_useFont';
-			if(this.useFont!==rhs) textWidthCache.length=0;
-			if($dataMap) return $gamePlayer[key]=rhs;
+			if(this.useFont!==rhs) textWidthCache.length=textWidthCaches.length=0;
+			if($dataMap) return $gameSystem._usr[key]=rhs;
 			else{
 				window['/tmp/'].chConfig=1;
 				return ConfigManager[key]=rhs;
