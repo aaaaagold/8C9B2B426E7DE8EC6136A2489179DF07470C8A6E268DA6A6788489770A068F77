@@ -1997,16 +1997,6 @@ Game_BattlerBase.prototype.revive = function() {
     }
 };
 
-Game_BattlerBase.prototype.buffIcons = function() {
-    var icons = [];
-    for (var i = 0; i < this._buffs.length; i++) {
-        if (this._buffs[i] !== 0) {
-            icons.push(this.buffIconIndex(this._buffs[i], i));
-        }
-    }
-    return icons;
-};
-
 Game_BattlerBase.prototype.buffIconIndex = function(buffLevel, paramId) {
     if (buffLevel > 0) {
         return Game_BattlerBase.ICON_BUFF_START + (buffLevel - 1) * 8 + paramId;
@@ -2281,41 +2271,7 @@ Game_BattlerBase.prototype.isEnemy = function() {
     return false;
 };
 
-Game_BattlerBase.prototype.restriction = function() {
-    return Math.max.apply(null, this.states().map(function(state) {
-        return state.restriction;
-    }).concat(0));
-};
-
 Game_BattlerBase.prototype.onRestrict = function() {
-};
-
-Game_BattlerBase.prototype.mostImportantStateText = function() {
-    var states = this.states();
-    for (var i = 0; i < states.length; i++) {
-        if (states[i].message3) {
-            return states[i].message3;
-        }
-    }
-    return '';
-};
-
-Game_BattlerBase.prototype.stateMotionIndex = function() {
-    var states = this.states();
-    if (states.length > 0) {
-        return states[0].motion;
-    } else {
-        return 0;
-    }
-};
-
-Game_BattlerBase.prototype.stateOverlayIndex = function() {
-    var states = this.states();
-    if (states.length > 0) {
-        return states[0].overlay;
-    } else {
-        return 0;
-    }
 };
 
 Game_BattlerBase.prototype.isSkillWtypeOk = function(skill) {
