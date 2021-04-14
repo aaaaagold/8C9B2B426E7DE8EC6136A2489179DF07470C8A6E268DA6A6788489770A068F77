@@ -744,7 +744,15 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 	// $game* are created , $gameActors._data.length===0 , $gameTemp will not changed 
 	let tmp;
 	
+	
 	// changes of data structures
+	// - system
+	tmp=content.system;
+	// - - usr
+	if(tmp._usr){ // ensure obj type
+		const c=Game_System.Usr;
+		if(tmp._usr.constructor!==c) tmp._usr=Object.toType(tmp._usr,c);
+	}else tmp._usr=new Game_System.Usr();
 	// - map
 	tmp=content.map;
 	// - - evts

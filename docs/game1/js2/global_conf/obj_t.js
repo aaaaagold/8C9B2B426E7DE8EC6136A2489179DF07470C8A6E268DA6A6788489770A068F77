@@ -1563,7 +1563,7 @@ $aaaa$.displayRewards=function(){
 $rrrr$=$aaaa$.gainRewards;
 $dddd$=$aaaa$.gainRewards=function f(){
 	$gameTemp.gainMsgConfigs_push();
-	$gamePlayer._noGainMsg=0;
+	$gameSystem._usr._noGainMsg=0;
 	$gameTemp._otherGainMsg=true;
 	f.ori.call(this);
 	$gameTemp._otherGainMsg=false;
@@ -2283,8 +2283,8 @@ $dddd$.burnLv=function(pannel){
 	}
 };
 $dddd$.chr=function(pannel){
-	if(!$gamePlayer._noLeaderHp) pannel.hpl=pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty.allMembers().length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
-	if(!$gamePlayer._noLeaderMp) pannel.mpl=pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty.allMembers().length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
+	if(!$gameSystem._usr._noLeaderHp) pannel.hpl=pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty.allMembers().length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
+	if(!$gameSystem._usr._noLeaderMp) pannel.mpl=pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty.allMembers().length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
 };
 $dddd$.speedup=function(pannel){
 	if($gamePlayer.speedup) pannel.add($gamePlayer,'speedup',{head:"疾風Lv",align:'center'});
@@ -2357,7 +2357,7 @@ $dddd$.slash=function(pannel){
 	}
 };
 $dddd$.flwing=function(pannel){
-	if($gamePlayer._flwingMsg && $dataSystem.gameTitle==="拉起封鎖線"){
+	if($gameSystem._usr._flwingMsg && $dataSystem.gameTitle==="拉起封鎖線"){
 		$dataMap.flwing_pannel=pannel.add($gamePlayer._followers,flwrs=>flwrs._following?$dataCustom.flwingMsgs.yes:$dataCustom.flwingMsgs.no,{align:'center',updateItvl:'no'});
 	}
 };
@@ -3035,15 +3035,15 @@ $aaaa$.prototype.poolEvt_newMap=function(lastMapId){
 $aaaa$.prototype.gainMsgConfigs_push=function(){
 	if(!this._gainMsgConfigs) this._gainMsgConfigs=[];
 	this._gainMsgConfigs.push({
-		snd:$gamePlayer._noGainSound,
-		hnt:$gamePlayer._noGainHint,
-		msg:$gamePlayer._noGainMsg,
+		snd:$gameSystem._usr._noGainSound,
+		hnt:$gameSystem._usr._noGainHint,
+		msg:$gameSystem._usr._noGainMsg,
 	});
 };
 $aaaa$.prototype.gainMsgConfigs_mute=function(){
-	$gamePlayer._noGainSound=1;
-	$gamePlayer._noGainHint=1;
-	$gamePlayer._noGainMsg=1;
+	$gameSystem._usr._noGainSound=1;
+	$gameSystem._usr._noGainHint=1;
+	$gameSystem._usr._noGainMsg=1;
 };
 $aaaa$.prototype.gainMsgConfigs_pushAndMute=function(){
 	this.gainMsgConfigs_push();
@@ -3053,21 +3053,21 @@ $aaaa$.prototype.gainMsgConfigs_pop=function(){
 	if(!this._gainMsgConfigs) return (this._gainMsgConfigs=[])&&undefined;
 	if(this._gainMsgConfigs.length===0) return;
 	const rtv=this._gainMsgConfigs.pop();
-	$gamePlayer._noGainMsg=rtv.msg||0;
-	$gamePlayer._noGainHint=rtv.hnt||0;
-	$gamePlayer._noGainSound=rtv.snd||0;
+	$gameSystem._usr._noGainMsg=rtv.msg||0;
+	$gameSystem._usr._noGainHint=rtv.hnt||0;
+	$gameSystem._usr._noGainSound=rtv.snd||0;
 	return rtv;
 };
 $aaaa$.prototype.lvUpConfigs_push=function(){
 	if(!this._lvUpConfigs) this._lvUpConfigs=[];
 	this._lvUpConfigs.push({
-		lvh:$gamePlayer._lvUpHint,
-		lvm:$gamePlayer._lvUpMsg,
+		lvh:$gameSystem._usr._lvUpHint,
+		lvm:$gameSystem._usr._lvUpMsg,
 	});
 };
 $aaaa$.prototype.lvUpConfigs_mute=function(){
-	$gamePlayer._lvUpHint=0;
-	$gamePlayer._lvUpMsg=0;
+	$gameSystem._usr._lvUpHint=0;
+	$gameSystem._usr._lvUpMsg=0;
 };
 $aaaa$.prototype.lvUpConfigs_pushAndMute=function(){
 	this.lvUpConfigs_push();
@@ -3077,22 +3077,22 @@ $aaaa$.prototype.lvUpConfigs_pop=function(){
 	if(!this._lvUpConfigs) return (this._lvUpConfigs=[])&&undefined;
 	if(this._lvUpConfigs.length===0) return;
 	const rtv=this._lvUpConfigs.pop();
-	$gamePlayer._lvUpMsg=rtv.lvm||0;
-	$gamePlayer._lvUpHint=rtv.lvh||0;
+	$gameSystem._usr._lvUpMsg=rtv.lvm||0;
+	$gameSystem._usr._lvUpHint=rtv.lvh||0;
 	return rtv;
 };
 $aaaa$.prototype.pannelConfigs_push=function(){
 	if(!this._pannelConfigs) this._pannelConfigs=[];
 	this._pannelConfigs.push({
-		hpl:$gamePlayer._noLeaderHp,
-		mpl:$gamePlayer._noLeaderMp,
-		flw:$gamePlayer._flwingMsg,
+		hpl:$gameSystem._usr._noLeaderHp,
+		mpl:$gameSystem._usr._noLeaderMp,
+		flw:$gameSystem._usr._flwingMsg,
 	});
 };
 $aaaa$.prototype.pannelConfigs_mute=function(){
-	$gamePlayer._noLeaderHp=1;
-	$gamePlayer._noLeaderMp=1;
-	if(DataManager.getTitle()==="拉起封鎖線") $gamePlayer._flwingMsg=0;
+	$gameSystem._usr._noLeaderHp=1;
+	$gameSystem._usr._noLeaderMp=1;
+	if(DataManager.getTitle()==="拉起封鎖線") $gameSystem._usr._flwingMsg=0;
 };
 $aaaa$.prototype.pannelConfigs_pushAndMute=function(){
 	this.pannelConfigs_push();
@@ -3102,9 +3102,9 @@ $aaaa$.prototype.pannelConfigs_pop=function(){
 	if(!this._pannelConfigs) return (this._pannelConfigs=[])&&undefined;
 	if(this._pannelConfigs.length===0) return;
 	const rtv=this._pannelConfigs.pop();
-	$gamePlayer._noLeaderHp=rtv.hpl||0;
-	$gamePlayer._noLeaderMp=rtv.mpl||0;
-	if(DataManager.getTitle()==="拉起封鎖線") $gamePlayer._flwingMsg=rtv.flw||0;
+	$gameSystem._usr._noLeaderHp=rtv.hpl||0;
+	$gameSystem._usr._noLeaderMp=rtv.mpl||0;
+	if(DataManager.getTitle()==="拉起封鎖線") $gameSystem._usr._flwingMsg=rtv.flw||0;
 	return rtv;
 };
 $aaaa$.prototype.gameoverMsg_clear=function(){
@@ -3126,12 +3126,28 @@ $aaaa$=Game_System;
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
 	f.ori.call(this);
-	this._usr={};
+	this._usr=new Game_System.Usr;
 	ConfigManager.ConfigOptionsWithSystem.forEach(x=>{
 		if(!(x[0] in ConfigManager)) return;
 		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
 	});
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.Usr=function(){};
+$dddd$.prototype.contructor=$dddd$;
+Object.defineProperties($dddd$.prototype,{
+	_noLeaderHp: { get: function(){ return this._noHpL; }, set: function(rhs){
+			if(this._noHpL===rhs) return rhs;
+			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
+			if(p&&p.hpl) p.hpl.visible=!rhs;
+			return this._noHpL=0|!!rhs;
+	}, configurable: false },
+	_noLeaderMp: { get: function(){ return this._noMpL; }, set: function(rhs){
+			if(this._noMpL===rhs) return rhs;
+			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
+			if(p&&p.mpl) p.mpl.visible=!rhs;
+			return this._noMpL=0|!!rhs;
+	}, configurable: false },
+});
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - map
@@ -5859,18 +5875,6 @@ Object.defineProperties($aaaa$.prototype, {
 			}
 			return n;
 	}, configurable: false },
-	_noLeaderHp: { get: function(){ return this._noHpL; }, set: function(rhs){
-			if(this._noHpL===rhs) return rhs;
-			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
-			if(p&&p.hpl) p.hpl.visible=!rhs;
-			return this._noHpL=0|!!rhs;
-	}, configurable: false },
-	_noLeaderMp: { get: function(){ return this._noMpL; }, set: function(rhs){
-			if(this._noMpL===rhs) return rhs;
-			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
-			if(p&&p.mpl) p.mpl.visible=!rhs;
-			return this._noMpL=0|!!rhs;
-	}, configurable: false },
 	z2:{
 		get:function(){return isNone(this._z2)?3:this._z2;},
 	},
@@ -6079,7 +6083,7 @@ $aaaa$.prototype.customEvtStrt=function(){
 	let slashList=[];
 	// rangedBurn
 	if(this.isRangedBurnSwitched() && $gameParty.canburn && this._direction>=2 && tbl){
-		//$gamePlayer._noGainMsg=true;
+		//$gameSystem._usr._noGainMsg=true;
 		let added=0;
 		// author mode
 		if($gameParty.burnrange===404){
@@ -6129,7 +6133,7 @@ $aaaa$.prototype.customEvtStrt=function(){
 	}
 	// rangedSlash
 	if(this.isRangedSlashSwitched() && $gameParty.canslash && this._direction>=2 && tbl){
-		//$gamePlayer._noGainMsg=true;
+		//$gameSystem._usr._noGainMsg=true;
 		let added=0;
 		// author mode
 		if($gameParty.slashrange===404){
@@ -6928,13 +6932,13 @@ $aaaa$.prototype.gainAchievement=function(id){
 $aaaa$.prototype.gain_amountHead=function(amount,noSound){
 	let rtv="",color=$dataCustom.textcolor;
 	if(amount<0){ amount*=-1;
-		if(!$gamePlayer._noGainSound && !noSound) SoundManager.playMiss();
+		if(!$gameSystem._usr._noGainSound && !noSound) SoundManager.playMiss();
 		if(rtv===""&&$gameTemp.____byConsume) rtv+="\\RGB["+color.use+"]使用";
 		if(rtv===""&&$gameTemp.____byChEqu) rtv+="\\RGB["+color.use+"]穿上";
 		if(rtv==="") rtv+="\\RGB["+color.lose+"]失去";
 		
 	}else{
-		if(!$gamePlayer._noGainSound && !noSound) SoundManager.playUseItem();
+		if(!$gameSystem._usr._noGainSound && !noSound) SoundManager.playUseItem();
 		if(rtv===""&&$gameTemp.____byChEqu) rtv+="\\RGB["+color.use+"]脫下";
 		if(rtv==="") rtv+="\\RGB["+color.gain+"]獲得";
 	}
@@ -6963,8 +6967,8 @@ $aaaa$.prototype.gainGold=function f(amount,noSound){
 	let cnt=arguments[0]; if(!cnt) return;
 	let head=this.gain_amountHead(cnt,noSound);
 	let txt=head+Math.abs(cnt)+" \\G";
-	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt,$gameTemp._otherGainMsg);
-	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
+	if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt,$gameTemp._otherGainMsg);
+	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
 	return txt;
 };
 $aaaa$.prototype.maxGold=()=>99999999;
@@ -7072,9 +7076,9 @@ $aaaa$.prototype._gainItem_msg=function(item, cnt, includeEquip, noSound){
 		}
 	}
 	let txt=head+(arguments[0].name.replace(/\\/g,"\\\\"))+"\\RGB["+color.default+"] * ";
-	//if(!$gamePlayer._noGainMsg) $gameMessage.add(txt+Math.abs(cnt));
-	if(!$gamePlayer._noGainMsg&&!$gameTemp.____byChEqu) $gameMessage.add_gainItem(txt,cnt,item);
-	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt+Math.abs(cnt),1);
+	//if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt+Math.abs(cnt));
+	if(!$gameSystem._usr._noGainMsg&&!$gameTemp.____byChEqu) $gameMessage.add_gainItem(txt,cnt,item);
+	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt+Math.abs(cnt),1);
 	if(0&&debug.isdebug()){
 		let re=Window_Base.prototype.processEscapeCharacter.re.toString();
 		re=new RegExp("(^|[^\\\\\])((\\\\\\\\)+|[^\\\\]+)*\\\\RGBA?("+re.slice(2,-1)+")","g");
@@ -7098,14 +7102,14 @@ $aaaa$.prototype.loseItemAll=function(item, includeEquip, noSound){
 };
 $aaaa$.prototype.upgradeItem=function f(itemFrom,itemTo, amount, includeEquip, noSound){
 	let txt="升級道具：";
-	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt);
-	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
+	if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt);
+	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
 	this.gainItem(itemFrom,-amount,includeEquip, 1);
 	this.gainItem(itemTo,amount,includeEquip, 1);
 	txt="道具升級了。";
-	if(!$gamePlayer._noGainMsg) $gameMessage.add(txt);
-	if(!$gamePlayer._noGainHint) $gameMessage.popup(txt,1);
-	if(!$gamePlayer._noGainSound&&!noSound) SoundManager.playUseItem();
+	if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt);
+	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
+	if(!$gameSystem._usr._noGainSound&&!noSound) SoundManager.playUseItem();
 };
 $aaaa$.prototype.gainApp=function(appName){
 	let mgr=appName+"Mgr";
@@ -7151,7 +7155,7 @@ $aaaa$.prototype.completeQuest=function(itemId,q){
 	q=q||item.meta.ref&&rpgquests.list[item.meta.ref];
 	if(!q||!q.isSat(this._completedQuests[itemId])) return -1;
 	
-	let noGainMsg=$gamePlayer._noGainMsg; $gamePlayer._noGainMsg=1;
+	let noGainMsg=$gameSystem._usr._noGainMsg; $gameSystem._usr._noGainMsg=1;
 	let obj=this._completedQuests,canComplete=((self,item,q,obj)=>{
 		if(isNaN(q.limit) || obj[item.id]<q.limit) return true;
 		$gameMessage.add("\f\\RGB["+$dataCustom.textcolor.default+"]已達 \\RGB["+$dataCustom.textcolor.quest+"]"+item.name+"\\RGB["+$dataCustom.textcolor.default+"] 之最大可完成數，回收任務單");
@@ -7167,7 +7171,7 @@ $aaaa$.prototype.completeQuest=function(itemId,q){
 			$gameMessage.add_finishQuest(item.name);
 		canComplete(this,item,q,obj);
 	}
-	$gamePlayer._noGainMsg=noGainMsg;
+	$gameSystem._usr._noGainMsg=noGainMsg;
 };
 $dddd$=$aaaa$.prototype.genQuestReportWindow=function f(rankMin,rankMax,reserveNan){
 	let self=this;
@@ -7180,7 +7184,7 @@ $dddd$=$aaaa$.prototype.genQuestReportWindow=function f(rankMin,rankMax,reserveN
 				init:(obj,key)=>{obj[key]='';},
 				valid:(val)=>{if(val.match(/^[0-9]*$/)===null)return 0;val=Number(val)||0;if(val<0||val>$gameParty._items[x.id])return 0;return 1;},
 				apply:Number,
-				final:(obj,key)=>{ let tmp=$gamePlayer._noGainMsg; $gamePlayer._noGainMsg=1; $gameParty.gainItem($dataItems[x.id],-obj[key]); $gamePlayer._noGainMsg=tmp;
+				final:(obj,key)=>{ let tmp=$gameSystem._usr._noGainMsg; $gameSystem._usr._noGainMsg=1; $gameParty.gainItem($dataItems[x.id],-obj[key]); $gameSystem._usr._noGainMsg=tmp;
 					obj[key]=''; if(!$gameParty._items[x.id]) w.processCancel();
 				}
 			};
@@ -8983,21 +8987,21 @@ $aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 };
 $aaaa$.prototype.displayLevelUp=function(newSkills){
 	let text = TextManager.levelUp.format(this._name, TextManager.level, this._level);
-	if($gamePlayer._lvUpMsg){
+	if($gameSystem._usr._lvUpMsg){
 		$gameMessage.newPage();
 		$gameMessage.add(text);
 		newSkills.forEach(function(skill) {
 			$gameMessage.add(TextManager.obtainSkill.format(skill.name));
 		});
 	}
-	if($gamePlayer._lvUpHint){
+	if($gameSystem._usr._lvUpHint){
 		$gameMessage.popup(text,true);
 		newSkills.forEach(function(skill) {
 			$gameMessage.popup(TextManager.obtainSkill.format(skill.name),true);
 		});
 	}
 };
-$aaaa$.prototype.shouldDisplayLevelUp=()=>$gamePlayer&&($gamePlayer._lvUpMsg||$gamePlayer._lvUpHint)||false;
+$aaaa$.prototype.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
 $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 	if(!this.isLearnedSkill(skillId)){
 		this._skills.push(skillId);
@@ -10604,7 +10608,7 @@ $aaaa$.prototype.numberWidth=function(n){
 	return this.textWidth('0')*(n===undefined?7:n);
 };
 $aaaa$.prototype.maxCols=function(){
-	return this._maxCols||$gamePlayer._ItemListMaxCol||2;
+	return this._maxCols||$gameSystem._usr._itemListMaxCol||2;
 };
 $aaaa$.prototype.drawItemNumber = function(item, x, y, width) {
 	if (this.needsNumber()) {
