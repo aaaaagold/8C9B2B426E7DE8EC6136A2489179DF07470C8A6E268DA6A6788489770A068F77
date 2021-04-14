@@ -8926,13 +8926,18 @@ $aaaa$.prototype.faceName = function() { // seems only 'Game_Actor' has method '
 	return this._faceName+(ce?"?color="+ce:"");
 };
 $aaaa$.prototype.expForLevel=function(level){
-	let c=this.currentClass();
-	let basis=c.expParams[0];
-	let extra=c.expParams[1];
-	let acc_a=c.expParams[2];
-	let acc_b=c.expParams[3];
-	return Math.round(basis*(Math.pow(level-1, 0.9+acc_a/250))*level*
-		(level+1)/(6+Math.pow(level,2)/50/acc_b)+(level-1)*extra);
+	const c=this.currentClass();
+	const basis=c.expParams[0];
+	const extra=c.expParams[1];
+	const acc_a=c.expParams[2];
+	const acc_b=c.expParams[3];
+	
+	const lvlv=level*level , lv_1=level-1;
+	return ~~(
+		basis*(Math.pow(lv_1, 0.9+acc_a/250))*(lvlv+level)
+		/(lvlv/50/acc_b+6)
+		+lv_1*extra
+	);
 };
 $aaaa$.prototype.initImages=function(){
 	let actor=this.actor();
@@ -8966,24 +8971,23 @@ $dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	this._exp[this._classId] = Math.max(exp, 0);
 	
 	// clear last learned skills
-	{ const tmp=this._skills_getCache(); if(tmp && tmp.added) tmp.added.clear(); }
+	{ const tmp=this._skills_getCache(); if(tmp && tmp.lastLearneds) tmp.lastLearneds.length=0; }
 	
 	const lastLevel = this._level;
 	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(undefined,true);
 	while(this.currentExp()<this.currentLevelExp()) this.levelDown();
-	if(this._level > lastLevel){
+	if(this._level !== lastLevel){ if(this._level > lastLevel){
 		const tmp=this._skills_getCache();
-		const m=tmp&&tmp.added||f.tbl;
-		if(show) this.displayLevelUp(m);
-		if(m.size){
-			m.clear();
+		const m=tmp&&tmp.lastLearneds;
+		if(m && m.length){
+			if(show) this.displayLevelUp(m);
+			m.length=0;
 			this._skills_delCache_added();
 			this._skills_updateCache();
 		}
-	}
-	this.refresh();
+	} this.refresh(); }
 };
-$dddd$.tbl=new Map();
+$dddd$.tbl=[];
 $aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 	const arr=this.currentClass().learnings.byLv.get(++this._level);
 	if(arr){ arr.forEach(learning=>{
@@ -9022,8 +9026,8 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 			let tmp=this._skills_getCache();
 			if(tmp) tmp.add(skillId);
 			else tmp=this._skills_updateCache();
-			if(!tmp.added) tmp.added=new Map();
-			tmp.added.set(skillId,skillId);
+			if(!tmp.lastLearneds) tmp.lastLearneds=[];
+			tmp.lastLearneds.push(skillId);
 		}else this._skills_updateCache();
 	}
 };
