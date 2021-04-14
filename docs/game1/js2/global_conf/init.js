@@ -312,6 +312,10 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		}
 	};
 	Object.defineProperties(w.Array.prototype,{
+		size: {
+			get:function(){return this.length;},
+			set:function(rhs){return this.length=rhs;},
+		configurable: false},
 		back: {
 			get:function(){return this[this.length-1];},
 			set:function(rhs){return this[this.length-1]=rhs;},
@@ -326,6 +330,9 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			},
 		configurable: false}
 	});
+	w.Array.prototype.clear=function(){
+		this.length=0;
+	};
 	$dddd$=w.Array.prototype.sortn=function f(){
 		return this.sort(f.cmp);
 	};
@@ -482,11 +489,13 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return n?(( this.valueOf()>>n )&( ( (0xFFFFFFFF<<(bitlen-n))^(~0) ) )):this.valueOf();
 	};
 	
+	w.Set.prototype.push=w.Set.prototype.add;
 	w.Set.prototype.contains=w.Set.prototype.has;
 	w.Set.prototype.intersect=function(set2){
-		let base,search,rtv=new Set();
+		let base,search;
 		if(this.size<set2.size){ base=this; search=set2; }
 		else{ base=set2; search=this; }
+		const rtv=new Set();
 		base.forEach(x=>search.has(x)&&rtv.add(x));
 		return rtv;
 	};
@@ -494,7 +503,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		let base,add;
 		if(this.size<set2.size){ add=this; base=new Set(set2); }
 		else{ add=set2; base=new Set(this); }
-		let rtv=new Set(base);
+		const rtv=new Set(base);
 		add.forEach(x=>rtv.add(x));
 		return rtv;
 	};

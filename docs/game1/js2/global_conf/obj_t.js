@@ -1721,7 +1721,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 				const v=tmp.get(id);
 				if(v===undefined) tmp.set(id,val);
 				else tmp.set(id,val+v);
-				tmp.v+=val;
+				tmapS.v+=val;
 			}
 			tmp=tmapP.get(code);
 			if(tmp===undefined){
@@ -1732,7 +1732,7 @@ $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 				const v=tmp.get(id);
 				if(v===undefined) tmp.set(id,val);
 				else tmp.set(id,val*v);
-				tmp.v*=val;
+				tmapP.v*=val;
 			}
 		}
 		if( dataobj.params && (tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) ) dataobj.params.push(tmp.v*1e6); // +act times
@@ -4375,6 +4375,9 @@ $aaaa$.prototype.eraseState=function(stateId){
 		if(stat){
 			stat.splice(index, 1);
 			stat.a.delete(stateId);
+			const data=$dataStates[stateId];
+			stat.s.byKey2_del_sum(data.tmapS);
+			stat.m.byKey2_del_mul(data.tmapP);
 		}
 	}
 	delete this._stateTurns[stateId];
@@ -4395,6 +4398,11 @@ $dddd$=$aaaa$.prototype._states_updateCache=function f(){
 	let rtv;
 	$gameTemp.updateCache(this,f.key,rtv=this._states.map(f.map));
 	rtv.a=new Set(this._states);
+	const s=rtv.s=new Map() , m=rtv.m=new Map();
+	for(let x=0;x!==rtv.length;++x){
+		s.byKey2_sum(rtv[x].tmapS);
+		m.byKey2_mul(rtv[x].tmapP);
+	}
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
@@ -4409,8 +4417,11 @@ $dddd$=$aaaa$.prototype._addNewState_updateCache=function f(stateId){
 	this._states.push(stateId);
 	const stat=this._states_getCache();
 	if(stat){
-		stat.push(f.map(stateId));
 		stat.a.add(stateId);
+		const data=f.map(stateId);
+		stat.push(data);
+		stat.s.byKey2_sum(data.tmapS);
+		stat.m.byKey2_mul(data.tmapP);
 	}
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
@@ -4426,9 +4437,8 @@ $aaaa$.prototype.addNewState=function(stateId){
 		}
 	}
 	if(!cancel){
-		this._addNewState_updateCache(stateId);
 		const restricted = this.isRestricted();
-		this._states.push(stateId);
+		this._addNewState_updateCache(stateId);
 		this.sortStates();
 		if(!restricted && this.isRestricted()){
 			this.onRestrict();
@@ -8952,29 +8962,28 @@ $aaaa$.prototype.initEquips=function(equips){
 	this.releaseUnequippableItems(true);
 	this.refresh();
 };
-$aaaa$.prototype.changeExp=function f(exp, show){
+$dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	this._exp[this._classId] = Math.max(exp, 0);
 	
 	// clear last learned skills
-	{ const tmp=this._skills_getCache(); if(tmp && tmp.added) tmp.added.length=0; }
+	{ const tmp=this._skills_getCache(); if(tmp && tmp.added) tmp.added.clear(); }
 	
 	const lastLevel = this._level;
-	while (!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) {
-		this.levelUp(undefined,true);
-	}
-	while (this.currentExp() < this.currentLevelExp()) {
-		this.levelDown();
-	}
-	if (show && this._level > lastLevel) {
+	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(undefined,true);
+	while(this.currentExp()<this.currentLevelExp()) this.levelDown();
+	if(this._level > lastLevel){
 		const tmp=this._skills_getCache();
-		const arr=tmp&&tmp.added||f._dummy_arr;
-		this.displayLevelUp(arr);
-		if(arr.length) this._skills_updateCache();
-		arr.length=0;
+		const m=tmp&&tmp.added||f.tbl;
+		if(show) this.displayLevelUp(m);
+		if(m.size){
+			m.clear();
+			this._skills_delCache_added();
+			this._skills_updateCache();
+		}
 	}
-	
 	this.refresh();
 };
+$dddd$.tbl=new Map();
 $aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 	const arr=this.currentClass().learnings.byLv.get(++this._level);
 	if(arr){ arr.forEach(learning=>{
@@ -8985,22 +8994,26 @@ $aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 		this._mp=this.mmp;
 	}
 };
-$aaaa$.prototype.displayLevelUp=function(newSkills){
+$dddd$=$aaaa$.prototype.displayLevelUp=function f(newSkills){
 	let text = TextManager.levelUp.format(this._name, TextManager.level, this._level);
 	if($gameSystem._usr._lvUpMsg){
 		$gameMessage.newPage();
 		$gameMessage.add(text);
-		newSkills.forEach(function(skill) {
-			$gameMessage.add(TextManager.obtainSkill.format(skill.name));
-		});
+		newSkills.forEach(f.forEach[0]);
 	}
 	if($gameSystem._usr._lvUpHint){
 		$gameMessage.popup(text,true);
-		newSkills.forEach(function(skill) {
-			$gameMessage.popup(TextManager.obtainSkill.format(skill.name),true);
-		});
+		newSkills.forEach(f.forEach[1]);
 	}
 };
+$dddd$.forEach=[
+	(_,id)=>{
+		$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name));
+	},
+	(_,id)=>{
+		$gameMessage.popup(TextManager.obtainSkill.format($dataSkills[id].name),true);
+	},
+];
 $aaaa$.prototype.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
 $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 	if(!this.isLearnedSkill(skillId)){
@@ -9009,8 +9022,8 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 			let tmp=this._skills_getCache();
 			if(tmp) tmp.add(skillId);
 			else tmp=this._skills_updateCache();
-			if(!tmp.added) tmp.added=[];
-			tmp.added.push(skillId);
+			if(!tmp.added) tmp.added=new Map();
+			tmp.added.set(skillId,skillId);
 		}else this._skills_updateCache();
 	}
 };

@@ -16,6 +16,126 @@ $dddd$=String.prototype.subId=function f(){
 };
 $dddd$.regex=/^([0-9]+)(-([0-9A-Z_a-z]+))?$/;
 Number.prototype.subId=()=>0;
+Map.prototype.byKey_sum=function(map2,inplace_self){
+	let base,rhs,rtv;
+	if(inplace_self){ rtv=this; rhs=map2; }
+	else{
+		if(this.size<map2.size){ rhs=this; base=map2; }
+		else{ rhs=map2; base=this; }
+		rtv=new Map(base);
+	}
+	if(rtv.c===undefined) rtv.c=0;
+	if(rtv.v===undefined) rtv.v=0;
+	rhs.forEach((v,k)=>{
+		let tmp=rtv.get(k);
+		if(tmp) rtv.set(k,tmp+v);
+		else rtv.set(k,v);
+		rtv.v+=v;
+		++rtv.c;
+	});
+	return rtv;
+};
+Map.prototype.byKey_mul=function(map2,inplace_self){
+	let base,rhs,rtv;
+	if(inplace_self){ rtv=this; rhs=map2; }
+	else{
+		if(this.size<map2.size){ rhs=this; base=map2; }
+		else{ rhs=map2; base=this; }
+		rtv=new Map(base);
+	}
+	if(rtv.c===undefined) rtv.c=0;
+	if(rtv.v===undefined) rtv.v=1;
+	rhs.forEach((v,k)=>{
+		let tmp=rtv.get(k);
+		if(tmp!==undefined) rtv.set(k,tmp*v);
+		else rtv.set(k,v);
+		rtv.v*=v;
+		++rtv.c;
+	});
+	return rtv;
+};
+Map.prototype.byKey_del_sum=function(rhs){
+	const rtv=this;
+	rhs.forEach((v,k)=>{
+		const tmp=rtv.get(k);
+		if(tmp!==undefined){
+			rtv.set(k,tmp-v);
+			rtv.v-=v;
+			--rtv.c;
+		}
+	});
+	if(rtv.c===0){
+		rtv.v=0;
+		rtv.clear();
+	}
+	return rtv;
+};
+Map.prototype.byKey_del_mul=function(rhs){
+	const rtv=this;
+	rhs.forEach((v,k)=>{
+		const tmp=rtv.get(k);
+		if(tmp!==undefined){
+			rtv.set(k,tmp/v);
+			rtv.v/=v;
+			--rtv.c;
+		}
+	});
+	if(rtv.c===0){
+		rtv.v=1;
+		rtv.clear();
+	}
+	return rtv;
+};
+Map.prototype.byKey2_sum=function(rhs,notInplace){
+	const base=notInplace?new Map(this):this;
+	if(base.c===undefined) base.c=0;
+	rhs.forEach((v,k)=>{
+		let tmp=base.get(k);
+		if(!tmp) base.set(k,tmp=new Map());
+		const c=tmp.c||0;
+		tmp.byKey_sum(v,true);
+		base.c+=tmp.c-c;
+	});
+	return base;
+};
+Map.prototype.byKey2_mul=function(rhs,notInplace){
+	const base=notInplace?new Map(this):this;
+	if(base.c===undefined) base.c=0;
+	rhs.forEach((v,k)=>{
+		let tmp=base.get(k);
+		if(!tmp) base.set(k,tmp=new Map());
+		const c=tmp.c||0;
+		tmp.byKey_mul(v,true);
+		base.c+=tmp.c-c;
+	});
+	return base;
+};
+Map.prototype.byKey2_del_sum=function(rhs){
+	const base=this;
+	rhs.forEach((v,k)=>{
+		const tmp=base.get(k);
+		if(tmp){
+			const c=tmp.c;
+			tmp.byKey_del_sum(v);
+			base.c-=c-tmp.c;
+			if(tmp.c===0) base.delete(k);
+		}
+	});
+	return base;
+};
+Map.prototype.byKey2_del_mul=function(rhs){
+	const base=this;
+	rhs.forEach((v,k)=>{
+		const tmp=base.get(k);
+		if(tmp){
+			const c=tmp.c;
+			tmp.byKey_del_mul(v);
+			base.c-=c-tmp.c;
+			if(tmp.c===0) base.delete(k);
+		}
+	});
+	return base;
+};
 
 const dialog=window.dialog=(txtarr,windowSetting,clear=true)=>{
 	let p=$gameMap._interpreter;
