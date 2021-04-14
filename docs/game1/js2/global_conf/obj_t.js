@@ -5906,7 +5906,7 @@ $dddd$=$aaaa$.prototype.moveByInput=function f(){
 			let x = $gameTemp.destinationX();
 			let y = $gameTemp.destinationY();
 			let dont=TouchInput.calDeltaToPlayer();
-			direction = this._simpleTouchMove?this.findDirectionTo_simple(x,y,TouchInput._dx,TouchInput._dy):this.findDirectionTo(x, y);
+			direction = $gameSystem._usr._simpleTouchMove?this.findDirectionTo_simple(x,y,TouchInput._dx,TouchInput._dy):this.findDirectionTo(x, y);
 			if(direction > 0){
 				let wasCanPass=this.canPassDiagNumpad(this.x,this.y,direction);
 				this.executeMove(direction);

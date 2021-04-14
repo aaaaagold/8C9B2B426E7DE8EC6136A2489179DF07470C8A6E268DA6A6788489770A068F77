@@ -808,12 +808,6 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 		tmp._trpt=tmp._transparent;
 		delete tmp._transparent;
 	}
-	if(tmp._noHpL===undefined && tmp._noLeaderHp!==undefined){
-		tmp._noHpL=tmp._noLeaderHp;
-		delete tmp._noLeaderHp;
-		tmp._noMpL=tmp._noLeaderMp;
-		delete tmp._noLeaderMp;
-	}
 	// - - followers
 	{
 		let arr=tmp._followers._data;
