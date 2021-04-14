@@ -4368,8 +4368,11 @@ $dddd$=$aaaa$.prototype._states_updateCache=function f(){
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
 $tttt$=$dddd$.map=id=>$dataStates[id];
-$dddd$=$aaaa$.prototype.states=function f(){
-	return (this._states_getCache()||this._states_updateCache()).slice();
+$aaaa$.prototype.states_noSlice=function(){
+	return this._states_getCache()||this._states_updateCache();
+};
+$aaaa$.prototype.states=function f(){
+	return this.states_noSlice().slice();
 };
 $dddd$=$aaaa$.prototype._addNewState_updateCache=function f(stateId){
 	this._states.push(stateId);
@@ -4418,15 +4421,40 @@ $dddd$.cmp=[
 		return (pa===pb)?(a.id - b.id):(pb - pa);
 	},
 ];
-$aaaa$.prototype.stateIcons=function(){
-	const rtv=[],arr=this.states();
-	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) rtv.push(arr[x].iconIndex);
+$aaaa$.prototype.restriction=function(){
+	let rtv=0;
+	for(let x=0,arr=this.states_noSlice();x!==arr.length;++x)
+		if(rtv<arr[x].restriction) rtv=arr[x].restriction;
 	return rtv;
 };
-$aaaa$.prototype.allIcons = function() {
-	const rtv=this.stateIcons(),arr=this.buffIcons();
-	for(let x=0;x!==arr.length;++x) if(arr[x]>0) rtv.push(arr[x]);
-	return rtv;
+$aaaa$.prototype.mostImportantStateText=function(){
+	for(let x=0,arr=this.states_noSlice();x!==arr.length;++x)
+		if(arr[x].message3) return arr[x].message3;
+	return '';
+};
+$aaaa$.prototype.stateMotionIndex=function(){
+	const states = this.states_noSlice();
+	if(states.length) return states[0].motion;
+	else return 0;
+};
+$aaaa$.prototype.stateOverlayIndex=function(){
+	const states = this.states_noSlice();
+	if(states.length) return states[0].overlay;
+	else return 0;
+};
+$aaaa$.prototype.stateIcons=function(rtv){
+	const icons=rtv||[] , arr=this.states_noSlice();
+	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) icons.push(arr[x].iconIndex);
+	return icons;
+};
+$aaaa$.prototype.buffIcons=function(rtv){
+	const icons=rtv||[] , arr=this._buffs;
+	for(let x=0;x!==arr.length;++x)
+		if(arr[x]>0) icons.push(this.buffIconIndex(arr[x],x));
+	return icons;
+};
+$aaaa$.prototype.allIcons=function(){
+	return this.buffIcons(this.stateIcons());
 };
 $dddd$=$aaaa$.prototype.allTraits = function f(code) {
 	const rtv=[]; rtv.code=code;

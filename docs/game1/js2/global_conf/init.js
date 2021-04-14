@@ -482,6 +482,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return n?(( this.valueOf()>>n )&( ( (0xFFFFFFFF<<(bitlen-n))^(~0) ) )):this.valueOf();
 	};
 	
+	w.Set.prototype.contains=w.Set.prototype.has;
 	w.Set.prototype.intersect=function(set2){
 		let base,search,rtv=new Set();
 		if(this.size<set2.size){ base=this; search=set2; }

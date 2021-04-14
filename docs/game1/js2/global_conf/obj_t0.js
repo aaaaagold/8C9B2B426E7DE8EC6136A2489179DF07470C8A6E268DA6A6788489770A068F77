@@ -9,6 +9,7 @@ if(!window.objs) window.objs={};
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
+Math.randomInt=max=>~~(Math.random()*max);
 LZString._decompress_calL=(m,shMax)=>{
 	let rtv=0^0;
 	shMax^=0;
