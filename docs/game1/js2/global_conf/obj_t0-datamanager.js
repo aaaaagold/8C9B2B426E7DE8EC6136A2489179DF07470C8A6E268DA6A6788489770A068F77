@@ -612,6 +612,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 		
 		return this.onlineOk;
 	}else if(f.ori.call(this,sfid)){
+		if($gameTemp) $gameTemp.clearCacheAll();
 		if($gamePlayer._currentTitle!==undefined) $dataSystem.gameTitle=$gamePlayer._currentTitle;
 		return true;
 	}else return false;

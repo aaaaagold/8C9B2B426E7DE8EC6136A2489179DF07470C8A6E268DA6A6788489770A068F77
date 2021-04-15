@@ -2075,6 +2075,7 @@ $aaaa$.prototype._edt=function f(){
 	
 	if(useDefault) history.replaceState(undefined , document.title=$dataSystem.gameTitle, location.search + "#"+location.hash.slice(1) );
 	else history.replaceState(undefined , document.title=$dataSystem.gameTitle, "./"+info+".html" + location.search + "#"+location.hash.slice(1) );
+	if($gameTemp) $gameTemp.clearCacheAll();
 };
 $rrrr$=$aaaa$.prototype.create;
 $dddd$=$aaaa$.prototype.create=function f(){
@@ -2808,6 +2809,12 @@ $aaaa$.prototype.changeInputWindow=function(){
 		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
 	}else this.endCommandSelection();
 };
+$rrrr$=$aaaa$.prototype.terminate;
+$dddd$=$aaaa$.prototype.terminate=function f(){
+	f.ori.call(this);
+	$gameTroop.members().forEach(f.forEach);
+}; $dddd$.ori=$rrrr$;
+$dddd$.forEach=b=>b.clearCache();
 $aaaa$.prototype.createSpriteset=function(){
 	this._chr2sp=new Map();
 	this.addChild(this._spriteset = new Spriteset_Battle(this));
@@ -4346,11 +4353,18 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Game_BattlerBase
 $aaaa$=Game_BattlerBase;
-Game_BattlerBase.currMaxEnum=70;
-Game_BattlerBase.addEnum=objs._addEnum;
-Game_BattlerBase.addEnum('CACHEKEY_EQUIP');
-Game_BattlerBase.addEnum('CACHEKEY_SKILL');
-Game_BattlerBase.addEnum('CACHEKEY_STATE');
+$aaaa$.currMaxEnum=70;
+$aaaa$.addEnum=objs._addEnum;
+$aaaa$.addEnum('CACHEKEY_EQUIP')
+	.addEnum('CACHEKEY_SKILL')
+	.addEnum('CACHEKEY_STATE')
+	.addEnum('CACHEKEY_NATIVE')
+	.addEnum('__DUMMY');
+$aaaa$.prototype.clearCache=function(key){
+	// if !key then clear all
+	if(key) $gameTemp.delCache(this,key);
+	else $gameTemp.clearCache(this);
+};
 Object.defineProperties($aaaa$.prototype, {
 	mtp: { get: function() { return this.maxTp(); }, configurable: false },
 	stp: { get: function() { return this._stp; }, configurable: false },
@@ -4445,10 +4459,6 @@ $aaaa$.prototype.states_noSlice=function(){
 $aaaa$.prototype.states=function f(){
 	return this.states_noSlice().slice();
 };
-$aaaa$.prototype.getTraits_states=function(code,id){
-	const rtv=this.states_noSlice().get(code);
-	return rtv&&id!==undefined?rtv.get(id):rtv;
-};
 $dddd$=$aaaa$.prototype.sortStates=function f(){
 	this._states.sort(f.cmp[0]);
 	const stat=this._states_getCache();
@@ -4499,7 +4509,23 @@ $aaaa$.prototype.buffIcons=function(rtv){
 $aaaa$.prototype.allIcons=function(){
 	return this.buffIcons(this.stateIcons());
 };
-$dddd$=$aaaa$.prototype.allTraits = function f(code) {
+$aaaa$.prototype.getTraits_states_s=function(code,id){
+	// return: undefined / Map / value
+	const rtv=this.states_noSlice().s.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_states_m=function(code,id){
+	// return: undefined / Map / value
+	const rtv=this.states_noSlice().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$dddd$=$aaaa$.prototype.getTraits_native_s=function f(code,id){
+	f.tbl.clear();
+	return f.tbl;
+};
+$dddd$.tbl=new Map();
+$aaaa$.prototype.getTraits_native_m=$dddd$;
+$dddd$=$aaaa$.prototype.allTraits=function f(code){
 	const rtv=[]; rtv.code=code;
 	return this.traitObjects().reduce(f.reduce, rtv);
 };
@@ -6447,7 +6473,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._tbl_resetValues=(d,needRefresh)=>{
+$aaaa$.prototype._tbl_resetValues=function(d,needRefresh){
 	// d: container ; needRefresh: refresh values for keys in cache
 	
 	let rtv=$gameTemp.getCache(this,d);
@@ -9360,6 +9386,31 @@ $dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$.cmp=$tttt$;
 $dddd$.map=id=>$dataSkills[id];
 $tttt$=undef;
+$dddd$=$aaaa$.prototype._getTraits_native=function f(){
+	const a=this.getData() , c=this.currentClass();
+	let rtv=$gameTemp.getCache(this,f.key);
+	if(!rtv || rtv.a!==a || rtv.c!==c){
+		$gameTemp.updateCache(this,f.key,rtv=a.traits.concat(c.traits));
+		rtv.m=new Map();
+		rtv.m.byKey2_mul(a.tmapP);
+		rtv.m.byKey2_mul(c.tmapP);
+		rtv.s=new Map();
+		rtv.s.byKey2_sum(a.tmapS);
+		rtv.s.byKey2_sum(c.tmapS);
+		rtv.a=a;
+		rtv.c=c;
+	}
+	return rtv;
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
+$aaaa$.prototype.getTraits_native_s=function f(code,id){
+	const rtv=this._getTraits_native().s.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_native_m=function f(code,id){
+	const rtv=this._getTraits_native().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
 $dddd$=$aaaa$.prototype._traitObjects=function f(){
 	// add every obj (related to 'this' actor) that contains traits
 	const eqs=this.equips(),objects=Game_Battler.prototype.traitObjects.call(this);
@@ -9800,7 +9851,7 @@ $aaaa$.prototype.destroy=function(actorId){
 		if(!this._clones[tid]) return;
 		let arr=this._clones[tid],tbl=$gameTemp._acs_holes[tid];
 		if(!arr[sid]) return;
-		$gameTemp.clearCache(arr[sid]);
+		arr[sid].clearCache();
 		arr[sid]=0;
 		if(!tbl||tbl.length===0){
 			if(sid+1===arr.length) arr.pop();
@@ -9839,7 +9890,7 @@ $aaaa$.prototype.destroy=function(actorId){
 		else tbl.add(sid,[sid,sid1]);
 		return true;
 	}else{
-		$gameTemp.clearCache(this._data[tid]);
+		this._data[tid].clearCache();
 		this._data[tid]=0;
 	}
 		return true;
