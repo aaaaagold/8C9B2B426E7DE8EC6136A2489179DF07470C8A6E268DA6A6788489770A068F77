@@ -86,27 +86,31 @@ Map.prototype.byKey_del_mul=function(rhs){
 	}
 	return rtv;
 };
-Map.prototype.byKey2_sum=function(rhs,notInplace){
-	const base=notInplace?new Map(this):this;
+Map.prototype.byKey2_sum=function(rhs){
+	const base=this;
 	if(base.c===undefined) base.c=0;
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
-		const c=tmp.c||0;
+		const c=tmp.c||0,val=tmp.v||0;
 		tmp.byKey_sum(v,true);
 		base.c+=tmp.c-c;
+		base.v+=tmp.v-val;
 	});
 	return base;
 };
-Map.prototype.byKey2_mul=function(rhs,notInplace){
-	const base=notInplace?new Map(this):this;
+Map.prototype.byKey2_mul=function(rhs){
+	const base=this;
 	if(base.c===undefined) base.c=0;
+	if(base.v===undefined) base.v=1;
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
 		const c=tmp.c||0;
+		const val=tmp.val===undefined?1:tmp.v;
 		tmp.byKey_mul(v,true);
 		base.c+=tmp.c-c;
+		base.v*=tmp.v/val;
 	});
 	return base;
 };
@@ -115,10 +119,11 @@ Map.prototype.byKey2_del_sum=function(rhs){
 	rhs.forEach((v,k)=>{
 		const tmp=base.get(k);
 		if(tmp){
-			const c=tmp.c;
+			const c=tmp.c,val=tmp.v;
 			tmp.byKey_del_sum(v);
-			base.c-=c-tmp.c;
-			if(tmp.c===0) base.delete(k);
+			base.c+=tmp.c-c;
+			base.v+=tmp.v-val;
+			if(!tmp.c) base.delete(k);
 		}
 	});
 	return base;
@@ -128,10 +133,11 @@ Map.prototype.byKey2_del_mul=function(rhs){
 	rhs.forEach((v,k)=>{
 		const tmp=base.get(k);
 		if(tmp){
-			const c=tmp.c;
+			const c=tmp.c,val=tmp.v;
 			tmp.byKey_del_mul(v);
-			base.c-=c-tmp.c;
-			if(tmp.c===0) base.delete(k);
+			base.c+=tmp.c-c;
+			base.v*=tmp.v/val;
+			if(!tmp.c) base.delete(k);
 		}
 	});
 	return base;

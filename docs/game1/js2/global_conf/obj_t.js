@@ -4409,27 +4409,18 @@ $dddd$=$aaaa$.prototype._states_updateCache=function f(){
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
-$tttt$=$dddd$.map=id=>$dataStates[id];
-$aaaa$.prototype.states_noSlice=function(){
-	return this._states_getCache()||this._states_updateCache();
-};
-$aaaa$.prototype.states=function f(){
-	return this.states_noSlice().slice();
-};
-$dddd$=$aaaa$.prototype._addNewState_updateCache=function f(stateId){
+$dddd$.map=id=>$dataStates[id];
+$aaaa$.prototype._addNewState_updateCache=function(stateId){
 	this._states.push(stateId);
 	const stat=this._states_getCache();
 	if(stat){
 		stat.a.add(stateId);
-		const data=f.map(stateId);
+		const data=$dataStates[stateId];
 		stat.push(data);
 		stat.s.byKey2_sum(data.tmapS);
 		stat.m.byKey2_mul(data.tmapP);
 	}
 };
-$dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
-$dddd$.map=$tttt$;
-$tttt$=undef;
 $aaaa$.prototype.addNewState=function(stateId){
 	let cancel=false;
 	if(stateId === this.deathStateId()){
@@ -4448,12 +4439,20 @@ $aaaa$.prototype.addNewState=function(stateId){
 		}
 	}
 };
+$aaaa$.prototype.states_noSlice=function(){
+	return this._states_getCache()||this._states_updateCache();
+};
+$aaaa$.prototype.states=function f(){
+	return this.states_noSlice().slice();
+};
+$aaaa$.prototype.getTraits_states=function(code,id){
+	const rtv=this.states_noSlice().get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
 $dddd$=$aaaa$.prototype.sortStates=function f(){
 	this._states.sort(f.cmp[0]);
 	const stat=this._states_getCache();
-	if(stat){
-		stat.sort(f.cmp[1]);
-	}
+	if(stat) stat.sort(f.cmp[1]);
 };
 $dddd$.cmp=[
 	(a, b)=>{
@@ -10481,6 +10480,7 @@ $aaaa$.prototype.processCancel = function(noSound) {
 $aaaa$.prototype.touchOutsideFrame=none;
 $rrrr$=$aaaa$.prototype.onTouch;
 $dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
+	if(!this.parent) return;
 	if(!iw) return f.ori.call(this,triggered);
 	let lastIndex = this.index();
 	let x = this.canvasToLocalX(TouchInput.x);
