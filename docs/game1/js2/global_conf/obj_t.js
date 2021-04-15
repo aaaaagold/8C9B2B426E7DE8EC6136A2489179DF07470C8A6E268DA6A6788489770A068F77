@@ -2822,10 +2822,10 @@ $aaaa$.prototype.createSpriteset=function(){
 $rrrr$=$aaaa$.prototype.createPartyCommandWindow;
 $dddd$=$aaaa$.prototype.createPartyCommandWindow=function f(){
 	f.ori.call(this);
+	this._partyCommandWindow.setHandler('usePlan',     this.commandUsePlan.bind(this));
 	this._partyCommandWindow.setHandler('allAtk',      this.commandAtkAll.bind(this));
 	this._partyCommandWindow.setHandler('allGuard',    this.commandGuardAll.bind(this));
 	this._partyCommandWindow.setHandler('allSpaceout', this.commandSpaceoutAll.bind(this));
-	this._partyCommandWindow.setHandler('usePlan',     this.commandUsePlan.bind(this));
 	this._partyCommandWindow.setHandler('viewLog',     this.commandViewLog.bind(this));
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.createActorCommandWindow;
@@ -11144,10 +11144,10 @@ $aaaa$=Window_PartyCommand;
 $rrrr$=$aaaa$.prototype.makeCommandList;
 $dddd$=$aaaa$.prototype.makeCommandList=function f(){
 	this.addCommand(TextManager.fight,  'fight');
+	this.addCommand($dataCustom.plan.use,  'usePlan');
 	this.addCommand($dataCustom.battle.allAtk,  'allAtk');
 	this.addCommand($dataCustom.battle.allGuard,  'allGuard');
 	this.addCommand($dataCustom.battle.allSpaceout,  'allSpaceout');
-	this.addCommand($dataCustom.plan.use,  'usePlan');
 	this.addCommand($dataCustom.battle.viewLog,  'viewLog');
 	this.addCommand(TextManager.escape, 'escape', BattleManager.canEscape());
 }; $dddd$.ori=$rrrr$;
