@@ -9039,10 +9039,10 @@ $dddd$=$aaaa$.prototype.displayLevelUp=function f(newSkills){
 	}
 };
 $dddd$.forEach=[
-	(_,id)=>{
+	id=>{
 		$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name));
 	},
-	(_,id)=>{
+	id=>{
 		$gameMessage.popup(TextManager.obtainSkill.format($dataSkills[id].name),true);
 	},
 ];
@@ -10383,8 +10383,9 @@ $aaaa$.prototype.standardFontSize=function(){
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
 	f.ori.call(this,x,y,w,h);
-	this._maxCols=undefined;
-	this._drawingIdx=undefined;
+	// create member
+	if(this._maxCols===undefined) this._maxCols=undefined;
+	if(this._drawingIdx===undefined) this._drawingIdx=undefined;
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.maxCols=function(){
 	return this._maxCols===undefined?1:this._maxCols;
