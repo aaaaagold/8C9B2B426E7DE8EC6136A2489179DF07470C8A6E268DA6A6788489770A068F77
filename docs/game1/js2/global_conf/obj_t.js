@@ -8974,14 +8974,14 @@ $dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	this._exp[this._classId] = Math.max(exp, 0);
 	
 	// clear last learned skills
-	{ const tmp=this._skills_getCache(); if(tmp && tmp.lastLearneds) tmp.lastLearneds.length=0; }
+	{ const tmp=this._skills_getCache(); if(tmp && tmp.pendLearns) tmp.pendLearns.length=0; }
 	
 	const lastLevel = this._level;
 	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(undefined,true);
 	while(this.currentExp()<this.currentLevelExp()) this.levelDown();
 	if(this._level !== lastLevel){ if(this._level > lastLevel){
 		const tmp=this._skills_getCache();
-		const m=tmp&&tmp.lastLearneds;
+		const m=tmp&&tmp.pendLearns;
 		if(m && m.length){
 			if(show) this.displayLevelUp(m);
 			m.length=0;
@@ -9029,8 +9029,8 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 			let tmp=this._skills_getCache();
 			if(tmp) tmp.add(skillId);
 			else tmp=this._skills_updateCache();
-			if(!tmp.lastLearneds) tmp.lastLearneds=[];
-			tmp.lastLearneds.push(skillId);
+			if(!tmp.pendLearns) tmp.pendLearns=[];
+			tmp.pendLearns.push(skillId);
 		}else this._skills_updateCache();
 	}
 };
