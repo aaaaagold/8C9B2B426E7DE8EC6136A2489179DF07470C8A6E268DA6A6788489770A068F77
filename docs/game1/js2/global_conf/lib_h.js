@@ -10,12 +10,163 @@ $dddd$=String.prototype.toId=function f(){
 };
 $dddd$.regex=/^([0-9]+)(-[0-9A-Z_a-z]+)?$/;
 Number.prototype.toId=function(){ return this.valueOf(); };
+Number.prototype.sum=function(n,p){
+	p=p||1;
+	return (~~((this.valueOf()+sum)*p+0.5))/p;
+};
+Number.prototype.subId=()=>0;
 $dddd$=String.prototype.subId=function f(){
 	let tmp=this.match(f.regex);
 	return (tmp||undefined)&&Number(tmp[3]);
 };
 $dddd$.regex=/^([0-9]+)(-([0-9A-Z_a-z]+))?$/;
-Number.prototype.subId=()=>0;
+$aaaa$=function Number_muls(num){
+	this._data=[num||1];
+	this._limB=[];
+	this._limS=[];
+	this._zero=(num===0)|0;
+};
+window[$aaaa$.name]=$aaaa$;
+$aaaa$.prototype.reset=function(num){
+	this._data.length=0;
+	this._data.push(num||1);
+	this._limB.length=0;
+	this._limS.length=0;
+	this._zero=(num===0)|0;
+};
+$aaaa$.prototype.copy=function(){
+	const rtv=new this.constructor();
+	rtv._data=this._data.slice();
+	rtv._limB=this._limB.slice();
+	rtv._limS=this._limS.slice();
+	rtv._zero=this._zero;
+	return rtv;
+};
+$aaaa$.prototype._inv_arr=function(arr){
+	for(let x=0;x!==arr.length;++x) arr[x]=1/arr[x];
+};
+$aaaa$.prototype.inv=function(){
+	{ const tmp=this._limB; this._limB=this._limS; this._limS=tmp; }
+	this._inv_arr(this._data);
+	this._inv_arr(this._limB);
+	this._inv_arr(this._limS);
+	this._zero=-this._zero;
+	this._data.sort();
+	return this;
+};
+$aaaa$.prototype.valueOf=function(){
+	if(this._zero) return this._zero<0?NaN:0;
+	let rtv=1;
+	const D=this._data,B=this._limB,S=this._limS;
+	let dl=0,dh=D.length;
+	let b=0,s=0;
+	for(;;){
+		let un=true;
+		let tmp=rtv<0?-rtv:rtv;
+		if(tmp<1){
+			if(un && b!==B.length){
+				un=false;
+				rtv*=B[b++];
+			}
+			if(un && dl<dh){
+				un=false;
+				rtv*=D[--dh];
+			}
+			if(un && s!==S.length){
+				un=false;
+				rtv*=S[s++];
+			}
+		}else{
+			if(un && s!==S.length){
+				un=false;
+				rtv*=S[s++];
+			}
+			if(un && dl<dh){
+				un=false;
+				rtv*=D[dl++];
+			}
+			if(un && b!==B.length){
+				un=false;
+				rtv*=B[b++];
+			}
+		}
+		if(un) break;
+	}
+	return rtv;
+};
+$dddd$=$aaaa$.prototype.mul=function f(num){
+	if(!num){ this._zero+=num===0; return; }
+	if(num.constructor===this.constructor){
+		const D=this._data,B=this._limB,S=this._limS;
+		for(let dst=D,arr=num._data,x=0;x!==arr.length;++x) dst.push(arr[x]);
+		for(let dst=B,arr=num._limB,x=0;x!==arr.length;++x) dst.push(arr[x]);
+		for(let dst=S,arr=num._limS,x=0;x!==arr.length;++x) dst.push(arr[x]);
+		while(B.length && S.length) D.push(B.pop()*S.pop());
+		this._data.sort(f.cmp);
+		for(let x=0;x+1<D.length;++x){
+			const val=D[x]*D.back;
+			const tmp=val<0?-val:val;
+			if(tmp<1e123 && tmp>1e-123){
+				D[x]=val;
+				D.pop();
+			}
+		}
+		this._data.sort(f.cmp);
+		this._zero+=num._zero;
+		return;
+	}
+	const nabs=num<0?-num:num;
+	if(nabs<1){
+		if(this._limB.length){
+			let tmp=this._limB.back*=num;
+			if(tmp<0) tmp=-tmp;
+			if(tmp<1e123){
+				if(this._data.length>1){
+					this._data.back*=this._data[0];
+					this._data[0]=this._limB.pop();
+				}else this._data.push(this._limB.pop());
+			}
+		}else{
+			let tmp=this._data.back;
+			if(tmp<0) tmp=-tmp;
+			if(tmp<1e-123){
+				this._limS.push(this._data.pop());
+				if(this._data.length) this._data.back*=num;
+				else this._data.push(num);
+			}else this._data.back*=num;
+		}
+	}else{
+		if(this._limS.length){
+			let tmp=this._limS.back*=num;
+			if(tmp<0) tmp=-tmp;
+			if(tmp>1e-123){
+				if(this._data.length>1){
+					this._data.back*=this._data[0];
+					this._data[0]=this._limS.pop();
+				}else this._data.push(this._limS.pop());
+			}
+		}else{
+			let tmp=this._data[0];
+			if(tmp<0) tmp=-tmp;
+			if(tmp>1e123){
+				this._limB.push(this._data[0]);
+				if(this._data.length>1){
+					this._data[1]*=num;
+					this._data[0]=this._data.back;
+					this._data.pop();
+				}else this._data[0]=num;
+			}else this._data[0]*=num;
+		}
+	}
+	if(this._limB.length && this._limS.length){
+		this._data.push(this._limB.pop()*this._limS.pop());
+	}
+	this._data.sort(f.cmp);
+};
+$dddd$.cmp=(a,b)=>(a<0?-a:a)-(b<0?-b:b);
+$aaaa$.prototype.divZero=function(){
+	--this._zero;
+};
 Map.prototype.byKey_sum=function(map2,inplace_self){
 	let base,rhs,rtv;
 	if(inplace_self){ rtv=this; rhs=map2; }
@@ -24,15 +175,23 @@ Map.prototype.byKey_sum=function(map2,inplace_self){
 		else{ rhs=map2; base=this; }
 		rtv=new Map(base);
 	}
-	if(rtv.c===undefined) rtv.c=0;
+	if(rtv.c===undefined) (rtv.c=new Map()).v=0;
 	if(rtv.v===undefined) rtv.v=0;
+	rtv.v=~~(rtv.v*100+0.5);
 	rhs.forEach((v,k)=>{
+		const v100=~~(v*100+0.5); // data source precision is 0.01
 		let tmp=rtv.get(k);
-		if(tmp) rtv.set(k,tmp+v);
-		else rtv.set(k,v);
-		rtv.v+=v;
-		++rtv.c;
+		if(tmp){
+			rtv.set(k,((~~(tmp*100+0.5))+v100)/100);
+			rtv.c.set(k,rtv.c.get(k)+1);
+		}else{
+			rtv.set(k,v);
+			rtv.c.set(k,1);
+		}
+		rtv.v+=v100;
+		++rtv.c.v;
 	});
+	rtv.v/=100;
 	return rtv;
 };
 Map.prototype.byKey_mul=function(map2,inplace_self){
@@ -43,101 +202,144 @@ Map.prototype.byKey_mul=function(map2,inplace_self){
 		else{ rhs=map2; base=this; }
 		rtv=new Map(base);
 	}
-	if(rtv.c===undefined) rtv.c=0;
-	if(rtv.v===undefined) rtv.v=1;
+	if(rtv.c===undefined) (rtv.c=new Map()).v=0;
+	if(rtv.v===undefined) rtv.v=new Number_muls(1);
+	//if(rtv.z===undefined) rtv.z=0;
 	rhs.forEach((v,k)=>{
 		let tmp=rtv.get(k);
-		if(tmp!==undefined) rtv.set(k,tmp*v);
-		else rtv.set(k,v);
-		rtv.v*=v;
-		++rtv.c;
+		if(tmp!==undefined){
+			tmp.mul(v);
+			rtv.c.set(k,rtv.c.get(k)+1);
+		}else{
+			rtv.set(k,new Number_muls(v));
+			rtv.c.set(k,1);
+		}
+		rtv.v.mul(v);
+		++rtv.c.v;
 	});
 	return rtv;
 };
 Map.prototype.byKey_del_sum=function(rhs){
+	if(!rhs) return;
 	const rtv=this;
+	rtv.v=~~(rtv.v*100+0.5);
 	rhs.forEach((v,k)=>{
 		const tmp=rtv.get(k);
 		if(tmp!==undefined){
-			rtv.set(k,tmp-v);
-			rtv.v-=v;
-			--rtv.c;
+			const v100=~~(v*100+0.5); // data source precision is 0.01
+			rtv.set(k,((~~(tmp*100+0.5))-v100)/100);
+			rtv.v-=v100;
+			const n=rtv.c.get(k)-1;
+			if(n) rtv.c.set(k,n);
+			else{
+				rtv.delete(k);
+				rtv.c.delete(k);
+			}
+			--rtv.c.v;
 		}
 	});
-	if(rtv.c===0){
+	if(rtv.c.v===0){
 		rtv.v=0;
 		rtv.clear();
-	}
+	}else rtv.v/=100;
 	return rtv;
 };
 Map.prototype.byKey_del_mul=function(rhs){
+	if(!rhs) return;
 	const rtv=this;
 	rhs.forEach((v,k)=>{
 		const tmp=rtv.get(k);
 		if(tmp!==undefined){
-			rtv.set(k,tmp/v);
-			rtv.v/=v;
-			--rtv.c;
+			if(v){
+				v=1/v;
+				tmp.mul(v);
+				rtv.v.mul(v);
+			}else{
+				tmp.divZero();
+				rtv.v.divZero();
+			}
+			const n=rtv.c.get(k)-1;
+			if(n) rtv.c.set(k,n);
+			else{
+				rtv.delete(k);
+				rtv.c.delete(k);
+			}
+			--rtv.c.v;
 		}
 	});
-	if(rtv.c===0){
-		rtv.v=1;
+	if(rtv.c.v===0){
+		rtv.v.reset(1);
+		//rtv.z=0;
 		rtv.clear();
 	}
 	return rtv;
 };
 Map.prototype.byKey2_sum=function(rhs){
+	if(!rhs) return;
 	const base=this;
 	if(base.c===undefined) base.c=0;
+	if(base.v===undefined) base.v=0;
+	base.v=~~(base.v*100+0.5);
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
-		const c=tmp.c||0,val=tmp.v||0;
+		const c=tmp.c&&tmp.c.v||0,val=tmp.v||0;
 		tmp.byKey_sum(v,true);
-		base.c+=tmp.c-c;
-		base.v+=tmp.v-val;
+		base.c+=tmp.c.v-c;
+		base.v+=~~((tmp.v-val)*100+0.5); // data source precision is 0.01
 	});
+	base.v/=100;
 	return base;
 };
 Map.prototype.byKey2_mul=function(rhs){
+	if(!rhs) return;
 	const base=this;
 	if(base.c===undefined) base.c=0;
-	if(base.v===undefined) base.v=1;
+	if(base.v===undefined) base.v=new Number_muls();
+	//if(base.z===undefined) base.z=0;
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
-		const c=tmp.c||0;
-		const val=tmp.val===undefined?1:tmp.v;
+		const c=tmp.c&&tmp.c.v||0 , val_i=tmp.v===undefined?new Number_muls(1):tmp.v.copy().inv();
+		const z=tmp.z||0;
 		tmp.byKey_mul(v,true);
-		base.c+=tmp.c-c;
-		base.v*=tmp.v/val;
+		base.c+=tmp.c.v-c;
+		base.v.mul(val_i);
+		base.v.mul(tmp.v);
+		//base.z+=tmp.z-z;
 	});
 	return base;
 };
 Map.prototype.byKey2_del_sum=function(rhs){
+	if(!rhs) return;
 	const base=this;
+	base.v=~~(base.v*100+0.5);
 	rhs.forEach((v,k)=>{
 		const tmp=base.get(k);
 		if(tmp){
-			const c=tmp.c,val=tmp.v;
+			const c=tmp.c.v,val=tmp.v;
 			tmp.byKey_del_sum(v);
-			base.c+=tmp.c-c;
-			base.v+=tmp.v-val;
-			if(!tmp.c) base.delete(k);
+			base.c+=tmp.c.v-c;
+			base.v+=~~((tmp.v-val)*100+0.5); // data source precision is 0.01
+			if(!tmp.c.v) base.delete(k);
 		}
 	});
+	base.v/=100;
 	return base;
 };
 Map.prototype.byKey2_del_mul=function(rhs){
+	if(!rhs) return;
 	const base=this;
 	rhs.forEach((v,k)=>{
 		const tmp=base.get(k);
 		if(tmp){
-			const c=tmp.c,val=tmp.v;
+			const c=tmp.c.v,val_i=tmp.v.copy().inv(),z=tmp.z;
 			tmp.byKey_del_mul(v);
-			base.c+=tmp.c-c;
-			base.v*=tmp.v/val;
-			if(!tmp.c) base.delete(k);
+			base.c+=tmp.c.v-c;
+			base.v.mul(val_i);
+			base.v.mul(tmp.v);
+			//base.z+=tmp.z-z;
+			if(!tmp.c.v) base.delete(k);
 		}
 	});
 	return base;

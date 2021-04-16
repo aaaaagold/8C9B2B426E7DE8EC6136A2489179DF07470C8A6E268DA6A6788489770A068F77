@@ -1706,15 +1706,6 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
 	}
 	
-	// make traits map
-	$dataActors.slice($dataActors.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataEnemies.slice($dataEnemies.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataStates.slice($dataStates.arrangeStart||1).forEach(f.makeTraitsMap);
-	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(f.makeTraitsMap);
-	
 	// sorting order
 	{ const arr=$dataCustom.skillOrder.flat(),c2=arr.length.ceilPow2();
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
@@ -1757,6 +1748,15 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		ord*=atypeLen; ord|=x.atypeId;
 		x.ord=ord;
 	}); }
+	
+	// make traits map
+	$dataActors.slice($dataActors.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataEnemies.slice($dataEnemies.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataStates.slice($dataStates.arrangeStart||1).forEach(f.makeTraitsMap);
+	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(f.makeTraitsMap);
 	
 	// make def, spaceout much faster
 	if(!$dataSkills.speedUp){
@@ -1816,7 +1816,12 @@ $dddd$.makeTraitsMap=dataobj=>{
 			tmapP.v*=val;
 		}
 	}
-	if( dataobj.params && (tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) ) dataobj.params.push(tmp.v*1e6); // +act times
+	if(dataobj.params){
+		// arrange equip performance
+		dataobj.params.push(1e6); // base pad
+		if(tmp=dataobj.ord) dataobj.params.push(-tmp*1e3);
+		if(tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) dataobj.params.push(tmp.v*1e6); // +act times
+	}
 };
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
@@ -4359,6 +4364,8 @@ $aaaa$.addEnum('CACHEKEY_EQUIP')
 	.addEnum('CACHEKEY_SKILL')
 	.addEnum('CACHEKEY_STATE')
 	.addEnum('CACHEKEY_NATIVE')
+	.addEnum('CACHEKEY_OVERALL_S')
+	.addEnum('CACHEKEY_OVERALL_M')
 	.addEnum('__DUMMY');
 $aaaa$.prototype.clearCache=function(key){
 	// if !key then clear all
@@ -4396,6 +4403,7 @@ $aaaa$.prototype.eraseState=function(stateId){
 			stat.s.byKey2_del_sum(data.tmapS);
 			stat.m.byKey2_del_mul(data.tmapP);
 		}
+		this._overall_delCache();
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
@@ -4434,6 +4442,7 @@ $aaaa$.prototype._addNewState_updateCache=function(stateId){
 		stat.s.byKey2_sum(data.tmapS);
 		stat.m.byKey2_mul(data.tmapP);
 	}
+	this._overall_delCache();
 };
 $aaaa$.prototype.addNewState=function(stateId){
 	let cancel=false;
@@ -4519,12 +4528,115 @@ $aaaa$.prototype.getTraits_states_m=function(code,id){
 	const rtv=this.states_noSlice().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$dddd$=$aaaa$.prototype.getTraits_native_s=function f(code,id){
-	f.tbl.clear();
-	return f.tbl;
+$aaaa$.prototype.getTraits_native_s=function(code,id){
+	// return: undefined / Map / value (code and id provided and value got)
 };
-$dddd$.tbl=new Map();
 $aaaa$.prototype.getTraits_native_m=$dddd$;
+$aaaa$.prototype.getTraits_equips_s=$dddd$;
+$aaaa$.prototype.getTraits_equips_m=$dddd$;
+$aaaa$.prototype.getTraits_custom_s=$dddd$;
+$aaaa$.prototype.getTraits_custom_m=$dddd$;
+$aaaa$.prototype._overall_delCache=function(code){
+	this._overall_s_delCache(code);
+	this._overall_m_delCache(code);
+};
+$dddd$=$aaaa$.prototype._overall_s_delCache=function f(code){
+	if(code){
+		const c=$gameTemp.getCache(this,f.key);
+		if(c) c.delete(code);
+	}else $gameTemp.delCache(this,f.key);
+};
+$tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_S;
+$dddd$=$aaaa$.prototype._overall_s_getCache=function f(code){
+	const c=$gameTemp.getCache(this,f.key);
+	return (c&&code)?c.get(code):c;
+};
+$dddd$.key=$tttt$;
+$dddd$=$aaaa$.prototype._overall_s_updateCache=function f(code){
+	if(!code) return; // lazy to do overall and code===0 update
+	let rtv,tmp=this._overall_s_getCache();
+	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
+	if(rtv=tmp.get(code)) rtv.clear();
+	else tmp.set(code,rtv=new Map());
+	
+	tmp=this.getTraits_native_s(code);
+	if(tmp) rtv.byKey_sum(tmp,true);
+	tmp=this.getTraits_states_s(code);
+	if(tmp) rtv.byKey_sum(tmp,true);
+	tmp=this.getTraits_equips_s(code);
+	if(tmp) rtv.byKey_sum(tmp,true);
+	tmp=this.getTraits_custom_s(code);
+	if(tmp) rtv.byKey_sum(tmp,true);
+	
+	return rtv;
+};
+$dddd$.key=$tttt$;
+$tttt$=undef;
+$aaaa$.prototype.getTraits_overall_s=function(code,id){
+	let rtv,tmp;
+	if(id===undefined) return this._overall_s_getCache(code)||this._overall_s_updateCache(code);
+	else{
+		rtv=0;
+		tmp=this.getTraits_native_s(code,id);
+		if(tmp!==undefined) rtv+=tmp;
+		tmp=this.getTraits_states_s(code,id);
+		if(tmp!==undefined) rtv+=tmp;
+		tmp=this.getTraits_equips_s(code,id);
+		if(tmp!==undefined) rtv+=tmp;
+		tmp=this.getTraits_custom_s(code,id);
+		if(tmp!==undefined) rtv+=tmp;
+		rtv=(~~(rtv*100+0.5))/100;
+	}
+	return rtv;
+};
+$dddd$=$aaaa$.prototype._overall_m_delCache=function f(code){
+	if(code){
+		const c=$gameTemp.getCache(this,f.key);
+		if(c) c.delete(code);
+	}else $gameTemp.delCache(this,f.key);
+};
+$tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_M;
+$dddd$=$aaaa$.prototype._overall_m_getCache=function f(code){
+	const c=$gameTemp.getCache(this,f.key);
+	return (c&&code)?c.get(code):c;
+};
+$dddd$.key=$tttt$;
+$dddd$=$aaaa$.prototype._overall_m_updateCache=function f(code){
+	if(!code) return; // lazy to do overall and code===0 update
+	let rtv,tmp=this._overall_m_getCache();
+	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
+	if(rtv=tmp.get(code)) rtv.clear();
+	else tmp.set(code,rtv=new Map());
+	
+	tmp=this.getTraits_native_m(code);
+	if(tmp) rtv.byKey_mul(tmp,true);
+	tmp=this.getTraits_states_m(code);
+	if(tmp) rtv.byKey_mul(tmp,true);
+	tmp=this.getTraits_equips_m(code);
+	if(tmp) rtv.byKey_mul(tmp,true);
+	tmp=this.getTraits_custom_m(code);
+	if(tmp) rtv.byKey_mul(tmp,true);
+	
+	return rtv;
+};
+$dddd$.key=$tttt$;
+$tttt$=undef;
+$aaaa$.prototype.getTraits_overall_m=function(code,id){
+	let rtv,tmp;
+	if(id===undefined) return this._overall_m_getCache(code)||this._overall_m_updateCache(code);
+	else{
+		rtv=1;
+		tmp=this.getTraits_native_m(code,id);
+		if(tmp!==undefined) rtv*=tmp;
+		tmp=this.getTraits_states_m(code,id);
+		if(tmp!==undefined) rtv*=tmp;
+		tmp=this.getTraits_equips_m(code,id);
+		if(tmp!==undefined) rtv*=tmp;
+		tmp=this.getTraits_custom_m(code,id);
+		if(tmp!==undefined) rtv*=tmp;
+	}
+	return rtv;
+};
 $dddd$=$aaaa$.prototype.allTraits=function f(code){
 	const rtv=[]; rtv.code=code;
 	return this.traitObjects().reduce(f.reduce, rtv);
@@ -9108,17 +9220,6 @@ $aaaa$.prototype.equipSlots=function f(){
 	}
 	return rtv;
 };
-$aaaa$.prototype._equipR_ch=function(theSlotArr,slotIdExt,ori,item){
-	theSlotArr[slotIdExt].setObject(item);
-	if(item){
-		if(slotIdExt+1===theSlotArr.length) theSlotArr.push(new Game_Item());
-	}else if(ori){
-		if(slotIdExt+2===theSlotArr.length){
-			const empty=theSlotArr.pop();
-			theSlotArr.back=empty;
-		}else theSlotArr.splice(slotIdExt,1);
-	}
-};
 $dddd$=$aaaa$.prototype._equips_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
@@ -9127,29 +9228,92 @@ $dddd$=$aaaa$.prototype._equips_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
-$dddd$=$aaaa$.prototype.equips=function f(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
-	let rtv=this._equips_getCache();
-	if(refresh||!rtv){
-		rtv=this._equips.map(f.map);
-		$gameTemp.updateCache(this,f.key,rtv);
+$aaaa$.prototype._equips_updateCache_item=(item,s,m)=>{
+	//const c=a.get(item);
+	//if(c===undefined) a.set(item,1);
+	//else a.set(item,c+1);
+	s.byKey2_sum(item.tmapS);
+	m.byKey2_mul(item.tmapP);
+};
+$dddd$=$aaaa$.prototype._equips_updateCache=function f(){
+	const rtv=this._equips.map(f.map);
+	$gameTemp.updateCache(this,f.key,rtv);
+	//const a=rtv.a=new Map();
+	const s=rtv.s=new Map() , m=rtv.m=new Map();
+	for(let x=0;x!==rtv.length;++x){
+		const tmp=rtv[x]; if(!tmp) continue;
+		if(tmp.constructor===Array){ for(let z=0;z!==tmp.length;++z){ if(!tmp[z]) continue;
+			this._equips_updateCache_item(tmp[z],s,m);
+		} }else{
+			this._equips_updateCache_item(tmp,s,m);
+		}
 	}
-	/*
-		rtv.a	'Actor.traitObjects()' 
-		rtv.k	all skills 
-		rtv.p	trait.code->Set([trait.dataId]) with * each
-		rtv.r	data of equipped armors 
-		rtv.s	trait.code->Set([trait.dataId]) with + each
-		rtv.t	'rtv.a' but only equipments 
-		rtv.u	id -> plus by equips in 'this.paramPlus(id)'
-		rtv.w	data of equipped weapons 
-	*/
-	return rtv; 
+	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
-$dddd$.map=function f(item){
-	return item.constructor===Array?item.map(x=>f(x)):item.object();
+{
+	const f=$dddd$.map=item=>item.constructor===Array?item.map(x=>f(x)):item.object();
+}
+$aaaa$.prototype._equips_editCache_del=function(dataobj){
+	if(!dataobj) return;
+	const equips=this._equips_getCache();
+	if(!equips) return;
+	let tmp;
+	
+	// skills-old
+	tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
+	const skillAddedCnt=tmp&&tmp.size;
+	
+	equips.s.byKey2_del_sum(dataobj.tmapS);
+	equips.m.byKey2_del_mul(dataobj.tmapP);
+	
+	// skills
+	if(dataobj.tmapS.has(Game_BattlerBase.TRAIT_SKILL_ADD)){
+		const tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
+		if((tmp&&tmp.size)!==skillAddedCnt) this._skills_delCache_added();
+	}
+	
+	// paramPlus
+	if(equips.u!==undefined){
+		const d=equips.u,s=dataobj.params;
+		for(let x=0,xs=s.length;x!==xs;++x) if(d[x]!==undefined) d[x]-=s[x]; // only int
+	}
+	
+	// delete overall
+	this._overall_delCache();
 };
-$aaaa$.prototype.weapons = function(n){
+$aaaa$.prototype._equips_editCache_add=function(dataobj){
+	if(!dataobj) return;
+	const equips=this._equips_getCache();
+	if(!equips) return;
+	let tmp;
+	
+	// skills-old
+	tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
+	const skillAddedCnt=tmp&&tmp.size;
+	
+	equips.s.byKey2_sum(dataobj.tmapS);
+	equips.m.byKey2_mul(dataobj.tmapP);
+	
+	// skills
+	if(dataobj.tmapS.has(Game_BattlerBase.TRAIT_SKILL_ADD)){
+		const tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
+		if((tmp&&tmp.size)!==skillAddedCnt) this._skills_delCache_added();
+	}
+	
+	// paramPlus
+	if(equips.u!==undefined){
+		const d=equips.u,s=dataobj.params;
+		for(let x=0,xs=s.length;x!==xs;++x) if(d[x]!==undefined) d[x]+=s[x]; // only int so it's ok
+	}
+	
+	// delete overall
+	this._overall_delCache();
+};
+$aaaa$.prototype.equips=function f(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
+	return this._equips_getCache()||this._equips_updateCache();
+};
+$aaaa$.prototype.weapons=function(n){
 	const ref=this.equips();
 	if(ref.w===undefined){
 		const slots=this.equipSlots(),rtv=ref.w=[];
@@ -9183,38 +9347,70 @@ $aaaa$.prototype.isEquipChangeOk=function(slotId,slotIdExt) {
 		!this.isEquipTypeSealed(s)
 	);
 };
+$aaaa$.prototype._equipR_ch=function(slotId,slotIdExt,ori,item){
+	this._equips_editCache_del(ori);
+	const c=this._equips_getCache();
+	if(c) c[slotId][slotIdExt]=item;
+	const theSlotArr=this._equips[slotId];
+	theSlotArr[slotIdExt].setObject(item);
+	if(item){
+		if(slotIdExt+1===theSlotArr.length){
+			if(c) c[slotId].push(null);
+			theSlotArr.push(new Game_Item());
+		}
+	}else if(ori){
+		if(slotIdExt+2===theSlotArr.length){
+			let tmp;
+			if(c){
+				tmp=c[slotId].pop();
+				c[slotId].back=tmp;
+			}
+			tmp=theSlotArr.pop();
+			theSlotArr.back=tmp;
+		}else{
+			if(c) c[slotId].splice(slotIdExt,1);
+			theSlotArr.splice(slotIdExt,1);
+		}
+	}
+	this._equips_editCache_add(item);
+};
 $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	//debug.log('Game_Actor.prototype.changeEquip');
 	$gameTemp.____byChEqu=true;
 	if(slotIdExt>=0){
-		const arr=this._equips[slotId];
-		const ori=arr[slotIdExt].object();
+		const ori=this._equips[slotId][slotIdExt].object();
 		if (this.tradeItemWithParty(item, ori) &&
 			(!item || this.equipSlots()[slotId] === item.etypeId)) {
-			this._equipR_ch(arr,slotIdExt,ori,item);
+			this._equipR_ch(slotId,slotIdExt,ori,item);
 			if(!noRefresh) this.refresh();
 		}
 	}else{
-		if (this.tradeItemWithParty(item, this.equips()[slotId]) &&
+		const ori=this._equips[slotId].object();
+		if (this.tradeItemWithParty(item, ori) &&
 			(!item || this.equipSlots()[slotId] === item.etypeId)) {
+			const c=this._equips_getCache(); if(c) c[slotId]=item;
+			this._equips_editCache_del(ori);
 			this._equips[slotId].setObject(item);
+			this._equips_editCache_add(item);
 			if(!noRefresh) this.refresh();
 		}
 	}
 	$gameTemp.____byChEqu=false;
-	this._equips_delCache();
+	//this._equips_delCache();
 };
 $aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt) {
 	if(slotIdExt>=0){
 		const arr=this._equips[slotId];
 		const ori=arr[slotIdExt].object();
-		
-		this._equipR_ch(arr,slotIdExt,ori,item);
-		//this.refresh();
-		
-		//this._equips[slotId][slotIdExt].setObject(item);
-	}else this._equips[slotId].setObject(item);
-	this._equips_delCache();
+		this._equipR_ch(slotId,slotIdExt,ori,item);
+	}else{
+		const c=this._equips_getCache(); if(c) c[slotId]=item;
+		const ori=this._equips[slotId].object();
+		this._equips_editCache_del(ori);
+		this._equips[slotId].setObject(item);
+		this._equips_editCache_add(item);
+	}
+	//this._equips_delCache();
 	this.releaseUnequippableItems(true);
 	this.refresh();
 };
@@ -9249,25 +9445,29 @@ $aaaa$.prototype.discardEquip = function(item){
 		if(slotIdExt!==-1){
 			const arr=this._equips[slotId];
 			const ori=arr[slotIdExt].object();
-			this._equipR_ch(arr,slotIdExt,ori,null);
-			this._equips_delCache();
+			this._equipR_ch(slotId,slotIdExt,ori,null);
+			//this._equips_delCache();
 		}
 	}else{
 		const slotId = this.equips().indexOf(item);
 		if(slotId!==-1){
+			const c=this._equips_getCache(); if(c) c[slotId]=null;
+			const ori=this._equips[slotId].object();
+			this._equips_editCache_del(ori);
 			this._equips[slotId].setObject(null);
-			this._equips_delCache();
 		}
 	}
 };
-$aaaa$.prototype.releaseUnequippableItems_item=function(forcing_i,slot,item,e,cacheMap){
-	//const judging=cacheMap&&cacheMap.get(item);
-	// if(judging===undefined?(!this.canEquip(item) || item.etypeId !== slot):judging){
+$aaaa$.prototype._releaseUnequippableItems_item=function(forcing_i,slots,i,e,ext){
+	const item=e.object();
 	if(!item) return;
-	if(!this.canEquip(item) || item.etypeId !== slot){
+	if(!this.canEquip(item) || item.etypeId !== slots[i]){
 		if(forcing_i){
 			this.tradeItemWithParty(null, item);
 		}
+		this._equips_editCache_del(item);
+		const c=this._equips_getCache();
+		if(c){ if(ext>=0) c[i][ext]=null; else c[i]=null; }
 		e.setObject(null);
 		return true;
 	}
@@ -9281,15 +9481,15 @@ $aaaa$.prototype.releaseUnequippableItems=function(forcing){ // forcing: do not 
 		for (let i=0;i!==equips.length;++i){ const curr=equips[i];
 			if(curr.constructor===Array){
 				for(let x=0,es=equips[i],slot=slots[i];x!==curr.length;++x){
-					if(this.releaseUnequippableItems_item(forcing_i,slot,curr[x].object(),es[x]))
+					if(this._releaseUnequippableItems_item(forcing_i,slots,i,es[x],x))
 						changed = true;
 				}
 			}else{
-				if(this.releaseUnequippableItems_item(forcing_i,slots[i],curr.object(),equips[i]))
+				if(this._releaseUnequippableItems_item(forcing_i,slots,i,curr))
 					changed = true;
 			}
 		}
-		if(changed) this._equips_delCache(); // 'equipSlots' use 'isDualWield'
+		//if(changed) this._equips_delCache(); // 'equipSlots' use 'isDualWield'
 	}
 };
 $aaaa$.prototype.clearEquipments=function(kargs){
@@ -9366,6 +9566,7 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 	let s=this._skills_getCache();
 	const added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	if(s){
+		// TODO: Now every time traitSet is different. Thus this will always be fales.
 		if(s.added===added) return s.all;
 		s.added=added;
 		rtv=[];
@@ -9390,6 +9591,8 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	const a=this.getData() , c=this.currentClass();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.a!==a || rtv.c!==c){
+		rtv.a=a;
+		rtv.c=c;
 		$gameTemp.updateCache(this,f.key,rtv=a.traits.concat(c.traits));
 		rtv.m=new Map();
 		rtv.m.byKey2_mul(a.tmapP);
@@ -9397,18 +9600,27 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 		rtv.s=new Map();
 		rtv.s.byKey2_sum(a.tmapS);
 		rtv.s.byKey2_sum(c.tmapS);
-		rtv.a=a;
-		rtv.c=c;
+		this._overall_delCache();
 	}
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
-$aaaa$.prototype.getTraits_native_s=function f(code,id){
+$aaaa$.prototype.getTraits_native_s=function(code,id){
 	const rtv=this._getTraits_native().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_native_m=function f(code,id){
+$aaaa$.prototype.getTraits_native_m=function(code,id){
 	const rtv=this._getTraits_native().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$dddd$=$aaaa$.prototype.getTraits_equips_s=function f(code,id){
+	// return: undefined / Map / value
+	const rtv=this.equips().s.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$dddd$=$aaaa$.prototype.getTraits_equips_m=function f(code,id){
+	// return: undefined / Map / value
+	const rtv=this.equips().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
 $dddd$=$aaaa$.prototype._traitObjects=function f(){
@@ -9488,15 +9700,24 @@ $dddd$.reduce=(s,obj)=>{ // p
 	return s;
 };
 $dddd$.EMPTY=new Map();
+$aaaa$.prototype.traitSet=function(code,id){
+	return this.getTraits_overall_s(code,id);
+};
+$aaaa$.prototype.traitSetP=function(code,id){
+	return this.getTraits_overall_m(code,id);
+};
 $aaaa$.prototype.traitsSum=function(code,id){
-	return this.traitSet(code).get(id)||0;
+	//return this.traitSet(code).get(id)||0;
+	return this.traitSet(code,id)||0;
 };
 $aaaa$.prototype.traitsSumAll=function(code){
+	return this.traitSet(code).v||0;
 	let rtv=0;
 	this.traitSet(code).forEach(v=>rtv+=v);
 	return rtv;
 };
 $aaaa$.prototype.traitsPi=function(code,id){
+	return this.traitSetP(code,id);
 	const rtv=this.traitSetP(code).get(id);
 	return rtv===0?0:(rtv||1);
 };
@@ -9933,6 +10154,28 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 		}
 	}
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.prototype._getTraits_native=function f(){
+	const d=this.getData();
+	let rtv=$gameTemp.getCache(this,f.key);
+	if(!rtv || rtv.d!==d){
+		$gameTemp.updateCache(this,f.key,rtv=d.traits.slice());
+		rtv.m=new Map();
+		rtv.m.byKey2_mul(d.tmapP);
+		rtv.s=new Map();
+		rtv.s.byKey2_sum(d.tmapS);
+		rtv.d=d;
+	}
+	return rtv;
+};
+$dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
+$aaaa$.prototype.getTraits_native_s=function f(code,id){
+	const rtv=this._getTraits_native().s.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_native_m=function f(code,id){
+	const rtv=this._getTraits_native().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
 $dddd$=$aaaa$.prototype.traitObjects=function f(){
 	if(this._mimic){
 		let rtv=$gameTemp.getCache(this,f.key);

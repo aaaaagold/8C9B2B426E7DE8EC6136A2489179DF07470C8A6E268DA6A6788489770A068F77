@@ -508,6 +508,8 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return rtv;
 	};
 	
+	w.Map.prototype.contains=w.Map.prototype.has;
+	
 	w.Queue=function(){ this.initialize.apply(this,arguments); };
 	w.Queue.prototype.constructor=w.Queue;
 	{ const tmp={};
