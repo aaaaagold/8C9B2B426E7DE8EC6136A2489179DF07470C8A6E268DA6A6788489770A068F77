@@ -9185,6 +9185,13 @@ $aaaa$.prototype.isLearnedSkill=function(skillId){
 $aaaa$.prototype.hasSkill=function(skillId){
 	return this.isLearnedSkill(skillId)||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD).has(skillId);
 };
+$aaaa$.prototype.changeClass=function(classId, keepExp){
+	const oldCid=this._classId;
+	if(classId===oldCid) return;
+	this.clearCache();
+	this.changeExp(this._exp[this._classId=classId] = keepExp&&this._exp[oldCid]||0, false);
+	this.refresh();
+};
 $aaaa$.prototype.changeLevel=function(level,show){
 	if(level<1) level=1;
 	else{
@@ -9309,6 +9316,23 @@ $aaaa$.prototype._equips_editCache_add=function(dataobj){
 	
 	// delete overall
 	this._overall_delCache();
+};
+$aaaa$.prototype._equips_slotChanged=function(lastSlots){
+	const newSlots=this.equipSlots();
+	const xs=lastSlots.length;
+	if(xs!==newSlots.length) this._equips_delCache(); // I'm lazy LOL
+	else{ for(let x=0;x!==xs;++x){
+		if(newSlots[x]===lastSlots[x]) continue;
+		const e=this._equips[x];
+		if(e&&e.constructor===Array){
+			for(let z=e.length;z--;){
+				this.changeEquip(x,null,z,false); // addState will refresh
+			}
+		}else{
+			this.changeEquip(x,null,~0,false); // addState will refresh
+		}
+	} }
+	this._overall_delCache(); // clear cache for calling equipSlots
 };
 $aaaa$.prototype.equips=function f(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
 	return this._equips_getCache()||this._equips_updateCache();
@@ -9591,16 +9615,16 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	const a=this.getData() , c=this.currentClass();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.a!==a || rtv.c!==c){
+		this.clearCache(); // I'm lazy LOL
+		$gameTemp.updateCache(this,f.key,rtv=a.traits.concat(c.traits));
 		rtv.a=a;
 		rtv.c=c;
-		$gameTemp.updateCache(this,f.key,rtv=a.traits.concat(c.traits));
 		rtv.m=new Map();
 		rtv.m.byKey2_mul(a.tmapP);
 		rtv.m.byKey2_mul(c.tmapP);
 		rtv.s=new Map();
 		rtv.s.byKey2_sum(a.tmapS);
 		rtv.s.byKey2_sum(c.tmapS);
-		this._overall_delCache();
 	}
 	return rtv;
 };
@@ -9782,12 +9806,13 @@ $aaaa$.prototype.clearStates = function() {
 	this._stateSteps = {};
 };
 $dddd$=$aaaa$.prototype.eraseState=function f(stateId){
+	const stat=$dataStates[stateId];
+	const slotChanged=stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
+	const lastSlots=slotChanged&&this.equipSlots(); // this is new Array
 	const ori=this._states.length,c=this._equips_getCache();
 	Game_Battler.prototype.eraseState.call(this, stateId);
 	if(ori!==this._states.length){ // states changed
-		const stat=$dataStates[stateId];
-		if(stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE)) this._equips_delCache();
-		else this.equips().s=undefined;
+		if(slotChanged) this._equips_slotChanged(lastSlots);
 		if(stat.tmapS.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
 	}
 	delete this._stateSteps[stateId];
@@ -9797,29 +9822,16 @@ $dddd$.forEach=[
 	x=>Game_BattlerBase.TRAIT_SKILL_ADD===x.code, // add skill
 ];
 $aaaa$.prototype._addNewState_updateCache=function(stateId){
+	// supposed must add new
+	const stat=$dataStates[stateId];
+	const slotChanged=stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
+	const lastSlots=slotChanged&&this.equipSlots(); // this is new Array
 	Game_BattlerBase.prototype._addNewState_updateCache.call(this,stateId);
-	const c=this._equips_getCache();
-	if(!c) return;
-	let skillChanged=false;
-	if(c.s||c.p){
-		const stat=$dataStates[stateId];
-		if(stat){ for(let arr=stat.traits,x=arr.length;x--;){
-			const curr=arr[x];
-			skillChanged|=Game_BattlerBase.TRAIT_SKILL_ADD===curr.code;
-			if(c.s){ const s=c.s.get(curr.code); if(s){
-				const id=curr.dataId;
-				const value=s.get(id)||0;
-				s.set(id,curr.value+value);
-			} }
-			if(c.p){ const p=c.p.get(curr.code); if(p){
-				const id=curr.dataId;
-				let value=p.get(id); if(value===undefined) value=1;
-				p.set(id,curr.value*value);
-			} }
-		} }
+	// ^ del overall
+	if(slotChanged) this._equips_slotChanged(lastSlots);
+	if(stat.tmapS.get(Game_BattlerBase.TRAIT_SKILL_ADD)){
+		this._skills_delCache_added(); // I'm lazy LOL
 	}
-	c.stateChanged=true;
-	if(skillChanged) this._skills_delCache();
 };
 $aaaa$.prototype.paramPlus=function(paramId){
 	let rtv = Game_Battler.prototype.paramPlus.call(this, paramId);
