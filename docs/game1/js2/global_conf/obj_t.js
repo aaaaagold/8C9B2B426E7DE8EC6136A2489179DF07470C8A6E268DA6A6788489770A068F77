@@ -9625,19 +9625,19 @@ $aaaa$.prototype._skills_delCache_added=function(){
 	if(c) c.added=0;
 };
 $aaaa$.prototype.skills_tmap_s=function(){
-	const rtv=new Map();
+	const rtv=new Map(),caled=new Set();
 	const c=this._skills_getUpdatedCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_sum(c.s);
-	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
+	added.forEach((v,k)=>{!c.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
 	return rtv;
 };
 $aaaa$.prototype.skills_tmap_m=function(){
-	const rtv=new Map();
+	const rtv=new Map(),caled=new Set();
 	const c=this._skills_getUpdatedCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_mul(c.m);
-	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
+	added.forEach((v,k)=>!c.has(k)&&caled.add(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
 	return rtv;
 };
 $dddd$=$aaaa$.prototype.skills=function f(){
