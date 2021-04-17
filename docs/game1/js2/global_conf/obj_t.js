@@ -1711,6 +1711,7 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
+		x.ord<<=1; x.ord|=!!(meta.passive);
 		if(meta.hpCost) x.hpCost=Number(meta.hpCost)|0;
 		let ord=0;
 		x.ord=ord*c2;
@@ -1763,6 +1764,14 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		$dataSkills.speedUp=true;
 		$dataSkills[3].speed=$dataSkills[2].speed<<=10;
 	}
+	
+	// link tmap of passiveSkill to ** armor **
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
+		const id=x.meta.passive;
+		if(!id) return;
+		x.tmapS=$dataArmors[id].tmapS;
+		x.tmapP=$dataArmors[id].tmapP;
+	});
 	
 	// **** recursive def (_*) ****
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
@@ -9617,7 +9626,7 @@ $aaaa$.prototype.skills_tmap_s=function(){
 	const c=this._skills_getCache()||this._skills_updateCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_sum(c.s);
-	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_sum($dataSkills[k].tmapS);
+	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
 	return rtv;
 };
 $aaaa$.prototype.skills_tmap_m=function(){
@@ -9625,7 +9634,7 @@ $aaaa$.prototype.skills_tmap_m=function(){
 	const c=this._skills_getCache()||this._skills_updateCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_mul(c.m);
-	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_mul($dataSkills[k].tmapP);
+	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
 	return rtv;
 };
 $dddd$=$aaaa$.prototype.skills=function f(){
@@ -11010,7 +11019,10 @@ $aaaa$.prototype.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this._skillWindow);
 };
 $dddd$=$aaaa$.prototype.makeCommandList=function f(omits){
-	if(this._actor) this._actor.addedSkillTypes_arranged(omits).forEach(f.forEach, this); // omit non-battle skill types
+	if(this._actor){
+		this._actor.addedSkillTypes_arranged(omits).forEach(f.forEach, this); // omit non-battle skill types
+		this.addCommand($dataCustom.passiveSkill.txt, 'skill', true, $dataCustom.passiveSkill.id);
+	}
 };
 $dddd$.forEach=function(stypeId){
 	this.addCommand($dataSystem.skillTypes[stypeId], 'skill', true, stypeId);
@@ -11023,6 +11035,14 @@ $aaaa$.prototype.processTouchOutsideFrame=Window_ItemList.prototype.processTouch
 $aaaa$.prototype.processTouch=Window_ItemList.prototype.processTouch;
 $aaaa$.prototype.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this.parent.parent._skillTypeWindow);
+};
+$aaaa$.prototype.setHelpWindowItem=function(item){
+	if(this._helpWindow){
+		this._helpWindow.setItem(item&&$dataCustom.passiveSkill.id===this._stypeId?$dataArmors[item.meta.passive]:item);
+	}
+};
+$aaaa$.prototype.includes=function(item){
+	return item && (item.meta.passive?$dataCustom.passiveSkill.id===this._stypeId:item.stypeId===this._stypeId);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 

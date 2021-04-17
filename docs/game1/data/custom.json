@@ -35,7 +35,7 @@
 		"onlineSaveIdMgr":"在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.onlineSaveIdMgr'",
 		"questMgr":"在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.questMgr'",
 		"noteAppMgr": "在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.noteAppMgr'",
-		"__dummy":0
+		"":0
 	},
 	"opts_gainHint": "物品得失提示及升級提示設定",
 		"noGainMsg": "不在對話窗中顯示得到與失去物品或金錢",
@@ -87,16 +87,16 @@
 		"target":{
 			"e":"敵人",
 			"a":"隊友",
-			"__dummy": 0
+			"":0
 		},
-		"__dummy": 0
+		"":0
 	},
 	"feedback":"遊戲回饋或建議",
 	"copyTitle":"複製遊戲名稱",
 	"flwingMsgs":{
 		"yes":"隊友跟隨中",
 		"no":"隊友滯留中",
-		"__dummy": 0
+		"":0
 	},
 	"toDust": "\\key'\"可燃物\"'化成灰了",
 	"textcolor":{
@@ -135,7 +135,7 @@
 	"miniGames":{
 		"party":"團結力量大",
 		"tree":"焚木小遊戲",
-		"__dummy": 0
+		"":0
 	},
 	"battle":{
 		"you":"你",
@@ -143,7 +143,7 @@
 		"allGuard":"全員防禦",
 		"allSpaceout":"全員發呆",
 		"viewLog":"檢視訊息紀錄",
-		"__dummy": 0
+		"":0
 	},
 	"stp":"STP",
 	"stpA":"STP",
@@ -178,6 +178,11 @@
 		["大家都在一起","在\\key'\"餐廳\"'或\\key'\"便利商店\"'或\\key'\"內有特調\"'或\\key'\"純上網網咖\"'或\\key'\"冒險小棧\"'同時與10或以上人對話","這就是效率"],
 		["_END","omit","omit","omit"]
 	],
+	"passiveSkill":{
+		"txt":"被動技能",
+		"id":-1,
+		"":0
+	},
 	"skillOrder":[
 		["preserve 0"],
 		[13,31,16,41,35,14,15],
@@ -188,7 +193,7 @@
 	],
 	"_code":{
 		"getBurnLicenceLv":"()=>{let items=$gameParty._items,rtv=0;  if(items[32])rtv=1;if(items[41])rtv=2;if(items[43])rtv=3;if(items[123])rtv=4;  return rtv;}",
-		"__dummy": 0
+		"":0
 	},
 	"__dummy": 0
 }

@@ -1710,10 +1710,6 @@ Window_SkillList.prototype.isCurrentItemEnabled = function() {
     return this.isEnabled(this._data[this.index()]);
 };
 
-Window_SkillList.prototype.includes = function(item) {
-    return item && item.stypeId === this._stypeId;
-};
-
 Window_SkillList.prototype.isEnabled = function(item) {
     return this._actor && this._actor.canUse(item);
 };
