@@ -9629,7 +9629,7 @@ $aaaa$.prototype.skills_tmap_s=function(){
 	const c=this._skills_getUpdatedCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_sum(c.s);
-	added.forEach((v,k)=>{!c.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
+	added.forEach((v,k)=>!c.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
 	return rtv;
 };
 $aaaa$.prototype.skills_tmap_m=function(){
