@@ -9184,13 +9184,13 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 				tmp.s.byKey2_sum(item.tmapS);
 				tmp.m.byKey2_mul(item.tmapP);
 			}
-			else tmp=this._skills_updateCache();
+			else tmp=this._skills_updateCache(); // maintain sorted
 			if(!tmp.pendLearns) tmp.pendLearns=[];
 			tmp.pendLearns.push(skillId);
 			this._overall_delCache();
 		}else{
 			this._overall_delCache();
-			this._skills_updateCache();
+			this._skills_updateCache(); // maintain sorted
 		}
 	}
 };
@@ -9200,11 +9200,18 @@ $aaaa$.prototype.forgetSkill=function(skillId){
 		this._skills.splice(index, 1);
 		const c=this._skills_getCache();
 		if(c){
-			c.needArrange=true;
 			c.delete(skillId);
+			if(c.all){
+				const idx=c.all.indexOf(skillId);
+				if(idx>=0) c.all.splice(idx,1);
+			}
 			const item=$dataSkills[skillId];
 			c.s.byKey2_del_sum(item.tmapS);
 			c.m.byKey2_del_mul(item.tmapP);
+			if(c.added && !c.added.has(skillId)){
+				if(c.ts) c.ts.byKey2_del_sum(item.tmapS);
+				if(c.tm) c.tm.byKey2_del_mul(item.tmapP);
+			}
 		}
 		this._overall_delCache();
 	}
@@ -9622,23 +9629,25 @@ $aaaa$.prototype._skills_getUpdatedCache=function(){
 };
 $aaaa$.prototype._skills_delCache_added=function(){
 	const c=this._skills_getCache();
-	if(c) c.added=0;
+	if(c) c.tm=c.ts=c.added=0;
 };
 $aaaa$.prototype.skills_tmap_s=function(){
-	const rtv=new Map(),caled=new Set();
 	const c=this._skills_getUpdatedCache();
-	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	if(c.ts!==undefined) return c.ts;
+	const rtv=new Map(),caled=new Set();
+	const added=c.added||(c.added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD));
 	rtv.byKey2_sum(c.s);
-	added.forEach((v,k)=>!c.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
-	return rtv;
+	added.forEach((v,k)=>!c.has(k)&&!caled.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
+	return c.ts=rtv;
 };
 $aaaa$.prototype.skills_tmap_m=function(){
-	const rtv=new Map(),caled=new Set();
 	const c=this._skills_getUpdatedCache();
-	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	if(c.tm!==undefined) return c.tm;
+	const rtv=new Map(),caled=new Set();
+	const added=c.added||(c.added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD));
 	rtv.byKey2_mul(c.m);
-	added.forEach((v,k)=>!c.has(k)&&caled.add(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
-	return rtv;
+	added.forEach((v,k)=>!c.has(k)&&!caled.has(k)&&caled.add(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
+	return c.tm=rtv;
 };
 $dddd$=$aaaa$.prototype.skills=function f(){
 	let rtv;
@@ -9646,7 +9655,7 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 	let s=this._skills_getCache();
 	if(s){
 		// TODO: Now every time traitSet is different. Thus this will always be fales.
-		if(!s.needArrange && s.added===added) return s.all;
+		if(!s.needArrange && s.added===added && s.all) return s.all;
 		s.needArrange=false; s.added=added;
 		rtv=[];
 		s.forEach( v=>rtv.push(f.map(v)) );

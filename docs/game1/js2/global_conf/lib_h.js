@@ -177,12 +177,12 @@ Map.prototype.byKey_sum=function(map2,inplace_self){
 	}
 	if(rtv.c===undefined) (rtv.c=new Map()).v=0;
 	if(rtv.v===undefined) rtv.v=0;
-	rtv.v=~~(rtv.v*100+0.5);
+	rtv.v=~~(rtv.v*100+(rtv.v<0?-0.5:0.5));
 	rhs.forEach((v,k)=>{
-		const v100=~~(v*100+0.5); // data source precision is 0.01
+		const v100=~~(v*100+(v<0?-0.5:0.5)); // data source precision is 0.01
 		let tmp=rtv.get(k);
 		if(tmp){
-			rtv.set(k,((~~(tmp*100+0.5))+v100)/100);
+			rtv.set(k,((~~(tmp*100+(tmp<0?-0.5:0.5)))+v100)/100);
 			rtv.c.set(k,rtv.c.get(k)+1);
 		}else{
 			rtv.set(k,v);
@@ -222,12 +222,12 @@ Map.prototype.byKey_mul=function(map2,inplace_self){
 Map.prototype.byKey_del_sum=function(rhs){
 	if(!rhs) return;
 	const rtv=this;
-	rtv.v=~~(rtv.v*100+0.5);
+	rtv.v=~~(rtv.v*100+(rtv.v<0?-0.5:0.5));
 	rhs.forEach((v,k)=>{
 		const tmp=rtv.get(k);
 		if(tmp!==undefined){
-			const v100=~~(v*100+0.5); // data source precision is 0.01
-			rtv.set(k,((~~(tmp*100+0.5))-v100)/100);
+			const v100=~~(v*100+(v<0?-0.5:0.5)); // data source precision is 0.01
+			rtv.set(k,((tmp*100+(tmp<0?-0.5:0.5))-v100)/100);
 			rtv.v-=v100;
 			const n=rtv.c.get(k)-1;
 			if(n) rtv.c.set(k,n);
@@ -279,14 +279,16 @@ Map.prototype.byKey2_sum=function(rhs){
 	const base=this;
 	if(base.c===undefined) base.c=0;
 	if(base.v===undefined) base.v=0;
-	base.v=~~(base.v*100+0.5);
+	base.v=~~(base.v*100+(base.v<0?-0.5:0.5));
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
 		const c=tmp.c&&tmp.c.v||0,val=tmp.v||0;
 		tmp.byKey_sum(v,true);
 		base.c+=tmp.c.v-c;
-		base.v+=~~((tmp.v-val)*100+0.5); // data source precision is 0.01
+		let d=(tmp.v-val)*100;
+		d+=d<0?-0.5:0.5;
+		base.v+=~~d; // data source precision is 0.01
 	});
 	base.v/=100;
 	return base;
@@ -313,14 +315,16 @@ Map.prototype.byKey2_mul=function(rhs){
 Map.prototype.byKey2_del_sum=function(rhs){
 	if(!rhs) return;
 	const base=this;
-	base.v=~~(base.v*100+0.5);
+	base.v=~~(base.v*100+(base.v<0?-0.5:0.5));
 	rhs.forEach((v,k)=>{
 		const tmp=base.get(k);
 		if(tmp){
 			const c=tmp.c.v,val=tmp.v;
 			tmp.byKey_del_sum(v);
 			base.c+=tmp.c.v-c;
-			base.v+=~~((tmp.v-val)*100+0.5); // data source precision is 0.01
+			let d=(tmp.v-val)*100;
+			d+=d<0?-0.5:0.5;
+			base.v+=~~d; // data source precision is 0.01
 			if(!tmp.c.v) base.delete(k);
 		}
 	});
