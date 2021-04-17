@@ -1648,13 +1648,6 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	$dataWeapons .slice($dataWeapons .arrangeStart||1).forEach(f);
 }
 	
-	// arrange classes.learnings
-	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(x=>{ if(!x) return;
-		const arr=x.learnings,r=new Map();
-		arr.forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
-		arr.byLv=r;
-	});
-	
 	// stomach
 	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
@@ -1749,6 +1742,13 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		ord*=atypeLen; ord|=x.atypeId;
 		x.ord=ord;
 	}); }
+	
+	// arrange classes.learnings
+	$dataClasses.slice($dataClasses.arrangeStart||1).forEach(x=>{ if(!x) return;
+		const arr=x.learnings,r=new Map();
+		arr.sort((a,b)=>a.level-b.level||$dataSkills[a.skillId].ord-$dataSkills[b.skillId].ord).forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
+		arr.byLv=r;
+	});
 	
 	// make traits map
 	$dataActors.slice($dataActors.arrangeStart||1).forEach(f.makeTraitsMap);
@@ -9210,7 +9210,7 @@ $aaaa$.prototype.forgetSkill=function(skillId){
 	}
 };
 $aaaa$.prototype.isLearnedSkill=function(skillId){
-	return (this._skills_getCache()||this._skills_updateCache()).has(skillId);
+	return this._skills_getUpdatedCache().has(skillId);
 };
 $aaaa$.prototype.hasSkill=function(skillId){
 	return this.isLearnedSkill(skillId)||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD).has(skillId);
@@ -9617,13 +9617,16 @@ $dddd$=$aaaa$.prototype._skills_updateCache=function f(){
 };
 $dddd$.key=$tttt$;
 $tttt$=$dddd$.cmp=(a,b)=>$dataSkills[a].ord-$dataSkills[b].ord||a-b;
+$aaaa$.prototype._skills_getUpdatedCache=function(){
+	return this._skills_getCache()||this._skills_updateCache();
+};
 $aaaa$.prototype._skills_delCache_added=function(){
 	const c=this._skills_getCache();
 	if(c) c.added=0;
 };
 $aaaa$.prototype.skills_tmap_s=function(){
 	const rtv=new Map();
-	const c=this._skills_getCache()||this._skills_updateCache();
+	const c=this._skills_getUpdatedCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_sum(c.s);
 	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
@@ -9631,7 +9634,7 @@ $aaaa$.prototype.skills_tmap_s=function(){
 };
 $aaaa$.prototype.skills_tmap_m=function(){
 	const rtv=new Map();
-	const c=this._skills_getCache()||this._skills_updateCache();
+	const c=this._skills_getUpdatedCache();
 	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	rtv.byKey2_mul(c.m);
 	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
@@ -11038,11 +11041,44 @@ $aaaa$.prototype.onTouch=function(triggered){
 };
 $aaaa$.prototype.setHelpWindowItem=function(item){
 	if(this._helpWindow){
+		if(item && item.skillId) item=$dataSkills[item.skillId];
 		this._helpWindow.setItem(item&&$dataCustom.passiveSkill.id===this._stypeId?$dataArmors[item.meta.passive]:item);
 	}
 };
 $aaaa$.prototype.includes=function(item){
 	return item && (item.meta.passive?$dataCustom.passiveSkill.id===this._stypeId:item.stypeId===this._stypeId);
+};
+$dddd$=$aaaa$.prototype.makeItemList=function f(){
+	if(this._actor){
+		const a=this._actor;
+		const c=a._skills_getUpdatedCache(),rtv=this._data=a.skills().filter(f.forEach, this);
+		for(let x=0,arr=this._actor.currentClass().learnings;x!==arr.length;++x){
+			// maybe not learn skills well, so still iterate all
+			const id=arr[x].skillId;
+			if(c.has(id)) continue;
+			if(this.includes($dataSkills[id])) rtv.push(arr[x]);
+		}
+	}else if(this._data) this._data.length=0; else this._data=[];
+};
+$dddd$.forEach=function(item){ return this.includes(item); };
+$aaaa$.prototype.drawItem=function(index){
+	let skill = this._data[index]; if(!skill) return;
+	const costWidth = this.costWidth() , rect = this.itemRect(index);
+	rect.width -= this.textPadding();
+	if(skill.skillId){ // skill-not-learned-yet
+		const s=$dataSkills[skill.skillId];
+		if(!s) return;
+		//this.changePaintOpacity(false);
+		this.contents.paintOpacity=64;
+		this.changeTextColor('rgba(0,0,0,0.75)');
+		this.drawItemName({iconIndex:s.iconIndex,name:"[Lv. "+skill.level+"] "+s.name}, rect.x, rect.y, rect.width - costWidth);
+		skill=s;
+	}else{
+		this.changePaintOpacity(this.isEnabled(skill));
+		this.drawItemName(skill, rect.x, rect.y, rect.width - costWidth);
+	}
+	this.drawSkillCost(skill, rect.x, rect.y, rect.width);
+	this.changePaintOpacity(true);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
