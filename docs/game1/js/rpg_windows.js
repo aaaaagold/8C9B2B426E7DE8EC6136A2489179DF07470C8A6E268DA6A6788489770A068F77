@@ -1714,16 +1714,6 @@ Window_SkillList.prototype.isEnabled = function(item) {
     return this._actor && this._actor.canUse(item);
 };
 
-Window_SkillList.prototype.makeItemList = function() {
-    if (this._actor) {
-        this._data = this._actor.skills().filter(function(item) {
-            return this.includes(item);
-        }, this);
-    } else {
-        this._data = [];
-    }
-};
-
 Window_SkillList.prototype.selectLast = function() {
     var skill;
     if ($gameParty.inBattle()) {
@@ -1733,19 +1723,6 @@ Window_SkillList.prototype.selectLast = function() {
     }
     var index = this._data.indexOf(skill);
     this.select(index >= 0 ? index : 0);
-};
-
-Window_SkillList.prototype.drawItem = function(index) {
-    var skill = this._data[index];
-    if (skill) {
-        var costWidth = this.costWidth();
-        var rect = this.itemRect(index);
-        rect.width -= this.textPadding();
-        this.changePaintOpacity(this.isEnabled(skill));
-        this.drawItemName(skill, rect.x, rect.y, rect.width - costWidth);
-        this.drawSkillCost(skill, rect.x, rect.y, rect.width);
-        this.changePaintOpacity(1);
-    }
 };
 
 Window_SkillList.prototype.costWidth = function() {

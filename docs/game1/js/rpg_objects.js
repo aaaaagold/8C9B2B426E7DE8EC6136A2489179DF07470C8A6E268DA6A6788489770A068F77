@@ -3044,17 +3044,6 @@ Game_Actor.prototype.levelDown = function() {
     this._level--;
 };
 
-Game_Actor.prototype.findNewSkills = function(lastSkills) {
-    var newSkills = this.skills();
-    for (var i = 0; i < lastSkills.length; i++) {
-        var index = newSkills.indexOf(lastSkills[i]);
-        if (index >= 0) {
-            newSkills.splice(index, 1);
-        }
-    }
-    return newSkills;
-};
-
 Game_Actor.prototype.gainExp = function(exp) {
     var newExp = this.currentExp() + Math.round(exp * this.finalExpRate());
     this.changeExp(newExp, this.shouldDisplayLevelUp());
