@@ -1782,7 +1782,11 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		x.itemType='a';
 	});
 	
-	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataWeapons,].forEach(x=>x.arrangeStart=x.length);
+	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataWeapons,].forEach(x=>{ if(!x) return; // ????
+		x.arrangeStart=x.length;
+		if(!x.tmapS) x.tmapS=new Map();
+		if(!x.tmapP) x.tmapP=new Map();
+	});
 };
 $dddd$.makeTraitsMap=dataobj=>{
 	const tarr=dataobj.traits;
@@ -9164,19 +9168,36 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 		this._skills.push(skillId);
 		if(arrangeLater){
 			let tmp=this._skills_getCache();
-			if(tmp) tmp.add(skillId);
+			if(tmp){
+				tmp.needArrange=true;
+				tmp.add(skillId);
+				const item=$dataSkills[skillId];
+				tmp.s.byKey2_sum(item.tmapS);
+				tmp.m.byKey2_mul(item.tmapP);
+			}
 			else tmp=this._skills_updateCache();
 			if(!tmp.pendLearns) tmp.pendLearns=[];
 			tmp.pendLearns.push(skillId);
-		}else this._skills_updateCache();
+			this._overall_delCache();
+		}else{
+			this._overall_delCache();
+			this._skills_updateCache();
+		}
 	}
 };
 $aaaa$.prototype.forgetSkill=function(skillId){
 	const index = this._skills.indexOf(skillId);
 	if(index >= 0){
 		this._skills.splice(index, 1);
-		const s=this._skills_getCache();
-		if(s) s.delete(skillId);
+		const c=this._skills_getCache();
+		if(c){
+			c.needArrange=true;
+			c.delete(skillId);
+			const item=$dataSkills[skillId];
+			c.s.byKey2_del_sum(item.tmapS);
+			c.m.byKey2_del_mul(item.tmapP);
+		}
+		this._overall_delCache();
 	}
 };
 $aaaa$.prototype.isLearnedSkill=function(skillId){
@@ -9568,31 +9589,53 @@ $aaaa$.prototype.refresh=function(noReleaseEquips){
 $dddd$=$aaaa$.prototype._skills_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
-$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
+$tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$=$aaaa$.prototype._skills_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
-$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
+$dddd$.key=$tttt$;
 $dddd$=$aaaa$.prototype._skills_updateCache=function f(){
-	let rtv;
 	this._skills.sort(f.cmp);
-	$gameTemp.updateCache(this,f.key,rtv=new Set(this._skills));
+	const rtv=new Set(this._skills);
+	$gameTemp.updateCache(this,f.key,rtv);
+	const s=rtv.s=new Map();
+	const m=rtv.m=new Map();
+	for(let x=0,arr=this._skills;x!==arr.length;++x){
+		s.byKey2_sum($dataSkills[arr[x]].tmapS);
+		m.byKey2_mul($dataSkills[arr[x]].tmapP);
+	}
 	return rtv;
 };
-$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
+$dddd$.key=$tttt$;
 $tttt$=$dddd$.cmp=(a,b)=>$dataSkills[a].ord-$dataSkills[b].ord||a-b;
 $aaaa$.prototype._skills_delCache_added=function(){
 	const c=this._skills_getCache();
 	if(c) c.added=0;
 };
+$aaaa$.prototype.skills_tmap_s=function(){
+	const rtv=new Map();
+	const c=this._skills_getCache()||this._skills_updateCache();
+	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	rtv.byKey2_sum(c.s);
+	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_sum($dataSkills[k].tmapS);
+	return rtv;
+};
+$aaaa$.prototype.skills_tmap_m=function(){
+	const rtv=new Map();
+	const c=this._skills_getCache()||this._skills_updateCache();
+	const added=c.added||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	rtv.byKey2_mul(c.m);
+	added.forEach((v,k)=>!c.has(k)&&rtv.byKey2_mul($dataSkills[k].tmapP);
+	return rtv;
+};
 $dddd$=$aaaa$.prototype.skills=function f(){
 	let rtv;
-	let s=this._skills_getCache();
 	const added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
+	let s=this._skills_getCache();
 	if(s){
 		// TODO: Now every time traitSet is different. Thus this will always be fales.
-		if(s.added===added) return s.all;
-		s.added=added;
+		if(!s.needArrange && s.added===added) return s.all;
+		s.needArrange=false; s.added=added;
 		rtv=[];
 		s.forEach( v=>rtv.push(f.map(v)) );
 	}else{
@@ -9602,6 +9645,8 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 	}
 	{
 		const arr=[];
+		const tmapS=s.added.s=new Map();
+		const tmapP=s.added.m=new Map();
 		s.added.forEach((v,k)=>arr.push(k));
 		arr.sort(f.cmp).forEach(id=>!s.has(id)&&rtv.push($dataSkills[id])); // addeds are already unique
 	}
@@ -9615,7 +9660,7 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	const a=this.getData() , c=this.currentClass();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.a!==a || rtv.c!==c){
-		this.clearCache(); // I'm lazy LOL
+		if(rtv) this.clearCache(); // I'm lazy LOL // change actor or class
 		$gameTemp.updateCache(this,f.key,rtv=a.traits.concat(c.traits));
 		rtv.a=a;
 		rtv.c=c;
@@ -9637,14 +9682,24 @@ $aaaa$.prototype.getTraits_native_m=function(code,id){
 	const rtv=this._getTraits_native().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$dddd$=$aaaa$.prototype.getTraits_equips_s=function f(code,id){
+$aaaa$.prototype.getTraits_equips_s=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.equips().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$dddd$=$aaaa$.prototype.getTraits_equips_m=function f(code,id){
+$aaaa$.prototype.getTraits_equips_m=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.equips().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_custom_s=function(code,id){
+	// return: undefined / Map / value
+	const rtv=this.skills_tmap_s().get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_custom_m=function(code,id){
+	// return: undefined / Map / value
+	const rtv=this.skills_tmap_m().get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
 $dddd$=$aaaa$.prototype._traitObjects=function f(){
