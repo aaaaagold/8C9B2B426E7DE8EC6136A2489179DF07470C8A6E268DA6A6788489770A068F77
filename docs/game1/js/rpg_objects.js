@@ -3068,15 +3068,6 @@ Game_Actor.prototype.benchMembersExpRate = function() {
     return $dataSystem.optExtraExp ? 1 : 0;
 };
 
-Game_Actor.prototype.changeClass = function(classId, keepExp) {
-    if (keepExp) {
-        this._exp[classId] = this.currentExp();
-    }
-    this._classId = classId;
-    this.changeExp(this._exp[this._classId] || 0, false);
-    this.refresh();
-};
-
 Game_Actor.prototype.setCharacterImage = function(characterName, characterIndex) {
     this._characterName = characterName;
     this._characterIndex = characterIndex;
