@@ -11066,9 +11066,7 @@ $aaaa$.prototype.drawItem=function(index){
 	const costWidth = this.costWidth() , rect = this.itemRect(index);
 	rect.width -= this.textPadding();
 	if(skill.skillId){ // skill-not-learned-yet
-		const s=$dataSkills[skill.skillId];
-		if(!s) return;
-		//this.changePaintOpacity(false);
+		const s=$dataSkills[skill.skillId]; if(!s) return;
 		this.contents.paintOpacity=64;
 		this.changeTextColor('rgba(0,0,0,0.75)');
 		this.drawItemName({iconIndex:s.iconIndex,name:"[Lv. "+skill.level+"] "+s.name}, rect.x, rect.y, rect.width - costWidth);
