@@ -1617,6 +1617,7 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		addEnum("ATKTIMES_MUL").
 		addEnum("DECDMG_P").
 		addEnum("DECDMG_M").
+		addEnum("MPSubstitute").
 		addEnum("__DUMMY") , f = x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.revive){ // has
@@ -1639,6 +1640,12 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 				}break;
 				}
 			}
+		}
+		if(meta.MPSubst){ // 1-*
+			let n=meta.MPSubst===true?0:(1-meta.MPSubst||1);
+			if(n>1) n=1;
+			if(n<0) n=0;
+			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.MPSubstitute,value:n});
 		}
 	};
 	$dataActors  .slice($dataActors  .arrangeStart||1).forEach(f);
@@ -4726,7 +4733,8 @@ $aaaa$.prototype.addedSkillTypes_arranged=function(omits){
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
 	addEnum("DECDMG_P").
-	addEnum("DECDMG_M") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
+	addEnum("DECDMG_M").
+	addEnum("MPSubstitute") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
 $aaaa$.prototype.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
 };
@@ -4738,6 +4746,13 @@ $aaaa$.prototype.decreaseDamageP=function(){
 };
 $aaaa$.prototype.decreaseDamageM=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.DECDMG_M);
+};
+$aaaa$.prototype.MPSubstituteRate=function(){
+	let rtv=1-this.traitsPi(gbb.TRAITS_CUSTOM,enums.MPSubstitute)||0;
+	// though they're checked @ data source
+	if(rtv>1) rtv=1;
+	if(rtv<0) rtv=0;
+	return rtv;
 };
 }
 $aaaa$.prototype.setHp=function(hp){
@@ -8697,15 +8712,20 @@ $aaaa$.prototype.apply=function(target){
 $aaaa$.prototype.makeDamageValue=function(target,critical){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
 	let value = baseValue * this.calcElementRate(target) , decDmg=0;
-	if (this.isPhysical()) {
+	switch(item.hitType){
+	default:
+	case Game_Action.HITTYPE_CERTAIN:
+	break;
+	case Game_Action.HITTYPE_PHYSICAL: {
 		value *= target.pdr;
 		decDmg+=target.decreaseDamageP();
-	}
-	if (this.isMagical()) {
+	}break;
+	case Game_Action.HITTYPE_MAGICAL: {
 		value *= target.mdr;
 		decDmg+=target.decreaseDamageM();
+	}break;
 	}
-	if (baseValue < 0) {
+	if(baseValue < 0){
 		value *= target.rec;
 	}
 	if (critical) {
@@ -8739,7 +8759,13 @@ $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
 	target.noRefresh=true;
-	target.gainHp(-value);
+	const mpsubst=value>0 && target.MPSubstituteRate();
+	if(mpsubst){
+		const mpDmg=~~(value*mpsubst);
+		const hpDmg=value-mpDmg;
+		if(mpDmg) this.executeMpDamage(target,mpDmg);
+		target.gainHp(-hpDmg);
+	}else target.gainHp(-value);
 	if(value > 0){
 		target.onDamage(value);
 	}
@@ -9887,12 +9913,25 @@ $aaaa$.prototype.partyAbility=function(abilityId){
 	this.traitSet(Game_BattlerBase.TRAIT_PARTY_ABILITY).has(abilityId);
 };
 $aaaa$.prototype.clearStates = function() {
-	if(this._states && this._states.length){
-		const c=this._equips_getCache();
-		if(c) c.s=undefined;
-		this._skills_delCache_added();
+	if(!this._states){ // init, no cache
+		Game_Battler.prototype.clearStates.call(this);
+		this._stateSteps = {};
+		return;
+	}
+	const c=this.states_noSlice();
+	let slotChanged;
+	let lastSlots;
+	const ori=this._states.length;
+	if(this._states.length){
+		slotChanged=c.s.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
+		lastSlots=slotChanged&&this.equipSlots(); // this is new Array
 	}
 	Game_Battler.prototype.clearStates.call(this);
+	if(this._states.length!==ori){
+		const ec=this._equips_getCache();
+		if(slotChanged) this._equips_slotChanged(lastSlots);
+		if(c.s.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
+	}
 	this._stateSteps = {};
 };
 $aaaa$.prototype.eraseState=function(stateId){
