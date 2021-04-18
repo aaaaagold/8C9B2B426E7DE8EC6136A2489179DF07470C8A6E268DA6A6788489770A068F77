@@ -9585,7 +9585,7 @@ $aaaa$.prototype._skills_getUpdatedCache=function(){
 };
 $aaaa$.prototype._skills_delCache_added=function(){
 	const c=this._skills_getCache();
-	if(c) c.tm=c.ts=c.added=0;
+	if(c) c.tm=c.ts=c.added=c.all=0;
 };
 $aaaa$.prototype.skills_tmap_s=function(){
 	const c=this._skills_getUpdatedCache();
