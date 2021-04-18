@@ -9915,20 +9915,16 @@ $aaaa$.prototype.partyAbility=function(abilityId){
 $aaaa$.prototype.clearStates = function() {
 	if(!this._states){ // init, no cache
 		Game_Battler.prototype.clearStates.call(this);
-		this._stateSteps = {};
-		return;
-	}
-	const c=this.states_noSlice();
-	let slotChanged;
-	let lastSlots;
-	const ori=this._states.length;
-	if(this._states.length){
-		slotChanged=c.s.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
-		lastSlots=slotChanged&&this.equipSlots(); // this is new Array
-	}
-	Game_Battler.prototype.clearStates.call(this);
-	if(this._states.length!==ori){
-		const ec=this._equips_getCache();
+		this.clearCache(); // ensure nothing go wrong
+	}else{
+		const c=this.states_noSlice();
+		let slotChanged;
+		let lastSlots;
+		if(this._states.length){
+			slotChanged=c.s.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
+			lastSlots=slotChanged&&this.equipSlots(); // this is new Array
+		}
+		Game_Battler.prototype.clearStates.call(this);
 		if(slotChanged) this._equips_slotChanged(lastSlots);
 		if(c.s.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
 	}
