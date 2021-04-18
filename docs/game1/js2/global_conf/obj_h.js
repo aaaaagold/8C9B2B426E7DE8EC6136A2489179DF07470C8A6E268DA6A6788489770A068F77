@@ -31,6 +31,6 @@ _global_conf['default searchLimit'] = 12;
 // ---- ---- ---- Game_Party ----
 _global_conf["default maxFollowers"] = 9999; // >=$gamePlayer._followers.length
 _global_conf["default maxBattleMembers"] = 999; // .maxBattleMembers
-_global_conf["default allowRepeatedMembers"] = 404; // .addActor
+_global_conf["default allowRepeatedMembers"] = 4040; // .addActor
 _global_conf["default maxItems"] = 9999; // .maxItems
 _global_conf["isGatherFollowersViaJump"] = 1; // Game_Player.prototype.gatherFollowers

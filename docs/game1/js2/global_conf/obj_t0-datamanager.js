@@ -619,7 +619,7 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 }; $dddd$.ori=$rrrr$;
 $aaaa$.saveGameWithoutRescue = function(savefileId) {
 	let json = JsonEx.stringify(this.makeSaveContents());
-	if (json.length >= 262144 && objs.isDev) setTimeout(()=>console.log('Save data too big!',savefileId,json.length),1);
+	if(json.length >= 262144 && objs.isDev) setTimeout(()=>console.log('Save data too big!',savefileId,json.length),1);
 	StorageManager.save(savefileId, json);
 	this._lastAccessedId = savefileId;
 	let globalInfo = this.loadGlobalInfo() || [];

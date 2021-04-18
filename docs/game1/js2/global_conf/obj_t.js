@@ -11962,6 +11962,11 @@ $aaaa$.prototype.onTouch=function(triggered){
 	if(this._commandWindow) args.push(this._commandWindow);
 	return this._onTouch_iw(triggered,args);
 };
+$aaaa$.prototype.initialize=function(x, y, w, h){
+	Window_ItemList.prototype.initialize.call(this, x, y, w, h);
+	this._actor = null;
+	this._slotId = -1;
+};
 $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	const etype=this._actor.equipSlots()[this._slotId];
 	if(this._data && this._data.length) this._data.length=0;
