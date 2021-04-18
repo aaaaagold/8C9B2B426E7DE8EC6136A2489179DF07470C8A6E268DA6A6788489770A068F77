@@ -252,7 +252,7 @@ list.addClone=(self,argv)=>{ // id , use template name , not copy equips ,
 			} d.length=s.length; }
 		}
 		actor._equips_delCache();
-		//actor.equips(true); // refresh cache
+		actor._classId=src._classId;
 	}
 	
 	actor.noRefresh=0;
