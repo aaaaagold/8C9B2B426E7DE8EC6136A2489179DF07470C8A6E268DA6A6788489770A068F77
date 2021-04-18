@@ -1989,7 +1989,7 @@ $aaaa$.prototype.onItemOk=function(){
 	// this.actor().changeEquip(this._slotWindow.index(), this._itemWindow.item());
 	{
 		const iw=this._itemWindow;
-		this.actor().changeEquip(iw._slotId, iw.item(), iw._slotIdExt);
+		iw._newUnEquip=this.actor().changeEquip(iw._slotId, iw.item(), iw._slotIdExt);
 	}
 	this._slotWindow._setSlotIdTbl();
 	this._slotWindow.activate();
@@ -9441,17 +9441,18 @@ $aaaa$.prototype._equipR_ch=function(slotId,slotIdExt,ori,item){
 };
 $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	//debug.log('Game_Actor.prototype.changeEquip');
-	if(!(slotId>=0)) return;
+	if(!(slotId>=0)) return null;
+	let ori;
 	$gameTemp.____byChEqu=true;
 	if(slotIdExt>=0){
-		const ori=this._equips[slotId][slotIdExt].object();
+		ori=this._equips[slotId][slotIdExt].object();
 		if (this.tradeItemWithParty(item, ori) &&
 			(!item || this.equipSlots()[slotId] === item.etypeId)) {
 			this._equipR_ch(slotId,slotIdExt,ori,item);
 			if(!noRefresh) this.refresh();
 		}
 	}else{
-		const ori=this._equips[slotId].object();
+		ori=this._equips[slotId].object();
 		if (this.tradeItemWithParty(item, ori) &&
 			(!item || this.equipSlots()[slotId] === item.etypeId)) {
 			const c=this._equips_getCache(); if(c) c[slotId]=item;
@@ -9463,6 +9464,7 @@ $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	}
 	$gameTemp.____byChEqu=false;
 	//this._equips_delCache();
+	return ori;
 };
 $aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt){
 	if(!(slotId>=0)) return;
@@ -12021,12 +12023,20 @@ $aaaa$.prototype.initialize=function(x, y, w, h){
 	this._actor = null;
 	this._slotId = ~0;
 	this._slotIdExt = undefined;
+	this._newUnEquip = null;
 };
 $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	if(this._data){
 		const arr=this._data;
-		if(arr.a===this._actor && arr.s===this._slotId){
-			for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
+		if( arr.a===this._actor && arr.s===this._slotId ){
+			const newItem=this._newUnEquip; this._newUnEquip=null;
+			if(newItem && $gameParty.numItems(newItem)===1){
+				arr.push(newItem);
+				arr.sort(DataManager.sortCmp);
+			}else{
+				// same (actor,slot) and no new item
+				for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
+			}
 			return;
 		}
 	}
