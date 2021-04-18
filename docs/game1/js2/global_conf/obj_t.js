@@ -1529,7 +1529,7 @@ $dddd$=$aaaa$.endBattle=function f(res){
 	// 'meta.leaveAtBattleEnd' actors
 	const delList=[],txts=[];
 	for(let flag=true,arr=$gameParty.members(),x=arr.length;x--;){ if(arr[x]._meta.leaveAtBattleEnd){
-		delList.push(arr[x]);
+		delList.push([arr[x],x]);
 		if(flag){
 			flag=false;
 			$gameMessage.newPage();
@@ -1542,13 +1542,14 @@ $dddd$=$aaaa$.endBattle=function f(res){
 	$gameTroop.members().forEach(f.forEach[1]);
 }; $dddd$.ori=$rrrr$;
 $dddd$.forEach=[
-actor=>{
-	$gameTemp.clearCache(actor);
-	const id=actor._actorId;
-	$gameParty.removeActor(id);
-	$gameActors.destroy(id);
-},
-enemy=>$gameTemp.clearCache(enemy),
+	info=>{
+		const actor=info[0] , i=info[1];
+		$gameTemp.clearCache(actor);
+		const id=actor._actorId;
+		$gameParty.removeActor(id,i);
+		$gameActors.destroy(id);
+	},
+	enemy=>$gameTemp.clearCache(enemy),
 ];
 $dddd$.re=/\\/;
 $rrrr$=$aaaa$.updateBattleEnd;
@@ -1961,7 +1962,10 @@ $aaaa$.prototype.commandEquip=function f(){
 };
 $aaaa$.prototype.commandOptimize=function f(){
 	SoundManager.playEquip();
+	const iw=this._itemWindow;
+	const itemEmpty=iw._data&&(iw._data.length===0||iw._data[0]===null);
 	this.actor().optimizeEquipments();
+	if(!itemEmpty || (iw._data&&(iw._data.length===0||iw._data[0]===null))!==itemEmpty) iw.refresh();
 	this._statusWindow.refresh();
 	this._slotWindow._setSlotIdTbl();
 	this._slotWindow.refresh();
@@ -6763,16 +6767,20 @@ $aaaa$.prototype.addActor = function(actorId,bool_genNewIfRepeated) { // neednot
 	}
 	return addedActor;
 };
-$aaaa$.prototype.removeActor = function(actorId) {
-	if (this._acs.contains(actorId)) {
-		let tmp=$gameTemp,idx=this._acs.indexOf(actorId);
+$aaaa$.prototype.removeActor=function(actorId,_searchFrom){
+	const tmp=$gameTemp;
+	const idSet=tmp._pt_allMembers_idSet;
+	if(idSet.has(actorId)){
+		let idx=this._acs.indexOf(actorId,_searchFrom);
 		
-		tmp._pt_allMembers_idSet.delete(actorId);
+		idSet.delete(actorId);
 		
-		this._acs.splice(idx, 1);
+		if(idx+1===this._acs.length) this._acs.pop();
+		else this._acs.splice(idx, 1);
 		
 		let obj=tmp._pt_allMembers[idx];
-		tmp._pt_allMembers.splice(idx, 1);
+		if(idx+1===tmp._pt_allMembers.length) tmp._pt_allMembers.pop();
+		else tmp._pt_allMembers.splice(idx, 1);
 		
 		if(idx>=1){ for(let x=idx-1,arr=$gamePlayer._followers._data;x<arr.length;++x){
 			arr[x].resetWalkAni();
@@ -6780,10 +6788,16 @@ $aaaa$.prototype.removeActor = function(actorId) {
 			if(sp) sp.updateBitmap_forced();
 		} }
 		
-		idx=tmp._pt_battleMembers.indexOf(obj);
-		if(idx!==-1){
-			tmp._pt_battleMembers.splice(idx,1);
-			tmp._pt_battleMembers_actor2idx=new Map(tmp._pt_battleMembers.map((x,i)=>[x,i]));
+		idx=tmp._pt_battleMembers_actor2idx?tmp._pt_battleMembers_actor2idx.get(obj):tmp._pt_battleMembers.indexOf(obj);
+		if(idx>=0){
+			if(idx+1===tmp._pt_battleMembers.length){
+				tmp._pt_battleMembers.pop();
+				if(tmp._pt_battleMembers_actor2idx) tmp._pt_battleMembers_actor2idx.delete(obj);
+			}else{
+				tmp._pt_battleMembers.splice(idx,1);
+				if(tmp._pt_battleMembers_actor2idx) for(let x=idx,arr=tmp._pt_battleMembers;x!==arr.length;++x) tmp._pt_battleMembers_actor2idx.set(arr[x],x);
+			}
+			if(!tmp._pt_battleMembers_actor2idx) tmp._pt_battleMembers_actor2idx=new Map(tmp._pt_battleMembers.map((x,i)=>[x,i]));
 		}
 		
 		idx=this.allMembers().length-1;
@@ -9393,6 +9407,7 @@ $aaaa$.prototype._equipR_ch=function(slotId,slotIdExt,ori,item){
 };
 $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	//debug.log('Game_Actor.prototype.changeEquip');
+	if(!(slotId>=0)) return;
 	$gameTemp.____byChEqu=true;
 	if(slotIdExt>=0){
 		const ori=this._equips[slotId][slotIdExt].object();
@@ -9415,7 +9430,8 @@ $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	$gameTemp.____byChEqu=false;
 	//this._equips_delCache();
 };
-$aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt) {
+$aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt){
+	if(!(slotId>=0)) return;
 	if(slotIdExt>=0){
 		const arr=this._equips[slotId];
 		const ori=arr[slotIdExt].object();
@@ -9433,6 +9449,7 @@ $aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt) {
 };
 $aaaa$.prototype.changeEquipById=function(etypeId, itemId, slotIdExt) {
 	const slotId = etypeId - 1;
+	if(!(slotId>=0)) return;
 	if( (slotIdExt>=0?this.equipSlots()[slotId][slotIdExt]:this.equipSlots()[slotId]) === 1 ){
 		this.changeEquip(slotId, $dataWeapons[itemId], slotIdExt);
 	} else {
@@ -11870,7 +11887,7 @@ Object.defineProperty($aaaa$.prototype,'_index',{
 $aaaa$.prototype.initialize = function(x, y, width, height) {
 	Window_Selectable.prototype.initialize.call(this, x, y, width, height);
 	this._actor = null;
-	this._slotId=0;
+	this._slotId=~0;
 	this._slotIdExt=undefined;
 	this._slotIdTbl=[-1,0];
 	this.__slotIdExt=this.__slotId=undefined;
@@ -11897,7 +11914,8 @@ $aaaa$.prototype.setActor=function(actor){
 			this._scrollYM.set(this._actor,this._scrollY);
 		} // else by processCancel
 		this._actor = actor;
-		this._index   = this._lastIdxM.get(actor)|0;
+		this._index   = this._lastIdxM.get(actor);
+		if(this._index===undefined) this._index=-1;
 		this._scrollY = this._scrollYM.get(actor)|0;
 		this._setSlotIdTbl();
 		this.refresh();
@@ -11965,9 +11983,17 @@ $aaaa$.prototype.onTouch=function(triggered){
 $aaaa$.prototype.initialize=function(x, y, w, h){
 	Window_ItemList.prototype.initialize.call(this, x, y, w, h);
 	this._actor = null;
-	this._slotId = -1;
+	this._slotId = ~0;
+	this._slotIdExt = undefined;
 };
 $dddd$=$aaaa$.prototype.makeItemList=function f(){
+	if(this._data){
+		const arr=this._data;
+		if(arr.a===this._actor && arr.s===this._slotId){
+			for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
+			return;
+		}
+	}
 	const etype=this._actor.equipSlots()[this._slotId];
 	if(this._data && this._data.length) this._data.length=0;
 	if(this._slotId>=0){
@@ -11975,6 +12001,8 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 		else this._data=$gameParty.armors().filter(this.includes,this);
 	}
 	if(this.includes(null)) this._data.push(null); // for un-equip
+	this._data.a=this._actor;
+	this._data.s=this._slotId;
 };
 $aaaa$.prototype.setActor=function(actor){
 	if(this._actor!==actor){
