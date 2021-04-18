@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6." ;
+const ver = "4.2.6.8.9.6.." ;
 
 var isDev,dev_kkk,dev_kk,jss;
 //jss=undefined; //testing: non-local

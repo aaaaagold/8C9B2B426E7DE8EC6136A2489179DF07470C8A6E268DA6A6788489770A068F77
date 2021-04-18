@@ -9589,7 +9589,7 @@ $aaaa$.prototype._skills_delCache_added=function(){
 };
 $aaaa$.prototype.skills_tmap_s=function(){
 	const c=this._skills_getUpdatedCache();
-	if(c.ts!==undefined) return c.ts;
+	if(c.ts) return c.ts;
 	const rtv=new Map(),caled=new Set();
 	const added=c.added||(c.added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD));
 	rtv.byKey2_sum(c.s);
@@ -9598,7 +9598,7 @@ $aaaa$.prototype.skills_tmap_s=function(){
 };
 $aaaa$.prototype.skills_tmap_m=function(){
 	const c=this._skills_getUpdatedCache();
-	if(c.tm!==undefined) return c.tm;
+	if(c.tm) return c.tm;
 	const rtv=new Map(),caled=new Set();
 	const added=c.added||(c.added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD));
 	rtv.byKey2_mul(c.m);
@@ -9878,7 +9878,7 @@ $aaaa$.prototype.clearStates = function() {
 	Game_Battler.prototype.clearStates.call(this);
 	this._stateSteps = {};
 };
-$dddd$=$aaaa$.prototype.eraseState=function f(stateId){
+$aaaa$.prototype.eraseState=function(stateId){
 	const stat=$dataStates[stateId];
 	const slotChanged=stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
 	const lastSlots=slotChanged&&this.equipSlots(); // this is new Array
@@ -9890,10 +9890,6 @@ $dddd$=$aaaa$.prototype.eraseState=function f(stateId){
 	}
 	delete this._stateSteps[stateId];
 };
-$dddd$.forEach=[
-	x=>Game_BattlerBase.TRAIT_SLOT_TYPE===x.code, // slot type
-	x=>Game_BattlerBase.TRAIT_SKILL_ADD===x.code, // add skill
-];
 $aaaa$.prototype._addNewState_updateCache=function(stateId){
 	// supposed must add new
 	const stat=$dataStates[stateId];
@@ -10589,7 +10585,7 @@ $aaaa$.prototype.processNewLine=function(textState) {
 	if(textState.texts) ++textState.texts.idx;
 	textState.height = this.calcTextHeight(textState, false);
 };
-$aaaa$.prototype.processNewPage=function(){
+$aaaa$.prototype.processNewPage=function(textState){
 	if(this._iconloop) this._iconloop.length=0;
 	++textState.index;
 };
