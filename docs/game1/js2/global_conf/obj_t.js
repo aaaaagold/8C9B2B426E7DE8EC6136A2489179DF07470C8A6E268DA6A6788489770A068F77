@@ -1345,7 +1345,15 @@ $rrrr$=$aaaa$. setup ;
 $dddd$=$aaaa$. setup =function f(troopId, canEscape, canLose){
 	f.ori.call(this, troopId, canEscape, canLose);
 	this._turnCtr=0;
+	this.clearTBDCache();
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.clearTBDCache=function f(){
+	if(this._TBDCache){
+		this._TBDCache.forEach(f.forEach);
+		this._TBDCache.clear();
+	}else this._TBDCache=new Set();
+};
+$dddd$.forEach=b=>b.clearCache();
 $rrrr$=$aaaa$.initMembers;
 $dddd$=$aaaa$.initMembers=function f(){
 	f.ori.call(this);
@@ -1534,24 +1542,21 @@ $dddd$=$aaaa$.endBattle=function f(res){
 			flag=false;
 			$gameMessage.newPage();
 		}
+		// btlr name don't accept escape methods
 		txts.push(arr[x].name().replace(f.re,"\\\\") + $dataCustom.leaveTheParty);
 	} }
 	while(txts.length) $gameMessage.add(txts.pop());
-	delList.forEach(f.forEach[0]);
-	// clear enemies' caches
-	$gameTroop.members().forEach(f.forEach[1]);
+	// too early to delete cache, however, need to remove them from party
+	delList.forEach(f.forEach,this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.forEach=[
-	info=>{
-		const actor=info[0] , i=info[1];
-		$gameTemp.clearCache(actor);
-		const id=actor._actorId;
-		$gameParty.removeActor(id,i);
-		$gameActors.destroy(id);
-	},
-	enemy=>$gameTemp.clearCache(enemy),
-];
-$dddd$.re=/\\/;
+$dddd$.forEach=function(info){
+	const actor=info[0] , i=info[1];
+	this._TBDCache.add(actor);
+	const id=actor._actorId;
+	$gameParty.removeActor(id,i);
+	$gameActors.destroy(id);
+};
+$dddd$.re=/\\/g;
 $rrrr$=$aaaa$.updateBattleEnd;
 $dddd$=$aaaa$.updateBattleEnd=function f(){
 	return f.ori.call(this);
@@ -2841,6 +2846,7 @@ $aaaa$.prototype.changeInputWindow=function(){
 $rrrr$=$aaaa$.prototype.terminate;
 $dddd$=$aaaa$.prototype.terminate=function f(){
 	f.ori.call(this);
+	BattleManager.clearTBDCache();
 	$gameTroop.members().forEach(f.forEach);
 }; $dddd$.ori=$rrrr$;
 $dddd$.forEach=b=>b.clearCache();
