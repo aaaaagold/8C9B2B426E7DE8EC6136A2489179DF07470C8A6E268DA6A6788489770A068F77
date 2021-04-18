@@ -9172,50 +9172,6 @@ $dddd$.forEach=[
 	},
 ];
 $aaaa$.prototype.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
-$aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
-	if(!this.isLearnedSkill(skillId)){
-		this._skills.push(skillId);
-		if(arrangeLater){
-			let tmp=this._skills_getCache();
-			if(tmp){
-				tmp.needArrange=true;
-				tmp.add(skillId);
-				const item=$dataSkills[skillId];
-				tmp.s.byKey2_sum(item.tmapS);
-				tmp.m.byKey2_mul(item.tmapP);
-			}
-			else tmp=this._skills_updateCache(); // maintain sorted
-			if(!tmp.pendLearns) tmp.pendLearns=[];
-			tmp.pendLearns.push(skillId);
-			this._overall_delCache();
-		}else{
-			this._overall_delCache();
-			this._skills_updateCache(); // maintain sorted
-		}
-	}
-};
-$aaaa$.prototype.forgetSkill=function(skillId){
-	const index = this._skills.indexOf(skillId);
-	if(index >= 0){
-		this._skills.splice(index, 1);
-		const c=this._skills_getCache();
-		if(c){
-			c.delete(skillId);
-			if(c.all){
-				const idx=c.all.indexOf(skillId);
-				if(idx>=0) c.all.splice(idx,1);
-			}
-			const item=$dataSkills[skillId];
-			c.s.byKey2_del_sum(item.tmapS);
-			c.m.byKey2_del_mul(item.tmapP);
-			if(c.added && !c.added.has(skillId)){
-				if(c.ts) c.ts.byKey2_del_sum(item.tmapS);
-				if(c.tm) c.tm.byKey2_del_mul(item.tmapP);
-			}
-		}
-		this._overall_delCache();
-	}
-};
 $aaaa$.prototype.isLearnedSkill=function(skillId){
 	return this._skills_getUpdatedCache().has(skillId);
 };
@@ -9656,7 +9612,7 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 	if(s){
 		// TODO: Now every time traitSet is different. Thus this will always be fales.
 		if(!s.needArrange && s.added===added && s.all) return s.all;
-		s.needArrange=false; s.added=added;
+		s.added=added;
 		rtv=[];
 		s.forEach( v=>rtv.push(f.map(v)) );
 	}else{
@@ -9664,6 +9620,7 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 		s.added=added;
 		rtv=this._skills.map(f.map);
 	}
+	s.needArrange=false;
 	{
 		const arr=[];
 		const tmapS=s.added.s=new Map();
@@ -9675,8 +9632,48 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$.cmp=$tttt$;
-$dddd$.map=id=>$dataSkills[id];
 $tttt$=undef;
+$dddd$.map=id=>$dataSkills[id];
+$aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
+	if(!this.isLearnedSkill(skillId)){ // will create cache
+		this._skills.push(skillId);
+		if(arrangeLater){
+			const c=this._skills_getCache();
+			c.needArrange=true;
+			c.add(skillId);
+			const item=$dataSkills[skillId];
+			c.s.byKey2_sum(item.tmapS);
+			c.m.byKey2_mul(item.tmapP);
+			if(!c.pendLearns) c.pendLearns=[];
+			c.pendLearns.push(skillId);
+			this._overall_delCache();
+		}else{
+			this._overall_delCache();
+			this._skills_updateCache(); // maintain sorted
+		}
+	}
+};
+$aaaa$.prototype.forgetSkill=function(skillId){
+	const index = this._skills.indexOf(skillId);
+	if(index >= 0){
+		this._skills.splice(index, 1);
+		const c=this._skills_getCache();
+		if(c){
+			c.delete(skillId);
+			if(c.all && c.all[index] && c.all[index].id===skillId){ // this._skills first then added skills
+				c.all.splice(index,1);
+			}
+			const item=$dataSkills[skillId];
+			c.s.byKey2_del_sum(item.tmapS);
+			c.m.byKey2_del_mul(item.tmapP);
+			if(c.added && !c.added.has(skillId)){
+				if(c.ts) c.ts.byKey2_del_sum(item.tmapS);
+				if(c.tm) c.tm.byKey2_del_mul(item.tmapP);
+			}
+		}
+		this._overall_delCache();
+	}
+};
 $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	const a=this.getData() , c=this.currentClass();
 	let rtv=$gameTemp.getCache(this,f.key);
