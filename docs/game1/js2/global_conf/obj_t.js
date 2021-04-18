@@ -9141,7 +9141,7 @@ $aaaa$.prototype.initImages=function(){
 	this._battlerName = actor.battlerName;
 };
 $aaaa$.prototype.initEquips=function(equips){
-	const slots=this.equipSlots(); // call this.equips();
+	const slots=this.equipSlots();
 	const maxSlots=slots.length,repeats=$dataSystem.equipTypes.meta.repeat;
 	this._equips=[]; this._equips.length=maxSlots;
 	for(let i=0;i!==maxSlots;++i){
@@ -9268,24 +9268,24 @@ $dddd$=$aaaa$.prototype._equips_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
-$aaaa$.prototype._equips_updateCache_item=(item,s,m)=>{
-	//const c=a.get(item);
-	//if(c===undefined) a.set(item,1);
-	//else a.set(item,c+1);
+$aaaa$.prototype._equips_updateCache_item=(item,a,s,m)=>{
+	const c=a.get(item);
+	if(c===undefined) a.set(item,1);
+	else a.set(item,c+1);
 	s.byKey2_sum(item.tmapS);
 	m.byKey2_mul(item.tmapP);
 };
 $dddd$=$aaaa$.prototype._equips_updateCache=function f(){
 	const rtv=this._equips.map(f.map);
 	$gameTemp.updateCache(this,f.key,rtv);
-	//const a=rtv.a=new Map();
+	const a=rtv.a=new Map();
 	const s=rtv.s=new Map() , m=rtv.m=new Map();
 	for(let x=0;x!==rtv.length;++x){
 		const tmp=rtv[x]; if(!tmp) continue;
 		if(tmp.constructor===Array){ for(let z=0;z!==tmp.length;++z){ if(!tmp[z]) continue;
-			this._equips_updateCache_item(tmp[z],s,m);
+			this._equips_updateCache_item(tmp[z],a,s,m);
 		} }else{
-			this._equips_updateCache_item(tmp,s,m);
+			this._equips_updateCache_item(tmp,a,s,m);
 		}
 	}
 	return rtv;
@@ -9304,6 +9304,11 @@ $aaaa$.prototype._equips_editCache_del=function(dataobj){
 	tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
 	const skillAddedCnt=tmp&&tmp.size;
 	
+	if(dataobj.etypeId===1) equips.w=0;
+	else equips.r=0;
+	tmp=equips.a.get(dataobj)-1;
+	if(tmp) equips.a.set(dataobj,tmp);
+	else equips.a.delete(dataobj);
 	equips.s.byKey2_del_sum(dataobj.tmapS);
 	equips.m.byKey2_del_mul(dataobj.tmapP);
 	
@@ -9332,6 +9337,9 @@ $aaaa$.prototype._equips_editCache_add=function(dataobj){
 	tmp=equips.s.get(Game_BattlerBase.TRAIT_SKILL_ADD);
 	const skillAddedCnt=tmp&&tmp.size;
 	
+	if(dataobj.etypeId===1) equips.w=0;
+	else equips.r=0;
+	equips.a.set(dataobj,equips.a.get(dataobj)+1||1);
 	equips.s.byKey2_sum(dataobj.tmapS);
 	equips.m.byKey2_mul(dataobj.tmapP);
 	
@@ -9372,7 +9380,7 @@ $aaaa$.prototype.equips=function f(refresh){ // called every time when a trait i
 };
 $aaaa$.prototype.weapons=function(n){
 	const ref=this.equips();
-	if(ref.w===undefined){
+	if(!ref.w){
 		const slots=this.equipSlots(),rtv=ref.w=[];
 		for(let z=0;z!==ref.length;++z){ if(slots[z]!==1) continue; let curr=ref[z]; if(!ref[z]) continue;
 			if(curr.constructor===Array){
@@ -9386,7 +9394,7 @@ $aaaa$.prototype.weapons=function(n){
 };
 $aaaa$.prototype.armors = function(){
 	const ref=this.equips();
-	if(ref.r===undefined){
+	if(!ref.r){
 		const slots=this.equipSlots(),rtv=ref.r=[];
 		for(let z=0;z!==ref.length;++z){ if(slots[z]===1) continue; let curr=ref[z]; if(!ref[z]) continue;
 			if(curr.constructor===Array){
@@ -9484,15 +9492,7 @@ $aaaa$.prototype.changeEquipById=function(etypeId, itemId, slotIdExt) {
 };
 $dddd$=$aaaa$.prototype.isEquipped = function(item){ // $dddd$ for same func. below
 	if(!item) return false; // or true ?
-	const slots=this.equipSlots();
-	let slotId=slots.indexOf(item.etypeId,strt);
-	if(slotId===-1) return false; // early break
-	const eqs=this.equips();
-	for(let strt=0;slotId!==-1;slotId=slots.indexOf(item.etypeId,strt=slotId+1)){
-		const arr=eqs[slotId];
-		if(arr===item || (arr&&arr.constructor===Array && arr.indexOf(item)+1 ) ) return true;
-	}
-	return false;
+	return this.equips().a.has(item);
 };
 $aaaa$.prototype.hasWeapon = $dddd$; // change logic: search in equipped weapons -> search in all equipments
 $aaaa$.prototype.hasArmor = $dddd$; // change logic: search in equipped armors -> search in all equipments
@@ -9501,7 +9501,7 @@ $aaaa$.prototype.discardEquip = function(item){
 	if($dataSystem.equipTypes.meta.repeat[item.etypeId]){
 		const slots=this.equipSlots();
 		const slotId = slots.indexOf(item.etypeId);
-		const slotIdExt=this.equips()[slotId].indexOf(item);
+		const slotIdExt=this.equips()[slotId].lastIndexOf(item);
 		if(slotIdExt!==-1){
 			const arr=this._equips[slotId];
 			const ori=arr[slotIdExt].object();
@@ -9509,9 +9509,10 @@ $aaaa$.prototype.discardEquip = function(item){
 			//this._equips_delCache();
 		}
 	}else{
-		const slotId = this.equips().indexOf(item);
+		const c=this.equips();
+		const slotId = c.indexOf(item); // consider dual wield and more fleible methods (edit function 'equipSlots'), not using item.etypeId-1
 		if(slotId!==-1){
-			const c=this._equips_getCache(); if(c) c[slotId]=null;
+			c[slotId]=null;
 			const ori=this._equips[slotId].object();
 			this._equips_editCache_del(ori);
 			this._equips[slotId].setObject(null);
