@@ -27,6 +27,8 @@ list.newMyself_actor=(action,leaveAtBattleEnd)=>{
 	if(rtv){
 		const subject=action.subject();
 		rtv._states=subject._states.slice(0);
+		rtv._states_delCache();
+		rtv._overall_delCache();
 		rtv._meta.leaveAtBattleEnd=leaveAtBattleEnd&&1||0;
 		rtv._meta.isClone=1;
 		rtv._exp=deepcopy(subject._exp);
