@@ -1868,12 +1868,6 @@ Window_EquipSlot.prototype.updateHelp = function() {
 Window_EquipItem.prototype = Object.create(Window_ItemList.prototype);
 Window_EquipItem.prototype.constructor = Window_EquipItem;
 
-Window_EquipItem.prototype.initialize = function(x, y, width, height) {
-    Window_ItemList.prototype.initialize.call(this, x, y, width, height);
-    this._actor = null;
-    this._slotId = 0;
-};
-
 Window_EquipItem.prototype.setActor = function(actor) {
     if (this._actor !== actor) {
         this._actor = actor;
