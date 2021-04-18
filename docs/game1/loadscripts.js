@@ -3,6 +3,7 @@
 const ver = "4.2.6.8.9.6....." ;
 
 var isDev,dev_kkk,dev_kk,jss;
+if(window.sha256 && sha256(location.hash)==="0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
 //jss=undefined; //testing: non-local
 //isDev=false; //testing: non-dev
 (()=>{
@@ -12,7 +13,7 @@ let isDev_=isDev,objs={};
 //isDev_=false; //testing: hide vars
 if(window.sha256 && sha256(location.hash)==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
 if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
-if(!jss || window.sha256 && sha256(location.hash)==="0x4209486CEAF58233C23112B094A4503542EC339D44358042185724DC2C4ABD4D") jss=[
+if(!jss) jss=[
 	"test.js",
 	"js/plugins.js",
 	":init",

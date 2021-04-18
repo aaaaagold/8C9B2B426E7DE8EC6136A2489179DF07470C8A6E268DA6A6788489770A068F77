@@ -12031,8 +12031,14 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 		if( arr.a===this._actor && arr.s===this._slotId ){
 			const newItem=this._newUnEquip; this._newUnEquip=null;
 			if(newItem && $gameParty.numItems(newItem)===1){
-				arr.push(newItem);
-				arr.sort(DataManager.sortCmp);
+				if(arr.length && arr.back===null){
+					arr.back=newItem;
+					arr.sort(DataManager.sortCmp);
+					arr.push(null);
+				}else{
+					arr.push(newItem);
+					arr.sort(DataManager.sortCmp);
+				}
 			}else{
 				// same (actor,slot) and no new item
 				for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
