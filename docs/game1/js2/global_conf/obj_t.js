@@ -9840,31 +9840,6 @@ $aaaa$.prototype.getTraits_custom_m=function(code,id){
 	const rtv=this.skills_tmap_m().get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$dddd$=$aaaa$.prototype._traitObjects=function f(){
-	// add every obj (related to 'this' actor) that contains traits
-	const eqs=this.equips(),objects=Game_Battler.prototype.traitObjects.call(this);
-	objects.push(this.actor()); objects.push(this.currentClass()); // .concat([this.actor(), this.currentClass()]); // [].map().concat
-	if(eqs.t===undefined){
-		const eqObj=eqs.t=[];
-		for(let x=0,arr=eqs;x!==arr.length;++x){
-			let item=arr[x]; if(!item) continue;
-			if(item.constructor===Array){
-				for(let z=0;z!==item.length;++z){
-					let tmp=item[z];
-					if(tmp) eqObj.push(tmp);
-				}
-			}else eqObj.push(item);
-		}
-		eqs.a=eqs.t.concat(objects);
-	}else{
-		eqs.a.length=eqs.t.length;
-		objects.forEach(f.forEach,eqs.a);
-		eqs.stateChanged=false;
-	}
-	return eqs;
-};
-$dddd$.forEach=function(x){ this.push(x); };
-$aaaa$.prototype.traitObjects=function(){ return this._traitObjects().a; };
 $aaaa$.prototype.traitSet=function(code,id){
 	return this.getTraits_overall_s(code,id);
 };
@@ -10277,28 +10252,18 @@ $aaaa$.prototype.getTraits_native_m=function f(code,id){
 	const rtv=this._getTraits_native().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_native_s=function f(code,id){
-	const rtv=this._getTraits_native().s.get(code);
-	return rtv&&id!==undefined?rtv.get(id):rtv;
-};
-$aaaa$.prototype.getTraits_native_m=function f(code,id){
-	const rtv=this._getTraits_native().m.get(code);
-	return rtv&&id!==undefined?rtv.get(id):rtv;
-};
-$dddd$=$aaaa$.prototype.traitObjects=function f(){
+$aaaa$.prototype.getTraits_custom_s=function f(code,id){
 	if(this._mimic){
-		let rtv=$gameTemp.getCache(this,f.key);
-		if(rtv) return rtv;
 		const a=$gameActors.actor(this._mimic);
-		if(a){
-			rtv=a.traitObjects().concat(this.enemy());
-			$gameTemp.updateCache(this,f.key, rtv=Array.fastConcat(Game_Battler.prototype.traitObjects.call(this),rtv) );
-			return rtv;
-		}
+		if(a) return a.getTraits_overall_s(code,id);
 	}
-	return Game_Battler.prototype.traitObjects.call(this).concat(this.enemy());
 };
-$dddd$.key='t';
+$aaaa$.prototype.getTraits_custom_m=function f(code,id){
+	if(this._mimic){
+		const a=$gameActors.actor(this._mimic);
+		if(a) return a.getTraits_overall_m(code,id);
+	}
+};
 $dddd$=$aaaa$.prototype.makeDropItems=function f(){
 	const rtv=[]; rtv.self=this;
 	return this.enemy().dropItems.reduce(f.reduce,rtv);
