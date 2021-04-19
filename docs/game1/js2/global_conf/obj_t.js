@@ -1668,7 +1668,10 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	
 	// switch skills // meta.switch -> effect.isSwitch
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
-		for(let i=0,arr=x.effects,s=!!(x.meta.switch);i!==arr.length;++i) if(Game_Action.EFFECT_ADD_STATE===arr[i].code) arr[i].isSwitch=s;
+		if(!x.meta.switch) return;
+		x.name=$dataCustom.header.switchSkill+' '+x.name;
+		const s=!!(x.meta.switch);
+		for(let i=0,arr=x.effects;i!==arr.length;++i) if(Game_Action.EFFECT_ADD_STATE===arr[i].code) arr[i].isSwitch=s;
 	});
 	
 	// stomach
@@ -8733,7 +8736,20 @@ $dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal atta
 $dddd$.forEach=e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0; // state 0 === attack state
 $aaaa$.prototype.repeatTargets=function(targets){ // reverse order
 	const repeatedTargets = [];
-	for(let j=this.numRepeats(),szi=targets.length;j--;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
+	let j=this.numRepeats(); if(j>1e15){
+		let cnt=0,nv=[j%1e15];
+		for(let t=j;t>=1e15;++cnt){
+			t=Math.floow(t/1e15);
+			nv.push(t%1e15);
+		}
+		let rtv=[];
+		while(nv.length){
+			const curr=rtv.slice();
+			for(let x=1e15;x-->0;) rtv=rtv.concat(curr);
+			for(let x=nv.pop();x-->0;) rtv=rtv.concat(curr);
+		}
+		return rtv;
+	}else for(let szi=targets.length;j-->0;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
 	return repeatedTargets;
 };
 $rrrr$=$aaaa$.prototype.testApply;
@@ -8926,7 +8942,7 @@ $aaaa$.addEnum("CUSTOM_EFFECT_GAIN_STP",$dddd$.tbl,function(target,effect){
 });
 } // Game_Action.prototype.applyItemEffect.tbl
 $aaaa$.prototype.itemEffectAddNormalState=function(target, effect){
-	const chance = effect.value1;
+	let chance = effect.value1;
 	if(!this.isCertainHit()){
 		chance *= target.stateRate(effect.dataId);
 		chance *= this.lukEffectRate(target);

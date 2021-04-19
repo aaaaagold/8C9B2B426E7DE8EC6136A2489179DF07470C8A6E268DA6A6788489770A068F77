@@ -192,6 +192,11 @@
 		[12,43],
 		[]
 	],
+	"header":{
+		"switchSkill":"[開關]",
+		"passiveSkill":"[被動]",
+		"":0
+	},
 	"_code":{
 		"getBurnLicenceLv":"()=>{let items=$gameParty._items,rtv=0;  if(items[32])rtv=1;if(items[41])rtv=2;if(items[43])rtv=3;if(items[123])rtv=4;  return rtv;}",
 		"":0

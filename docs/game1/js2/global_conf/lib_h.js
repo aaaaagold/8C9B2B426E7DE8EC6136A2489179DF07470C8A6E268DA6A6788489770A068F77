@@ -20,14 +20,18 @@ $dddd$=String.prototype.subId=function f(){
 	return (tmp||undefined)&&Number(tmp[3]);
 };
 $dddd$.regex=/^([0-9]+)(-([0-9A-Z_a-z]+))?$/;
-$aaaa$=function Number_muls(num){
+$aaaa$=function Number_muls(num,kargs){
+	kargs=kargs||{};
+	this.setSplit(kargs.split);
 	this._data=[num||1];
 	this._limB=[];
 	this._limS=[];
 	this._zero=(num===0)|0;
 };
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype.reset=function(num){
+$aaaa$.prototype.reset=function(num,kargs){
+	kargs=kargs||{};
+	this.setSplit(kargs.split);
 	this._data.length=0;
 	this._data.push(num||1);
 	this._limB.length=0;
@@ -94,6 +98,28 @@ $aaaa$.prototype.valueOf=function(){
 	}
 	return rtv;
 };
+$aaaa$.prototype.setSplit=function(split){
+	if(isNone(split)){
+		this._split_min=1e-123;
+		this._split_max=1e123;
+		return;
+	}
+	if(split.constructor===Array){
+		switch(split.length){
+		case 0: return this.setSplit();
+		case 1: return this.setSplit(split[0]);
+		}
+		split=split.map(x=>Math.abs(x));
+		split.sortn();
+		this._split_min=split[0];
+		this._split_max=split.back;
+		return;
+	}
+	split=Math.abs(split);
+	this.setSplit();
+	if(split<1) this._split_min=split;
+	if(split>1) this._split_max=split;
+};
 $dddd$=$aaaa$.prototype.mul=function f(num){
 	if(!num){ this._zero+=num===0; return; }
 	if(num.constructor===this.constructor){
@@ -106,7 +132,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 		for(let x=0;x+1<D.length;++x){
 			const val=D[x]*D.back;
 			const tmp=val<0?-val:val;
-			if(tmp<1e123 && tmp>1e-123){
+			if(tmp<this._split_max && tmp>this._split_min){
 				D[x]=val;
 				D.pop();
 			}
@@ -120,7 +146,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 		if(this._limB.length){
 			let tmp=this._limB.back*=num;
 			if(tmp<0) tmp=-tmp;
-			if(tmp<1e123){
+			if(tmp<this._split_max){
 				if(this._data.length>1){
 					this._data.back*=this._data[0];
 					this._data[0]=this._limB.pop();
@@ -129,7 +155,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 		}else{
 			let tmp=this._data.back;
 			if(tmp<0) tmp=-tmp;
-			if(tmp<1e-123){
+			if(tmp<this._split_min){
 				this._limS.push(this._data.pop());
 				if(this._data.length) this._data.back*=num;
 				else this._data.push(num);
@@ -139,7 +165,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 		if(this._limS.length){
 			let tmp=this._limS.back*=num;
 			if(tmp<0) tmp=-tmp;
-			if(tmp>1e-123){
+			if(tmp>this._split_min){
 				if(this._data.length>1){
 					this._data.back*=this._data[0];
 					this._data[0]=this._limS.pop();
@@ -148,7 +174,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 		}else{
 			let tmp=this._data[0];
 			if(tmp<0) tmp=-tmp;
-			if(tmp>1e123){
+			if(tmp>this._split_max){
 				this._limB.push(this._data[0]);
 				if(this._data.length>1){
 					this._data[1]*=num;
