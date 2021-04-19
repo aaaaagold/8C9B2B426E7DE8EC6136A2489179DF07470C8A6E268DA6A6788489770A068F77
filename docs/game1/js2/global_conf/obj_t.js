@@ -1374,6 +1374,8 @@ $dddd$=$aaaa$.initMembers=function f(){
 	tmp=this._isChanting;
 	if(tmp) tmp.clear();
 	else this._isChanting=new Map();
+	
+	this._actionNoEffect=false;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.saveBgmAndBgs;
 $dddd$=$aaaa$.saveBgmAndBgs=function f(){
@@ -1395,7 +1397,10 @@ $dddd$=$aaaa$.makeEscapeRatio=function f(){
 $rrrr$=$aaaa$. update ;
 $dddd$=$aaaa$. update =function f(){ // prepare
 	//console.log(' update ',this._actorIndex);
-	return f.ori.call(this);
+	do{
+		this._actionNoEffect=false;
+		f.ori.call(this);
+	}while(this._actionNoEffect);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$. startInput ;
 $dddd$=$aaaa$. startInput =function f(){ // prepare
@@ -1476,7 +1481,13 @@ $dddd$=$aaaa$.updateAction=function f(){
 		if(this._subject.stp===0) this._action.stpReduced=true;
 		const q=tmp; if(q) q.clear();
 		this.invokeAction(this._subject,target,q);
-		if(target._result.used){ // target aimed, try aim more
+		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
+			lg._methods.pop_back();
+			while(this._targets.back===target){
+				this._targets.pop();
+				this.invokeAction(this._subject,target,q);
+			}
+		}else{ // target aimed, try aim more
 			f.tmp.clear(); f.tmp.add(target);
 			const arr=this._targets;
 			while(arr.length){
@@ -1485,12 +1496,6 @@ $dddd$=$aaaa$.updateAction=function f(){
 				this.invokeAction(this._subject,this._targets.pop(),q);
 			}
 			lg.push('popBaseLine');
-		}else{ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
-			lg._methods.pop_back();
-			while(this._targets.back===target){
-				this._targets.pop();
-				this.invokeAction(this._subject,target,q);
-			}
 		}
 		st.noRefresh=false;
 		st.refresh();
@@ -1718,7 +1723,12 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
 		x.ord<<=1; x.ord|=!!(meta.passive);
-		if(meta.hpCost) x.hpCost=Number(meta.hpCost)|0;
+		if(meta.mpCost!==undefined) x.mpCost=Number(meta.mpCost)|0; // overwite
+		if(meta.hpCost   ) x.hpCost   =Number(meta.hpCost   ) | 0;
+		if(meta.mpCostMR ) x.mpCostMR =Number(meta.mpCostMR ) ||0;
+		if(meta.hpCostMR ) x.hpCostMR =Number(meta.hpCostMR ) ||0;
+		if(meta.mpCostCR ) x.mpCostCR =Number(meta.mpCostCR ) ||0;
+		if(meta.hpCostCR ) x.hpCostCR =Number(meta.hpCostCR ) ||0;
 		let ord=0;
 		x.ord=ord*c2;
 	}); arr.forEach((x,i)=>$dataSkills[x]&&($dataSkills[x].ord|=i)); }
@@ -4390,7 +4400,8 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Game_BattlerBase;
 $aaaa$.currMaxEnum=70;
 $aaaa$.addEnum=objs._addEnum;
-$aaaa$.addEnum('CACHEKEY_EQUIP')
+$aaaa$.addEnum('CACHEKEY_LASTPAY')
+	.addEnum('CACHEKEY_EQUIP')
 	.addEnum('CACHEKEY_SKILL')
 	.addEnum('CACHEKEY_STATE')
 	.addEnum('CACHEKEY_NATIVE')
@@ -4406,6 +4417,9 @@ Object.defineProperties($aaaa$.prototype, {
 	mtp: { get: function() { return this.maxTp(); }, configurable: false },
 	stp: { get: function() { return this._stp; }, configurable: false },
 	mstp: { get: function() { return this.maxStp(); }, configurable: false },
+	lastPayMp:{ get: function() { return this.lastPay().mp||0; },configurable: false},
+	lastPayHp:{ get: function() { return this.lastPay().hp||0; },configurable: false},
+	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
 });
 
 $dddd$=$aaaa$.prototype.updateStateTurns=function f(){
@@ -4685,26 +4699,41 @@ $aaaa$.prototype.traits=function f(code){
 $aaaa$.prototype.traitsWithId = function(code, id) {
 	return this.allTraits(code).filter(trait=>trait.dataId===id);
 };
+$aaaa$.prototype.traitsPi=function(code, id){
+	return this.getTraits_overall_m(code,id);
+};
+$aaaa$.prototype.traitsSum=function(code, id){
+	return this.getTraits_overall_s(code,id);
+};
+$aaaa$.prototype.traitsSumAll=function(code){
+	const t=this.getTraits_overall_s(code);
+	let rtv=0;
+	if(t) t.forEach((v,k)=>rtv+=v);
+	return rtv;
+};
 $dddd$=$aaaa$.prototype.traitsSet=function f(code){ // ori: use array.reduce as array.map
 	return this.traits(code).map(f.forEach);
 };
 $dddd$.forEach=trait=>trait.dataId;
-$aaaa$.prototype.paramMax=function(paramId){
-	return 999999;
-/*
-	if(paramId===0){
-		return 999999;  // MHP
-	}else if(paramId===1){
-		return 999999;	// MMP
-	}else{
-		return 999999;
-	}
-*/
+$aaaa$.prototype.traitsSet=function(code){
+	return this.getTraits_overall_s(code);
+};
+$aaaa$.prototype.traitsMaxId=function(code,min){
+	const t=this.getTraits_overall_s(code);
+	let rtv=min||0;
+	if(t) t.forEach((v,k)=>rtv<k&&(rtv=k));
+	return rtv;
 };
 $aaaa$.prototype.paramBase=function(paramId){
 	let rtv=this.currentClass().params[paramId][this._level];
 	if(this.stp===0) rtv/=10;
 	return rtv||0;
+};
+$aaaa$.prototype.paramMax=function(paramId){
+	return 999999;
+};
+$aaaa$.prototype.paramRate = function(paramId) {
+	return this.getTraits_overall_m(Game_BattlerBase.TRAIT_PARAM, paramId);
 };
 $aaaa$.prototype.param=function(paramId){
 	
@@ -4725,6 +4754,14 @@ $aaaa$.prototype.param=function(paramId){
 	} }
 	return value;
 };
+$aaaa$.prototype.stateResistSet = function() {
+	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
+};
+$aaaa$.prototype.addedSkillTypes = function() {
+	const rtv=[];
+	this.getTraits_overall_s(Game_BattlerBase.TRAIT_STYPE_ADD).forEach((v,k)=>rtv.push(k));
+	return rtv;
+};
 $aaaa$.prototype.addedSkillTypes_arranged=function(omits){
 	const h=new Heap(undefined,this.addedSkillTypes(),true),s=new Set(omits);
 	const rtv=[];
@@ -4735,6 +4772,22 @@ $aaaa$.prototype.addedSkillTypes_arranged=function(omits){
 		rtv.push(curr);
 	}
 	return rtv.reverse();
+};
+// Game_BattlerBase.prototype.addedSkills=function(){ return this.traitsSet(Game_BattlerBase.TRAIT_SKILL_ADD); }; // not used
+$aaaa$.prototype.slotType=function(){
+	return this.traitsMaxId(Game_BattlerBase.TRAIT_SLOT_TYPE);
+};
+$aaaa$.prototype.actionPlusSet=function() {
+	return this.traitsSet(Game_BattlerBase.TRAIT_SLOT_TYPE);
+};
+$aaaa$.prototype.specialFlag=function(flagId) {
+	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_SPECIAL_FLAG).has(flagId);
+};
+$aaaa$.prototype.collapseType=function(){
+	return this.traitsMaxId(Game_BattlerBase.TRAIT_COLLAPSE_TYPE);
+};
+$aaaa$.prototype.partyAbility=function(abilityId){
+	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_PARTY_ABILITY).has(abilityId);
 };
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
@@ -4764,17 +4817,17 @@ $aaaa$.prototype.MPSubstituteRate=function(){
 $aaaa$.prototype.setHp=function(hp){
 	if(this._hp === hp) return;
 	this._hp = hp;
-	this.refresh();
+	this.refresh(true);
 };
 $aaaa$.prototype.setMp=function(mp){
 	if(this._mp === mp) return;
 	this._mp = mp;
-	this.refresh();
+	this.refresh(true);
 };
 $aaaa$.prototype.setTp=function(tp){
 	if(this._tp === tp) return;
 	this._tp = tp;
-	this.refresh();
+	this.refresh(true);
 };
 $aaaa$.prototype.setStp=function(val){
 	if(this._stp===val) return;
@@ -4846,16 +4899,33 @@ $aaaa$.prototype.isHungry=function(){
 	return this.stpRate()<0.1;
 };
 $aaaa$.prototype.skillHpCost=function(skill){
-	return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
+	//return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
+	return ~~(this.mhp*skill.hpCostMR + this.hp*skill.hpCostCR + skill.hpCost);
+};
+$aaaa$.prototype.skillMpCost=function(skill){
+	return ~~((~~(this.mmp*skill.mpCostMR + this.mp*skill.mpCostCR + skill.mpCost + 0.5)) * this.mcr);
+	(skill.mpCost * this.mcr)
+	return skill.mpCost+~~(skill.mpCost * this.mcr);
 };
 $aaaa$.prototype.canPaySkillCost=function(skill){
 	return this._tp >= this.skillTpCost(skill) && this._mp >= this.skillMpCost(skill) && this._hp >= this.skillHpCost(skill) ;
 };
-$aaaa$.prototype.paySkillCost=function(skill){
-	this._hp -= this.skillHpCost(skill);
-	this._mp -= this.skillMpCost(skill);
-	this._tp -= this.skillTpCost(skill);
+$dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
+	const payhp=this.skillHpCost(skill);
+	const paymp=this.skillMpCost(skill);
+	const paytp=this.skillTpCost(skill);
+	$gameTemp.updateCache(this,f.key,{hp:payhp,mp:paymp,tp:paytp});
+	this._hp -= payhp;
+	this._mp -= paymp;
+	this._tp -= paytp;
 };
+$tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_LASTPAY;
+$dddd$=$aaaa$.prototype.lastPay=function f(){
+	return $gameTemp.updateCache(this,f.key)||tbl;
+};
+$dddd$.key=$tttt$;
+$tttt$=undef;
+$dddd$.tbl={};
 $aaaa$.prototype.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
@@ -8761,6 +8831,16 @@ $dddd$.tbl=[
 	{},
 	new Set([3,4,]),
 ];
+$aaaa$.prototype.elementsMaxRate = function(target, map_ele) {
+	if(map_ele.size){
+		let rtv=0;
+		map_ele.forEach((v,k)=>{
+			const r=target.elementRate(k);
+			if(rtv<r) rtv=r;
+		});
+		return rtv;
+	}else return 1;
+};
 $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
@@ -8854,6 +8934,18 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 	//if(meta&&meta.code) eval(meta.code);
 	if(meta&&meta.code) objs._doFlow.call(this,meta.code);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.itemEffectAddAttackState = function(target, effect) {
+	this.subject().attackStates().forEach((_,stateId)=>{
+		let chance = effect.value1;
+		chance *= target.stateRate(stateId);
+		chance *= this.subject().attackStatesRate(stateId);
+		chance *= this.lukEffectRate(target);
+		if(Math.random() < chance){
+			target.addState(stateId);
+			this.makeSuccess(target);
+		}
+	});
+};
 $aaaa$.prototype.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);
 	else return $gameTroop.members()[this._subjectEnemyIndex];
