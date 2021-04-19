@@ -1852,14 +1852,6 @@ Window_EquipSlot.prototype.setItemWindow = function(itemWindow) {
     this._itemWindow = itemWindow;
 };
 
-Window_EquipSlot.prototype.updateHelp = function() {
-    Window_Selectable.prototype.updateHelp.call(this);
-    this.setHelpWindowItem(this.item());
-    if (this._statusWindow) {
-        this._statusWindow.setTempActor(null);
-    }
-};
-
 //-----------------------------------------------------------------------------
 // Window_EquipItem
 //
