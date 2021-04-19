@@ -4706,7 +4706,7 @@ $aaaa$.prototype.paramBase=function(paramId){
 	return rtv||0;
 };
 $aaaa$.prototype.paramMax=function(paramId){
-	return 999999;
+	return paramId>1?999999:99999999;
 };
 $aaaa$.prototype.paramRate = function(paramId) {
 	return this.getTraits_overall_m(Game_BattlerBase.TRAIT_PARAM, paramId);
@@ -9172,15 +9172,6 @@ $dddd$=$aaaa$.prototype.initialize=function f(actorId){
 		this._stp=500;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.paramMax = function(paramId) {
-	return Game_Battler.prototype.paramMax.call(this, paramId);
-/*
-	if (paramId === 0) {
-		return 999999; // MHP
-	}
-	return Game_Battler.prototype.paramMax.call(this, paramId);
-*/
-};
 $aaaa$.prototype.actor=function(){
 	return $dataActors[this._actorId.toId()];
 };
@@ -11777,12 +11768,42 @@ $dddd$=$aaaa$.prototype.initialize=function f(x,y){
 		this._downArrowSprite.y = this._upArrowSprite.y = y;
 		this._downArrowSprite.x = this.width-( this._upArrowSprite.x = this.padding );
 	}
+	this._itemOld=this._itemNew=undefined;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.update;
 $dddd$=$aaaa$.prototype.update=function f(){
 	f.ori.call(this);
 	if(this._commandWindow.active) this._arrowsFloating();
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.drawAllVal=function(x,oy){
+	const h=this.lineHeight(),txtpad=this.textPadding(),sz=$dataSystem.terms.params.length;
+	const x1=x+txtpad,x2=x+140,x3=x+189,x4=x+222,vals=[];
+	
+	for(let i=-2,y=oy;i!==sz;++i) this.drawParamName(x1, y+=h, i);
+	
+	if(this._actor){ this.resetTextColor(); for(let i=-2,y=oy;i!==sz;++i){
+		this.drawText(vals[i]=this._actor.param(i), x2, y+=h, 48, 'right');
+	} }
+	
+	// → 
+	this.changeTextColor(this.systemColor());
+	for(let i=-2,y=oy;i!==sz;++i) this.drawText('\u2192', x3, y+=h, 32, 'center');
+	
+	const item=this._itemNew;
+	if(item!==undefined && this._actor){
+		const ori=this._itemOld;
+		// queried above, must have cache
+		this._actor._equips_editCache_del(ori);
+		this._actor._equips_editCache_add(item);
+		for(let i=-2,y=oy,sz=$dataSystem.terms.params.length;i!==sz;++i){
+			const val=this._actor.param(i);
+			this.changeTextColor(this.paramchangeTextColor(val-vals[i]));
+			this.drawText(val, x4, y+=h, 48, 'right');
+		}
+		this._actor._equips_editCache_del(item);
+		this._actor._equips_editCache_add(ori);
+	}
+};
 $aaaa$.prototype.refresh_do=function(){
 	if(this.clearContents() && this._actor){
 		this.drawActorName(this._actor, this.textPadding(), 0);
@@ -11804,19 +11825,12 @@ $aaaa$.prototype.refresh_do=function(){
 			this.drawText(tmp,x2,y,w,'right');
 			}
 		}
-		//for(let i=0,sz=this._actor._paramPlus.length;i!==sz;++i) this.drawItem(0, y+=h, i);
-		for(let i=-2,sz=$dataSystem.terms.params.length;i!==sz;++i) this.drawItem(0, y+=h, i);
+		//for(let i=-2,sz=$dataSystem.terms.params.length;i!==sz;++i) this.drawItem(0, y+=h, i);
+		this.drawAllVal(0,y+=h);
 	}
 };
 $aaaa$.prototype.refresh=function(){
 	SceneManager.addRefresh(this);
-};
-$aaaa$.prototype.setTempActor=function(tempActor){
-	if(this._tempActor !== tempActor){
-		if(this._tempActor) $gameTemp.clearCache(this._tempActor);
-		this._tempActor = tempActor;
-		this.refresh();
-	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -11941,6 +11955,16 @@ $aaaa$.prototype.isEnabled=function(idx){
 	this._calSlotId(idx);
 	return this._actor ? this._actor.isEquipChangeOk(this.__slotId,this.__slotIdExt) : false;
 };
+$aaaa$.prototype.updateHelp=function(){
+	Window_Selectable.prototype.updateHelp.call(this);
+	this.setHelpWindowItem(this.item());
+	// cursor on slot , clear temp status
+	const sw=this._statusWindow;
+	if(sw && sw._itemNew!==undefined){
+		sw._itemNew=undefined;
+		sw.refresh();
+	}
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Window_EquipItem
@@ -12011,10 +12035,16 @@ $aaaa$.prototype.setSlotId=function(idx,ext){
 };
 $aaaa$.prototype.updateHelp=function() {
 	Window_ItemList.prototype.updateHelp.call(this);
-	if (this._actor && this._statusWindow) {
-		let actor = JsonEx.makeDeepCopy(this._actor);
-		actor.forceChangeEquip(this._slotId, this.item(), this._slotIdExt);
-		this._statusWindow.setTempActor(actor);
+	// set new item , refresh temp status (though original value will be drawn again)
+	const sw=this._statusWindow;
+	if(sw && this._actor){
+		const item=this.item();
+		if(sw._itemNew!==item){ // prevent me writing some ugly that drops FPS
+			sw._itemNew=item;
+			const eq=this._actor.equips()[this._slotId];
+			sw._itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
+			sw.refresh();
+		}
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;

@@ -227,7 +227,7 @@ Map.prototype.byKey_del_sum=function(rhs){
 		const tmp=rtv.get(k);
 		if(tmp!==undefined){
 			const v100=~~(v*100+(v<0?-0.5:0.5)); // data source precision is 0.01
-			rtv.set(k,((tmp*100+(tmp<0?-0.5:0.5))-v100)/100);
+			rtv.set(k,((~~(tmp*100+(tmp<0?-0.5:0.5)))-v100)/100);
 			rtv.v-=v100;
 			const n=rtv.c.get(k)-1;
 			if(n) rtv.c.set(k,n);
