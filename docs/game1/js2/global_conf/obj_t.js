@@ -1666,6 +1666,11 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	$dataWeapons .slice($dataWeapons .arrangeStart||1).forEach(f);
 }
 	
+	// switch skills // meta.switch -> effect.isSwitch
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
+		for(let i=0,arr=x.effects,s=!!(x.meta.switch);i!==arr.length;++i) if(Game_Action.EFFECT_ADD_STATE===arr[i].code) arr[i].isSwitch=s;
+	});
+	
 	// stomach
 	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
@@ -1722,14 +1727,15 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
-		x.ord<<=1; x.ord|=!!(meta.passive);
+		let ord=0;
+		ord<<=1; ord|=!!(meta.passive);
+		ord<<=1; ord|=!!(meta.switch);
 		if(meta.mpCost!==undefined) x.mpCost=Number(meta.mpCost)|0; // overwite
 		if(meta.hpCost   ) x.hpCost   =Number(meta.hpCost   ) | 0;
 		if(meta.mpCostMR ) x.mpCostMR =Number(meta.mpCostMR ) ||0;
 		if(meta.hpCostMR ) x.hpCostMR =Number(meta.hpCostMR ) ||0;
 		if(meta.mpCostCR ) x.mpCostCR =Number(meta.mpCostCR ) ||0;
 		if(meta.hpCostCR ) x.hpCostCR =Number(meta.hpCostCR ) ||0;
-		let ord=0;
 		x.ord=ord*c2;
 	}); arr.forEach((x,i)=>$dataSkills[x]&&($dataSkills[x].ord|=i)); }
 	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
@@ -1788,7 +1794,7 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		$dataSkills[3].speed=$dataSkills[2].speed<<=10;
 	}
 	
-	// link tmap of passiveSkill to ** armor **
+	// link tmap of passiveSkill to ** states **
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const id=x.meta.passive;
 		if(!id) return;
@@ -8738,6 +8744,39 @@ $dddd$=$aaaa$.prototype.testApply=function f(target){
 	if(filter) return objs._getObj(filter)(target,this.subject());
 	return (meta.stomach && target.stp!==undefined && target.stp<target.mstp)||f.ori.call(this,target);
 }; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.prototype.testItemEffect=function f(target,effect){
+	const func=f.tbl[effect.code];
+	return !func||func.call(this,target,effect); // default true
+};
+$dddd$.tbl=[]; { $dddd$.tbl.length=52; const act=$aaaa$;
+$dddd$.tbl[act.EFFECT_RECOVER_HP]=function(target,effect){
+        return target.hp < target.mhp || effect.value1 < 0 || effect.value2 < 0;
+};
+$dddd$.tbl[act.EFFECT_RECOVER_MP]=function(target,effect){
+        return target.mp < target.mmp || effect.value1 < 0 || effect.value2 < 0;
+};
+$dddd$.tbl[act.EFFECT_ADD_STATE]=function(target,effect){
+        return !(!effect.isSwitch&&target.isStateAffected(effect.dataId));
+};
+$dddd$.tbl[act.EFFECT_REMOVE_STATE]=function(target,effect){
+        return target.isStateAffected(effect.dataId);
+};
+$dddd$.tbl[act.EFFECT_ADD_BUFF]=function(target,effect){
+        return !target.isMaxBuffAffected(effect.dataId);
+};
+$dddd$.tbl[act.EFFECT_ADD_DEBUFF]=function(target,effect){
+        return !target.isMaxDebuffAffected(effect.dataId);
+};
+$dddd$.tbl[act.EFFECT_REMOVE_BUFF]=function(target,effect){
+        return target.isBuffAffected(effect.dataId);
+};
+$dddd$.tbl[act.EFFECT_REMOVE_DEBUFF]=function(target,effect){
+        return target.isDebuffAffected(effect.dataId);
+};
+$dddd$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
+        return target.isActor() && !target.isLearnedSkill(effect.dataId);
+};
+} // Game_Action.prototype.testItemEffect.tbl
 $aaaa$.prototype.apply=function(target){
 	const result = target.result();
 	this.subject().clearResult();
@@ -8835,11 +8874,11 @@ $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(value) target.refresh();
 	this.gainDrainedHp(value);
 };
-$dddd$=$aaaa$.prototype.applyItemEffect=function f(target,effect){ // did it exec?
+$dddd$=$aaaa$.prototype.applyItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
 	if(func) func.call(this,target,effect);
 };
-$dddd$.tbl=[]; { $dddd$.tbl.length=14; const act=$aaaa$;
+$dddd$.tbl=[]; { $dddd$.tbl.length=52; const act=$aaaa$;
 $dddd$.tbl[act.EFFECT_RECOVER_HP]=function(target,effect){
 	this.itemEffectRecoverHp(target, effect);
 };
@@ -8886,6 +8925,23 @@ $aaaa$.addEnum("CUSTOM_EFFECT_GAIN_STP",$dddd$.tbl,function(target,effect){
 	}
 });
 } // Game_Action.prototype.applyItemEffect.tbl
+$aaaa$.prototype.itemEffectAddNormalState=function(target, effect){
+	const chance = effect.value1;
+	if(!this.isCertainHit()){
+		chance *= target.stateRate(effect.dataId);
+		chance *= this.lukEffectRate(target);
+	}
+	if(Math.random() < chance){
+		if(effect.isSwitch){
+			if(!this._switchApplied){
+				this._switchApplied=true;
+				if( target.isStateAffected(effect.dataId) ) target.removeState(effect.dataId);
+				else target.addState(effect.dataId);
+			}
+		}else target.addState(effect.dataId);
+		this.makeSuccess(target);
+	}
+};
 $rrrr$=$aaaa$.prototype.applyGlobal;
 $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 	debug.log('Game_Action.prototype.applyGlobal');
