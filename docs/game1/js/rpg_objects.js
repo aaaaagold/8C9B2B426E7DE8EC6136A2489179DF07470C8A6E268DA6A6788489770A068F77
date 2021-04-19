@@ -1994,11 +1994,6 @@ Game_BattlerBase.prototype.buffIconIndex = function(buffLevel, paramId) {
     }
 };
 
-Game_BattlerBase.prototype.traitObjects = function() {
-    // Returns an array of the all objects having traits. States only here.
-    return this.states();
-};
-
 Game_BattlerBase.prototype.paramBase = function(paramId) {
     return 0;
 };
