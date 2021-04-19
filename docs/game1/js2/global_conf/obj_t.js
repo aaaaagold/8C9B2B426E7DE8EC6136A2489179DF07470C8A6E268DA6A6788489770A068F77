@@ -1792,8 +1792,8 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const id=x.meta.passive;
 		if(!id) return;
-		x.tmapS=$dataArmors[id].tmapS;
-		x.tmapP=$dataArmors[id].tmapP;
+		x.tmapS=$dataStates[id].tmapS;
+		x.tmapP=$dataStates[id].tmapP;
 	});
 	
 	// **** recursive def (_*) ****
@@ -11037,11 +11037,11 @@ $aaaa$.prototype.onTouch=function(triggered){
 $aaaa$.prototype.setHelpWindowItem=function(item){
 	if(this._helpWindow){
 		if(item && item.skillId) item=$dataSkills[item.skillId];
-		this._helpWindow.setItem(item&&$dataCustom.passiveSkill.id===this._stypeId?$dataArmors[item.meta.passive]:item);
+		this._helpWindow.setItem(item);
 	}
 };
 $aaaa$.prototype.includes=function(item){
-	return item && (item.meta.passive?$dataCustom.passiveSkill.id===this._stypeId:item.stypeId===this._stypeId);
+	return item && (item.meta.passive?this._stypeId===$dataCustom.passiveSkill.id:this._stypeId===item.stypeId);
 };
 $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	if(this._actor){
