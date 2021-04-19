@@ -4572,8 +4572,9 @@ $aaaa$.prototype.getTraits_states_m=function(code,id){
 	const rtv=this.states_noSlice().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_native_s=function(code,id){
+$dddd$=$aaaa$.prototype.getTraits_native_s=function f(code,id){
 	// return: undefined / Map / value (code and id provided and value got)
+	// not assign 'none' due to showing the comment above
 };
 $aaaa$.prototype.getTraits_native_m=$dddd$;
 $aaaa$.prototype.getTraits_equips_s=$dddd$;
@@ -4681,24 +4682,6 @@ $aaaa$.prototype.getTraits_overall_m=function(code,id){
 	}
 	return rtv;
 };
-$dddd$=$aaaa$.prototype.allTraits=function f(code){
-	const rtv=[]; rtv.code=code;
-	return this.traitObjects().reduce(f.reduce, rtv);
-};
-$dddd$.reduce=(r, obj)=>{
-	const arr=obj.traits;
-	for(let x=0,xs=arr.length;x!==xs;++x){
-		const tmp=arr[x];
-		if(r.code===undefined||r.code===tmp.code) r.push(tmp);
-	}
-	return r;
-};
-$aaaa$.prototype.traits=function f(code){
-	return code===undefined?[]:this.allTraits(code);
-};
-$aaaa$.prototype.traitsWithId = function(code, id) {
-	return this.allTraits(code).filter(trait=>trait.dataId===id);
-};
 $aaaa$.prototype.traitsPi=function(code, id){
 	return this.getTraits_overall_m(code,id);
 };
@@ -4706,15 +4689,8 @@ $aaaa$.prototype.traitsSum=function(code, id){
 	return this.getTraits_overall_s(code,id);
 };
 $aaaa$.prototype.traitsSumAll=function(code){
-	const t=this.getTraits_overall_s(code);
-	let rtv=0;
-	if(t) t.forEach((v,k)=>rtv+=v);
-	return rtv;
+	return this.getTraits_overall_s(code).v||0;
 };
-$dddd$=$aaaa$.prototype.traitsSet=function f(code){ // ori: use array.reduce as array.map
-	return this.traits(code).map(f.forEach);
-};
-$dddd$.forEach=trait=>trait.dataId;
 $aaaa$.prototype.traitsSet=function(code){
 	return this.getTraits_overall_s(code);
 };
@@ -4921,7 +4897,7 @@ $dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_LASTPAY;
 $dddd$=$aaaa$.prototype.lastPay=function f(){
-	return $gameTemp.updateCache(this,f.key)||tbl;
+	return $gameTemp.updateCache(this,f.key)||f.tbl;
 };
 $dddd$.key=$tttt$;
 $tttt$=undef;
@@ -9889,129 +9865,20 @@ $dddd$=$aaaa$.prototype._traitObjects=function f(){
 };
 $dddd$.forEach=function(x){ this.push(x); };
 $aaaa$.prototype.traitObjects=function(){ return this._traitObjects().a; };
-$dddd$=$aaaa$.prototype.traitSet=function f(code){ // to 'trait.dataId'
-	if(code===undefined) return f.EMPTY;
-	let tmp=this._equips_getCache(); if(!tmp||tmp.stateChanged||tmp.a===undefined) tmp=this._traitObjects();
-	const eqs=tmp;
-	if(eqs.s===undefined) eqs.s=new Map();
-	let rtv;
-	if((rtv=eqs.s.get(code)) && eqs.s._actor===this.actor() && eqs.s._class===this.currentClass()) return rtv;
-	eqs.s._actor=this.actor();
-	eqs.s._class=this.currentClass();
-	eqs.s.set(code,rtv=new Map());
-	rtv.code=code;
-	eqs.a.reduce(f.reduce,rtv);
-	return rtv;
-};
-$dddd$.reduce=(s,obj)=>{ // s
-	for(let arr=obj.traits,x=arr.length;x--;){
-		const tmp=arr[x];
-		if(s.code===tmp.code){
-			const id=tmp.dataId;
-			let value=s.get(id)||0;
-			s.set(id,tmp.value+value);
-		}
-	}
-	return s;
-};
-$dddd$.EMPTY=new Map();
-$dddd$=$aaaa$.prototype.traitSetP=function f(code){ // to 'trait.dataId'
-	if(code===undefined) return f.EMPTY;
-	let tmp=this._equips_getCache(); if(!tmp||tmp.stateChanged||tmp.a===undefined) tmp=this._traitObjects();
-	const eqs=tmp;
-	if(eqs.p===undefined) eqs.p=new Map();
-	let rtv;
-	if((rtv=eqs.p.get(code)) && eqs.p._actor===this.actor() && eqs.p._class===this.currentClass()) return rtv;
-	eqs.p._actor=this.actor();
-	eqs.p._class=this.currentClass();
-	eqs.p.set(code,rtv=new Map());
-	rtv.code=code;
-	eqs.a.reduce(f.reduce,rtv);
-	return rtv;
-};
-$dddd$.reduce=(s,obj)=>{ // p
-	for(let arr=obj.traits,x=arr.length;x--;){
-		const tmp=arr[x];
-		if(s.code===tmp.code){
-			const id=tmp.dataId;
-			let value=s.get(id); if(value===undefined) value=1;
-			s.set(id,tmp.value*value);
-		}
-	}
-	return s;
-};
-$dddd$.EMPTY=new Map();
 $aaaa$.prototype.traitSet=function(code,id){
 	return this.getTraits_overall_s(code,id);
 };
 $aaaa$.prototype.traitSetP=function(code,id){
 	return this.getTraits_overall_m(code,id);
 };
-$aaaa$.prototype.traitsSum=function(code,id){
-	//return this.traitSet(code).get(id)||0;
-	return this.traitSet(code,id)||0;
-};
-$aaaa$.prototype.traitsSumAll=function(code){
-	return this.traitSet(code).v||0;
-	let rtv=0;
-	this.traitSet(code).forEach(v=>rtv+=v);
-	return rtv;
-};
-$aaaa$.prototype.traitsPi=function(code,id){
-	return this.traitSetP(code,id);
-	const rtv=this.traitSetP(code).get(id);
-	return rtv===0?0:(rtv||1);
-};
-$aaaa$.prototype.traitsSet=function(code){
-	const rtv=[];
-	this.traitSet(code).forEach((v,k)=>rtv.push(k));
-	return rtv;
-};
-$aaaa$.prototype.isStateResist=function(stateId){
-	return this.traitSet(Game_BattlerBase.TRAIT_STATE_RESIST).has(stateId);
-};
 $aaaa$.prototype.attackElements=function(){
-	const rtv=[];
-	const tmp=this.traitSet(Game_BattlerBase.TRAIT_ATTACK_ELEMENT);
-	tmp.forEach((v,k)=>rtv.push(k));
-	if( !tmp.has(this.bareHandsElementId()) && this.hasNoWeapons() ){
-		rtv.push(this.bareHandsElementId());
+	let rtv=Game_Battler.prototype.attackElements.call(this);
+	const bid=this.bareHandsElementId();
+	if( !rtv.has(bid) && this.hasNoWeapons() ){
+		rtv=new Map(rtv);
+		rtv.set(bid,0);
 	}
 	return rtv;
-};
-$aaaa$.prototype.isSkillTypeSealed=function(stypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_STYPE_SEAL).has(stypeId);
-};
-$aaaa$.prototype.isSkillSealed=function(stypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_STYPE_SEAL).has(stypeId);
-};
-$aaaa$.prototype.isEquipWtypeOk=function(wtypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_EQUIP_WTYPE).has(wtypeId);
-};
-$aaaa$.prototype.isEquipAtypeOk=function(atypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_EQUIP_ATYPE).has(atypeId);
-};
-$aaaa$.prototype.isEquipTypeLocked=function(etypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_EQUIP_LOCK).has(etypeId);
-};
-$aaaa$.prototype.isEquipTypeSealed=function(etypeId){
-	return this.traitSet(Game_BattlerBase.TRAIT_EQUIP_SEAL).has(etypeId);
-};
-$aaaa$.prototype.slotType=function(){
-	let rtv=0;
-	this.traitSet(Game_BattlerBase.TRAIT_SLOT_TYPE).forEach((v,k)=>k>rtv&&(rtv=k));
-	return rtv;
-};
-{ const enums=objs.enums,gbb=Game_BattlerBase;
-$aaaa$.prototype.isAbleToAutoRevive=function(){
-	return this.traitSet(gbb.TRAITS_CUSTOM).has(enums.AUTOREVIVE);
-};
-}
-$aaaa$.prototype.specialFlag=function(flagId){
-	return this.traitSet(Game_BattlerBase.TRAIT_SPECIAL_FLAG).has(flagId);
-};
-$aaaa$.prototype.partyAbility=function(abilityId){
-	this.traitSet(Game_BattlerBase.TRAIT_PARTY_ABILITY).has(abilityId);
 };
 $aaaa$.prototype.clearStates = function() {
 	if(!this._states){ // init, no cache
@@ -10402,6 +10269,14 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
+$aaaa$.prototype.getTraits_native_s=function f(code,id){
+	const rtv=this._getTraits_native().s.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
+$aaaa$.prototype.getTraits_native_m=function f(code,id){
+	const rtv=this._getTraits_native().m.get(code);
+	return rtv&&id!==undefined?rtv.get(id):rtv;
+};
 $aaaa$.prototype.getTraits_native_s=function f(code,id){
 	const rtv=this._getTraits_native().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;

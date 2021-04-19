@@ -1599,19 +1599,6 @@ Game_Action.prototype.itemEffectAddState = function(target, effect) {
     }
 };
 
-Game_Action.prototype.itemEffectAddAttackState = function(target, effect) {
-    this.subject().attackStates().forEach(function(stateId) {
-        var chance = effect.value1;
-        chance *= target.stateRate(stateId);
-        chance *= this.subject().attackStatesRate(stateId);
-        chance *= this.lukEffectRate(target);
-        if (Math.random() < chance) {
-            target.addState(stateId);
-            this.makeSuccess(target);
-        }
-    }.bind(this), target);
-};
-
 Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
     var chance = effect.value1;
     if (!this.isCertainHit()) {
@@ -2012,30 +1999,6 @@ Game_BattlerBase.prototype.traitObjects = function() {
     return this.states();
 };
 
-Game_BattlerBase.prototype.traitsPi = function(code, id) {
-    return this.traitsWithId(code, id).reduce(function(r, trait) {
-        return r * trait.value;
-    }, 1);
-};
-
-Game_BattlerBase.prototype.traitsSum = function(code, id) {
-    return this.traitsWithId(code, id).reduce(function(r, trait) {
-        return r + trait.value;
-    }, 0);
-};
-
-Game_BattlerBase.prototype.traitsSumAll = function(code) {
-    return this.traits(code).reduce(function(r, trait) {
-        return r + trait.value;
-    }, 0);
-};
-
-Game_BattlerBase.prototype.traitsSet = function(code) {
-    return this.traits(code).reduce(function(r, trait) {
-        return r.concat(trait.dataId);
-    }, []);
-};
-
 Game_BattlerBase.prototype.paramBase = function(paramId) {
     return 0;
 };
@@ -2080,10 +2043,6 @@ Game_BattlerBase.prototype.stateRate = function(stateId) {
     return this.traitsPi(Game_BattlerBase.TRAIT_STATE_RATE, stateId);
 };
 
-Game_BattlerBase.prototype.stateResistSet = function() {
-    return this.traitsSet(Game_BattlerBase.TRAIT_STATE_RESIST);
-};
-
 Game_BattlerBase.prototype.isStateResist = function(stateId) {
     return this.stateResistSet().contains(stateId);
 };
@@ -2108,16 +2067,8 @@ Game_BattlerBase.prototype.attackTimesAdd = function() {
     return Math.max(this.traitsSumAll(Game_BattlerBase.TRAIT_ATTACK_TIMES), 0);
 };
 
-Game_BattlerBase.prototype.addedSkillTypes = function() {
-    return this.traitsSet(Game_BattlerBase.TRAIT_STYPE_ADD);
-};
-
 Game_BattlerBase.prototype.isSkillTypeSealed = function(stypeId) {
     return this.traitsSet(Game_BattlerBase.TRAIT_STYPE_SEAL).contains(stypeId);
-};
-
-Game_BattlerBase.prototype.addedSkills = function() {
-    return this.traitsSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 };
 
 Game_BattlerBase.prototype.isSkillSealed = function(skillId) {
@@ -2140,36 +2091,8 @@ Game_BattlerBase.prototype.isEquipTypeSealed = function(etypeId) {
     return this.traitsSet(Game_BattlerBase.TRAIT_EQUIP_SEAL).contains(etypeId);
 };
 
-Game_BattlerBase.prototype.slotType = function() {
-    var set = this.traitsSet(Game_BattlerBase.TRAIT_SLOT_TYPE);
-    return set.length > 0 ? Math.max.apply(null, set) : 0;
-};
-
 Game_BattlerBase.prototype.isDualWield = function() {
     return this.slotType() === 1;
-};
-
-Game_BattlerBase.prototype.actionPlusSet = function() {
-    return this.traits(Game_BattlerBase.TRAIT_ACTION_PLUS).map(function(trait) {
-        return trait.value;
-    });
-};
-
-Game_BattlerBase.prototype.specialFlag = function(flagId) {
-    return this.traits(Game_BattlerBase.TRAIT_SPECIAL_FLAG).some(function(trait) {
-        return trait.dataId === flagId;
-    });
-};
-
-Game_BattlerBase.prototype.collapseType = function() {
-    var set = this.traitsSet(Game_BattlerBase.TRAIT_COLLAPSE_TYPE);
-    return set.length > 0 ? Math.max.apply(null, set) : 0;
-};
-
-Game_BattlerBase.prototype.partyAbility = function(abilityId) {
-    return this.traits(Game_BattlerBase.TRAIT_PARTY_ABILITY).some(function(trait) {
-        return trait.dataId === abilityId;
-    });
 };
 
 Game_BattlerBase.prototype.isAutoBattle = function() {
@@ -2276,10 +2199,6 @@ Game_BattlerBase.prototype.onRestrict = function() {
 
 Game_BattlerBase.prototype.isSkillWtypeOk = function(skill) {
     return true;
-};
-
-Game_BattlerBase.prototype.skillMpCost = function(skill) {
-    return Math.floor(skill.mpCost * this.mcr);
 };
 
 Game_BattlerBase.prototype.skillTpCost = function(skill) {
@@ -2578,12 +2497,6 @@ Game_Battler.prototype.removeStatesByDamage = function() {
             this.removeState(state.id);
         }
     }, this);
-};
-
-Game_Battler.prototype.makeActionTimes = function() {
-    return this.actionPlusSet().reduce(function(r, p) {
-        return Math.random() < p ? r + 1 : r;
-    }, 1);
 };
 
 Game_Battler.prototype.speed = function() {
