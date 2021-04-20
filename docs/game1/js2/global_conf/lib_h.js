@@ -40,6 +40,8 @@ $aaaa$.prototype.reset=function(num,kargs){
 };
 $aaaa$.prototype.copy=function(){
 	const rtv=new this.constructor();
+	rtv._split_min=this._split_min;
+	rtv._split_max=this._split_max;
 	rtv._data=this._data.slice();
 	rtv._limB=this._limB.slice();
 	rtv._limS=this._limS.slice();
@@ -55,7 +57,7 @@ $aaaa$.prototype.inv=function(){
 	this._inv_arr(this._limB);
 	this._inv_arr(this._limS);
 	this._zero=-this._zero;
-	this._data.sort();
+	this.sortData();
 	return this;
 };
 $aaaa$.prototype.valueOf=function(){
@@ -109,26 +111,29 @@ $aaaa$.prototype.setSplit=function(split){
 		case 0: return this.setSplit();
 		case 1: return this.setSplit(split[0]);
 		}
-		split=split.map(x=>Math.abs(x));
-		split.sortn();
+		split=split.map(x=>Math.abs(x)).sortn();
 		this._split_min=split[0];
 		this._split_max=split.back;
 		return;
 	}
-	split=Math.abs(split);
 	this.setSplit();
+	split=Math.abs(split);
 	if(split<1) this._split_min=split;
 	if(split>1) this._split_max=split;
 };
-$dddd$=$aaaa$.prototype.mul=function f(num){
+$dddd$=$aaaa$.prototype.sortData=function f(){
+	this._data.sort(f.cmp);
+};
+$dddd$.cmp=(a,b)=>(a<0?-a:a)-(b<0?-b:b);
+$aaaa$.prototype.mul=function(num){
 	if(!num){ this._zero+=num===0; return; }
 	if(num.constructor===this.constructor){
 		const D=this._data,B=this._limB,S=this._limS;
 		for(let dst=D,arr=num._data,x=0;x!==arr.length;++x) dst.push(arr[x]);
+		while(B.length && S.length) D.push(B.pop()*S.pop());
 		for(let dst=B,arr=num._limB,x=0;x!==arr.length;++x) dst.push(arr[x]);
 		for(let dst=S,arr=num._limS,x=0;x!==arr.length;++x) dst.push(arr[x]);
-		while(B.length && S.length) D.push(B.pop()*S.pop());
-		this._data.sort(f.cmp);
+		this.sortData();
 		for(let x=0;x+1<D.length;++x){
 			const val=D[x]*D.back;
 			const tmp=val<0?-val:val;
@@ -137,7 +142,7 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 				D.pop();
 			}
 		}
-		this._data.sort(f.cmp);
+		this.sortData();
 		this._zero+=num._zero;
 		return;
 	}
@@ -156,9 +161,8 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 			let tmp=this._data.back;
 			if(tmp<0) tmp=-tmp;
 			if(tmp<this._split_min){
-				this._limS.push(this._data.pop());
-				if(this._data.length) this._data.back*=num;
-				else this._data.push(num);
+				this._limS.push(this._data.back);
+				this._data.back=num;
 			}else this._data.back*=num;
 		}
 	}else{
@@ -167,8 +171,10 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 			if(tmp<0) tmp=-tmp;
 			if(tmp>this._split_min){
 				if(this._data.length>1){
-					this._data.back*=this._data[0];
+					const n=this._data.back*=this._data[0];
 					this._data[0]=this._limS.pop();
+					if(n<this._split_min) this._limS.push(this._data.pop());
+					else if(n>this._split_max) this._limB.push(this._data.pop());
 				}else this._data.push(this._limS.pop());
 			}
 		}else{
@@ -176,20 +182,15 @@ $dddd$=$aaaa$.prototype.mul=function f(num){
 			if(tmp<0) tmp=-tmp;
 			if(tmp>this._split_max){
 				this._limB.push(this._data[0]);
-				if(this._data.length>1){
-					this._data[1]*=num;
-					this._data[0]=this._data.back;
-					this._data.pop();
-				}else this._data[0]=num;
+				this._data[0]=num;
 			}else this._data[0]*=num;
 		}
 	}
 	if(this._limB.length && this._limS.length){
 		this._data.push(this._limB.pop()*this._limS.pop());
 	}
-	this._data.sort(f.cmp);
+	this.sortData();
 };
-$dddd$.cmp=(a,b)=>(a<0?-a:a)-(b<0?-b:b);
 $aaaa$.prototype.divZero=function(){
 	--this._zero;
 };
