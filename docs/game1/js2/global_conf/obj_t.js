@@ -1607,8 +1607,10 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 	// extend texts
 	if(!$dataSystem.terms.extended){
 		$dataSystem.terms.extended=true;
+		const isMul=$dataSystem.terms.isMul=[];
 		const arr=$dataSystem.terms.params,texts=$dataCustom.params;
 		arr[-2]=texts.exr;
+		isMul[-2]=true;
 		arr[-1]=texts.act;
 		arr.push(texts.cri);
 		arr.push(texts.cev);
@@ -1618,17 +1620,26 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		arr.push(texts.hrg);
 		arr.push(texts.mrg);
 		arr.push(texts.trg);
+		isMul[arr.length]=true;
 		arr.push(texts.tgr);
+		isMul[arr.length]=true;
 		arr.push(texts.grd);
+		isMul[arr.length]=true;
 		arr.push(texts.rec);
+		isMul[arr.length]=true;
 		arr.push(texts.pha);
+		isMul[arr.length]=true;
 		arr.push(texts.mcr);
+		isMul[arr.length]=true;
 		arr.push(texts.tcr);
+		isMul[arr.length]=true;
 		arr.push(texts.pdr);
+		isMul[arr.length]=true;
 		arr.push(texts.mdr);
 		arr.push(texts.pdv);
 		arr.push(texts.mdv);
 		arr.push(texts.mps);
+		isMul[arr.length]=true;
 		arr.push(texts.akr);
 	}
 	
@@ -1746,11 +1757,11 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		ord<<=1; ord|=!!(meta.passive);
 		ord<<=1; ord|=!!(meta.switch);
 		if(meta.mpCost!==undefined) x.mpCost=Number(meta.mpCost)|0; // overwite
-		if(meta.hpCost   ) x.hpCost   =Number(meta.hpCost   ) | 0;
-		if(meta.mpCostMR ) x.mpCostMR =Number(meta.mpCostMR ) ||0;
-		if(meta.hpCostMR ) x.hpCostMR =Number(meta.hpCostMR ) ||0;
-		if(meta.mpCostCR ) x.mpCostCR =Number(meta.mpCostCR ) ||0;
-		if(meta.hpCostCR ) x.hpCostCR =Number(meta.hpCostCR ) ||0;
+		x.hpCost   =Number(meta.hpCost   ) | 0;
+		x.mpCostMR =Number(meta.mpCostMR ) ||0;
+		x.hpCostMR =Number(meta.hpCostMR ) ||0;
+		x.mpCostCR =Number(meta.mpCostCR ) ||0;
+		x.hpCostCR =Number(meta.hpCostCR ) ||0;
 		x.ord=ord*c2;
 	}); arr.forEach((x,i)=>$dataSkills[x]&&($dataSkills[x].ord|=i)); }
 	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
@@ -4781,7 +4792,7 @@ $aaaa$.prototype.param=function(paramId){
 		tmp=this.paramMax(paramId);
 		if(value>tmp) value=tmp;
 	} }
-	return ~~value;
+	return ~~(value+0.5);
 };
 $aaaa$.prototype.stateResistSet = function() {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
@@ -4937,7 +4948,7 @@ $aaaa$.prototype.skillMpCost=function(skill){
 	return skill.mpCost+~~(skill.mpCost * this.mcr);
 };
 $aaaa$.prototype.canPaySkillCost=function(skill){
-	return this._tp >= this.skillTpCost(skill) && this._mp >= this.skillMpCost(skill) && this._hp >= this.skillHpCost(skill) ;
+	return this._tp >= this.skillTpCost(skill) && this._mp >= this.skillMpCost(skill) && this._hp > this.skillHpCost(skill) ;
 };
 $dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
 	const payhp=this.skillHpCost(skill);
@@ -12470,11 +12481,11 @@ $dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
 		}break;
 		}
 		if(needDraw){
-			a._equips_delCache();
+			a.clearCache();
 			this.changeTextColor(this.systemColor());
 			this.drawText($dataCustom.equAbl, ox, 0, w2);
 			this.drawText($dataCustom.canEqu, x2, lh, w2);
-			for(let x=0,y=lh*3,arr=$gameParty.allMembers();x!==arr.length;++x){
+			for(let x=0,y=lh<<1,arr=$gameParty.allMembers();x!==arr.length;++x){
 				if(arr[x].canEquip(item)){
 					this.resetTextColor();
 					this.drawText(arr[x].name(), x2, y, w2);
@@ -12485,15 +12496,13 @@ $dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
 			}
 			let tmp=w2-w2_4;
 			for(let i=-2,y=lh<<1,h=this.lineHeight(),ch=this.contentsHeight(),w3=tmp-ox2,x3=tmp+ox,sz=$dataSystem.terms.params.length;i!==sz;++i){
-				let p=Number(f.actor.param(i));
-				const parr=f.actor.currentClass().params[i];
-				if(parr) p-=parr[f.actor.level];
+				let p=(0<=i&&i<8)?f.actor.paramPlus(i):Number(f.actor.param(i));
 				if(i===-1) --p; // action times
-				if(!p || (i===-2 && p===1)) continue; // expRate
+				if(!p || ($dataSystem.terms.isMul[i] && p===1)) continue; // expRate
 				this.changeTextColor(this.systemColor());
 				this.drawText(TextManager.param(i), ox, y, w3);
 				this.changeTextColor(this.paramchangeTextColor(i===-2?p-1:p));
-				if(i===-2) p="*"+p;
+				if($dataSystem.terms.isMul[i]) p="*"+p;
 				else if(p>0) p="+"+p;
 				this.drawText(p, x3, y, w2_4, 'right');
 				y+=h;
