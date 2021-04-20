@@ -3193,12 +3193,16 @@ $aaaa$.prototype.toViewLen=function(txt,ende){
 	ende=Number(ende);
 	if(isNaN(ende)||txt.length<ende) ende=txt.length;
 	if(!(this._tabWidth>=2)) return ende;
+	const w=this.textWidth('-');
 	let rtv=ende;
-	for(let x=0,t=this._tabWidth,tr=t;x!=ende;++x){
+	for(let x=0,t=this._tabWidth,tr=t,tmp;x!=ende;++x){
 		--tr;
 		if(txt[x]==='\t'){
 			rtv+=tr;
 			tr=t;
+		}else if((tmp=this.textWidth(txt[x]))!==w){
+			rtv+=tmp/w-1;
+			if(--tr<=0) tr+=t;
 		}else if(tr===0) tr=t;
 	}
 	return rtv;
