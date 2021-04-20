@@ -2019,12 +2019,37 @@ $dddd$=$aaaa$.prototype.create=function f(){
 		this._slotWindow.refresh();
 		this._itemWindow.refresh();
 	}
+	// put scene
+	{
+		this._slotWindow._scene=this;
+		this._itemWindow._scene=this;
+	}
+	
+	// index log
+	this._lastSelMM_item=new Map();
+	const iw=this._itemWindow;
+	iw._logIdx=this._onItem_logIdx.bind(this);
+	iw._putIdx=this._onItem_putIdx.bind(this);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.refreshActor=function(){
+	const actor = this.actor();
+	this._statusWindow.setActor(actor);
+	this._slotWindow.setActor(actor);
+};
+$aaaa$.prototype._clearStatDiff=function(){
+	const sw=this._statusWindow;
+	if(sw && sw._itemNew!==undefined){
+		sw._itemNew=undefined;
+		sw.refresh();
+	}
+};
 $aaaa$.prototype.commandEquip=function f(){
-	this._slotWindow.activate();
-	this._slotWindow._scrollY=this._slotWindow._scrollYM.get(this._actor)|0;
-	this._slotWindow.select(this._slotWindow._lastIdxM.get(this._slotWindow._actor)|0);
-	this._slotWindow.refresh();
+	const sw=this._slotWindow;
+	sw.activate();
+	sw._scrollY=sw._scrollYM.get(this._actor)|0;
+	sw.reselIdx();
+	sw.reselect();
+	sw.refresh();
 };
 $aaaa$.prototype.commandOptimize=function f(){
 	SoundManager.playEquip();
@@ -2043,19 +2068,64 @@ $dddd$=$aaaa$.prototype.commandClear=function f(){
 	this._slotWindow._setSlotIdTbl();
 	this._slotWindow.refresh();
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.onSlotOk=function(){
+	const iw=this._itemWindow;
+	iw._putIdx();
+	iw.reselect();
+	iw.activate();
+};
+$aaaa$.prototype._onItem_logIdx=function(){
+	const iw=this._itemWindow;
+	if(!(iw._index>=0)) return;
+	let lastSelM=this._lastSelMM_item.get(this._actor);
+	if(!lastSelM) this._lastSelMM_item.set(this._actor,lastSelM=new Map());
+	lastSelM.set(iw._slotId,[iw._scrollY,iw._index,]);
+};
+$aaaa$.prototype._onItem_putIdx=function(){
+	const iw=this._itemWindow;
+	const lastSelM=this._lastSelMM_item.get(this._actor);
+	const info=lastSelM&&lastSelM.get(iw._slotId);
+	if(info){
+		const sy=info[0],idx=info[1];
+		iw._scrollY=sy;
+		iw._index=(idx>=0?(idx>=iw._data.length?iw._data.length-1:idx):0);
+	}else iw._index=iw._scrollY=0;
+};
+$aaaa$.prototype._onItem_deSel=function(){
+	const iw=this._itemWindow;
+	const idx=iw._index;
+	iw._index=-1;
+	iw.updateCursor();
+	iw._index=idx;
+};
+$aaaa$.prototype.onSlotCancel=function(){
+	this._onItem_deSel();
+	this._slotWindow.deselect();
+	this._clearStatDiff();
+	this._commandWindow.activate();
+};
 $aaaa$.prototype.onItemOk=function(){
 	SoundManager.playEquip();
 	// this.actor().changeEquip(this._slotWindow.index(), this._itemWindow.item());
+	const sw=this._slotWindow , iw=this._itemWindow;
 	{
-		const iw=this._itemWindow;
-		iw._newUnEquip=this.actor().changeEquip(iw._slotId, iw.item(), iw._slotIdExt);
+		const item=iw.item();
+		iw._newUnEquip=this.actor().changeEquip(iw._slotId, item, iw._slotIdExt);
+		if(item && !iw._newUnEquip && iw._slotIdExt!==undefined) sw.select(sw._index+1);
 	}
-	this._slotWindow._setSlotIdTbl();
-	this._slotWindow.activate();
-	this._slotWindow.refresh();
-	this._itemWindow.deselect();
-	this._itemWindow.refresh();
+	//iw.deselect();
+	this._onItem_deSel();
+	iw.refresh();
+	sw._setSlotIdTbl();
+	sw.activate();
+	sw.refresh();
 	this._statusWindow.refresh();
+};
+$aaaa$.prototype.onItemCancel=function(){
+	this._slotWindow.activate();
+	//iw.deselect();
+	this._onItem_deSel();
+	this._clearStatDiff();
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -4749,6 +4819,14 @@ $aaaa$.prototype.paramBase=function(paramId){
 	if(this.stp===0) rtv/=10;
 	return rtv||0;
 };
+$dddd$=$aaaa$.prototype.paramMin=function f(paramId){
+	switch(paramId){
+	case 0: return 1;
+	case 1: return 0;
+	}
+	return f.tbl;
+};
+$dddd$.tbl=-Infinity;
 $aaaa$.prototype.paramMax=function(paramId){
 	return paramId>1?999999:99999999;
 };
@@ -4961,7 +5039,7 @@ $dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_LASTPAY;
 $dddd$=$aaaa$.prototype.lastPay=function f(){
-	return $gameTemp.updateCache(this,f.key)||f.tbl;
+	return $gameTemp.getCache(this,f.key)||f.tbl;
 };
 $dddd$.key=$tttt$;
 $tttt$=undef;
@@ -8899,23 +8977,26 @@ $aaaa$.prototype.makeDamageValue=function(target,critical){
 	return ~~value;
 };
 $dddd$=$aaaa$.prototype.evalDamageFormula=function f(target){
-	try {
-		const item = this.item();
-		//let v = $gameVariables._data , a = this.subject() , b = target;
-		f.tbl[0][3]="return "+item.damage.formula;
-		let value = Function.apply(null,f.tbl[0]).call(f.tbl[1],undefined,this.subject(),target);
+	try{
+		const item = this.item(); if(!item) return 0;
+		const dmg=item.damage;
+		if(!dmg.formula) return 0;
+		//let a = this.subject() , b = target;
+		
+		if(dmg.formula.constructor!==Function){
+			f.tbl[0][3]="return "+(dmg.formula_txt=dmg.formula);
+			dmg.formula=Function.apply(null,f.tbl[0]);
+		}
+		let value = dmg.formula.call(f.tbl[1],undefined,this.subject(),target);
 		value*=value>0;
-		if(f.tbl[2].has(item.damage.type)) value=-value;
-		value*=!!value;
-		return value;
-	} catch (e) {
-		return 0;
-	}
+		if(f.tbl[2].has(dmg.type)) value=-value;
+		return value||0;
+	}catch(e){ return 0; } // only handling function creation failure
 };
 $dddd$.tbl=[
-	['window','a','b',],
-	{},
-	new Set([3,4,]),
+	['window','a','b',], // def func args
+	{}, // this
+	new Set([3,4,]), // recover type
 ];
 $aaaa$.prototype.elementsMaxRate = function(target, map_ele) {
 	if(map_ele.size){
@@ -11990,18 +12071,35 @@ $aaaa$.prototype.onTouch=function(triggered){
 	if(this._commandWindow) args.push(this._commandWindow);
 	return this._onTouch_iw(triggered,args);
 };
-$rrrr$=$aaaa$.prototype.processCancel;
-$dddd$=$aaaa$.prototype.processCancel=function f(noSound){
-	this._lastIdxM.set(this._actor,this._index);
-	this._scrollYM.set(this._actor,this._scrollY);
-	f.ori.call(this,noSound);
+$rrrr$=$aaaa$.prototype.deactivate;
+$dddd$=$aaaa$.prototype.deactivate=function f(){
+	if(this._scrollYM) this._scrollYM.set(this._actor,this._scrollY);
+	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.reselIdx=function(noUpdate){
+	const lastSel=this._lastSelM.get(this._actor);
+	let idx;
+	if(lastSel){
+		const i=lastSel[0]+1;
+		const idxB=this._slotIdTbl[i];
+		if(lastSel[1]===undefined) idx=idxB; // [-1,0,...]
+		else{
+			const L=this._slotIdTbl[i+1]-idxB;
+			if(!L) idx=idxB;
+			else if(L>lastSel[1]) idx=(idxB+lastSel[1]);
+			else idx=(idxB+L-1);
+		}
+	}else idx=0;
+	if(!(idx>=0)) idx=0; // prevent some weird error
+	if(!noUpdate) this._index=idx;
+	return idx;
+};
 Object.defineProperty($aaaa$.prototype,'_index',{
 	get:function(){return this._idx;},
 	set:function(rhs){
 		if(this._idx===rhs) return rhs;
 		this._idx=rhs;
-		if(this._actor) this.update_slotId();
+		if(this._actor && this._itemWindow) this.update_slotId();
 		return this._idx;
 	},
 });
@@ -12011,10 +12109,11 @@ $aaaa$.prototype.initialize = function(x, y, width, height) {
 	this._slotId=~0;
 	this._slotIdExt=undefined;
 	this._slotIdTbl=[-1,0];
-	this.__slotIdExt=this.__slotId=undefined;
+	this.__slotIdExt=this.__slotId=undefined; // rtv of 'this._calSlotId'
 	this._scrollYM=new Map();
-	this._lastIdxM=new Map();
-	this._lastIdx=undefined;
+	this._lastSelM=new Map(); // actor -> [slotId , slotIdExt]
+	//this._lastIdxM=new Map(); // info not enough, changed to 'this._lastSelM'
+	this._lastIdx=undefined; // prevent repeated 'this.setSlotId'
 	this.refresh();
 };
 $aaaa$.prototype._setSlotIdTbl=function(){
@@ -12029,35 +12128,39 @@ $aaaa$.prototype._idx2slotId=function(idx){
 	return this._slotIdTbl.lower_bound(idx+1)-2; // -1-1
 };
 $aaaa$.prototype.setActor=function(actor){
-	if (this._actor !== actor) {
-		if(this.active){
-			this._lastIdxM.set(this._actor,this._index);
-			this._scrollYM.set(this._actor,this._scrollY);
-		} // else by processCancel
-		this._actor = actor;
-		this._index   = this._lastIdxM.get(actor);
-		if(this._index===undefined) this._index=-1;
-		this._scrollY = this._scrollYM.get(actor)|0;
-		this._setSlotIdTbl();
-		this.refresh();
+	if(this._actor===actor) return;
+	this._actor = actor;
+	this._scrollY = this._scrollYM.get(actor)|0;
+	this._setSlotIdTbl();
+	this.reselIdx();
+	const iw=this._itemWindow;
+	if(iw){
+		this.update_slotId(); // sync info
+		this.updateStatus();
+		if(this.cursorShown()) this.updateCursor();
+		iw.updateStatus();
+		if(iw.cursorShown()) iw.updateCursor();
 	}
+	this.ensureCursorVisible();
+	this.refresh();
 };
-$aaaa$.prototype._calSlotId=function(idx){
+$aaaa$.prototype._calSlotId=function(idx){ // just cal. prepared to be use. maybe not now
 	this.__slotId=this._idx2slotId(idx);
 	const tmp=this._actor._equips[this.__slotId];
 	this.__slotIdExt=(tmp&&tmp.constructor===Array)?idx-this._slotIdTbl[this.__slotId+1]:undefined;
 };
-$aaaa$.prototype.update_slotId=function(){
-	this._slotId=this._idx2slotId(this._index);
-	const tmp=this._actor._equips[this._slotId];
-	this._slotIdExt=(tmp&&tmp.constructor===Array)?this._index-this._slotIdTbl[this._slotId+1]:undefined;
+$aaaa$.prototype.update_slotId=function(){ // actual update
+	this._lastIdx=this._index;
+	this._calSlotId(this._index);
+	this._itemWindow.setInfo(this._actor,this.__slotId,this.__slotIdExt);
+	this._slotId=this.__slotId;
+	this._slotIdExt=this.__slotIdExt;
+	if(this._index>=0) this._lastSelM.set(this._actor,[this._slotId,this._slotIdExt,]);
 };
 $aaaa$.prototype.update=function(){
 	Window_Selectable.prototype.update.call(this);
 	if(this._lastIdx!==this._index&&this._itemWindow){
-		this._lastIdx=this._index;
 		this.update_slotId();
-		this._itemWindow.setSlotId(this._slotId,this._slotIdExt);
 	}
 };
 $aaaa$.prototype.maxItems=function(){
@@ -12086,15 +12189,34 @@ $aaaa$.prototype.isEnabled=function(idx){
 	this._calSlotId(idx);
 	return this._actor ? this._actor.isEquipChangeOk(this.__slotId,this.__slotIdExt) : false;
 };
+$aaaa$.prototype.updateStatus=function(noRefresh){
+	// cursor on slot , update itemOld
+	const sw=this._statusWindow;
+	if(sw && this._actor){
+		let new_itemOld;
+		if(this._itemWindow.cursorShown()){
+			const eq=this._actor.equips()[this._slotId];
+			new_itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
+		}else new_itemOld=null;
+		if(sw._itemOld!==new_itemOld){
+			sw._itemOld=new_itemOld;
+			if(!noRefresh) sw.refresh();
+			return true;
+		}
+	}
+};
 $aaaa$.prototype.updateHelp=function(){
 	Window_Selectable.prototype.updateHelp.call(this);
 	this.setHelpWindowItem(this.item());
-	// cursor on slot , clear temp status
-	const sw=this._statusWindow;
-	if(sw && sw._itemNew!==undefined){
-		sw._itemNew=undefined;
-		sw.refresh();
+	
+	let needRefresh=false; // this._statusWindow
+	// update itemOld
+	if(this.updateStatus(true)) needRefresh=true; // don't refresh status in the function
+	// update itemNew
+	if(this._itemWindow && this._itemWindow.updateStatus()){
+		needRefresh=false; // had been refreshed
 	}
+	if(needRefresh) this._statusWindow.refresh();
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -12111,12 +12233,40 @@ $aaaa$.prototype.onTouch=function(triggered){
 	if(this._commandWindow) args.push(this._commandWindow);
 	return this._onTouch_iw(triggered,args);
 };
+Object.defineProperty($aaaa$.prototype,'_index',{
+	get:function(){return this._idx;},
+	set:function(rhs){
+		if(this._idx===rhs) return rhs;
+		this._idx=rhs;
+		if(this._logIdx) this._logIdx();
+		return this._idx;
+	},
+});
 $aaaa$.prototype.initialize=function(x, y, w, h){
 	Window_ItemList.prototype.initialize.call(this, x, y, w, h);
 	this._actor = null;
 	this._slotId = ~0;
 	this._slotIdExt = undefined;
 	this._newUnEquip = null;
+	this._putIdx=this._logIdx=undefined;
+};
+$aaaa$.prototype.setInfo=function(actor,slotId,slotIdExt){
+	if(this._actor===actor && this._slotId===slotId){
+		// same actor and slot , only log idx
+		if(this._slotIdExt===slotIdExt) return; // exact same , don't waste time
+		else{
+			this._slotIdExt=slotIdExt;
+			if(this._putIdx) this._putIdx();
+		}
+	}else{
+		// refresh
+		this._actor=actor;
+		this._slotId=slotId;
+		this._slotIdExt=slotIdExt;
+		this.makeItemList();
+		if(this._putIdx) this._putIdx();
+		this.refresh();
+	}
 };
 $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	if(this._data){
@@ -12150,33 +12300,37 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	this._data.s=this._slotId;
 };
 $aaaa$.prototype.setActor=function(actor){
-	if(this._actor!==actor){
-		this._actor = actor;
+	if(this._actor===actor) return;
+	this._actor = actor;
+	this.refresh();
+	this.resetScroll();
+};
+$aaaa$.prototype.setSlotId=function(idx,ext){
+	this._slotIdExt = ext;
+	if(this._slotId !== idx){
+		this._slotId = idx;
 		this.refresh();
 		this.resetScroll();
 	}
 };
-$aaaa$.prototype.setSlotId=function(idx,ext){
-	if(this._slotId !== idx || this._slotIdExt !== ext){
-		this._slotId = idx;
-		this._slotIdExt = ext;
-		this.refresh();
-		this.resetScroll();
+$aaaa$.prototype.updateStatus=function(noRefresh){
+	// set new item , refresh temp status (though original value will be drawn again)
+	const sw=this._statusWindow;
+	if(sw && this._actor){
+		const item=this.cursorShown()?this.item():undefined;
+		if(sw._itemNew!==item){ // prevent me writing some ugly that drops FPS
+			sw._itemNew=item;
+			//by slotWindow
+			//const eq=this._actor.equips()[this._slotId];
+			//sw._itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
+			if(!noRefresh) sw.refresh();
+			return true;
+		}
 	}
 };
 $aaaa$.prototype.updateHelp=function() {
 	Window_ItemList.prototype.updateHelp.call(this);
-	// set new item , refresh temp status (though original value will be drawn again)
-	const sw=this._statusWindow;
-	if(sw && this._actor){
-		const item=this.item();
-		if(sw._itemNew!==item){ // prevent me writing some ugly that drops FPS
-			sw._itemNew=item;
-			const eq=this._actor.equips()[this._slotId];
-			sw._itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
-			sw.refresh();
-		}
-	}
+	this.updateStatus();
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 $tttt$={};

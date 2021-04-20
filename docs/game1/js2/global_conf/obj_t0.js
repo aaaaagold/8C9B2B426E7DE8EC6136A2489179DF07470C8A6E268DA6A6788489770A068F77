@@ -329,6 +329,10 @@ $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1,
 		this.drawText(current, x1, y, valueWidth, 'right');
 	}
 };
+$aaaa$.prototype.cursorShown=function(){
+	const cr=this._cursorRect;
+	return cr && cr.width && cr.height;
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Texture
 $aaaa$=PIXI.Texture;
