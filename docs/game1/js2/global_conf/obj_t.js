@@ -1618,6 +1618,18 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		arr.push(texts.hrg);
 		arr.push(texts.mrg);
 		arr.push(texts.trg);
+		arr.push(texts.tgr);
+		arr.push(texts.grd);
+		arr.push(texts.rec);
+		arr.push(texts.pha);
+		arr.push(texts.mcr);
+		arr.push(texts.tcr);
+		arr.push(texts.pdr);
+		arr.push(texts.mdr);
+		arr.push(texts.pdv);
+		arr.push(texts.mdv);
+		arr.push(texts.mps);
+		arr.push(texts.akr);
 	}
 	
 	// custom traits // Game_BattlerBase.TRAITS_CUSTOM
@@ -1970,6 +1982,18 @@ $dddd$=$aaaa$.prototype.create=function f(){
 			this._itemWindow.y+=dh;
 			this._itemWindow.height-=dh;
 		}
+	}
+	// stat gets taller, help rhs
+	{
+		const sw=this._statusWindow;
+		const hw=this._helpWindow;
+		let t;
+		t=sw.width;
+		hw.width-=t;
+		hw.x+=t;
+		t=hw.height;
+		sw.height+=t;
+		sw.y-=t;
 	}
 	// for communicate
 	{ const cw=this._commandWindow,slw=this._slotWindow,iw=this._itemWindow;
@@ -4723,21 +4747,41 @@ $aaaa$.prototype.paramRate = function(paramId) {
 $aaaa$.prototype.param=function(paramId){
 	
 	// Window_EquipStatus.prototype.drawNewParam use '-', so String(s) are casted to Number
-	switch(paramId){
-	case -2: return this.sparam(9).toExponential(2);
-	case -1: return this.makeActionTimes();
+	switch(~~((paramId+12)/10)){
+	case 1:
+		switch(paramId){
+		case -2: return this.sparam(9).toExponential(2);
+		case -1: return this.makeActionTimes();
+		}
+	break;
+	default:
+	case 2: return this.xparam(paramId-8).toFixed(2);
+	break;
+	case 3:
+		switch(paramId){
+		case 26: return this.decreaseDamageP();
+		case 27: return this.decreaseDamageM();
+		}
+		return this.sparam(paramId-18).toExponential(2);
+	break;
+	case 4:
+		switch(paramId){
+		case 28: return this.MPSubstituteRate().toFixed(3);
+		case 29: return this.attackTimesMul  ().toFixed(3);
+		}
+		return this.param();
+	break;
 	}
-	if(paramId>=8) return this.xparam(paramId-8).toFixed(3);
 	
 	let value = this.paramBase(paramId) + this.paramPlus(paramId);
 	value *= this.paramRate(paramId) * this.paramBuffRate(paramId);
 	{ let tmp=this.paramMin(paramId);
-	if(value<tmp) value=tmp;
+	if(!(value>=tmp)) value=tmp;
 	else{
 		tmp=this.paramMax(paramId);
 		if(value>tmp) value=tmp;
 	} }
-	return value;
+	return ~~value;
 };
 $aaaa$.prototype.stateResistSet = function() {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
@@ -8722,7 +8766,7 @@ $aaaa$.prototype.numRepeats=function f(){
 		let tmp=Number(item.meta.repeat_mul);
 		if(!isNaN(tmp)) repeats *= tmp;
 	}
-	repeats*=subject.attackTimesMul();
+	if(item.itemType!=='i') repeats*=subject.attackTimesMul();
 	return Math.floor(repeats);
 };
 $dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
@@ -8871,6 +8915,9 @@ $aaaa$.prototype.elementsMaxRate = function(target, map_ele) {
 		});
 		return rtv;
 	}else return 1;
+};
+$aaaa$.prototype.applyGuard=function(damage,target){
+	return damage / (damage > 0 && target.isGuard() ? Math.max(2*target.grd,1) : 1);
 };
 $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(this.isDrain() && target.hp<value) value=target.hp;
@@ -11848,8 +11895,9 @@ $dddd$=$aaaa$.prototype.update=function f(){
 	if(this._commandWindow.active) this._arrowsFloating();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.drawAllVal=function(x,oy){
-	const h=this.lineHeight(),txtpad=this.textPadding(),sz=$dataSystem.terms.params.length;
+	const h=this.lineHeight()-4,txtpad=this.textPadding(),sz=$dataSystem.terms.params.length;
 	const x1=x+txtpad,x2=x+140,x3=x+189,x4=x+222,vals=[];
+	oy-=h;
 	
 	for(let i=-2,y=oy;i!==sz;++i) this.drawParamName(x1, y+=h, i);
 	
