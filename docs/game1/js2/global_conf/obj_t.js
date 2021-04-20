@@ -4639,7 +4639,7 @@ $aaaa$.prototype.getTraits_overall_s=function(code,id){
 		if(tmp!==undefined) rtv+=tmp;
 		tmp=this.getTraits_custom_s(code,id);
 		if(tmp!==undefined) rtv+=tmp;
-		rtv=(~~(rtv*100+0.5))/100;
+		rtv=(~~( rtv*100+(rtv<0?-0.5:0.5) ))/100;
 	}
 	return rtv;
 };
