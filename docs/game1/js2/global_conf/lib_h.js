@@ -231,7 +231,6 @@ Map.prototype.byKey_mul=function(map2,inplace_self){
 	}
 	if(rtv.c===undefined) (rtv.c=new Map()).v=0;
 	if(rtv.v===undefined) rtv.v=new Number_muls(1);
-	//if(rtv.z===undefined) rtv.z=0;
 	rhs.forEach((v,k)=>{
 		let tmp=rtv.get(k);
 		if(tmp!==undefined){
@@ -296,7 +295,6 @@ Map.prototype.byKey_del_mul=function(rhs){
 	});
 	if(rtv.c.v===0){
 		rtv.v.reset(1);
-		//rtv.z=0;
 		rtv.clear();
 	}
 	return rtv;
@@ -325,7 +323,6 @@ Map.prototype.byKey2_mul=function(rhs){
 	const base=this;
 	if(base.c===undefined) base.c=0;
 	if(base.v===undefined) base.v=new Number_muls();
-	//if(base.z===undefined) base.z=0;
 	rhs.forEach((v,k)=>{
 		let tmp=base.get(k);
 		if(!tmp) base.set(k,tmp=new Map());
@@ -335,7 +332,6 @@ Map.prototype.byKey2_mul=function(rhs){
 		base.c+=tmp.c.v-c;
 		base.v.mul(val_i);
 		base.v.mul(tmp.v);
-		//base.z+=tmp.z-z;
 	});
 	return base;
 };
@@ -369,7 +365,6 @@ Map.prototype.byKey2_del_mul=function(rhs){
 			base.c+=tmp.c.v-c;
 			base.v.mul(val_i);
 			base.v.mul(tmp.v);
-			//base.z+=tmp.z-z;
 			if(!tmp.c.v) base.delete(k);
 		}
 	});

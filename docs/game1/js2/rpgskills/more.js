@@ -29,7 +29,9 @@ list.newMyself_actor=(action,leaveAtBattleEnd)=>{
 		rtv._states=subject._states.slice(0);
 		rtv._states_delCache();
 		rtv._overall_delCache();
-		rtv._meta.leaveAtBattleEnd=leaveAtBattleEnd&&1||0;
+		if(rtv._meta.leaveAtBattleEnd=leaveAtBattleEnd&&1||0){
+			rtv.learnSkill(56);
+		}
 		rtv._meta.isClone=1;
 		rtv._exp=deepcopy(subject._exp);
 		$gameTemp.lvUpConfigs_pushAndMute();

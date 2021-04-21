@@ -1420,31 +1420,6 @@ Game_Action.prototype.hasItemAnyValidEffects = function(target) {
     }, this);
 };
 
-Game_Action.prototype.testItemEffect = function(target, effect) {
-    switch (effect.code) {
-    case Game_Action.EFFECT_RECOVER_HP:
-        return target.hp < target.mhp || effect.value1 < 0 || effect.value2 < 0;
-    case Game_Action.EFFECT_RECOVER_MP:
-        return target.mp < target.mmp || effect.value1 < 0 || effect.value2 < 0;
-    case Game_Action.EFFECT_ADD_STATE:
-        return !target.isStateAffected(effect.dataId);
-    case Game_Action.EFFECT_REMOVE_STATE:
-        return target.isStateAffected(effect.dataId);
-    case Game_Action.EFFECT_ADD_BUFF:
-        return !target.isMaxBuffAffected(effect.dataId);
-    case Game_Action.EFFECT_ADD_DEBUFF:
-        return !target.isMaxDebuffAffected(effect.dataId);
-    case Game_Action.EFFECT_REMOVE_BUFF:
-        return target.isBuffAffected(effect.dataId);
-    case Game_Action.EFFECT_REMOVE_DEBUFF:
-        return target.isDebuffAffected(effect.dataId);
-    case Game_Action.EFFECT_LEARN_SKILL:
-        return target.isActor() && !target.isLearnedSkill(effect.dataId);
-    default:
-        return true;
-    }
-};
-
 Game_Action.prototype.itemCnt = function(target) {
     if (this.isPhysical() && target.canMove()) {
         return target.cnt;
@@ -1509,10 +1484,6 @@ Game_Action.prototype.applyVariance = function(damage, variance) {
     var amp = Math.floor(Math.max(Math.abs(damage) * variance / 100, 0));
     var v = Math.randomInt(amp + 1) + Math.randomInt(amp + 1) - amp;
     return damage >= 0 ? damage + v : damage - v;
-};
-
-Game_Action.prototype.applyGuard = function(damage, target) {
-    return damage / (damage > 0 && target.isGuard() ? 2 * target.grd : 1);
 };
 
 Game_Action.prototype.executeDamage = function(target, value) {
@@ -1596,18 +1567,6 @@ Game_Action.prototype.itemEffectAddState = function(target, effect) {
         this.itemEffectAddAttackState(target, effect);
     } else {
         this.itemEffectAddNormalState(target, effect);
-    }
-};
-
-Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
-    var chance = effect.value1;
-    if (!this.isCertainHit()) {
-        chance *= target.stateRate(effect.dataId);
-        chance *= this.lukEffectRate(target);
-    }
-    if (Math.random() < chance) {
-        target.addState(effect.dataId);
-        this.makeSuccess(target);
     }
 };
 

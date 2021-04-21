@@ -35,7 +35,8 @@ $aaaa$.prototype.refresh_actor=function(){
 	this._actorWindow && this._actorWindow.refresh();
 };
 $dddd$=$aaaa$.prototype.refresh_plans=function f(){
-	this._planWindows && this._planWindows.forEach(f.forEach);
+	if(this._actorWindow) this._actorWindow.refresh_plans();
+	else this._planWindows && this._planWindows.forEach(f.forEach);
 };
 $dddd$.forEach=x=>x.refresh();
 $aaaa$.prototype.refresh_topic=function(){
@@ -218,13 +219,25 @@ $aaaa$.prototype.updateArrows=function(){
 	this.leftArrowVisible = this._scrollIdx !== 0;
 };
 $aaaa$.prototype._getActor=Window_BattlePlan.prototype._getActor;
+$aaaa$.prototype._align_name=()=>'left';
+$aaaa$.prototype._align_number=()=>'right';
 $aaaa$.prototype.drawItem=function(index){
 	const actor=this._getActor(index);
 	if(!actor) return;
 	
-	const rect = this.itemRectForText(index) , align = this.itemTextAlign();
+	const rect = this.itemRectForText(index);
 	//this.changePaintOpacity(this.isCommandEnabled(index));
-	this.drawText(actor.name(), rect.x, rect.y, rect.width, align);
+	
+	const n=$gameTemp._pt_battleMembers_actor2idx.get(actor)+1;
+	if(n){
+		const txt2=$gameTemp._pt_battleMembers_actor2idx.size+' ';
+		const w=this.textWidth(" -> "+txt2)>>1;
+		const w1=rect.width-w;
+		this.drawText(actor.name(), rect.x, rect.y, w1, this._align_name());
+		this.changeTextColor("rgba(234,234,234,0.75)");
+		this.drawText(" -> "+(n+' ').padStart(txt2.length,' '), rect.x+w1, rect.y-(this.textPadding()>>1), w, this._align_number());
+		this.resetTextColor();
+	}else this.drawText(actor.name(), rect.x, rect.y, rect.width, this._align_name());
 };
 $aaaa$.prototype.drawAllItems=function(){
 	for(let i=this._scrollIdx,x=0,xs=this.maxCols();x!==xs;++i,++x) this.drawItem(i);
@@ -249,18 +262,21 @@ $aaaa$.prototype.ensureCursorVisible=function(){
 	if(this._scrollIdx!==lastScrollIdx){
 		this.refresh();
 		//this.updateCursor();
-		if(this._planWindows){
-			/* // TODO: move windows to reduce the calculation
-			const newEnde=this._scrollIdx+this._maxCols;
-			if(lastScrollIdx<newEnde){ // TODO
-			}else if(this._scrollIdx<ende){ // TODO
-			}
-			*/
-			this._planWindows.forEach((p,i)=>{
-				p._actor=this._getActor(this._scrollIdx+i);
-				p.refresh();
-			});
+		this.refresh_plans();
+	}
+};
+$aaaa$.prototype.refresh_plans=function(){
+	if(this._planWindows){
+		/* // TODO: move windows to reduce the calculation
+		const newEnde=this._scrollIdx+this._maxCols;
+		if(lastScrollIdx<newEnde){ // TODO
+		}else if(this._scrollIdx<ende){ // TODO
 		}
+		*/
+		this._planWindows.forEach((p,i)=>{
+			p._actor=this._getActor(this._scrollIdx+i);
+			p.refresh();
+		});
 	}
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Window_BattlePlan_Actor
@@ -473,7 +489,7 @@ $aaaa$.prototype._setPlan=function(item,target){
 		this._actor.appendPlan(this._pidx,item,target);
 		const psy=pw._scrollY;
 		pw.select(++this._pidx);
-		if(psy===pw._scrollY){ for(let x=this._pidx,xs=pw.maxPageItems()+psy;x!==xs;++x){
+		if(psy===pw._scrollY){ for(let x=this._pidx,xs=~~(pw.maxPageItems()+psy/pw.itemHeight()+0.5);x!==xs;++x){
 			pw.clearItem(x);
 			pw.drawItem(x);
 		} }else pw.drawAllItems();
@@ -485,7 +501,7 @@ $aaaa$.prototype._setPlan=function(item,target){
 	}break;
 	case 'ins': {
 		this._actor.insertPlan(this._pidx,item,target);
-		for(let x=this._pidx,xs=pw.maxPageItems()+pw._scrollY;x!==xs;++x){
+		for(let x=this._pidx,xs=~~(pw.maxPageItems()+pw._scrollY/pw.itemHeight()+0.5);x!==xs;++x){
 			pw.clearItem(x);
 			pw.drawItem(x);
 		}

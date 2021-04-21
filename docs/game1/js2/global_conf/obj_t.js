@@ -2111,7 +2111,10 @@ $aaaa$.prototype.onItemOk=function(){
 	{
 		const item=iw.item();
 		iw._newUnEquip=this.actor().changeEquip(iw._slotId, item, iw._slotIdExt);
-		if(item && !iw._newUnEquip && iw._slotIdExt!==undefined) sw.select(sw._index+1);
+		if(item && !iw._newUnEquip && iw._slotIdExt!==undefined){
+			sw._setSlotIdTbl();
+			sw.select(sw._index+1);
+		}
 	}
 	//iw.deselect();
 	this._onItem_deSel();
@@ -4870,7 +4873,7 @@ $aaaa$.prototype.param=function(paramId){
 		tmp=this.paramMax(paramId);
 		if(value>tmp) value=tmp;
 	} }
-	return ~~(value+0.5);
+	return ~~(value+(value<0?-0.5:0.5));
 };
 $aaaa$.prototype.stateResistSet = function() {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
@@ -7028,7 +7031,7 @@ $dddd$=$aaaa$.prototype.onPlayerWalk=function f(){
 	this.members().forEach(f.forEach);
 };
 $dddd$.forEach=actor=>actor.onPlayerWalk();
-$aaaa$.prototype.swapOrder = function(index1, index2) {
+$aaaa$.prototype.swapOrder=function(index1,index2){
 	{
 		let arr=this._acs;
 		let temp = arr[index1]; arr[index1] = arr[index2]; arr[index2] = temp;
@@ -7044,6 +7047,9 @@ $aaaa$.prototype.swapOrder = function(index1, index2) {
 	}
 	$gameTemp._pt_battleMembers=false; this.battleMembers();
 	$gamePlayer.refresh();
+	// clear battle plan // I'm lazy
+	const btlPlan=SceneManager._scene&&SceneManager._scene._battlePlan;
+	if(btlPlan) btlPlan.refresh_plans();
 };
 $aaaa$.prototype.maxItems=function f(item){
 	return _global_conf["default maxItems"]||404;
@@ -7963,24 +7969,6 @@ this.refresh=none;
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
 	
 	let x=this._x,y=this._y; // will be used later
-	// correcting old-format saved files
-	if(0&&0) // not working on existing savefiles
-	{
-		delete this._y; delete this._x;
-		this.__x=x; this.__y=y;
-		
-		let cidx=this._characterIndex,cname=this._characterName;
-		delete this._characterIndex; delete this._characterName;
-		this._chrIdx=cidx; this._chrName=cname;
-		
-		let tid=this._tileId;
-		delete this._tileId;
-		this._tid=tid;
-		
-		let thru=this._through;
-		delete this._through;
-		this._thru=thru;
-	}
 	
 	// put coordTbl
 	if($gameMap.isValid(x,y)){
@@ -8025,17 +8013,11 @@ $aaaa$.prototype._rmFromCoordTbl=function(){
 };
 $aaaa$.prototype._rmFromCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._rmFromCoordTbl');
-	//if(debug.islog2()){
-	//	console.log('',this.x,this.y);
-	//	if($dataMap.coordTbl) console.log(deepcopy($dataMap.coordTbl));
-	//}
 	let mapd=$dataMap;
 	// x,y may be out of bound
-	//const x=$gameMap.roundX(this.x),y=$gameMap.roundY(this.y);
 	if(tbl){ if(!(tbl=tbl[this.xy2idx()])) return; }
 	else if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.xy2idx()])) return;
 	let idx=tbl.indexOf(this); // .coordTbl
-	//debug.log(idx);
 	if(idx===-1) return;
 	if((idx<<1)<tbl.length){
 		tbl.setnth(idx,tbl.front);
@@ -8060,11 +8042,6 @@ $aaaa$.prototype._addToCoordTbl=function(){
 $aaaa$.prototype._addToCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._addToCoordTbl');
 	if(this.refresh===none) return; // is constructing
-	//if(debug.islog2()){
-	//	console.log('',this.x,this.y);
-	//	if($dataMap.coordTbl) console.log(deepcopy($dataMap.coordTbl));
-	//}
-	//const x=$gameMap.roundX(this.x),y=$gameMap.roundY(this.y);
 	let mapd=$dataMap;
 	// x,y may be out of bound
 	if(tbl){ if(!(tbl=tbl[this.xy2idx()])) return; }
@@ -8314,8 +8291,6 @@ $dddd$=$aaaa$.prototype.start=function f(isFromPlayerCustom,strtMeta){ // fit $d
 	// isFromPlayerCustom: no condition checks (in this func.) if true
 	// * 'strtMeta' and 'this.strt' have chance to be edited if ''!isFromPlayerCustom'
 	//debug.log2('Game_Event.prototype.start');
-	//debug.log2('',this._eventId);
-	//debug.log2('',this._trigger);
 	{ let page=this.page(); if(!page||page.list.length<2) return; } // empty evt should not start // list.back==={code:0,...}
 	if($gameMap.zaWarudo()&&!this.preventZaWarudo()){
 		$gameMap.zaWarudo_waitToStart(this._eventId);
@@ -8938,7 +8913,7 @@ $aaaa$.prototype.apply=function(target){
 	// if(result.isHit())
 	{
 		const item=this.item();
-		if (item.damage.type > 0) {
+		if(item.damage.type>0){
 			result.critical = (Math.random() < this.itemCri(target));
 			let value = this.makeDamageValue(target, result.critical);
 			this.executeDamage(target, value);
@@ -8949,7 +8924,7 @@ $aaaa$.prototype.apply=function(target){
 		this.applyItemUserEffect(target);
 	}
 };
-$aaaa$.prototype.makeDamageValue=function(target,critical){
+$aaaa$.prototype.makeDamageValue=function(target,isCri){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
 	let value = baseValue * this.calcElementRate(target) , decDmg=0;
 	switch(item.hitType){
@@ -8968,7 +8943,7 @@ $aaaa$.prototype.makeDamageValue=function(target,critical){
 	if(baseValue < 0){
 		value *= target.rec;
 	}
-	if (critical) {
+	if(isCri){
 		value = this.applyCritical(value);
 	}
 	value = this.applyVariance(value, item.damage.variance);
@@ -8987,18 +8962,17 @@ $dddd$=$aaaa$.prototype.evalDamageFormula=function f(target){
 			f.tbl[0][3]="return "+(dmg.formula_txt=dmg.formula);
 			dmg.formula=Function.apply(null,f.tbl[0]);
 		}
-		let value = dmg.formula.call(f.tbl[1],undefined,this.subject(),target);
+		let value = dmg.formula.call(none,undefined,this.subject(),target);
 		value*=value>0;
-		if(f.tbl[2].has(dmg.type)) value=-value;
+		if(f.tbl[1].has(dmg.type)) value=-value;
 		return value||0;
 	}catch(e){ return 0; } // only handling function creation failure
 };
 $dddd$.tbl=[
 	['window','a','b',], // def func args
-	{}, // this
 	new Set([3,4,]), // recover type
 ];
-$aaaa$.prototype.elementsMaxRate = function(target, map_ele) {
+$aaaa$.prototype.elementsMaxRate=function(target,map_ele){
 	if(map_ele.size){
 		let rtv=0;
 		map_ele.forEach((v,k)=>{
@@ -9009,7 +8983,8 @@ $aaaa$.prototype.elementsMaxRate = function(target, map_ele) {
 	}else return 1;
 };
 $aaaa$.prototype.applyGuard=function(damage,target){
-	return damage / (damage > 0 && target.isGuard() ? Math.max(2*target.grd,1) : 1);
+	const r=damage>0 && target.isGuard() && 2*target.grd;
+	return r>1?damage/r:damage;
 };
 $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(this.isDrain() && target.hp<value) value=target.hp;
@@ -9118,10 +9093,9 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 	}
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
 	if(meta&&meta.func) objs._getObj.call(none,meta.func.replace(/\(|\)/g,''))(this);
-	//if(meta&&meta.code) eval(meta.code);
 	if(meta&&meta.code) objs._doFlow.call(this,meta.code);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.itemEffectAddAttackState = function(target, effect) {
+$aaaa$.prototype.itemEffectAddAttackState=function(target, effect){
 	this.subject().attackStates().forEach((_,stateId)=>{
 		let chance = effect.value1;
 		chance *= target.stateRate(stateId);
@@ -9480,12 +9454,8 @@ $dddd$=$aaaa$.prototype.displayLevelUp=function f(newSkills){
 	}
 };
 $dddd$.forEach=[
-	id=>{
-		$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name));
-	},
-	id=>{
-		$gameMessage.popup(TextManager.obtainSkill.format($dataSkills[id].name),true);
-	},
+	id=>$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name)),
+	id=>$gameMessage.popup(TextManager.obtainSkill.format($dataSkills[id].name),true),
 ];
 $aaaa$.prototype.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
 $aaaa$.prototype.isLearnedSkill=function(skillId){
@@ -9651,7 +9621,7 @@ $aaaa$.prototype._equips_slotChanged=function(lastSlots){
 	} }
 	this._overall_delCache(); // clear cache for calling equipSlots
 };
-$aaaa$.prototype.equips=function f(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
+$aaaa$.prototype.equips=function(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
 	return this._equips_getCache()||this._equips_updateCache();
 };
 $aaaa$.prototype.weapons=function(n){
@@ -9668,7 +9638,7 @@ $aaaa$.prototype.weapons=function(n){
 		return rtv;
 	}else return ref.w;
 };
-$aaaa$.prototype.armors = function(){
+$aaaa$.prototype.armors=function(){
 	const ref=this.equips();
 	if(!ref.r){
 		const slots=this.equipSlots(),rtv=ref.r=[];
@@ -9683,7 +9653,7 @@ $aaaa$.prototype.armors = function(){
 	}else return ref.r;
 };
 $aaaa$.prototype.isEquipChangeOk=function(slotId,slotIdExt) {
-	const s=slotIdExt>=0?this.equipSlots()[slotId][slotIdExt]:this.equipSlots()[slotId];
+	const s=this.equipSlots()[slotId];
 	return (!this.isEquipTypeLocked(s) &&
 		!this.isEquipTypeSealed(s)
 	);
@@ -12299,12 +12269,6 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	this._data.a=this._actor;
 	this._data.s=this._slotId;
 };
-$aaaa$.prototype.setActor=function(actor){
-	if(this._actor===actor) return;
-	this._actor = actor;
-	this.refresh();
-	this.resetScroll();
-};
 $aaaa$.prototype.setSlotId=function(idx,ext){
 	this._slotIdExt = ext;
 	if(this._slotId !== idx){
@@ -12320,9 +12284,10 @@ $aaaa$.prototype.updateStatus=function(noRefresh){
 		const item=this.cursorShown()?this.item():undefined;
 		if(sw._itemNew!==item){ // prevent me writing some ugly that drops FPS
 			sw._itemNew=item;
-			//by slotWindow
-			//const eq=this._actor.equips()[this._slotId];
-			//sw._itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
+			if(item!==undefined){
+				const eq=this._actor.equips()[this._slotId];
+				sw._itemOld=eq&&eq.constructor===Array?eq[this._slotIdExt]:eq;
+			}// else by slotWindow
 			if(!noRefresh) sw.refresh();
 			return true;
 		}

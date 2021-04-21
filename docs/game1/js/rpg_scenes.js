@@ -1353,10 +1353,7 @@ Scene_Equip.prototype.refreshActor = function() {
     this._itemWindow.setActor(actor);
 };
 
-Scene_Equip.prototype.commandEquip = function() {
-    this._slotWindow.activate();
-    this._slotWindow.select(0);
-};
+Scene_Equip.prototype.commandEquip;
 
 Scene_Equip.prototype.commandOptimize = function() {
     SoundManager.playEquip();
@@ -1374,22 +1371,10 @@ Scene_Equip.prototype.commandClear = function() {
     this._commandWindow.activate();
 };
 
-Scene_Equip.prototype.onSlotOk = function() {
-    this._itemWindow.activate();
-    this._itemWindow.select(0);
-};
-
-Scene_Equip.prototype.onSlotCancel = function() {
-    this._slotWindow.deselect();
-    this._commandWindow.activate();
-};
-
+Scene_Equip.prototype.onSlotOk;
+Scene_Equip.prototype.onSlotCancel;
 Scene_Equip.prototype.onItemOk;
-
-Scene_Equip.prototype.onItemCancel = function() {
-    this._slotWindow.activate();
-    this._itemWindow.deselect();
-};
+Scene_Equip.prototype.onItemCancel;
 
 Scene_Equip.prototype.onActorChange = function() {
     this.refreshActor();
