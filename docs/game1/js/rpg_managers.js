@@ -410,9 +410,8 @@ ConfigManager.save = function() {
     StorageManager.save(-1, JSON.stringify(this.makeData()));
 };
 
-ConfigManager.readFlag = function(config, name) {
-    return !!config[name];
-};
+ConfigManager.readFlag;
+ConfigManager.readVolume;
 
 //-----------------------------------------------------------------------------
 // StorageManager
