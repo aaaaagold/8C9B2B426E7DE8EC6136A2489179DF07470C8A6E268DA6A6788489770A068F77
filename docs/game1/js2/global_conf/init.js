@@ -74,7 +74,6 @@ _global_conf["jurl"] = (url, method, header, data, resType, callback, callback_a
 		//if(callback&&callback.constructor===Function) ; // wtf
 		if(typeof (callback)==="function"){
 			if(this.readyState===4){
-				console.log(callback,callback.constructor,callback.constructor===Function);
 				let s=this.status.toString();
 				if (s.length===3 && s.slice(0, 1)==='2'){
 					callback(this.responseText);
@@ -1653,13 +1652,24 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			h7 = (h7 + h)|0;
 		}
 		let rtvtmp=[h0,h1,h2,h3,h4,h5,h6,h7];
-		let rtv="";
+		let rtv=[];
 		if(encode){
-			for(let x=0;x!==rtvtmp.length;++x){
+			switch(encode){
+			case 'arr':{ for(let x=0;x!==rtvtmp.length;++x){
+				for(let h=rtvtmp[x],sh=32;sh;){
+					sh-=8;
+					rtv.push((h>>>sh)&0xFF);
+				}
+			} }break;
+			case 'words': // big endian
+				rtv=rtvtmp;
+			break;
+			default:{ for(let x=0;x!==rtvtmp.length;++x){
 				for(let h=rtvtmp[x],sh=32;sh;){
 					sh-=8;
 					rtv+=String.fromCharCode((h>>>sh)&0xFF);
 				}
+			} }break;
 			}
 		}else{
 			rtv+="0x";

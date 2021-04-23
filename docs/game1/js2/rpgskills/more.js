@@ -21,7 +21,7 @@ list.newRoadblock=action=>{
 };
 
 const newMyself_argv=[0];
-list.newMyself_actor=(action,leaveAtBattleEnd)=>{
+list.newMyself_actor=(action,leaveAtBattleEnd,equFixed)=>{
 	newMyself_argv.length=1; newMyself_argv[0]=action._subjectActorId;
 	const rtv=rpgevts.list.addClone(false,newMyself_argv);
 	if(rtv){
@@ -29,9 +29,8 @@ list.newMyself_actor=(action,leaveAtBattleEnd)=>{
 		rtv._states=subject._states.slice(0);
 		rtv._states_delCache();
 		rtv._overall_delCache();
-		if(rtv._meta.leaveAtBattleEnd=leaveAtBattleEnd&&1||0){
-			rtv.learnSkill(56);
-		}
+		if(equFixed) rtv.learnSkill(56);
+		rtv._meta.leaveAtBattleEnd=leaveAtBattleEnd&&1||0;
 		rtv._meta.isClone=1;
 		rtv._exp=deepcopy(subject._exp);
 		$gameTemp.lvUpConfigs_pushAndMute();
@@ -49,5 +48,6 @@ list.newMyself_enemy=(action,leaveAtBattleEnd)=>{
 };
 list.newMyself=(action,leaveAtBattleEnd)=>action._subjectActorId.toId()>0?list.newMyself_actor(action):list.newMyself_enemy(action);
 list.newMyself_battle=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true):list.newMyself_enemy(action,true);
+list.newMyself_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,undefined,true):list.newMyself_enemy(action,undefined,true);
 
 })();

@@ -1071,7 +1071,6 @@ Window_Command.prototype.isOkEnabled = function() {
 
 Window_Command.prototype.callOkHandler = function() {
     var symbol = this.currentSymbol();
-	debug.log('Window_Command.prototype.callOkHandler',this,symbol);
     if (this.isHandled(symbol)) {
         this.callHandler(symbol);
     } else if (this.isHandled('ok')) {

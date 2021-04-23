@@ -553,3 +553,6 @@ $dddd$._createAllParts_cursor = function(){
 };
 
 $rrrr$=$dddd$=$aaaa$=undef;
+
+//const firebasejs_base='https://www.gstatic.com/firebasejs/8.4.1/';
+const firebasejs_base='firebase/8.4.2/';

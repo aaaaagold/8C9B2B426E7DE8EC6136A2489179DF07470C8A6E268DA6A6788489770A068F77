@@ -1200,10 +1200,6 @@ Game_Action.prototype.isForAll = function() {
     return this.checkItemScope([2, 8, 10]);
 };
 
-Game_Action.prototype.needsSelection = function() {
-    return this.checkItemScope([1, 7, 9]);
-};
-
 Game_Action.prototype.numTargets = function() {
     return this.isForRandom() ? this.item().scope - 2 : 0;
 };

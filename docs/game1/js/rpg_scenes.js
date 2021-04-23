@@ -1082,7 +1082,6 @@ Scene_ItemBase.prototype.isItemEffectsValid = function() {
 };
 
 Scene_ItemBase.prototype.applyItem = function() {
-	debug.log('Scene_ItemBase.prototype.applyItem');
     var action = new Game_Action(this.user());
     action.setItemObject(this.item());
     this.itemTargetActors().forEach(function(target) {
@@ -1243,16 +1242,11 @@ Scene_Skill.prototype.user = function() {
 };
 
 Scene_Skill.prototype.commandSkill = function() {
-	debug.log('Scene_Skill.prototype.commandSkill');
-	debug.log(this._actor._actorId);
-	if(debug.isdebug()) window['????']=this;
     this._itemWindow.activate();
     this._itemWindow.selectLast();
 };
 
 Scene_Skill.prototype.onItemOk = function() {
-	debug.log('Scene_Skill.prototype.onItemOk');
-	if(debug.isdebug()) window['????']=this;
     this.actor().setLastMenuSkill(this.item());
     this.determineItem();
 };
@@ -1346,13 +1340,7 @@ Scene_Equip.prototype.createItemWindow = function() {
     this.addWindow(this._itemWindow);
 };
 
-Scene_Equip.prototype.refreshActor = function() {
-    var actor = this.actor();
-    this._statusWindow.setActor(actor);
-    this._slotWindow.setActor(actor);
-    this._itemWindow.setActor(actor);
-};
-
+Scene_Equip.prototype.refreshActor;
 Scene_Equip.prototype.commandEquip;
 
 Scene_Equip.prototype.commandOptimize = function() {
@@ -2307,10 +2295,7 @@ Scene_Battle.prototype.commandItem = function() {
     this._itemWindow.activate();
 };
 
-Scene_Battle.prototype.selectNextCommand = function() {
-    BattleManager.selectNextCommand();
-    this.changeInputWindow();
-};
+Scene_Battle.prototype.selectNextCommand;
 
 Scene_Battle.prototype.selectPreviousCommand = function() {
     BattleManager.selectPreviousCommand();
@@ -2398,19 +2383,7 @@ Scene_Battle.prototype.onItemCancel = function() {
     this._actorCommandWindow.activate();
 };
 
-Scene_Battle.prototype.onSelectAction = function() {
-    var action = BattleManager.inputtingAction();
-    this._skillWindow.hide();
-    this._itemWindow.hide();
-    if (!action.needsSelection()) {
-        this.selectNextCommand();
-    } else if (action.isForOpponent()) {
-        this.selectEnemySelection();
-    } else {
-        this.selectActorSelection();
-    }
-};
-
+Scene_Battle.prototype.onSelectAction;
 Scene_Battle.prototype.endCommandSelection;
 
 //-----------------------------------------------------------------------------

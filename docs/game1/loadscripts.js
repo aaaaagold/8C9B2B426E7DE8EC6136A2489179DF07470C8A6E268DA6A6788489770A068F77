@@ -1,21 +1,21 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.........." ;
+const ver = "4.2.6.8.9.6.-" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256 && sha256(location.hash)==="0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
-//jss=undefined; //testing: non-local
-//isDev=false; //testing: non-dev
+//jss=undefined;//test:non-local
+//isDev=false;//test:non-dev
 (()=>{
 let w=window,d=document;
 const ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
 let isDev_=isDev,objs={};
-//isDev_=false; //testing: hide vars
-if(window.sha256 && sha256(location.hash)==="0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
-if(isDev) if(isDev_) window.objs=objs; else window._objs=objs;
-if(!jss) jss=[
+//isDev_=false;//test:hideVars
+if(window.sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
+if(isDev)if(isDev_)window.objs=objs;else window._objs=objs;
+if(!jss)jss=[
 	"test.js",
-	"js/plugins.js",
+//plg
 	":init",
 	":lib_h",
 	":obj_h",
@@ -190,7 +190,7 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 			}
 		};
 		a.o=()=>{ if(--z===0) O_O(); };
-		PluginManager.setup($plugins);
+		(typeof $plugins!=='undefined')&&PluginManager.setup($plugins);
 		if(z===0) O_O(); // no plugins or loading is very fast
 		
 		return;
@@ -295,12 +295,13 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	return rtv;
 };
 onloadProc.isBody=src=>true
+	&& (objs.isDev || src[0]===":")
 	&& src.slice(0,8)!=="js/libs/"
 	&& src!=="js/plugins.js"
 	&& src!=="js/rpg_core.js"
-	&& src.indexOf("init")===-1
 	&& src.slice(-5)!=="_h.js"
 	&& src.slice(-2)!=="_h"
+	&& src.indexOf("init")===-1
 	&& true;
 onloadProc.addScriptFromGas=wait=>{
 	let scr=ce('script'),src=wait.src,plain=wait.plain;

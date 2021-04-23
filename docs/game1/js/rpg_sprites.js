@@ -351,9 +351,7 @@ Sprite_Battler.prototype.initMembers = function() {
     this._selectionEffectCount = 0;
 };
 
-Sprite_Battler.prototype.setBattler = function(battler) {
-    this._battler = battler;
-};
+Sprite_Battler.prototype.setBattler;
 
 Sprite_Battler.prototype.setHome = function(x, y) {
     this._homeX = x;
@@ -447,20 +445,7 @@ Sprite_Battler.prototype.setupAnimation = function() {
     }
 };
 
-Sprite_Battler.prototype.setupDamagePopup = function() {
-    if (this._battler.isDamagePopupRequested()) {
-        if (this._battler.isSpriteVisible()) {
-            var sprite = new Sprite_Damage();
-            sprite.x = this.x + this.damageOffsetX();
-            sprite.y = this.y + this.damageOffsetY();
-            sprite.setup(this._battler);
-            this._damages.push(sprite);
-            this.parent.addChild(sprite);
-        }
-        this._battler.clearDamagePopup();
-        this._battler.clearResult();
-    }
-};
+Sprite_Battler.prototype.setupDamagePopup;
 
 Sprite_Battler.prototype.damageOffsetX = function() {
     return 0;
@@ -1102,33 +1087,9 @@ Sprite_Animation.prototype.createScreenFlashSprite = function() {
     this.addChild(this._screenFlashSprite);
 };
 
-Sprite_Animation.prototype.updateFrame = function() {
-    if (this._duration > 0) {
-        var frameIndex = this.currentFrameIndex();
-        this.updateAllCellSprites(this._animation.frames[frameIndex]);
-        this._animation.timings.forEach(function(timing) {
-            if (timing.frame === frameIndex) {
-                this.processTimingData(timing);
-            }
-        }, this);
-    }
-};
-
-Sprite_Animation.prototype.currentFrameIndex = function() {
-    return (this._animation.frames.length -
-            Math.floor((this._duration + this._rate - 1) / this._rate));
-};
-
-Sprite_Animation.prototype.updateAllCellSprites = function(frame) {
-    for (var i = 0; i < this._cellSprites.length; i++) {
-        var sprite = this._cellSprites[i];
-        if (i < frame.length) {
-            this.updateCellSprite(sprite, frame[i]);
-        } else {
-            sprite.visible = false;
-        }
-    }
-};
+Sprite_Animation.prototype.updateFrame;
+Sprite_Animation.prototype.currentFrameIndex;
+Sprite_Animation.prototype.updateAllCellSprites;
 
 Sprite_Animation.prototype.updateCellSprite = function(sprite, cell) {
     var pattern = cell[0];

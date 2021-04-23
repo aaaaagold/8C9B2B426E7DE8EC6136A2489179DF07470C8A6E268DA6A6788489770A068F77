@@ -286,6 +286,7 @@ $dddd$=$aaaa$.evtd_addRef=function f(evtds){
 		}else{
 			const ref=$dataActors[tmp]; if(!ref) continue;
 			for(let p=0,pgs=evtd.pages,sz=pgs.length;p!==sz;++p) f.refActor_chr(ref,pgs[p].image);
+			if(dmeta.name===undefined) dmeta.name=ref.name;
 			const smeta=ref.meta;
 			for(let i in smeta) dmeta[i]=smeta[i];
 		}

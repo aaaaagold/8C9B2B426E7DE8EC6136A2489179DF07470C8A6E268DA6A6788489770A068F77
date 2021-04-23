@@ -2,6 +2,7 @@
 // after rpg_*
 
 if(!window.objs) window.objs={};
+if(!objs.confs) objs.confs={};
 
 // core
 
@@ -496,6 +497,10 @@ $dddd$=$aaaa$.prototype.initMembers=function f(){
 	f.ori.call(this);
 	this._damages=new Queue();
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.setBattler=function(btlr){
+	if(this._battler) this._battler.removeSprite(this);
+	if(this._battler=btlr) btlr.setSprite(this);
+};
 $dddd$=$aaaa$.prototype.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
@@ -779,6 +784,8 @@ $rrrr$=$aaaa$.prototype.setup;
 $dddd$=$aaaa$.prototype.setup=function f(){
 	// f(target, animation, mirror, delay)
 	f.ori.apply(this,arguments);
+	// used in 'updateAllCellSprites'
+	this._lastCellLen=this._cellSprites.length;
 	// set z lower if not 'screen' (default z=8)
 	let ani=this._animation,t=arguments[0]; // pos: 0:head 1:center 2:feet 3:screen
 	if(ani&&ani.position!==3 && t){
@@ -795,7 +802,7 @@ $dddd$=$aaaa$.prototype.remove=function f(){
 		this._target.show();
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setupDuration=function() {
+$aaaa$.prototype.setupDuration=function(){
 	this._durFloor=this._animation.frames.length * this._rate;
 	this._duration=this._durFloor+1;
 };
@@ -833,6 +840,27 @@ $aaaa$.prototype.updatePosition = function() {
 		}
 		this.x=x; this.y=y;
 	}
+};
+$dddd$=$aaaa$.prototype.updateFrame=function f(){
+	if(this._duration > 0){
+		let frameIndex = this.currentFrameIndex();
+		this.updateAllCellSprites(this._animation.frames[frameIndex]);
+		const arr=this._animation.timings.byFrmIdx.get(frameIndex);
+		if(arr) arr.forEach(f.forEach,this);
+	}
+};
+$dddd$.forEach=function(t){ this.processTimingData(t); };
+$aaaa$.prototype.currentFrameIndex=function(){
+	return this._animation.frames.length - ~~((this._duration + this._rate - 1) / this._rate);
+};
+$aaaa$.prototype.updateAllCellSprites=function(frame){ // TODO: create cells when needed
+	const arr=this._cellSprites;
+	{
+		let xs=frame.length; if(xs>arr.length) xs=arr.length;
+		for(let x=0;x!==xs;++x) this.updateCellSprite(arr[x], frame[x]);
+	}
+	if(this._lastCellLen > frame.length) for(let x=frame.length;x!==this._lastCellLen;++x) arr[x].visible=false;
+	this._lastCellLen = frame.length;
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -1401,6 +1429,7 @@ $dddd$=$aaaa$.makeEscapeRatio=function f(){
 $rrrr$=$aaaa$. update ;
 $dddd$=$aaaa$. update =function f(){ // prepare
 	//console.log(' update ',this._actorIndex);
+	//return f.ori.call(this);
 	do{
 		this._actionNoEffect=false;
 		f.ori.call(this);
@@ -1465,10 +1494,11 @@ $dddd$=$aaaa$. updateTurnEnd =function f(){ // prepare
 $rrrr$=$aaaa$.makeActionOrders;
 $dddd$=$aaaa$.makeActionOrders=function f(){
 	f.ori.call(this);
-	this._actionBattlers_obj2id=new Map(this._actionBattlers.map((e,i)=>[e,i]));
+	this._actionBattlers_obj2id=new Map(this._actionBattlers.map(f.forEach));
 	this._actionBattlers=new Queue(this._actionBattlers);
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.updateAction=function f(){
+$dddd$.forEach=(e,i)=>[e,i];
+$dddd$=$aaaa$.updateAction=function f(instPopDmg){
 	const target = this._targets.pop(); // reverse order
 	if(target){
 		let tmp;
@@ -1482,9 +1512,17 @@ $dddd$=$aaaa$.updateAction=function f(){
 		const st=this._statusWindow,lg=this._logWindow;
 		st.noRefresh=true;
 		lg.push('pushBaseLine');
-		if(this._subject.stp===0) this._action.stpReduced=true;
+		if(this._subject.stp===0){
+			if(!this._action.meta) this._action.meta={};
+			this._action.meta.stpReduced=true;
+		}
 		const q=tmp; if(q) q.clear();
 		this.invokeAction(this._subject,target,q);
+		if(instPopDmg && SceneManager._scene._chr2sp){
+			const sp=SceneManager._scene._chr2sp.get(target);
+			target.startDamagePopup();
+			sp.setupDamagePopup();
+		}
 		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
 			lg._methods.pop_back();
 			while(this._targets.back===target){
@@ -1503,9 +1541,12 @@ $dddd$=$aaaa$.updateAction=function f(){
 		}
 		st.noRefresh=false;
 		st.refresh();
+		// inst becomes go through 1 turn
+		//if(this._actionNoEffect) return this.updateAction(instPopDmg);
 	}else{
-		if(this._subject.stp!==undefined && !this._action.stpReduced && !this._action.isSpaceout(this._subject)){
-			this._action.stpReduced=true;
+		if(!this._action.meta) this._action.meta={};
+		if(this._subject.stp!==undefined && !this._action.meta.stpReduced && !this._action.isSpaceout(this._subject)){
+			this._action.meta.stpReduced=true;
 			this._subject.gainStp(-1);
 		}
 		this.endAction();
@@ -1705,6 +1746,12 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		for(let i=0,arr=x.effects;i!==arr.length;++i) if(Game_Action.EFFECT_ADD_STATE===arr[i].code) arr[i].isSwitch=s;
 	});
 	
+	// instant skill ( add name header )
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
+		if(!x.meta.inst) return;
+		x.name=$dataCustom.header.instantSkill+' '+x.name;
+	});
+	
 	// stomach
 	$dataItems.slice($dataItems.arrangeStart||1).forEach(x=>{ if(!x) return;
 		const meta=x.meta;
@@ -1811,6 +1858,17 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		const arr=x.learnings,r=new Map();
 		arr.sort((a,b)=>a.level-b.level||$dataSkills[a.skillId].ord-$dataSkills[b.skillId].ord).forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
 		arr.byLv=r;
+	});
+	
+	// arrange animations.timing
+	$dataAnimations.slice($dataAnimations.arrangeStart||1).forEach(x=>{ if(!x) return;
+		const ts=x.timings; if(!ts) return;
+		const m=ts.byFrmIdx=new Map();
+		ts.forEach(t=>{
+			const tmp=m.get(t.frame);
+			if(tmp) tmp.push(t);
+			else m.set(t.frame,[t]);
+		});
 	});
 	
 	// make traits map
@@ -2195,6 +2253,7 @@ $aaaa$.prototype._edt=function f(){
 		$dataSystem. gameTitle  = "分身乏術";
 		$dataSystem. startMapId = 276 ;
 		$dataSystem.currencyUnit="C幣";
+		objs.confs.useStp=true;
 	}break;
 	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
 		$dataSystem. title1Name = "Fountain";
@@ -2238,6 +2297,7 @@ $aaaa$.prototype._edt=function f(){
 		$dataCustom.apps="便利功能";
 		$dataSystem.currencyUnit="R幣";
 		objs.confs.noRestoreHpMp=true;
+		objs.confs.useStp=true;
 	}break;
 	case "0x9BBA5C53A0545E0C80184B946153C9F58387E3BD1D4EE35740F29AC2E718B019":{
 		$dataSystem. title1Name = "tester";
@@ -3089,6 +3149,7 @@ $aaaa$.prototype.commandUsePlan=function(){
 	}
 };
 $aaaa$.prototype.commandViewLog=function(){
+	this.clearInstLog();
 	const lw=this._logWindow;
 	if(lw._scene!==this){
 		lw._scene=this;
@@ -3114,6 +3175,26 @@ $aaaa$.prototype.commandViewLog=function(){
 $aaaa$.prototype.commandSpaceout=function(){
 	BattleManager.inputtingAction().setSpaceout();
 	this.selectNextCommand();
+};
+$aaaa$.prototype.selectNextCommand=function(){
+	{ const act=BattleManager.inputtingAction();
+	if(act){ const item=act.item(); if(item&&item.meta.inst){
+		const bm=BattleManager;
+		bm._action=act;
+		const s=bm._subject=act.subject() , t=bm._targets=act.makeTargets();
+		s.useItem(item);
+		act.applyGlobal();
+		this.refreshStatus();
+		this._logWindow.startAction(s, act, t);
+		while(t.length) bm.updateAction(true);
+		this.changeInputWindow();
+		act.meta={};
+		bm._subject=null;
+		bm._targets.length=0;
+		return this._instUsed=true;
+	} } }
+	BattleManager.selectNextCommand();
+	this.changeInputWindow();
 };
 $aaaa$.prototype.onEnemyOk=function(){
 	switch(this._allSpecific){
@@ -3153,12 +3234,27 @@ $dddd$=$aaaa$.prototype.onEnemyCancel=function f(){
 	}break;
 	}
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.onSelectAction=function(){
+	this.clearInstLog();
+	const action = BattleManager.inputtingAction();
+	this._skillWindow.hide();
+	this._itemWindow.hide();
+	if(!action.needsSelection()) this.selectNextCommand();
+	else if(action.isForOpponent()) this.selectEnemySelection();
+	else this.selectActorSelection();
+};
 $aaaa$.prototype.endCommandSelection=function(){
 	this._partyCommandWindow.close();
 	this._actorCommandWindow.close();
 	if(this._statusWindow._index!==-1 && !BattleManager._action){
 		this._statusWindow.select(0);
 		this._statusWindow.deselect();
+	}
+};
+$aaaa$.prototype.clearInstLog=function(){
+	if(this._instUsed){
+		this._instUsed=undefined;
+		BattleManager._logWindow.popBaseLine();
 	}
 };
 $rrrr$=$dddd$=$aaaa$=undef;
@@ -4560,11 +4656,18 @@ $dddd$=$aaaa$.prototype.updateStateTurns=function f(){
 $dddd$.forEach=function(stateId) {
 	this[stateId]>0 && --this[stateId];
 };
-$aaaa$.prototype.clearStates=function(){
+$dddd$=$aaaa$.prototype.clearStates=function f(){
 	this._states_delCache();
 	this._stateTurns={};
-	if(this._states) this._states.length=0;
-	else this._states=[];
+	if(this._states){
+		let newidx=0;
+		for(let x=0,arr=this._states;x!==arr.length;++x){
+			if($dataStates[arr[x]].meta.persist){
+				arr[newidx++]=arr[x];
+			}
+		}
+		this._states.length=newidx;
+	}else this._states=[];
 };
 $aaaa$.prototype.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
@@ -5129,11 +5232,21 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._animations=new Queue();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.initMembers;
-$dddd$=$aaaa$.prototype.initMembers=function f(){
+$dddd$=$aaaa$.prototype.initMembers=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
 	f.ori.call(this);
 	this._actions=new Queue(2);
 	this._weapon2ImageId = 0;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.setSprite=function(sprite){
+	let m=SceneManager._scene._chr2sp;
+	if(!m) m=SceneManager._scene._chr2sp=new Map();
+	m.set(this,sprite);
+};
+$aaaa$.prototype.removeSprite=function(sprite){
+	let m=SceneManager._scene._chr2sp;
+	if(!m) m=SceneManager._scene._chr2sp=new Map();
+	m.delete(this);
+};
 $aaaa$.prototype.clearAnimations=function(){
 	this._animations.clear();
 };
@@ -8802,6 +8915,11 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Game_Action;
 $aaaa$.currMaxEnum=50;
 $aaaa$.addEnum=objs._addEnum;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(subject,forcing){
+	f.ori.call(this,subject,forcing);
+	this.meta={};
+}; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.prototype.toMotion=function f(){
 	const item=this._item;
 	switch(item._dataClass){
@@ -8850,12 +8968,16 @@ $aaaa$.prototype.setSkill=function(skillId){
 		}
 	}
 	this._item.setObject($dataSkills[skillId]);
-
+	
 	if(subject && this.isMagicSkill()){
 		const n=BattleManager._isChanting.get(subject)|0;
 		BattleManager._isChanting.set(subject,n+1);
 	}
 };
+$dddd$=$aaaa$.prototype.needsSelection=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([1,7,9]);
 $aaaa$.prototype.isGuard=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).guardSkillId()];
 };
@@ -8873,6 +8995,15 @@ $aaaa$.prototype.speed=function(){
 	}
 	return speed;
 };
+$dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
+	// and add repeat times
+	if(this.isAttack()) return true;
+	else{
+		const item=this.item();
+		return item&&item.effects.some(f.forEach);
+	}
+};
+$dddd$.forEach=e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0; // state 0 === attack state
 $aaaa$.prototype.numRepeats=function f(){
 	const item=this.item(),subject=this.subject();
 	let repeats=item.repeats;
@@ -8885,15 +9016,6 @@ $aaaa$.prototype.numRepeats=function f(){
 	if(item.itemType!=='i') repeats*=subject.attackTimesMul();
 	return Math.floor(repeats);
 };
-$dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
-	// and add repeat times
-	if(this.isAttack()) return true;
-	else{
-		const item=this.item();
-		return item&&item.effects.some(f.forEach);
-	}
-};
-$dddd$.forEach=e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0; // state 0 === attack state
 $aaaa$.prototype.repeatTargets=function(targets){ // reverse order
 	const repeatedTargets = [];
 	let j=this.numRepeats(); if(j>1e15){
@@ -9044,7 +9166,7 @@ $aaaa$.prototype.executeHpDamage = function(target, value) {
 	target.noRefresh=true;
 	const mpsubst=value>0 && target.MPSubstituteRate();
 	if(mpsubst){
-		const mpDmg=~~(value*mpsubst);
+		let mpDmg=~~(value*mpsubst); if(!(mpDmg<=target.mp)) mpDmg=target.mp;
 		const hpDmg=value-mpDmg;
 		if(mpDmg) this.executeMpDamage(target,mpDmg);
 		target.gainHp(-hpDmg);
@@ -9115,8 +9237,9 @@ $aaaa$.prototype.itemEffectAddNormalState=function(target, effect){
 	}
 	if(Math.random() < chance){
 		if(effect.isSwitch){
-			if(!this._switchApplied){
-				this._switchApplied=true;
+			if(!this.meta) this.meta={};
+			if(!this.meta._switchApplied){
+				this.meta._switchApplied=true;
 				if( target.isStateAffected(effect.dataId) ) target.removeState(effect.dataId);
 				else target.addState(effect.dataId);
 			}
@@ -9405,7 +9528,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(actorId){
 	f.ori.call(this,actorId);
 	this._plan=[];
 	this._meta={};
-	if(!this.getData().meta.noHunger&&DataManager.getTitle()==="如果我有一座新冰箱"){
+	if(!this.getData().meta.noHunger&&objs.confs.useStp){
 		this._stp=500;
 	}
 }; $dddd$.ori=$rrrr$;
@@ -9420,15 +9543,17 @@ $aaaa$.prototype.faceName = function() { // seems only 'Game_Actor' has method '
 	const ce=this._getColorEdt();
 	return this._faceName+(ce?"?color="+ce:"");
 };
-$aaaa$.prototype.expForLevel=function(level){
-	const c=this.currentClass();
+$aaaa$.prototype.expForLevel=function(level,class_){
+	const c=class_||this.currentClass();
+	if(!c.expTbl) c.expTbl=[];
+	if(c.expTbl[level]!==undefined) return c.expTbl[level];
 	const basis=c.expParams[0];
 	const extra=c.expParams[1];
 	const acc_a=c.expParams[2];
 	const acc_b=c.expParams[3];
 	
 	const lvlv=level*level , lv_1=level-1;
-	return ~~(
+	return c.expTbl[level]=~~(
 		basis*(Math.pow(lv_1, 0.9+acc_a/250))*(lvlv+level)
 		/(lvlv/50/acc_b+6)
 		+lv_1*extra
@@ -9472,6 +9597,15 @@ $dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(objs.confs.noRestoreHpMp,true);
 	while(this.currentExp()<this.currentLevelExp()) this.levelDown();
 	if(this._level !== lastLevel){ if(this._level > lastLevel){
+		if(0&&0)if(this.constructor===Game_Actor && SceneManager.isMap()){
+			const id=this.actorId();
+			if($gameTemp._pt_allMembers_idSet.has(id)){
+				const idx=$gameParty._acs.indexOf(id);
+				const c=(idx>0)?$gamePlayer._followers._data[idx-1]:$gamePlayer;
+				if(c) c.requestAnimation(51);
+			}
+			
+		} // slow
 		const tmp=this._skills_getCache();
 		const m=tmp&&tmp.pendLearns;
 		if(m && m.length){
@@ -12294,18 +12428,28 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	if(this._data){
 		const arr=this._data;
 		if( arr.a===this._actor && arr.s===this._slotId ){
-			const newItem=this._newUnEquip; this._newUnEquip=null;
+			const oldItem=this.item(),newItem=this._newUnEquip; this._newUnEquip=null;
+			if(newItem===oldItem) return; // result unchaged
 			if(newItem && $gameParty.numItems(newItem)===1){
 				if(arr.length && arr.back===null){
 					arr.back=newItem;
+					if(oldItem && $gameParty.numItems(oldItem)===0){
+						const idx=arr.indexOf(oldItem);
+						if(idx!==-1) arr[idx]=arr.pop();
+					}
 					arr.sort(DataManager.sortCmp);
 					arr.push(null);
 				}else{
 					arr.push(newItem);
+					if(oldItem && $gameParty.numItems(oldItem)===0){
+						const idx=arr.indexOf(oldItem);
+						if(idx!==-1) arr[idx]=arr.pop();
+					}
 					arr.sort(DataManager.sortCmp);
 				}
 			}else{
 				// same (actor,slot) and no new item
+				// usually only 1 #(obj) become 0
 				for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
 			}
 			return;

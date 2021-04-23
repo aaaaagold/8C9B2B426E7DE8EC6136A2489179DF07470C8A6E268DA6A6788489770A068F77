@@ -84,12 +84,17 @@ objs.rndmusic=(cnt)=>{
 };
 
 objs._mods=new Set();
-objs.addExtModuleViaUrl=(url,forced)=>{
-	if(!forced && objs._mods.has(url)) return true;
-	url+=(url.indexOf("#")===-1)?"#":"&";
+objs.addExtModuleViaUrl=(url,forced,callback_onloaded)=>{
+	const f=callback_onloaded;
+	if(!forced && objs._mods.has(url)){ f(); return true; }
+	if(url.indexOf("#")===-1) url+="#";
 	const scr=d.ce('script');
+	scr.onload=()=>{
+		scr.onload=null;
+		objs._mods.add(url);
+		if(f && f.contructor===Function) f();
+	};
 	if(objs.addScriptViaSrc) objs.addScriptViaSrc(scr,url);
-	else d.body.ac(d.ce('script'));
+	else d.body.ac(scr.sa('src',url));
 };
 objs.addExtModuleViaTxt=objs._doFlow;
-
