@@ -16,6 +16,7 @@
 		"noteApp_read": "讀取筆記",
 		"noteApp_delete": "刪除筆記",
 		"noteApp_swap": "交換筆記位置",
+	"_noteApp_canExec": "筆記本的執行筆記",
 	"questMgr": "任務管理工具",
 		"questMgr_complete": "完成",
 		"questMgr_view": "查看",
@@ -35,6 +36,7 @@
 		"onlineSaveIdMgr":"在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.onlineSaveIdMgr'",
 		"questMgr":"在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.questMgr'",
 		"noteAppMgr": "在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.noteAppMgr'",
+		"_noteApp_canExec": "新增\\key'$dataCustom.apps'中\\key'$dataCustom.noteApp_exec'",
 		"":0
 	},
 	"opts_gainHint": "物品得失提示及升級提示設定",

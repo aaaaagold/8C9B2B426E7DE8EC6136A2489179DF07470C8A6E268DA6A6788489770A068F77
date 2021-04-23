@@ -7542,12 +7542,22 @@ $aaaa$.prototype.upgradeItem=function f(itemFrom,itemTo, amount, includeEquip, n
 	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
 	if(!$gameSystem._usr._noGainSound&&!noSound) SoundManager.playUseItem();
 };
-$aaaa$.prototype.gainApp=function(appName){
+$aaaa$.prototype.gainApp=function(appName_or_argv){
+	if(isNone(appName_or_argv)) return;
+	const flag=appName_or_argv.constructor===Array;
+	const appName=flag?appName_or_argv[0]:appName_or_argv;
 	let mgr=appName+"Mgr";
 	if(!$dataCustom.gainApps[mgr]) return;
 	if(!$gameParty._apps) $gameParty._apps={};
-	if($gameParty._apps[appName]) return;
-	$gameParty._apps[appName]=1;
+	const apps=$gameParty._apps;
+	if(flag){
+		const s="_"+appName_or_argv.join('_');
+		if(apps[s] || !$dataCustom.gainApps[s]) return;
+		apps[s]=1;
+		$gameMessage.popup($dataCustom.gainApps[s],true,{t_remained:6000});
+	}
+	if(apps[appName]) return;
+	apps[appName]=1;
 	let key="_"+appName; if(!$gameParty[key]) $gameParty[key]=[];
 	$gameMessage.popup($dataCustom.gainApps[mgr],true,{t_remained:5000});
 	return true;

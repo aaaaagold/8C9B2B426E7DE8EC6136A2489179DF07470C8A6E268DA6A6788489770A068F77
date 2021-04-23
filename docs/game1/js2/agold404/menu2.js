@@ -910,7 +910,7 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 		return rtv;
 	}]);
 	
-	list.push([$dataCustom.noteApp_exec,";exec;func;list",1,()=>{
+	if($gameParty._apps && $gameParty._apps._noteApp_canExec) list.push([$dataCustom.noteApp_exec,";exec;func;list",1,()=>{
 		let list=$gameParty._noteApp,rtv=[];
 		if(list) list.forEach((x,i)=>{ rtv.push([x[0],";;func;call",1,function(){
 			$gameMessage.popup($dataCustom.noteApp_exec+": \\key'\""+x[0].replace(/\\/g,"\\\\")+"\"'");
