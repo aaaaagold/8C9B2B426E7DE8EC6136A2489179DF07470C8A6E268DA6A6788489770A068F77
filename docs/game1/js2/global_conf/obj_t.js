@@ -1061,7 +1061,7 @@ $aaaa$.readFlag=function(config,name,defaultVal){
 	return rtv===undefined?!!defaultVal:rtv;
 };
 $aaaa$.readVolume=function(config,name){
-	let value=config[name];
+	const value=config[name];
 	if(isNone(value)) return AudioManager._defaultVolume;
 	else return value<100?value<0?0:value:100;
 };
@@ -2173,6 +2173,7 @@ $aaaa$.prototype._edt=function f(){
 	$dataCustom.apps=$dataCustom.apps_ori;
 	$dataSystem.currencyUnit=$dataSystem.currencyUnit_ori;
 	$dataSystem.titleBgm=deepcopy($dataSystem.titleBgm_ori);
+	objs.confs={};
 	switch(sha256(info)){
 	case "book":{
 		$dataSystem. title1Name = "Book";
@@ -2189,6 +2190,11 @@ $aaaa$.prototype._edt=function f(){
 		let burnLv = localStorage.getItem("maxBurnLv")|0;
 		$dataSystem.title1Name+="?color="+encodeURIComponent("[[4,"+burnLv+",0],["+burnLv+",44,0],[0,0,1]]");
 		$dataSystem.currencyUnit="B幣";
+	}break;
+	case "0xB5D61DC89A35D2C924B28C9760765DA94039E94184C50F87DDE54532F126B4AC":{
+		$dataSystem. gameTitle  = "分身乏術";
+		$dataSystem. startMapId = 276 ;
+		$dataSystem.currencyUnit="C幣";
 	}break;
 	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
 		$dataSystem. title1Name = "Fountain";
@@ -2231,6 +2237,7 @@ $aaaa$.prototype._edt=function f(){
 		$dataSystem.enemyCnts=[10,15,20,40,50,100];
 		$dataCustom.apps="便利功能";
 		$dataSystem.currencyUnit="R幣";
+		objs.confs.noRestoreHpMp=true;
 	}break;
 	case "0x9BBA5C53A0545E0C80184B946153C9F58387E3BD1D4EE35740F29AC2E718B019":{
 		$dataSystem. title1Name = "tester";
@@ -9452,7 +9459,7 @@ $dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	{ const tmp=this._skills_getCache(); if(tmp && tmp.pendLearns) tmp.pendLearns.length=0; }
 	
 	const lastLevel = this._level;
-	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(undefined,true);
+	while(!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) this.levelUp(objs.confs.noRestoreHpMp,true);
 	while(this.currentExp()<this.currentLevelExp()) this.levelDown();
 	if(this._level !== lastLevel){ if(this._level > lastLevel){
 		const tmp=this._skills_getCache();
