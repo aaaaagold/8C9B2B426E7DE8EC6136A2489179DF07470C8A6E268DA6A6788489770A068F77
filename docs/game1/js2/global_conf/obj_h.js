@@ -17,8 +17,8 @@ _global_conf["default volume"] = 50;
 // ---- ---- ---- DataManager ----
 _global_conf["default max savefiles"] = 64;
 // ---- ---- ---- load from plugins.js ----
-_global_conf["default width"] = $plugins[0]["parameters"]["screenWidth"];
-_global_conf["default height"] = $plugins[0]["parameters"]["screenHeight"];
+_global_conf["default width"] = 1008;
+_global_conf["default height"] = 576;
 // ---- ---- ---- $data... ----
 var $dataCustom = null;
 var $dataTemplateEvtFromMap_overworld = null;

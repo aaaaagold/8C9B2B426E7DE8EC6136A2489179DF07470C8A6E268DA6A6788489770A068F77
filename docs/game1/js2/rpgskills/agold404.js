@@ -32,7 +32,11 @@ list.devtools=(action)=>{
 		98,99,
 		101,102,103,104,
 		106,107,
-	].forEach(i=>{
+	].concat((()=>{
+		let arr=[];
+		for(let x=101;x!==125;++x) arr.push(x);
+		return arr;
+	})()).forEach(i=>{
 		if(pt._armors[i]) return;
 		pt.gainItem($dataArmors[i],1e2);
 	});

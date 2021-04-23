@@ -336,7 +336,17 @@ $dddd$=$aaaa$.loadMapData = function f(mapId) {
 		// - '.data'
 		$dataMap.data_bak=$dataMap.data.slice(0);
 		// defaults
-		if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
+		//if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
+		// environment traits (use a state)
+		{ const stat=$dataStates[$dataMap.meta.traitRef];
+		if(stat){
+			$dataMap.traits=stat.traits;
+			$dataMap.tmapS=stat.tmapS;
+			$dataMap.tmapP=stat.tmapP;
+		}else{
+			$dataMap.traits=[];
+			$dataMap.tmapP=$dataMap.tmapS=new Map();
+		} }
 		// evt.meta.refActor
 		this.evtd_addRef($dataMap.events);
 		// texts

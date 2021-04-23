@@ -12,6 +12,8 @@ d.body.sa('style',(d.body.ga('style')||'')+';touch-action:none;');
 
 if(Utils.isMobileDevice()) _global_conf.halfFps=1;
 
+ConfigManager.alwaysDash=true;
+
 // debug
 {
 	let h=_global_conf["url hash"],q=_global_conf["url querystring"],tmp;

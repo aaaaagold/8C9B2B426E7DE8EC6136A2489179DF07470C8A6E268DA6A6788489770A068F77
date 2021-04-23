@@ -1056,6 +1056,15 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - ConfigManager
 $aaaa$=ConfigManager;
 $aaaa$.maxSavefiles=DataManager.maxSavefiles();
+$aaaa$.readFlag=function(config,name,defaultVal){
+	const rtv=config[name];
+	return rtv===undefined?!!defaultVal:rtv;
+};
+$aaaa$.readVolume=function(config,name){
+	let value=config[name];
+	if(isNone(value)) return AudioManager._defaultVolume;
+	else return value<100?value<0?0:value:100;
+};
 $aaaa$.ConfigOptionsWithSystem=[
 	["_noGainMsg",$aaaa$.readFlag],
 	["_noGainHint",$aaaa$.readFlag],
@@ -1071,7 +1080,7 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_useFont"],
 ];
 $aaaa$.ConfigOptions=$aaaa$.ConfigOptionsWithSystem.concat([
-	["alwaysDash",$aaaa$.readFlag],
+	["alwaysDash",$aaaa$.readFlag,true],
 	["commandRemember",$aaaa$.readFlag],
 	["bgmVolume",$aaaa$.readVolume],
 	["bgsVolume",$aaaa$.readVolume],
@@ -1087,19 +1096,14 @@ $aaaa$.makeData=function() {
 	for(let arr=this.ConfigOptions,x=0,xs=arr.length;x!==xs;++x){
 		let t=arr[x];
 		rtv[t[0]]=this[t[0]];
-		if(t[1]===this.readFlag) rtv[t[0]]^=0;
+		if(t[1]===this.readFlag) rtv[t[0]]|=0;
 	}
 	return rtv;
 };
 $aaaa$.applyData=function(config) {
 	for(let arr=this.ConfigOptions,x=0,xs=arr.length;x!==xs;++x)
-		if(arr[x][1]) this[arr[x][0]]=arr[x][1].call(this,config,arr[x][0]);
+		if(arr[x][1]) this[arr[x][0]]=arr[x][1].call(this,config,arr[x][0],arr[x][2]);
 		else if(arr[x][0] in config) this[arr[x][0]]=config[arr[x][0]];
-};
-$aaaa$.readVolume=function(config, name) {
-	let value=config[name];
-	if(isNone(value)) return AudioManager._defaultVolume;
-	else return value<100?value<0?0:value:100;
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -1391,7 +1395,7 @@ $dddd$=$aaaa$.saveBgmAndBgs=function f(){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.makeEscapeRatio;
 $dddd$=$aaaa$.makeEscapeRatio=function f(){
-	if($gameTroop._trueEscape) this._escapeRatio = 1;
+	if($gameTroop._trueEscape || $gameParty.mustEscape()) this._escapeRatio = 1;
 	else f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$. update ;
@@ -1653,6 +1657,10 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		addEnum("MPSubstitute").
 		addEnum("__DUMMY") , f = x=>{ if(!x) return;
 		const meta=x.meta;
+		if(meta.escape){ // has, built-in code
+			const n=Number(meta.escape);
+			x.traits.push({code:Game_BattlerBase.TRAIT_PARTY_ABILITY,dataId:Game_Party.ABILITY_MUST_ESCAPE,value:isNaN(n)?1:n});
+		}
 		if(meta.revive){ // has
 			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.AUTOREVIVE,value:meta.revive});
 		}
@@ -4711,6 +4719,7 @@ $dddd$=$aaaa$.prototype._overall_s_delCache=function f(code){
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_S;
 $dddd$=$aaaa$.prototype._overall_s_getCache=function f(code){
 	const c=$gameTemp.getCache(this,f.key);
+	if(c&&c.mapd!==$dataMap) return this._overall_s_delCache();
 	return (c&&code)?c.get(code):c;
 };
 $dddd$.key=$tttt$;
@@ -4718,6 +4727,7 @@ $dddd$=$aaaa$.prototype._overall_s_updateCache=function f(code){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_s_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
+	tmp.mapd=$dataMap;
 	if(rtv=tmp.get(code)) rtv.clear();
 	else tmp.set(code,rtv=new Map());
 	
@@ -4728,6 +4738,10 @@ $dddd$=$aaaa$.prototype._overall_s_updateCache=function f(code){
 	tmp=this.getTraits_equips_s(code);
 	if(tmp) rtv.byKey_sum(tmp,true);
 	tmp=this.getTraits_custom_s(code);
+	if(tmp) rtv.byKey_sum(tmp,true);
+	
+	// environment
+	tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
 	if(tmp) rtv.byKey_sum(tmp,true);
 	
 	return rtv;
@@ -4747,6 +4761,11 @@ $aaaa$.prototype.getTraits_overall_s=function(code,id){
 		if(tmp!==undefined) rtv+=tmp;
 		tmp=this.getTraits_custom_s(code,id);
 		if(tmp!==undefined) rtv+=tmp;
+		
+		// environment
+		tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
+		if(tmp) (tmp=tmp.get(id))&&(rtv+=tmp);
+		
 		rtv=(~~( rtv*100+(rtv<0?-0.5:0.5) ))/100;
 	}
 	return rtv;
@@ -4760,6 +4779,7 @@ $dddd$=$aaaa$.prototype._overall_m_delCache=function f(code){
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_M;
 $dddd$=$aaaa$.prototype._overall_m_getCache=function f(code){
 	const c=$gameTemp.getCache(this,f.key);
+	if(c&&c.mapd!==$dataMap) return this._overall_m_delCache();
 	return (c&&code)?c.get(code):c;
 };
 $dddd$.key=$tttt$;
@@ -4767,6 +4787,7 @@ $dddd$=$aaaa$.prototype._overall_m_updateCache=function f(code){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_m_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
+	tmp.mapd=$dataMap;
 	if(rtv=tmp.get(code)) rtv.clear();
 	else tmp.set(code,rtv=new Map());
 	
@@ -4777,6 +4798,10 @@ $dddd$=$aaaa$.prototype._overall_m_updateCache=function f(code){
 	tmp=this.getTraits_equips_m(code);
 	if(tmp) rtv.byKey_mul(tmp,true);
 	tmp=this.getTraits_custom_m(code);
+	if(tmp) rtv.byKey_mul(tmp,true);
+	
+	// environment
+	tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapP.get(code);
 	if(tmp) rtv.byKey_mul(tmp,true);
 	
 	return rtv;
@@ -4796,6 +4821,10 @@ $aaaa$.prototype.getTraits_overall_m=function(code,id){
 		if(tmp!==undefined) rtv*=tmp;
 		tmp=this.getTraits_custom_m(code,id);
 		if(tmp!==undefined) rtv*=tmp;
+		
+		// environment
+		tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
+		if(tmp&&(tmp=tmp.get(id))!==undefined) rtv*=tmp;
 	}
 	return rtv;
 };
@@ -6703,6 +6732,9 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - party
 $aaaa$=Game_Party; // member , item , gain , complete , others
+$aaaa$.currMaxEnum=10; // preserve some
+$aaaa$.addEnum=objs._addEnum;
+$aaaa$.addEnum('ABILITY_MUST_ESCAPE');
 Object.defineProperties($aaaa$.prototype, {
 	_actors:{ get: function(){
 			debug.warn("get actors");
@@ -7655,6 +7687,9 @@ $aaaa$.prototype.burnLvOutput=function(parents){
 	// 燃燒棒、木亥村莊專用燃燒棒
 	if($gameParty._items[55] || ($gameParty._items[56]&&parents.indexOf(Number($dataItems[56].meta.map))!==-1)) return this.burnLv;
 	return 0;
+};
+$aaaa$.prototype.mustEscape=function(){
+	return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
