@@ -1968,30 +1968,11 @@ $aaaa$.prototype.create=function(){
 	ConfigManager.load();
 	this.loadSystemWindowImage();
 };
-$aaaa$.prototype.isReady=function(){
-	return Scene_Base.prototype.isReady.call(this) ? 
-		DataManager.isDatabaseLoaded() && this.isGameFontLoaded() : 
-		false ; 
-};
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	this.arrangeData();
 	DataManager._itemArrs={s:$dataSkills,i:$dataItems,w:$dataWeapons,a:$dataArmors,};
-	Scene_Base.prototype.start.call(this);
-	SoundManager.preloadImportantSounds();
-	if(DataManager.isBattleTest()){
-		DataManager.setupBattleTest();
-		SceneManager.goto(Scene_Battle);
-	}else if(DataManager.isEventTest()){
-		DataManager.setupEventTest();
-		SceneManager.goto(Scene_Map);
-	}else{
-		this.checkPlayerLocation();
-		DataManager.setupNewGame();
-		SceneManager.goto(Scene_Title);
-		Window_TitleCommand.initCommandPosition();
-	}
-	this.updateDocumentTitle();
+	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -2228,13 +2209,6 @@ $aaaa$.prototype.onItemCancel=function(){
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
-Scene_File.prototype.create = function() {
-	Scene_MenuBase.prototype.create.call(this);
-	DataManager.loadAllSavefileImages();
-	this.createHelpWindow();
-	this.createListWindow();
-};
-
 // - save
 $aaaa$=Scene_Save;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -2380,17 +2354,6 @@ $aaaa$.prototype.createBackground=function(){
 	if(t) this.addChild(this._backSprite2);
 	else this._backSprite2.visible=false;
 };
-$aaaa$.prototype.drawGameTitle = function() {
-	let fontsize=72;
-	let x = 20;
-	let y = fontsize*1.25;
-	let maxWidth = Graphics.width - x * 2;
-	let text = $dataSystem.gameTitle;
-	this._gameTitleSprite.bitmap.outlineColor = 'black';
-	this._gameTitleSprite.bitmap.outlineWidth = 8;
-	this._gameTitleSprite.bitmap.fontSize = fontsize;
-	this._gameTitleSprite.bitmap.drawText(text, x, y, maxWidth, 48, 'center');
-};
 $aaaa$.prototype.createCommandWindow = function() {
 	const cw = this._commandWindow = new Window_TitleCommand();
 	cw.setHandler('newGame',  this.commandNewGame.bind(this));
@@ -2417,11 +2380,22 @@ $aaaa$.prototype.customTitleCommand=function(){
 	this._commandWindow.close();
 	return SceneManager.push(Scene_Title); // call stack not stacking . amazing !
 };
-Scene_Title.prototype.commandNewGame = function() {
-	DataManager.setupNewGame();
-	this._commandWindow.close();
-	this.fadeOutAll();
-	SceneManager.goto(Scene_Map);
+$aaaa$.prototype.drawGameTitle=function(){
+	let fontsize=72;
+	let x = 20;
+	let y = fontsize*1.25;
+	let maxWidth = Graphics.width - x * 2;
+	let text = $dataSystem.gameTitle;
+	this._gameTitleSprite.bitmap.outlineColor = 'black';
+	this._gameTitleSprite.bitmap.outlineWidth = 8;
+	this._gameTitleSprite.bitmap.fontSize = fontsize;
+	this._gameTitleSprite.bitmap.drawText(text, x, y, maxWidth, 48, 'center');
+};
+$aaaa$.prototype.centerSprite=function(sprite){
+	sprite.x = Graphics.width>>1;
+	sprite.y = Graphics.height>>1;
+	sprite.anchor.x = 0.5;
+	sprite.anchor.y = 0.5;
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -2543,13 +2517,6 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	if(!q||mid!==midn) DataManager.loadMapData( midn );
 };
 $dddd$.preload="preload";
-$aaaa$.prototype.isReady=function() {
-	if (!this._mapLoaded && DataManager.isMapLoaded()) {
-		this.onMapLoaded();
-		this._mapLoaded = true;
-	}
-	return this._mapLoaded && Scene_Base.prototype.isReady.call(this);
-};
 $dddd$=$aaaa$.prototype._createPannels=function f(){
 	if(!this._pannel){
 		this._windowLayer.addChildBefore(this._pannel=new Window_CustomRealtimeMsgs({fontSize:16}),this._messageWindow);
