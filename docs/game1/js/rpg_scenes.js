@@ -333,12 +333,7 @@ Scene_Boot.prototype.initialize = function() {
     this._startDate = Date.now();
 };
 
-Scene_Boot.prototype.create = function() {
-    Scene_Base.prototype.create.call(this);
-    DataManager.loadDatabase();
-    ConfigManager.load();
-    this.loadSystemWindowImage();
-};
+Scene_Boot.prototype.create;
 
 Scene_Boot.prototype.loadSystemWindowImage = function() {
     ImageManager.reserveSystem('Window');

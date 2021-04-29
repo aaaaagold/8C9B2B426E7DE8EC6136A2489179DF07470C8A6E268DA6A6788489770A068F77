@@ -1962,6 +1962,12 @@ $dddd$.makeTraitsMap=dataobj=>{
 		if(tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) dataobj.params.push(tmp.v*1e6); // +act times
 	}
 };
+$aaaa$.prototype.create=function(){
+	Scene_Base.prototype.create.call(this);
+	DataManager.loadDatabase();
+	ConfigManager.load();
+	this.loadSystemWindowImage();
+};
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	this.arrangeData();

@@ -2849,12 +2849,6 @@ Input._setupEventHandlers = function() {
     window.addEventListener('blur', this._onLostFocus.bind(this));
 };
 
-/**
- * @static
- * @method _onKeyDown
- * @param {KeyboardEvent} event
- * @private
- */
 Input._onKeyDown;
 
 /**
@@ -3374,24 +3368,7 @@ TouchInput._onMouseUp = function(event) {
     }
 };
 
-/**
- * @static
- * @method _onWheel
- * @param {WheelEvent} event
- * @private
- */
-TouchInput._onWheel = function(event) {
-    this._events.wheelX += event.deltaX;
-    this._events.wheelY += event.deltaY;
-    event.preventDefault();
-};
-
-/**
- * @static
- * @method _onTouchStart
- * @param {TouchEvent} event
- * @private
- */
+TouchInput._onWheel;
 TouchInput._onTouchStart;
 
 /**
