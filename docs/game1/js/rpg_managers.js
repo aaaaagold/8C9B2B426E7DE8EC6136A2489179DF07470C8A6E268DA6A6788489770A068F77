@@ -107,13 +107,7 @@ DataManager.onLoad = function(object) {
 };
 
 DataManager.extractMetadata;
-
-DataManager.checkError = function() {
-    if (DataManager._errorUrl) {
-        throw new Error('Failed to load: ' + DataManager._errorUrl);
-    }
-};
-
+DataManager.checkError;
 DataManager.isBattleTest;
 DataManager.isEventTest;
 

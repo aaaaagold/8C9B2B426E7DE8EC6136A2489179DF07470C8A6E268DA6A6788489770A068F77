@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.+" ;
+const ver = "4.2.6.8.9.6.****" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
@@ -292,7 +292,6 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	return rtv;
 };
 onloadProc.isBody=src=>true
-	&& (objs.isDev || src[0]===":")
 	&& src.slice(0,8)!=="js/libs/"
 	&& src!=="js/plugins.js"
 	&& src!=="js/rpg_core.js"

@@ -2485,14 +2485,6 @@ Game_Battler.prototype.forceAction = function(skillId, targetIndex) {
     this._actions.push(action);
 };
 
-Game_Battler.prototype.useItem = function(item) {
-    if (DataManager.isSkill(item)) {
-        this.paySkillCost(item);
-    } else if (DataManager.isItem(item)) {
-        this.consumeItem(item);
-    }
-};
-
 Game_Battler.prototype.consumeItem = function(item) {
     $gameParty.consumeItem(item);
 };
@@ -3671,12 +3663,6 @@ Game_Party.prototype.discardMembersEquip = function(item, amount) {
 
 Game_Party.prototype.loseItem = function(item, amount, includeEquip) {
     this.gainItem(item, -amount, includeEquip);
-};
-
-Game_Party.prototype.consumeItem = function(item) {
-    if (DataManager.isItem(item) && item.consumable) {
-        this.loseItem(item, 1);
-    }
 };
 
 Game_Party.prototype.canUse = function(item) {

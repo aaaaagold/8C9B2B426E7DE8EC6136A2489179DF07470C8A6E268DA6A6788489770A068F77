@@ -352,31 +352,8 @@ Scene_Boot.loadSystemImages = function() {
     ImageManager.reserveSystem('ButtonSet');
 };
 
-Scene_Boot.prototype.isReady = function() {
-    if (Scene_Base.prototype.isReady.call(this)) {
-        return DataManager.isDatabaseLoaded() && this.isGameFontLoaded();
-    } else {
-        return false;
-    }
-};
-
-Scene_Boot.prototype.start = function() {
-    Scene_Base.prototype.start.call(this);
-    SoundManager.preloadImportantSounds();
-    if (DataManager.isBattleTest()) {
-        DataManager.setupBattleTest();
-        SceneManager.goto(Scene_Battle);
-    } else if (DataManager.isEventTest()) {
-        DataManager.setupEventTest();
-        SceneManager.goto(Scene_Map);
-    } else {
-        this.checkPlayerLocation();
-        DataManager.setupNewGame();
-        SceneManager.goto(Scene_Title);
-        Window_TitleCommand.initCommandPosition();
-    }
-    this.updateDocumentTitle();
-};
+Scene_Boot.prototype.isReady;
+Scene_Boot.prototype.start;
 
 Scene_Boot.prototype.updateDocumentTitle = function() {
     document.title = $dataSystem.gameTitle;
@@ -408,14 +385,7 @@ Scene_Title.prototype.create = function() {
     this.createCommandWindow();
 };
 
-Scene_Title.prototype.start = function() {
-    Scene_Base.prototype.start.call(this);
-    SceneManager.clearStack();
-    this.centerSprite(this._backSprite1);
-    this.centerSprite(this._backSprite2);
-    this.playTitleMusic();
-    this.startFadeIn(this.fadeSpeed(), false);
-};
+Scene_Title.prototype.start;
 
 Scene_Title.prototype.update = function() {
     if (!this.isBusy()) {
@@ -501,14 +471,7 @@ Scene_Map.prototype.initialize = function() {
 };
 
 Scene_Map.prototype.create;
-
-Scene_Map.prototype.isReady = function() {
-    if (!this._mapLoaded && DataManager.isMapLoaded()) {
-        this.onMapLoaded();
-        this._mapLoaded = true;
-    }
-    return this._mapLoaded && Scene_Base.prototype.isReady.call(this);
-};
+Scene_Map.prototype.isReady;
 
 Scene_Map.prototype.onMapLoaded = function() {
     if (this._transfer) {
@@ -1441,12 +1404,7 @@ Scene_File.prototype.initialize = function() {
     Scene_MenuBase.prototype.initialize.call(this);
 };
 
-Scene_File.prototype.create = function() {
-    Scene_MenuBase.prototype.create.call(this);
-    DataManager.loadAllSavefileImages();
-    this.createHelpWindow();
-    this.createListWindow();
-};
+Scene_File.prototype.create;
 
 Scene_File.prototype.start = function() {
     Scene_MenuBase.prototype.start.call(this);

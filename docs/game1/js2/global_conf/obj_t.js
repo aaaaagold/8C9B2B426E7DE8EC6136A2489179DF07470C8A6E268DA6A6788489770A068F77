@@ -1968,11 +1968,30 @@ $aaaa$.prototype.create=function(){
 	ConfigManager.load();
 	this.loadSystemWindowImage();
 };
+$aaaa$.prototype.isReady=function(){
+	return Scene_Base.prototype.isReady.call(this) ? 
+		DataManager.isDatabaseLoaded() && this.isGameFontLoaded() : 
+		false ; 
+};
 $rrrr$=$aaaa$.prototype.start;
 $dddd$=$aaaa$.prototype.start=function f(){ // only exec once
 	this.arrangeData();
 	DataManager._itemArrs={s:$dataSkills,i:$dataItems,w:$dataWeapons,a:$dataArmors,};
-	f.ori.call(this);
+	Scene_Base.prototype.start.call(this);
+	SoundManager.preloadImportantSounds();
+	if(DataManager.isBattleTest()){
+		DataManager.setupBattleTest();
+		SceneManager.goto(Scene_Battle);
+	}else if(DataManager.isEventTest()){
+		DataManager.setupEventTest();
+		SceneManager.goto(Scene_Map);
+	}else{
+		this.checkPlayerLocation();
+		DataManager.setupNewGame();
+		SceneManager.goto(Scene_Title);
+		Window_TitleCommand.initCommandPosition();
+	}
+	this.updateDocumentTitle();
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -2209,6 +2228,13 @@ $aaaa$.prototype.onItemCancel=function(){
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
+Scene_File.prototype.create = function() {
+	Scene_MenuBase.prototype.create.call(this);
+	DataManager.loadAllSavefileImages();
+	this.createHelpWindow();
+	this.createListWindow();
+};
+
 // - save
 $aaaa$=Scene_Save;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -2335,6 +2361,14 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	for(let i in refreshes) refreshes[i]();
 	$gameSystem._usr=0;
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.start=function(){
+	Scene_Base.prototype.start.call(this);
+	SceneManager.clearStack();
+	this.centerSprite(this._backSprite1);
+	this.centerSprite(this._backSprite2);
+	this.playTitleMusic();
+	this.startFadeIn(this.fadeSpeed(), false);
+};
 $aaaa$.prototype.createBackground=function(){
 	let t;
 	
@@ -2382,6 +2416,12 @@ $aaaa$.prototype.customTitleCommand=function(){
 	//debugger;
 	this._commandWindow.close();
 	return SceneManager.push(Scene_Title); // call stack not stacking . amazing !
+};
+Scene_Title.prototype.commandNewGame = function() {
+	DataManager.setupNewGame();
+	this._commandWindow.close();
+	this.fadeOutAll();
+	SceneManager.goto(Scene_Map);
 };
 $rrrr$=$dddd$=$aaaa$=undef;
 
@@ -2493,7 +2533,6 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - map
 
 $aaaa$=Scene_Map;
-$rrrr$=$aaaa$.prototype.create;
 $dddd$=$aaaa$.prototype.create=function f(){
 	//debug.log('Scene_Map.prototype.create');
 	// release Image reservations
@@ -2502,8 +2541,15 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	const mid=$gameMap._mapId,midn=(this._transfer = $gamePlayer.isTransferring()) ? $gamePlayer.newMapId() : mid;
 	const q=$dataMap&&$dataMap.strtEvts;
 	if(!q||mid!==midn) DataManager.loadMapData( midn );
-}; $dddd$.ori=$rrrr$;
+};
 $dddd$.preload="preload";
+$aaaa$.prototype.isReady=function() {
+	if (!this._mapLoaded && DataManager.isMapLoaded()) {
+		this.onMapLoaded();
+		this._mapLoaded = true;
+	}
+	return this._mapLoaded && Scene_Base.prototype.isReady.call(this);
+};
 $dddd$=$aaaa$.prototype._createPannels=function f(){
 	if(!this._pannel){
 		this._windowLayer.addChildBefore(this._pannel=new Window_CustomRealtimeMsgs({fontSize:16}),this._messageWindow);
@@ -5362,6 +5408,14 @@ $dddd$=$aaaa$.prototype.forceAction=function f(skillId, targetIndex){
 		BattleManager._isChanting.set(this,n+1);
 	}
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.useItem = function(item) {
+	switch(item&&item.itemType){
+	case 's': this.paySkillCost(item);
+	break;
+	case 'i': this.consumeItem(item);
+	break;
+	}
+};
 $aaaa$.prototype.gainStp = function(value){
 	if(this.stp===undefined) return;
 	this._result.stpDamage = -value;
@@ -7534,11 +7588,8 @@ $dddd$=$aaaa$.prototype.consumeItem=function f(item,forced){
 	$gameTemp.gainMsgConfigs_mute();
 	$gameTemp.____byConsume=true;
 	if(item && forced){
-		let consumable=item.consumable;
-		item.consumable=true;
-		f.ori.call(this,item);
-		item.consumable=consumable;
-	}else f.ori.call(this,item);
+		if(DataManager.isItem(item)) this.loseItem(item, 1);
+	}else if(DataManager.isItem(item) && item.consumable) this.loseItem(item, 1);
 	$gameTemp.____byConsume=false;
 	$gameTemp.gainMsgConfigs_pop();
 }; $dddd$.ori=$rrrr$;
