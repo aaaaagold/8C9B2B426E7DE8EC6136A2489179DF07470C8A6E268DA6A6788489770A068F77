@@ -3399,7 +3399,7 @@ $aaaa$.prototype.pannelConfigs_push=function(){
 $aaaa$.prototype.pannelConfigs_mute=function(){
 	$gameSystem._usr._noLeaderHp=1;
 	$gameSystem._usr._noLeaderMp=1;
-	if(DataManager.getTitle()==="拉起封鎖線") $gameSystem._usr._flwingMsg=0;
+	$gameSystem._usr._flwingMsg=0;
 };
 $aaaa$.prototype.pannelConfigs_pushAndMute=function(){
 	this.pannelConfigs_push();
@@ -3411,7 +3411,7 @@ $aaaa$.prototype.pannelConfigs_pop=function(){
 	const rtv=this._pannelConfigs.pop();
 	$gameSystem._usr._noLeaderHp=rtv.hpl||0;
 	$gameSystem._usr._noLeaderMp=rtv.mpl||0;
-	if(DataManager.getTitle()==="拉起封鎖線") $gameSystem._usr._flwingMsg=rtv.flw||0;
+	$gameSystem._usr._flwingMsg=rtv.flw||0;
 	return rtv;
 };
 $aaaa$.prototype.gameoverMsg_clear=function(){
@@ -3426,35 +3426,6 @@ $aaaa$.prototype.gameoverMsg_ok=function(){
 	if(!this._gameoverMsgs) return;
 	for(let arr=this._gameoverMsgs,xs=arr.length,x=xs;x--;) for(let _=8;--_;) $gameMessage.addGameoverMsg(arr[x],{t_remained:2e3*(x+1),align:'center'});
 };
-$rrrr$=$dddd$=$aaaa$=undef;
-
-// - sys
-$aaaa$=Game_System;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
-	f.ori.call(this);
-	this._usr=new Game_System.Usr;
-	ConfigManager.ConfigOptionsWithSystem.forEach(x=>{
-		if(!(x[0] in ConfigManager)) return;
-		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
-	});
-}; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.Usr=function(){};
-$dddd$.prototype.contructor=$dddd$;
-Object.defineProperties($dddd$.prototype,{
-	_noLeaderHp: { get: function(){ return this._noHpL; }, set: function(rhs){
-			if(this._noHpL===rhs) return rhs;
-			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
-			if(p&&p.hpl) p.hpl.visible=!rhs;
-			return this._noHpL=0|!!rhs;
-	}, configurable: false },
-	_noLeaderMp: { get: function(){ return this._noMpL; }, set: function(rhs){
-			if(this._noMpL===rhs) return rhs;
-			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
-			if(p&&p.mpl) p.mpl.visible=!rhs;
-			return this._noMpL=0|!!rhs;
-	}, configurable: false },
-});
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - map
@@ -9013,6 +8984,24 @@ $aaaa$.prototype.isGuard=function(subject){
 $aaaa$.prototype.isSpaceout=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).spaceoutSkillId()];
 };
+$aaaa$.prototype.decideRandomTarget=function(){
+	let target;
+	switch(this.item().scope){
+	case 9:
+	case 10: // this.isForDeadFriend
+		target = this.friendsUnit().randomDeadTarget();
+	break;
+	case 7:
+	case 8:
+	case 11: // this.isForFriend
+		target = this.friendsUnit().randomTarget();
+	break;
+	default: // otherwise
+		target = this.opponentsUnit().randomTarget();
+	}
+	if(target) this._targetIndex = target.index();
+	else this.clear();
+};
 $aaaa$.prototype.speed=function(){
 	//let agi=this.subject().agi;
 	let speed=this.subject().agi; // + Math.randomInt(Math.floor(5 + agi / 4)); // edit: fixed speed
@@ -9062,6 +9051,99 @@ $aaaa$.prototype.repeatTargets=function(targets){ // reverse order
 		return rtv;
 	}else for(let szi=targets.length;j-->0;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
 	return repeatedTargets;
+};
+$aaaa$.prototype.makeTargets = function() {
+	let targets;
+	if(!this._forcing && this.subject().isConfused()) targets = [this.confusionTarget()];
+	else switch(this.item().scope){
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6: // this.isForOpponent
+		targets = this.targetsForOpponents();
+	break;
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	case 11: // this.isForFriend
+		targets = this.targetsForFriends();
+	break;
+	}
+	return this.repeatTargets(targets||[]);
+};
+$aaaa$.prototype.targetsForOpponents=function(){
+	const targets = [];
+	const unit = this.opponentsUnit();
+	switch(this.item().scope){
+	case 3:
+	case 4:
+	case 5:
+	case 6: // this.isForRandom
+		for(let i=0,sz=this.numTargets();i!==sz;++i) targets.push(unit.randomTarget());
+	break;
+	case 1:
+	case 7:
+	case 9:
+	case 11: // this.isForOne
+		if (this._targetIndex < 0) {
+			targets.push(unit.randomTarget());
+		} else {
+			targets.push(unit.smoothTarget(this._targetIndex));
+		}
+	break;
+	default: return unit.aliveMembers();
+	break;
+	}
+	return targets;
+};
+$aaaa$.prototype.targetsForFriends=function(){
+	const targets = [];
+	const unit = this.friendsUnit();
+	switch(this.item().scope){
+	case 11: // this.isForUser
+		targets.push(this.subject());
+	break;
+	case 9:
+	case 10: // this.isForDeadFriend
+		if(this.isForOne()) targets.push(unit.smoothDeadTarget(this._targetIndex));
+		else return unit.deadMembers();
+	break;
+	case 1:
+	case 3:
+	case 7: // isForOne
+		targets.push((this._targetIndex < 0)?unit.randomTarget():unit.smoothTarget(this._targetIndex));
+	break;
+	default: // otherwise
+		return unit.aliveMembers();
+	break;
+	}
+	return targets;
+};
+$aaaa$.prototype.itemTargetCandidates = function() {
+	if(!this.isValid()) return [];
+	switch(this.item().scope){
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6: // this.isForOpponent
+		return this.opponentsUnit().aliveMembers();
+	break;
+	case 11: // this.isForUser
+		return [this.subject()];
+	break;
+	case 9:
+	case 10:
+		return this.friendsUnit().deadMembers();
+	break;
+	default:
+		return this.friendsUnit().aliveMembers();
+	break;
+	}
 };
 $rrrr$=$aaaa$.prototype.testApply;
 $dddd$=$aaaa$.prototype.testApply=function f(target){

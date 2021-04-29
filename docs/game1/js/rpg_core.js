@@ -65,17 +65,6 @@ String.prototype.padZero = function(length){
     return s;
 };
 
-/**
- * Makes a number string with leading zeros.
- *
- * @method Number.prototype.padZero
- * @param {Number} length The length of the output string
- * @return {String} A string with leading zeros
- */
-Number.prototype.padZero = function(length){
-    return String(this).padZero(length);
-};
-
 Object.defineProperties(Array.prototype, {
     /**
      * Checks whether the two arrays are same.

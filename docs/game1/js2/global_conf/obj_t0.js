@@ -9,6 +9,7 @@ if(!window.objs) window.objs={};
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
+Number.prototype.padZero=function(n){ return (this+'').padStart(n,'0'); };
 Math.randomInt=max=>~~(Math.random()*max);
 LZString._decompress_calL=(m,shMax)=>{
 	let rtv=0^0;
@@ -242,6 +243,12 @@ $aaaa$.prototype.setFontsize=function(sz){
 $aaaa$.prototype.standardFontFace=function(){
 	if($gameSystem.isKorean()) return _global_conf.useFont+',Dotum, AppleGothic, sans-serif';
 	else return _global_conf.useFont;
+};
+$aaaa$.prototype.contentsWidth = function() {
+	return this.width - (this.standardPadding()<<1);
+};
+$aaaa$.prototype.contentsHeight = function() {
+	return this.height - (this.standardPadding()<<1);
 };
 $aaaa$.prototype.createContents=function(){
 	const w=this.contentsWidth() , h=this.contentsHeight();
@@ -1902,20 +1909,43 @@ $dddd$=$aaaa$.prototype.start=function f(){
 
 // - system
 $aaaa$=Game_System;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(){
+	f.ori.call(this);
+	this._usr=new Game_System.Usr;
+	ConfigManager.ConfigOptionsWithSystem.forEach(x=>{
+		if(!(x[0] in ConfigManager)) return;
+		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
+	});
+}; $dddd$.ori=$rrrr$;
+$dddd$=$aaaa$.Usr=function(){};
+$dddd$.prototype.contructor=$dddd$;
+Object.defineProperties($dddd$.prototype,{
+	_noLeaderHp: { get: function(){ return this._noHpL; }, set: function(rhs){
+			if(this._noHpL===rhs) return rhs;
+			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
+			if(p&&p.hpl) p.hpl.visible=!rhs;
+			return this._noHpL=0|!!rhs;
+	}, configurable: false },
+	_noLeaderMp: { get: function(){ return this._noMpL; }, set: function(rhs){
+			if(this._noMpL===rhs) return rhs;
+			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
+			if(p&&p.mpl) p.mpl.visible=!rhs;
+			return this._noMpL=0|!!rhs;
+	}, configurable: false },
+});
 $aaaa$.prototype.onAfterLoad=function(){ // overwrite. wtf you forgot "pos"
 	Graphics.frameCount = this._framesOnSave;
 	AudioManager.playBgm(this._bgmOnSave,this._bgmOnSave.pos);
 	AudioManager.playBgs(this._bgsOnSave,this._bgsOnSave.pos);
 };
-
-// - screen
-$aaaa$=Game_Screen;
-$aaaa$.prototype.eraseBattlePictures=function(){ // overwrite. wtf
-	//this._pictures = this._pictures.slice(0, this.maxPictures() + 1);
-	// ? https://stackoverflow.com/questions/1232040/
-	this._pictures.length=Math.min(this.maxPictures(),this._pictures.length);
+$aaaa$.prototype.playtimeText=function(){
+	let fc=Graphics.frameCount; if(fc>872654640) fc=872654640;
+	let sec  =~~(fc/60);
+	let min  =~~(sec/60); sec%=60;
+	let hour =~~(min/60); min%=60;
+	return (hour+'').padZero(2) + ':' + (min+'').padZero(2) + ':' + (sec+'').padZero(2);
 };
-$aaaa$.prototype.maxPictures=()=>3;
 
 // - timer
 $aaaa$=Game_Timer;
@@ -1933,6 +1963,74 @@ $aaaa$.prototype.onExpire=function(){
 	BattleManager.abort();
 	this.clear();
 };
+
+// - screen
+$aaaa$=Game_Screen;
+$aaaa$.prototype.eraseBattlePictures=function(){ // overwrite. wtf
+	//this._pictures = this._pictures.slice(0, this.maxPictures() + 1);
+	// ? https://stackoverflow.com/questions/1232040/
+	this._pictures.length=Math.min(this.maxPictures(),this._pictures.length);
+};
+$aaaa$.prototype.maxPictures=()=>3;
+
+// - action
+$aaaa$=Game_Action;
+$dddd$=$aaaa$.prototype.isForOpponent=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([1, 2, 3, 4, 5, 6]);
+$dddd$=$aaaa$.prototype.isForFriend=function f(){
+	return this.checkItemScope(f.tbl);
+}; 
+$dddd$.tbl=new Set([7, 8, 9, 10, 11]);
+$dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([9, 10]);
+$dddd$=$aaaa$.prototype.isForUser=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([11]);
+$dddd$=$aaaa$.prototype.isForOne=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([1, 3, 7, 9, 11]);
+$dddd$=$aaaa$.prototype.isForRandom=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([3, 4, 5, 6]);
+$dddd$=$aaaa$.prototype.isForAll=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([2, 8, 10]);
+$dddd$=$aaaa$.prototype.isHpEffect=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([1, 3, 5]);
+$dddd$=$aaaa$.prototype.isMpEffect=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([2, 4, 6]);
+$dddd$=$aaaa$.prototype.isDamage=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([1, 2]);
+$dddd$=$aaaa$.prototype.isRecover=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([3, 4]);
+$dddd$=$aaaa$.prototype.isDrain=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([5, 6]);
+$dddd$=$aaaa$.prototype.isHpRecover=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([3]);
+$dddd$=$aaaa$.prototype.isMpRecover=function f(){
+	return this.checkDamageType(f.tbl);
+};
+$dddd$.tbl=new Set([4]);
 
 // - unit
 $aaaa$=Game_Unit;

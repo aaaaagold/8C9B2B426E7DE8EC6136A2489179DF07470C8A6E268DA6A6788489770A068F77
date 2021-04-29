@@ -54,14 +54,6 @@ Window_Base.prototype.updateBackOpacity = function() {
     this.backOpacity = this.standardBackOpacity();
 };
 
-Window_Base.prototype.contentsWidth = function() {
-    return this.width - this.standardPadding() * 2;
-};
-
-Window_Base.prototype.contentsHeight = function() {
-    return this.height - this.standardPadding() * 2;
-};
-
 Window_Base.prototype.fittingHeight = function(numLines) {
     return numLines * this.lineHeight() + this.standardPadding() * 2;
 };

@@ -539,11 +539,6 @@ $dddd$=$aaaa$.extractMetadata=function f(data){
 	}
 };
 $dddd$.re=/<([^<>:]+)(:?)(([^>]|\n)*)>/g;
-$aaaa$.checkError=function(){
-	if(DataManager._errorUrl){
-		throw new Error('Failed to load: ' + DataManager._errorUrl);
-	}
-};
 $aaaa$.isBattleTest=none;
 $aaaa$.isEventTest=none;
 $aaaa$.isSkill=function(item){

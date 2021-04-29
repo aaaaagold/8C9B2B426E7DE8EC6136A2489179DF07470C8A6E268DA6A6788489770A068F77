@@ -227,13 +227,6 @@ Game_System.prototype.playtime = function() {
     return Math.floor(Graphics.frameCount / 60);
 };
 
-Game_System.prototype.playtimeText = function() {
-    var hour = Math.floor(this.playtime() / 60 / 60);
-    var min = Math.floor(this.playtime() / 60) % 60;
-    var sec = this.playtime() % 60;
-    return hour.padZero(2) + ':' + min.padZero(2) + ':' + sec.padZero(2);
-};
-
 Game_System.prototype.saveBgm = function() {
     this._savedBgm = AudioManager.saveBgm();
 };
@@ -524,19 +517,6 @@ Game_Variables.prototype.onChange = function() {
 
 Game_SelfSwitches.prototype.initialize = function() {
     this.clear();
-};
-
-Game_SelfSwitches.prototype.value = function(key) {
-    return !!this._data[key];
-};
-
-Game_SelfSwitches.prototype.setValue = function(key, value) {
-    if (value) {
-        this._data[key] = true;
-    } else {
-        delete this._data[key];
-    }
-    this.onChange();
 };
 
 Game_SelfSwitches.prototype.onChange = function() {
@@ -1172,68 +1152,12 @@ Game_Action.prototype.checkItemScope = function(list) {
     return list.contains(this.item().scope);
 };
 
-Game_Action.prototype.isForOpponent = function() {
-    return this.checkItemScope([1, 2, 3, 4, 5, 6]);
-};
-
-Game_Action.prototype.isForFriend = function() {
-    return this.checkItemScope([7, 8, 9, 10, 11]);
-};
-
-Game_Action.prototype.isForDeadFriend = function() {
-    return this.checkItemScope([9, 10]);
-};
-
-Game_Action.prototype.isForUser = function() {
-    return this.checkItemScope([11]);
-};
-
-Game_Action.prototype.isForOne = function() {
-    return this.checkItemScope([1, 3, 7, 9, 11]);
-};
-
-Game_Action.prototype.isForRandom = function() {
-    return this.checkItemScope([3, 4, 5, 6]);
-};
-
-Game_Action.prototype.isForAll = function() {
-    return this.checkItemScope([2, 8, 10]);
-};
-
 Game_Action.prototype.numTargets = function() {
     return this.isForRandom() ? this.item().scope - 2 : 0;
 };
 
 Game_Action.prototype.checkDamageType = function(list) {
     return list.contains(this.item().damage.type);
-};
-
-Game_Action.prototype.isHpEffect = function() {
-    return this.checkDamageType([1, 3, 5]);
-};
-
-Game_Action.prototype.isMpEffect = function() {
-    return this.checkDamageType([2, 4, 6]);
-};
-
-Game_Action.prototype.isDamage = function() {
-    return this.checkDamageType([1, 2]);
-};
-
-Game_Action.prototype.isRecover = function() {
-    return this.checkDamageType([3, 4]);
-};
-
-Game_Action.prototype.isDrain = function() {
-    return this.checkDamageType([5, 6]);
-};
-
-Game_Action.prototype.isHpRecover = function() {
-    return this.checkDamageType([3]);
-};
-
-Game_Action.prototype.isMpRecover = function() {
-    return this.checkDamageType([4]);
 };
 
 Game_Action.prototype.isCertainHit = function() {
@@ -1260,22 +1184,6 @@ Game_Action.prototype.isMagicSkill = function() {
     }
 };
 
-Game_Action.prototype.decideRandomTarget = function() {
-    var target;
-    if (this.isForDeadFriend()) {
-        target = this.friendsUnit().randomDeadTarget();
-    } else if (this.isForFriend()) {
-        target = this.friendsUnit().randomTarget();
-    } else {
-        target = this.opponentsUnit().randomTarget();
-    }
-    if (target) {
-        this._targetIndex = target.index();
-    } else {
-        this.clear();
-    }
-};
-
 Game_Action.prototype.setConfusion = function() {
     this.setAttack();
 };
@@ -1290,18 +1198,6 @@ Game_Action.prototype.isValid = function() {
     return (this._forcing && this.item()) || this.subject().canUse(this.item());
 };
 
-Game_Action.prototype.makeTargets = function() {
-    var targets = [];
-    if (!this._forcing && this.subject().isConfused()) {
-        targets = [this.confusionTarget()];
-    } else if (this.isForOpponent()) {
-        targets = this.targetsForOpponents();
-    } else if (this.isForFriend()) {
-        targets = this.targetsForFriends();
-    }
-    return this.repeatTargets(targets);
-};
-
 Game_Action.prototype.confusionTarget = function() {
     switch (this.subject().confusionLevel()) {
     case 1:
@@ -1314,48 +1210,6 @@ Game_Action.prototype.confusionTarget = function() {
     default:
         return this.friendsUnit().randomTarget();
     }
-};
-
-Game_Action.prototype.targetsForOpponents = function() {
-    var targets = [];
-    var unit = this.opponentsUnit();
-    if (this.isForRandom()) {
-        for (var i = 0; i < this.numTargets(); i++) {
-            targets.push(unit.randomTarget());
-        }
-    } else if (this.isForOne()) {
-        if (this._targetIndex < 0) {
-            targets.push(unit.randomTarget());
-        } else {
-            targets.push(unit.smoothTarget(this._targetIndex));
-        }
-    } else {
-        targets = unit.aliveMembers();
-    }
-    return targets;
-};
-
-Game_Action.prototype.targetsForFriends = function() {
-    var targets = [];
-    var unit = this.friendsUnit();
-    if (this.isForUser()) {
-        return [this.subject()];
-    } else if (this.isForDeadFriend()) {
-        if (this.isForOne()) {
-            targets.push(unit.smoothDeadTarget(this._targetIndex));
-        } else {
-            targets = unit.deadMembers();
-        }
-    } else if (this.isForOne()) {
-        if (this._targetIndex < 0) {
-            targets.push(unit.randomTarget());
-        } else {
-            targets.push(unit.smoothTarget(this._targetIndex));
-        }
-    } else {
-        targets = unit.aliveMembers();
-    }
-    return targets;
 };
 
 Game_Action.prototype.evaluate = function() {
@@ -1374,20 +1228,6 @@ Game_Action.prototype.evaluate = function() {
         value += Math.random();
     }
     return value;
-};
-
-Game_Action.prototype.itemTargetCandidates = function() {
-    if (!this.isValid()) {
-        return [];
-    } else if (this.isForOpponent()) {
-        return this.opponentsUnit().aliveMembers();
-    } else if (this.isForUser()) {
-        return [this.subject()];
-    } else if (this.isForDeadFriend()) {
-        return this.friendsUnit().deadMembers();
-    } else {
-        return this.friendsUnit().aliveMembers();
-    }
 };
 
 Game_Action.prototype.evaluateWithTarget = function(target) {
