@@ -3406,6 +3406,7 @@ const dir="js2/agold404/";
 const load=js=>addScript(dir+js);
 load( "menu2-store.js" );
 load( "menu2-battlePlan.js" );
+load( "menu2-chat.js" );
 
 })();
 

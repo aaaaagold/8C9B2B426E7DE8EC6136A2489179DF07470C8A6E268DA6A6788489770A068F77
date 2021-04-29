@@ -556,3 +556,4 @@ window.aes=function f(data,key,enc0dec1){
 	}
 };
 
+delete window.objs;

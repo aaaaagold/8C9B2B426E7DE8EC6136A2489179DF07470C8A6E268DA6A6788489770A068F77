@@ -430,8 +430,9 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 		}break;
 	}}
 	if(event.keyCode===80){ // "P"
-		if(this._stopped) this.resume();
-		else if(!$gameTemp||!$gameTemp._inputting) this.pause();
+		if(this._stopped){
+			if(!document.activeElement.alwaysPause) this.resume();
+		}else if(!$gameTemp||!$gameTemp._inputting) this.pause();
 	}
 	return f.ori.call(this,event);
 }; $dddd$.ori=$rrrr$;

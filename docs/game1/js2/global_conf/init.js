@@ -7,8 +7,8 @@ const blank_1x1='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfF
 const blank_audio='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YQAAAAA=';
 const tm2020strt=new Date("2020-01-01T00:00:00.000Z").getTime();
 const textWidthCaches=[];
+const d=document;
 let deepcopy=(obj)=>{return JSON.parse(JSON.stringify(obj));};
-let d=document;
 let _global_conf={};
 let textWidthCache=[]; textWidthCache.length=65536; // String.fromCharCode has mask 0xFFFF
 let searchTbl={};
@@ -276,6 +276,8 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	w.SVGImageElement.prototype.sans=w.HTMLElement.prototype.sans;
 	w.SVGImageElement.prototype.gans=w.HTMLElement.prototype.gans;
 	
+	w.NodeList.prototype.getnth=function(n){ return this[n]; };
+	
 	w.isInt=(obj)=>parseInt(obj)===obj;
 	Object.defineProperties(w,{
 		"/dev/null": {
@@ -508,6 +510,36 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	};
 	
 	w.Map.prototype.contains=w.Map.prototype.has;
+	
+	w.Date.prototype.tostrUTC=function(){
+		let o=this,ms=""+this.getUTCMilliseconds();
+		return ""+o.getUTCFullYear()+'-'+(o.getUTCMonth()+1)+'-'+(o.getUTCDate())+
+			' '+(o.getUTCHours())+":"+(o.getUTCMinutes())+":"+(o.getUTCSeconds())+
+			'.'+"0".repeat(3-ms.length)+ms;
+	};
+	w.Date.prototype.toFormat=function f(){
+		if(f.pad2===undefined) f.pad2=(n)=>{return (n<10?"0":"")+n;};
+		let timestamp=this.tostrUTC();
+		const it=timestamp.indexOf(".");
+		let ms="";
+		if(it===-1) ms+=".";
+		else{
+			let tmp=timestamp.slice(it).match(/^\.[0-9]*/);
+			ms+=(tmp!==null)?tmp[0]:".";
+			timestamp=timestamp.slice(0,it);
+		}
+		if(ms.length<3) ms+="0".repeat(3-ms.length);
+		let rtv="";
+		const t=new Date(timestamp+"Z");
+		let opt_t={"hour12":false};
+		let opt_d_v=[{"year":"numeric"},{"month":"2-digit"},{"day":"2-digit"}];
+		for(let x=0;x<opt_d_v.length;++x) rtv+=t.toLocaleDateString("en-US",opt_d_v[x])+"/";
+		rtv=rtv.replace(/\/$/," ");
+		rtv+=f.pad2(t.getHours()); rtv+=":";
+		rtv+=f.pad2(t.getMinutes()); rtv+=":";
+		rtv+=f.pad2(t.getSeconds()); rtv+=ms;
+		return rtv;
+	};
 	
 	w.Queue=function(){ this.initialize.apply(this,arguments); };
 	w.Queue.prototype.constructor=w.Queue;

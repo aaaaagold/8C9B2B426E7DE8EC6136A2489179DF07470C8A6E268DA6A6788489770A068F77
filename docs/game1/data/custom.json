@@ -100,6 +100,8 @@
 		"no":"隊友滯留中",
 		"":0
 	},
+	"useEscToExit": "使用ESC退出",
+	"useEscOrClickHereToExit": "使用ESC或按此以退出",
 	"toDust": "\\key'\"可燃物\"'化成灰了",
 	"textcolor":{
 		"use": "#AA77FF",

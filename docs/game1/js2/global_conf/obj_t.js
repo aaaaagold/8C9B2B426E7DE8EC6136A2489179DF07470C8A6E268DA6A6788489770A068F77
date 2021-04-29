@@ -23,7 +23,7 @@ $dddd$=Input.clear=function f(keyOnly){
 }; $dddd$.ori=$rrrr$;
 Input._onKeyDown=function(event) {
 	this.kstat[event.keyCode]=true;
-	if (this._shouldPreventDefault(event.keyCode)) {
+	if(!document.activeElement.useDefault&&this._shouldPreventDefault(event.keyCode)){
 		event.preventDefault();
 	}
 	let buttonName = this.keyMapper[event.keyCode]||event.keyCode;
@@ -95,6 +95,11 @@ $aaaa$._setupEventHandlers=function(){
 	document.addEventListener('touchend', this._onTouchEnd.bind(this));
 	document.addEventListener('touchcancel', this._onTouchCancel.bind(this));
 	document.addEventListener('pointerdown', this._onPointerDown.bind(this));
+};
+$aaaa$._onWheel = function(event) {
+	this._events.wheelX += event.deltaX;
+	this._events.wheelY += event.deltaY;
+	if(!document.activeElement.canScroll&&!document.activeElement.useDefault) event.preventDefault();
 };
 $aaaa$._onTouchStart = function(event) {
 	let L=event.changedTouches.length,cancel=false,cx=0,cy=0;
@@ -11617,7 +11622,7 @@ $aaaa$.prototype._drawFaceFromData=function(data){
 	);
 	// re-arrange data to fit the function
 	data[0]=tmp._canvas=tmp; data[2]=data[1]=0;
-	c.clearRect(0,0,data[7]||data[3],data[8]||data[4]);
+	c.clearRect(data[5]||data[1],data[6]||data[2],data[7]||data[3],data[8]||data[4]);
 	c.blt.apply(c,data);
 };
 $rrrr$=$aaaa$.prototype.loadMessageFace;

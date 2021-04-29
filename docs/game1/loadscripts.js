@@ -1,18 +1,15 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.-" ;
+const ver = "4.2.6.8.9.6.+" ;
 
 var isDev,dev_kkk,dev_kk,jss;
-if(window.sha256 && sha256(location.hash)==="0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
+if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
 //jss=undefined;//test:non-local
 //isDev=false;//test:non-dev
 (()=>{
-let w=window,d=document;
-const ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
-let isDev_=isDev,objs={};
-//isDev_=false;//test:hideVars
-if(window.sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269") isDev_=false;
-if(isDev)if(isDev_)window.objs=objs;else window._objs=objs;
+const w=window,d=document,ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
+const objs=w.objs||{},isDev_=isDev&&!(w.sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269");
+if(isDev)if(isDev_)w.objs=objs;else w._objs=objs;
 if(!jss)jss=[
 	"test.js",
 //plg
