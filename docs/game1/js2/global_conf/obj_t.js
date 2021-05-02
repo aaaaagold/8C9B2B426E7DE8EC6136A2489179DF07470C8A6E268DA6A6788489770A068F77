@@ -3251,11 +3251,13 @@ $dddd$=Scene_Battle.prototype.onActorOk=function f(){
 	case 's':
 		if(!(w._index>=0)) return; // unknown error
 		if(w._pendingIndex>=0){
-			const arr=$gameParty.members();
+			const arr=$gameParty.members(),w2=this._statusWindow;
 			$gameParty.swapOrderByActor(arr[w._pendingIndex],arr[w._index]);
+			w2.redrawItem(w._index);
 			w.redrawItem(w._index);
 			const idx=w._pendingIndex;
 			w._pendingIndex=-1;
+			w2.redrawItem(idx);
 			w.redrawItem(idx);
 		}else w.redrawItem(w._pendingIndex=w._index);
 		w.activate();

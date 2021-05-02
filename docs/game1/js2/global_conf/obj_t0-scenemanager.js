@@ -428,6 +428,13 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 			$gameMessage.popup("templateStrt = "+$dataMap.templateStrt);
 			$gameMessage.popup("#stringIdEvts: "+mp._events.filter(x=>x&&typeof x._eventId==='string').length);
 		}break;
+		case "F".charCodeAt(): if(SceneManager.isMap()){ // _events.length
+			const f=window.editMap;
+			if(f&&f.constructor===Function){
+				f();
+				$gameMessage.popup("exec f");
+			}
+		}break;
 	}}
 	if(event.keyCode===80){ // "P"
 		if(this._stopped){
