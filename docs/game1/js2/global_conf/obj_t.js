@@ -3080,20 +3080,81 @@ $aaaa$.prototype.createSpriteset=function(){
 	this._chr2sp=new Map();
 	this.addChild(this._spriteset = new Spriteset_Battle(this));
 };
+$rrrr$=$aaaa$.prototype.createAllWindows;
+$dddd$=$aaaa$.prototype.createAllWindows=function f(){
+	f.ori.call(this);
+	this.createSwapActorWindow();
+	// trim
+	this._actorWindow.y=0;
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype.createPartyCommandWindow;
 $dddd$=$aaaa$.prototype.createPartyCommandWindow=function f(){
 	f.ori.call(this);
-	this._partyCommandWindow.setHandler('usePlan',     this.commandUsePlan.bind(this));
-	this._partyCommandWindow.setHandler('allAtk',      this.commandAtkAll.bind(this));
-	this._partyCommandWindow.setHandler('allGuard',    this.commandGuardAll.bind(this));
-	this._partyCommandWindow.setHandler('allSpaceout', this.commandSpaceoutAll.bind(this));
-	this._partyCommandWindow.setHandler('viewLog',     this.commandViewLog.bind(this));
+	const w=this._partyCommandWindow;
+	w.setHandler('swap',    	this.commandSwap.bind(this));
+	w.setHandler('usePlan', 	this.commandUsePlan.bind(this));
+	w.setHandler('allAtk',  	this.commandAtkAll.bind(this));
+	w.setHandler('allGuard',	this.commandGuardAll.bind(this));
+	w.setHandler('allSpaceout',	this.commandSpaceoutAll.bind(this));
+	w.setHandler('viewLog', 	this.commandViewLog.bind(this));
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.createSwapActorWindow=function(){
+	let w;
+	//this.addWindow( w = this._swapActorWindow = new Window_BattleStatus() );
+	w=this._swapActorWindow=this._actorWindow;
+};
 $rrrr$=$aaaa$.prototype.createActorCommandWindow;
 $dddd$=$aaaa$.prototype.createActorCommandWindow=function f(){
 	f.ori.call(this);
 	this._actorCommandWindow.setHandler('spaceout',   this.commandSpaceout.bind(this));
 }; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.commandSwap=function(){
+	const w=this._swapActorWindow;
+	w._mode='s';
+	w._pendingIndex=-1;
+	w.refresh();
+	w.show();
+	if(!(w._index>=0)) w._index=0;
+	w.activate();
+};
+$aaaa$.prototype.commandUsePlan=function(){
+	this._allSpecific=0;
+	this._windowLayer.visible=false;
+	const cmdw=this._partyCommandWindow;
+	if(this._battlePlan===undefined){
+		const plan = this._battlePlan = new Window_BattlePlan , bye=()=>this._windowLayer.visible=cmdw.active=!(plan.visible=plan.active=false);
+		SceneManager._scene.addChild(plan);
+		plan.setHandler('cancel' ,bye);
+		plan.setHandler('ok'     ,()=>{
+			bye(); cmdw.active=false;
+			let actidx=0,subject; while(true){
+				BattleManager.selectNextCommand();
+				if(BattleManager.isInputting()){
+					const action = BattleManager.inputtingAction();
+					const currSubject=action.subject();
+					if(currSubject!==subject){ subject=currSubject; actidx=0; }
+					const plan=currSubject.getPlan(actidx);
+					const obj=currSubject.getPlanObj(actidx);
+					++actidx;
+					switch(obj&&obj.itemType){
+					case 's': {
+						action.setSkill(obj.id);
+						if(plan[2]>0) action.setTarget(plan[2]-1);
+					}break;
+					case 'i': {
+						action.setItem(obj.id);
+						if(plan[2]>0) action.setTarget(plan[2]-1);
+					}break;
+					}
+				}else{ this.endCommandSelection(); break; }
+			}
+		});
+	}else{
+		const plan=this._battlePlan;
+		plan.visible=plan.active=true;
+		plan.refresh();
+	}
+};
 $aaaa$.prototype.commandAtkAll=function(){
 	this._allSpecific=1;
 	this.selectEnemySelection();
@@ -3132,44 +3193,6 @@ $aaaa$.prototype.commandSpaceoutAll=function(){
 			this.endCommandSelection();
 			break;
 		}
-	}
-};
-$aaaa$.prototype.commandUsePlan=function(){
-	this._allSpecific=0;
-	this._windowLayer.visible=false;
-	const cmdw=this._partyCommandWindow;
-	if(this._battlePlan===undefined){
-		const plan = this._battlePlan = new Window_BattlePlan , bye=()=>this._windowLayer.visible=cmdw.active=!(plan.visible=plan.active=false);
-		SceneManager._scene.addChild(plan);
-		plan.setHandler('cancel' ,bye);
-		plan.setHandler('ok'     ,()=>{
-			bye(); cmdw.active=false;
-			let actidx=0,subject; while(true){
-				BattleManager.selectNextCommand();
-				if(BattleManager.isInputting()){
-					const action = BattleManager.inputtingAction();
-					const currSubject=action.subject();
-					if(currSubject!==subject){ subject=currSubject; actidx=0; }
-					const plan=currSubject.getPlan(actidx);
-					const obj=currSubject.getPlanObj(actidx);
-					++actidx;
-					switch(obj&&obj.itemType){
-					case 's': {
-						action.setSkill(obj.id);
-						if(plan[2]>0) action.setTarget(plan[2]-1);
-					}break;
-					case 'i': {
-						action.setItem(obj.id);
-						if(plan[2]>0) action.setTarget(plan[2]-1);
-					}break;
-					}
-				}else{ this.endCommandSelection(); break; }
-			}
-		});
-	}else{
-		const plan=this._battlePlan;
-		plan.visible=plan.active=true;
-		plan.refresh();
 	}
 };
 $aaaa$.prototype.commandViewLog=function(){
@@ -3220,6 +3243,44 @@ $aaaa$.prototype.selectNextCommand=function(){
 	BattleManager.selectNextCommand();
 	this.changeInputWindow();
 };
+$rrrr$=Scene_Battle.prototype.onActorOk;
+$dddd$=Scene_Battle.prototype.onActorOk=function f(){
+	const w=this._swapActorWindow;
+	switch(w._mode){
+	default: return f.ori.call(this);
+	case 's':
+		if(!(w._index>=0)) return; // unknown error
+		if(w._pendingIndex>=0){
+			const arr=$gameParty.members();
+			$gameParty.swapOrderByActor(arr[w._pendingIndex],arr[w._index]);
+			w.redrawItem(w._index);
+			const idx=w._pendingIndex;
+			w._pendingIndex=-1;
+			w.redrawItem(idx);
+		}else w.redrawItem(w._pendingIndex=w._index);
+		w.activate();
+	break;
+	}
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$aaaa$.prototype.onActorCancel;
+$dddd$=$aaaa$.prototype.onActorCancel=function f(){
+	const w=this._swapActorWindow;
+	switch(w._mode){
+	default: return f.ori.call(this);
+	case 's': { // swap
+		if(w._pendingIndex>=0){
+			const idx=w._pendingIndex;
+			w._pendingIndex=-1;
+			w.redrawItem(idx);
+		}else{
+			w._mode=undefined;
+			w.deactivate();
+			w.hide();
+			this._partyCommandWindow.activate();
+		}
+	}break;
+	}
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.onEnemyOk=function(){
 	switch(this._allSpecific){
 	default:{
@@ -7200,11 +7261,19 @@ $aaaa$.prototype.swapOrder=function(index1,index2){
 		let flwr1=flwrs[index1-1]; if(flwr1) flwr1.resetWalkAni();
 		let flwr2=flwrs[index2-1]; if(flwr2) flwr2.resetWalkAni();
 	}
-	$gameTemp._pt_battleMembers=false; this.battleMembers();
+	$gameTemp._pt_battleMembers=false; this.battleMembers(); // when not everyone is able to fight even if they are in the front part of the party
 	$gamePlayer.refresh();
 	// clear battle plan // I'm lazy
 	const btlPlan=SceneManager._scene&&SceneManager._scene._battlePlan;
 	if(btlPlan) btlPlan.refresh_plans();
+};
+$aaaa$.prototype.swapOrderByActor=function(actor1,actor2){
+	{ const s=$gameTemp._pt_allMembers_idSet;
+	if(!s.has(actor1.actorId())||!s.has(actor2.actorId())) return;
+	}
+	{ const arr=$gameTemp._pt_allMembers;
+	this.swapOrder(arr.indexOf(actor1),arr.indexOf(actor2));
+	}
 };
 $aaaa$.prototype.maxItems=function f(item){
 	return _global_conf["default maxItems"]||404;
@@ -11972,13 +12041,14 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=Window_PartyCommand;
 $rrrr$=$aaaa$.prototype.makeCommandList;
 $dddd$=$aaaa$.prototype.makeCommandList=function f(){
-	this.addCommand(TextManager.fight,  'fight');
-	this.addCommand($dataCustom.plan.use,  'usePlan');
-	this.addCommand($dataCustom.battle.allAtk,  'allAtk');
-	this.addCommand($dataCustom.battle.allGuard,  'allGuard');
-	this.addCommand($dataCustom.battle.allSpaceout,  'allSpaceout');
-	this.addCommand($dataCustom.battle.viewLog,  'viewLog');
-	this.addCommand(TextManager.escape, 'escape', BattleManager.canEscape());
+	this.addCommand(TextManager.fight,	'fight');
+	this.addCommand(TextManager.formation,	'swap');
+	this.addCommand($dataCustom.plan.use,	'usePlan');
+	this.addCommand($dataCustom.battle.allAtk,	'allAtk');
+	this.addCommand($dataCustom.battle.allGuard,	'allGuard');
+	this.addCommand($dataCustom.battle.allSpaceout,	'allSpaceout');
+	this.addCommand($dataCustom.battle.viewLog,	'viewLog');
+	this.addCommand(TextManager.escape,	'escape', BattleManager.canEscape());
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.setup=function(){
 	this.clearCommandList();
@@ -12088,6 +12158,26 @@ $dddd$=$aaaa$.prototype.drawBasicArea=function f(r,a){
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$dddd$=$aaaa$=undef;
 
+$aaaa$=Window_BattleActor;
+$aaaa$.prototype.numVisibleRows=function(){
+	return ~~((Graphics.boxHeight - (this.standardPadding()<<1)) / this.lineHeight());
+};
+$rrrr$=$aaaa$.prototype.drawItem;
+$dddd$=$aaaa$.prototype.drawItem=function f(idx){
+	Window_MenuActor.prototype.drawItemBackground.call(this,idx);
+	f.ori.call(this,idx);
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.initialize=function(x,y){
+	Window_BattleStatus.prototype.initialize.call(this);
+	this._mode=undefined;
+	this._pendingIndex=-1;
+	this.x = x;
+	this.y = y;
+	this.openness = 255;
+	this.hide();
+};
+$rrrr$=$dddd$=$aaaa$=undef;
+
 // - titleCommand
 $aaaa$=Window_TitleCommand;
 $aaaa$.prototype.makeCommandList = function() {
@@ -12116,6 +12206,7 @@ $aaaa$.prototype.initialize = function(x, y ,kargs) {
 	this.selectLast();
 };
 $aaaa$.prototype.addCustomCommands=function(){
+	this.addCommand($dataCustom.plan.name, 'plan');
 	this.addCommand($dataCustom.apps,'apps');
 };
 $rrrr$=$aaaa$.prototype.addSaveCommand;
@@ -12145,7 +12236,6 @@ $aaaa$.prototype.addMainCommands=function(){ //
 		this.addCommand(TextManager.equip, 'equip', enabled);
 	}
 	//if(this.needsCommand('status')) this.addCommand(TextManager.status, 'status', enabled);
-	this.addCommand($dataCustom.plan.name, 'plan');
 };
 $aaaa$.prototype.makeCommandList = function() {
 	this.addOnceCommand();
