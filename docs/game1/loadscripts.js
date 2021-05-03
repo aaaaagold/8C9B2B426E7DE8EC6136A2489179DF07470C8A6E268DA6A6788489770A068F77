@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.****" ;
+const ver = "4.2.6.8.9.6.****." ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
@@ -41,15 +41,10 @@ if(!jss)jss=[
 //	"js/main.js",
 ];
 
-let waits=[],waits_i=0, putWaits=(p,c)=>{
-	while(waits_i!==jss.length && waits[waits_i]){
-		let scr=waits[waits_i++];
-		if(scr!==true){ ac(d.body,scr); rc(d.body,scr); }
-	}
-},kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,txt)=>{
+let waits=[],waits_i=0,kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,istxt,method,data)=>{
 	let xhr=new XMLHttpRequest();
-	if(!txt) xhr.responseType='arraybuffer';
-	if(onerr&&onerr.constructor===Function) xhr.onerror=function(){ this.onerror=null; onerr(); };
+	if(!istxt) xhr.responseType='arraybuffer';
+	if(onerr&&onerr.constructor===Function) xhr.onerror=function(){ this.onerror=null; onerr.call(xhr); };
 	if(cb&&cb.constructor===Function) xhr.onreadystatechange=function(){
 		if (this.readyState === 4){
 			let s = this.status.toString();
@@ -58,8 +53,8 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 			}
 		}
 	};
-	xhr.open("GET",url);
-	xhr.send(null);
+	xhr.open(method||"GET",url);
+	xhr.send(data);
 	return;
 },vars=[
 "SceneManager",
@@ -86,14 +81,20 @@ let waits=[],waits_i=0, putWaits=(p,c)=>{
 objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice();
 objs.testing=0; objs.isDev=isDev;
 const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
-	let wait={}; wait.src=src; wait.cnt=idxcnt;
-	let plain=wait.plain=aes(c.split(' ').map(x=>parseInt(x,16)),k.slice(0,32),1);
-	if(isDev_) console.log(plain);
-	if(idx+1===f.idx) f.addScriptFromGas(wait);
-	else waits[idx]=wait;
+	const wait={}; wait.src=src; wait.cnt=idxcnt;
+	if(k){
+		const plain=wait.plain=aes(c.split(' ').map(x=>parseInt(x,16)),k.slice(0,32),1);
+		if(isDev_) console.log(plain);
+		if(idx+1===f.idx) f.addScriptViaWait(wait);
+		else waits[idx]=wait;
+	}else{
+		wait.plain=c;
+		if(idx+1===f.idx) f.addScriptViaWait(wait);
+		else waits[idx]=wait;
+	}
 },onloadProc=function f(){
 	if(f.idx===0){
-		if(window.sha256 && sha256(location.hash)==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
+		if(w.sha256 && sha256(location.hash)==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
 		if(!f.wait_blk){
 			f.wait_blk=ce('div');
 			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));
@@ -111,7 +112,7 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 			let ua=navigator.userAgent; kkk=s; f();
 		}); return; }
 		if(kk===""){ XHR(auth+"?ip",response=>{
-			let u8arr=new Uint8Array(window.____asdfghjkl____=response);
+			let u8arr=new Uint8Array(response);
 			if(u8arr.length) kk=String.fromCharCode(u8arr[u8arr.length-1]);
 			else kk="-";
 			f();
@@ -192,13 +193,22 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		
 		return;
 	}
-	// req. all gas
+	// req. all
 	if(f.idx===0){ const verStr=ver.toString(); for(let x=0,gas="https://script.google.com/macros/s/AKfycbxKqePNqsycE-Y4FkmZEeCMcILjXaCRoMgUESaEI2iiSzCYmH0G/exec";x!==jss.length;){
-		let src=jss[x]; if(src[0]!==":"){ ++x; continue; }
-		let idx=x++,files="&file="+encodeURIComponent(src),isBody=onloadProc.isBody(src);
+		let src=jss[x],idx=x++; if(src[0]!==":"){
+			if(!isDev_){
+				const oriSrc=src; src+=src.indexOf("?")===-1?"?":"&"; if(!objs.testing) src+=Date.now();
+				let cnt=4; XHR(src,c=>putck(f,idx,1,oriSrc,c),function(){
+					if(--cnt===0) return f.giveupMsg();
+					this.open(src); this.send(null);
+				},1);
+			}
+			continue;
+		}
+		let files="&file="+encodeURIComponent(src),isBody=onloadProc.isBody(src);
 		while(x!==jss.length && jss[x][0]===":") if(onloadProc.isBody(jss[x])===isBody) files+="&file="+encodeURIComponent(jss[x++]); else break;
 		if(isDev_) console.log(files);
-		let idxcnt=x-idx,k=Date.now()+''+Math.random(),xhr=new XMLHttpRequest();
+		const idxcnt=x-idx,k=Date.now()+''+Math.random();
 		{ const lastVer=localStorage.getItem(confPrefix+'v'+src); if(verStr!==lastVer){
 			localStorage.removeItem(confPrefix+'s'+src);
 			localStorage.removeItem(confPrefix+'k'+src);
@@ -206,34 +216,29 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		{ const c=localStorage.getItem(confPrefix+'s'+src) , k=localStorage.getItem(confPrefix+'k'+src); if(c&&k){
 			putck(f,idx,idxcnt,src,c,k); continue;
 		} }
-		xhr.onreadystatechange=function() {
-			if (this.readyState === 4) {
-				let s = this.status.toString();
-				if (s.length === 3 && s.slice(0, 1) === '2') { this.onreadystatechange=null;
-					if(isDev_){ console.log(files,k); console.log(this.responseText); }
-					const kkkkkk=kkk+kk+k;
-					localStorage.setItem(confPrefix+'s'+src,this.responseText);
-					localStorage.setItem(confPrefix+'k'+src,kkkkkk);
-					putck(f,idx,idxcnt,src,this.responseText,kkkkkk);
-					localStorage.setItem(confPrefix+'v'+src,verStr); // last
-				}
-			}
-		}
-		let cnt=4,go=()=>{
+		const u=gas+"?game=燒毀"+files+"&";
+		let cnt=4;
+		XHR(u+Date.now(),respTxt=>{
+			if(isDev_){ console.log(files,k); console.log(respTxt); }
+			const kkkkkk=kkk+kk+k;
+			localStorage.setItem(confPrefix+'s'+src,respTxt);
+			localStorage.setItem(confPrefix+'k'+src,kkkkkk);
+			putck(f,idx,idxcnt,src,respTxt,kkkkkk);
+			localStorage.setItem(confPrefix+'v'+src,verStr); // last
+		},function(){
 			if(--cnt===0) return f.giveupMsg();
-			xhr.open("POST",gas+"?game=燒毀"+files+"&"+Date.now(),true);
-			xhr.send(k);
-		};
-		xhr.onerror=()=>setTimeout(go,404); go();
+			this.open("POST",u+Date.now(),true);
+			this.send(k);
+		},true,"POST",k);
 	} }
 	let idx=f.idx;
 	let src=jss[f.idx++];
 	if(src[0]===":"){
-		if(waits[idx]) onloadProc.addScriptFromGas(waits[idx]);
+		if(waits[idx]) onloadProc.addScriptViaWait(waits[idx]);
 	}else{
-		let scr=ce('script'),oriSrc=src;
-		src+=src.indexOf("?")===-1?"?":"&"; if(!objs.testing) src+=Date.now();
 		if(isDev_){
+			let scr=ce('script'),oriSrc=src;
+			src+=src.indexOf("?")===-1?"?":"&"; if(!objs.testing) src+=Date.now();
 			objs.addScriptViaSrc=undefined;
 			scr.idx=idx;
 			scr.onerror=f.onerr;
@@ -243,7 +248,7 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		}else{
 			if(window.SceneManager) objs.SceneManager=SceneManager;
 			if(window.DataManager) objs.DataManager=DataManager;
-			onloadProc.addScriptViaSrc(scr,oriSrc,true);
+			if(waits[idx]) onloadProc.addScriptViaWait(waits[idx]);
 		}
 	}
 }; onloadProc.idx=0;
@@ -265,15 +270,6 @@ onloadProc.onerr=function f(){ this.onerror=null;
 onloadProc.putScript=(scr,txt)=>{
 	ac(d.body, ac(scr,tn(txt)) ); if(!objs.isDev) rc(d.body,scr);
 };
-onloadProc.putScript_isBody=(scr,oriSrc,plain)=>{
-	let rndkey=encodeURI(oriSrc)+'/'+Math.random()+'/'+Date.now();
-	window[rndkey]=objs;
-	let txt=onloadProc.addRefreshVars(plain,oriSrc);
-	txt+="(window[\""+rndkey+"\"]);";
-	onloadProc.putScript(scr,txt);
-	if(isDev_) window[oriSrc]=scr;
-	if(!objs.isDev) delete window[rndkey];
-};
 onloadProc.addRefreshVars=(txt,src)=>{
 	let us='"use strict";\n';
 	let rtv=us;
@@ -291,6 +287,15 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	rtv+="})";
 	return rtv;
 };
+onloadProc.putScript_isBody=(scr,oriSrc,plain)=>{
+	let rndkey=encodeURI(oriSrc)+'/'+Math.random()+'/'+Date.now();
+	window[rndkey]=objs;
+	let txt=onloadProc.addRefreshVars(plain,oriSrc);
+	txt+="(window[\""+rndkey+"\"]);";
+	onloadProc.putScript(scr,txt);
+	if(isDev_) window[oriSrc]=scr;
+	if(!objs.isDev) delete window[rndkey];
+};
 onloadProc.isBody=src=>true
 	&& src.slice(0,8)!=="js/libs/"
 	&& src!=="js/plugins.js"
@@ -299,28 +304,27 @@ onloadProc.isBody=src=>true
 	&& src.slice(-2)!=="_h"
 	&& src.indexOf("init")===-1
 	&& true;
-onloadProc.addScriptFromGas=wait=>{
-	let scr=ce('script'),src=wait.src,plain=wait.plain;
-	if(onloadProc.isBody(src)){ if(isDev_) console.log("body",src);
-		if(isDev_) onloadProc.putScript(scr,plain);
-		else onloadProc.putScript_isBody(scr,src,plain);
-	}else onloadProc.putScript(scr,plain);
-	onloadProc.idx+=wait.cnt-1;
-	onloadProc();
-};
-onloadProc.addScriptViaSrc=(scr,src,doNext)=>{
+onloadProc.addScriptViaSrc=(scr,src,doNext,data)=>{
 	let oriSrc=src;
-	src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
+	if(!data) src+=src.indexOf("?")===-1?"?":"&"; src+=Date.now();
 	let isBody=onloadProc.isBody(oriSrc);
 	let cnt=4,req=()=>{
 		if(isDev_) console.log(oriSrc,isBody);
 		if(--cnt===0) return onloadProc.giveupMsg();
-		XHR(src,txt=>{
-			if(isBody) onloadProc.putScript_isBody(scr,oriSrc,txt);
+		const putScr=txt=>{
+			if(isBody&&!isDev_) onloadProc.putScript_isBody(scr,oriSrc,txt);
 			else onloadProc.putScript(scr,txt);
 			if(doNext) onloadProc();
-		},req,1);
+		};
+		if(data&&data.constructor===String) putScr(data);
+		else XHR(src,putScr,req,1);
 	};req();
 }; objs.addScriptViaSrc=(scr,src)=>onloadProc.addScriptViaSrc(scr,src);
+onloadProc.addScriptViaWait=wait=>{
+	const scr=ce('script');
+	scr.onerror=onloadProc.giveupMsg;
+	onloadProc.idx+=wait.cnt-1;
+	onloadProc.addScriptViaSrc(scr,wait.src,true,wait.plain);
+};
 if(d.body) onloadProc(); else w.onload=()=>{ w.onload=null; onloadProc(); }
 })();
