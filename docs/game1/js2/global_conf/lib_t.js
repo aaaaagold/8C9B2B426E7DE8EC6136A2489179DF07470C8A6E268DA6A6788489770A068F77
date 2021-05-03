@@ -24,9 +24,11 @@ const addScript=window.addScript=(src)=>{
 	document.head.appendChild(t);
 };
 
-addScript("js2/rpgevents/main.js");
-addScript("js2/rpgquests/main.js");
-addScript("js2/rpgskills/main.js");
+if(typeof isGame!=='undefined'){
+	addScript("js2/rpgevents/main.js");
+	addScript("js2/rpgquests/main.js");
+	addScript("js2/rpgskills/main.js");
+}
 
 Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions'@obj_t
 	halfFps: {

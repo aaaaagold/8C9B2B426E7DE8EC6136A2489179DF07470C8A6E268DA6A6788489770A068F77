@@ -5710,19 +5710,29 @@ Object.defineProperties($aaaa$.prototype,{
 	},configurable:false},
 });
 $dddd$=$aaaa$.prototype._getColorEdt=function f(){
-	let meta=this.getData().meta;
-	if(meta.colors){
-		if(!meta.colors_lazyTbl) meta.colors_lazyTbl=JSON.parse(meta.colors).map(f.toJson);
-		return meta.colors_lazyTbl[this._pageIndex];
-	}else return meta.color;
+	let rtv;
+	{
+		const meta=this.getData().meta;
+		if(meta.colors){
+			if(!meta.colors_lazyTbl) meta.colors_lazyTbl=JSON.parse(meta.colors).map(f.toJson);
+			rtv=meta.colors_lazyTbl[this._pageIndex];
+		}else rtv=meta.color;
+	}
+	if(!rtv) rtv=this._color;
+	return rtv;
 };
 $dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
 $dddd$=$aaaa$.prototype._getScaleEdt=function f(){
-	let meta=this.getData().meta;
-	if(meta.scales){
-		if(!meta.scales_lazyTbl) meta.scales_lazyTbl=JSON.parse(meta.scales).map(f.toJson);
-		return meta.scales_lazyTbl[this._pageIndex];
-	}else return meta.scale;
+	let rtv;
+	{
+		const meta=this.getData().meta;
+		if(meta.scales){
+			if(!meta.scales_lazyTbl) meta.scales_lazyTbl=JSON.parse(meta.scales).map(f.toJson);
+			rtv=meta.scales_lazyTbl[this._pageIndex];
+		}else rtv=meta.scale;
+	}
+	if(!rtv) rtv=this._scale;
+	return rtv;
 };
 $dddd$.toJson=$aaaa$.prototype._getColorEdt.toJson;
 $aaaa$.prototype._getAnchoryEdt=function f(){
@@ -7289,7 +7299,7 @@ $aaaa$.prototype.numItems=function(item,container){ // item in $dataItems / $dat
 	container=container||this.itemContainer(item);
 	return (container && container[item.id])|0;
 };
-$aaaa$.prototype.arrangeMaxDayItems=function(){ // TODO
+$aaaa$.prototype.arrangeMaxDayItems=function(){ // TODO(?)
 	const tmp=[];
 	for(let x=0,arr=$dataItems.maxDayItems,ptitem=$gameParty._items;x!==arr.length;++x){
 		let id=arr[x];
@@ -10270,7 +10280,6 @@ $dddd$=$aaaa$.prototype.skills=function f(){
 	const added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	let s=this._skills_getCache();
 	if(s){
-		// TODO: Now every time traitSet is different. Thus this will always be fales.
 		if(!s.needArrange && s.added===added && s.all) return s.all;
 		s.added=added;
 		rtv=[];
@@ -10743,6 +10752,21 @@ $rrrr$=Game_Character.prototype;
 $aaaa$.prototype._getColorEdt=$rrrr$._getColorEdt;
 $aaaa$.prototype._getScaleEdt=$rrrr$._getScaleEdt;
 $aaaa$.prototype._getAnchoryEdt=$rrrr$._getAnchoryEdt;
+Object.defineProperties($aaaa$.prototype,{
+	_refActor:{
+		get:function(){return this._rActr;},
+		set:function(rhs){
+			if(rhs&&rhs.toId){
+				const src=$dataActors[rhs.toId()];
+				if(src){
+					this._color=src.meta.color;
+					this._scale=src.meta.scale;
+				}
+			}
+			return this._rActr=rhs;
+		},
+	configurable:true},
+});
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 	f.ori.call(this,eid,x,y);
@@ -10750,7 +10774,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 	delete this._refActor;
 	const data=this.getData();
 	if(data){
-		this._refActor=data.meta.refActor;
+		let refActor=data.meta.refActor;
 		switch(data.meta.mimic){
 		default: { const n=Number(data.meta.mimic); if(!isNaN(n)){
 			
@@ -10759,7 +10783,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 		case true: {
 			const ids=$gameParty._acs;
 			if(ids.length===0) break;
-			const n=this._mimic=this._refActor=ids.rnd();
+			const n=this._mimic=refActor=ids.rnd();
 			const a=$gameActors.actor(n);
 			for(let x=0,arr=this._paramPlus;x!==arr.length;++x){
 				arr[x]=a.paramBase(x)+a.paramPlus(x);
@@ -10768,6 +10792,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 		}break;
 		case undefined: break;
 		}
+		this._refActor=refActor;
 	}
 }; $dddd$.ori=$rrrr$;
 $dddd$=$aaaa$.prototype._getTraits_native=function f(){
@@ -12540,7 +12565,7 @@ $aaaa$.prototype.drawItem=function(index){
 		this.changePaintOpacity(true);
 	}
 };
-$aaaa$.prototype.slotName=function(index){ // TODO: prevent search
+$aaaa$.prototype.slotName=function(index){ // TODO: prevent search (now is binary search)
 	const slots = this._actor.equipSlots() , slotId = this._idx2slotId(index);
 	return this._actor ? $dataSystem.equipTypes[slots[slotId]] : '';
 };
