@@ -7,7 +7,7 @@ function Scene_ChatOnline(){
 };
 $aaaa$=Scene_ChatOnline;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$aaaa$.prototype = Object.create( ((typeof Scene_CustomMenu2==='undefined')?(function(){}):Scene_CustomMenu2) .prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.terminate=()=>{
 	Input.clear();
@@ -26,11 +26,51 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	const _bgc='background-color:rgba(234,234,234,';
 	const bgc=_bgc+'0.25);';
 	const bgcB=_bgc+'0.5);';
-	const bound=d.ce('div').sa('class','abs nobound toedge').sa('style','z-index:64;padding:11px;color:#000000;'+bgc);
-	const root=d.ce('div').sa('class','abs nobound toedge').sa('style','z-index:64;margin:11px;padding:0px;color:#000000;'+bgc);
+	const mx='abs nobound toedge';
+	const bound=d.ce('div').sa('class',mx).sa('style','z-index:64;padding:11px;color:#000000;'+bgc);
+	const root=d.ce('div').sa('class',mx).sa('style','z-index:64;margin:11px;padding:0px;color:#000000;'+bgc);
 	root.canScroll=true;
 	d.ge('UpperDiv').ac(bound.ac(root));
 	const theTop=bound;
+	let inputNewName;
+	const exitAlt="Add your nickname";
+	const edtName=()=>{
+		if(!inputNewName){
+			const btn=d.ce('button').sa('class','maxH CC').at("confirm");
+			const btn_cancel=d.ce('button').sa('class','maxH CC').at("cancel");
+			const btn_current=d.ce('button').sa('class','maxH CC').at("current");
+			const txtin=d.ce('input').sa('placeholder','add your nickname');
+			bound.ac(inputNewName=d.ce('div').sa('class','abs nobound CC').sa('style',"z-index:65;height:36px;left:0px;right:0px;"+_bgc+"0.875);").ac(
+				d.ce('div').sa('class','maxW CC').ac(txtin).ac(btn).ac(btn_cancel).ac(btn_current)
+			));
+			inputNewName.in=txtin;
+			const hide=()=>{
+				inputNewName.style.display="none";
+				typing.focus();
+			}
+			btn.onclick=()=>{
+				chatName=txtin.value;
+				exit.rf(0).at(exitAlt+" (current: "+chatName+")");
+				hide();
+			};
+			btn_cancel.onclick=hide;
+			btn_current.onclick=()=>{
+				inputNewName.in.value=chatName||"";
+				inputNewName.in.focus();
+			}
+			txtin.onkeydown=e=>{
+				switch(e.keyCode){
+				case 13:{
+					btn.click();
+					e.preventDefault();
+				}break;
+				case 27: return hide();
+				}
+			};
+		}
+		inputNewName.style.display="block";
+		inputNewName.in.focus();
+	};
 	const bye=()=>{
 		theTop.parentNode.removeChild(theTop);
 		fb.dconn();
@@ -40,11 +80,13 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		}
 	};
 	const head=d.ce('div').sa('class','abs nobound CC maxW').sa('style','height:36px;font-size:24px;');
-	const exit=d.ce('button').sa('class','maxH CC').at($dataCustom.useEscOrClickHereToExit);
+	const isFromGame=(typeof $dataCustom!=='undefined');
+	const exit=d.ce('button').sa('class','maxH CC').at(isFromGame?$dataCustom.useEscOrClickHereToExit:exitAlt);
 	head.ac(exit);
 	exit.canScroll=true;
 	exit.alwaysPause=true;
 	exit.onclick=function(){
+		if(!isFromGame) return edtName();
 		this.onclick=null;
 		bye();
 	};
@@ -92,7 +134,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	const typing=d.ce('textarea').sa('class','abs nobound toedge maxH maxW txtin').sa('style','overflow:scroll;');
 	typing.useDefault=true;
 	typing.alwaysPause=true;
-	const chatName=$gameSystem&&$gameSystem._usr._chatName||null;
+	let chatName=(typeof $gameSystem!=='undefined')&&$gameSystem._usr._chatName||null;
 	sendBtn.onclick=()=>{
 		if(typing.value){
 			if(LOADING.parentNode){ LOADING.ac(d.ce('div').at("Not connected yet")); return; }
@@ -113,6 +155,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	foot.ac(sendBtn).ac(d.ce('div').ac(typing).sa('class','abs nobound toedge maxH').sa('style','left:135px;'));
 	root.ac(head).ac(body).ac(foot).onkeydown=function(e){
 		if(e.keyCode===27){
+			if(!isFromGame) return 0&&edtName();
 			this.onkeydown=null;
 			e.preventDefault();
 			bye();
