@@ -7842,10 +7842,10 @@ $dddd$.genDoneQList=function f(){
 $dddd$.genDoneQList.map=function f(qid){
 	let q=$dataItems[qid];
 	let ref=q.meta.ref;
-	return [q.name,";;func;call",!!ref,function(){this.parent.addWindow({},f.show(f.list[ref],1));}];
+	return [q.name,";;func;call",!!ref,function(){
+		this.parent.addWindow({},rpgquests.func.showBoard(rpgquests.list[ref],1));
+	}];
 };
-$dddd$.genDoneQList.map.list=rpgquests.list;
-$dddd$.genDoneQList.map.show=rpgquests.func.showBoard;
 $dddd$=undef;
 $aaaa$.prototype.openQuestReportWindow=function(rankMin,rankMax,reserveNan){
 	return SceneManager.addWindowB(this.genQuestReportWindow(rankMin,rankMax,reserveNan));
