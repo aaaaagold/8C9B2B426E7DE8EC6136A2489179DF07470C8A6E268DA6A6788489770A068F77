@@ -1,0 +1,45 @@
+﻿body{
+	position:absolute;margin:0px;border:0px solid black;width:100%;height:100%;
+	font-family:Consolas,'Courier New',Courier,微軟正黑體,標楷體,monospace;
+}
+.show-b{display:block;}
+.show-i{display:inline;}
+.show-ib{display:inline-block;}
+.hide{display:none;}
+.transparent{opacity:0;}
+.tiny{margin:0px;border:0px solid rgba(0,0,0,0);padding:0px;width:0px;height:0px;}
+.outofscreen{position:fixed;left:100%;top:100%;}
+.none{display:none;}
+.abs{position:absolute;}
+.nobound{margin:0px;border:0px solid black;}
+.maxW{width:100%;}
+.maxH{height:100%;}
+.CC{text-align:center;}
+.toedge{left:0px;right:0px;top:0px;bottom:0px;}
+.full{position:absolute;margin:0px;border:0px solid black;left:0px;right:0px;top:0px;bottom:0px;width:100%;height:100%;}
+.childInline{}
+.childInline>*{display:inline-block;}
+button{
+	display:inline-block;
+	font-size:24px;
+	color:white;background-color:black;opacity:0.875;
+}
+button:hover{
+	background-color:#AAAA11;
+}
+.msg{
+	position:relative;
+	top:50%;
+	display:block;
+	font-size:24px;
+	text-align:center;
+	border:1px solid white;
+	color:white;background-color:black;opacity:0.875;
+}
+.txtin{
+	white-space: pre;
+	word-break: keep-all;
+	text-justify: none;
+	text-overflow: clip;
+	overflow:hidden;
+}

@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>chatroom</title>
+<link rel="stylesheet" href="css.css">
+<script src="aes.js"></script>
+<script src=".dev.js"></script>
+<script>
+"use strict";
+function DataManager(){}
+function SceneManager(){}
+SceneManager.stop=()=>{};
+let initCalled=0;
+let zInit=11;
+const init=()=>{
+	if(initCalled) return; initCalled=1;
+	d.body.ac(d.ce('div').sa('id','UpperCanvas').sa('class','full').sa('style',''));
+	_global_conf["newDiv"]("backDiv",-1);
+	_global_conf["newDiv"]("LowerDiv",zInit+1);
+	_global_conf["newDiv"]("LowerDiv-s",zInit+2);
+	_global_conf["newDiv"]("UpperDiv",zInit+23);
+	Scene_ChatOnline.prototype.createOptionsWindow();
+	console.log("O_O");
+};
+Object.defineProperty(DataManager,'createGameObjects',{
+	set:init,
+	get:init,
+});
+var jss; if(!jss) jss=[
+	":init",
+	":lib_h",
+	":lib_t",
+	"js2/agold404/menu2-chat.js",
+];
+</script>
+<!--
+  <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js"></script>
+-->
+<script src="loadscripts.js"></script>
+</head>
+<body style="background-color: black"></body>
+</html>
