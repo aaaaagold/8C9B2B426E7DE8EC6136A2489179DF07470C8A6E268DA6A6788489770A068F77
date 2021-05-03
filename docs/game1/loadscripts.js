@@ -1,14 +1,14 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.****." ;
+const ver = "4.2.6.8.9.6.X" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
 //jss=undefined;//test:non-local
 //isDev=false;//test:non-dev
 (()=>{
-const w=window,d=document,ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
-const objs=w.objs||{},isDev_=isDev&&!(w.sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269");
+const w=window,d=document,sha256=w.sha256,ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
+const objs=w.objs||{},isDev_=isDev&&!(sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269");
 if(isDev)if(isDev_)w.objs=objs;else w._objs=objs;
 if(!jss)jss=[
 	"test.js",
@@ -75,13 +75,11 @@ let waits=[],waits_i=0,kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,istxt,met
 "$gameMap",
 
 "$gamePlayer",
-
-//"_sha256",
-]; //window._sha256=sha256;
+];
 objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice();
 objs.testing=0; objs.isDev=isDev;
-const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
-	const wait={}; wait.src=src; wait.cnt=idxcnt;
+const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=>{
+	const wait={}; wait.src=src; wait.cnt=idxcnt; wait.cb=wcb;
 	if(k){
 		const plain=wait.plain=aes(c.split(' ').map(x=>parseInt(x,16)),k.slice(0,32),1);
 		if(isDev_) console.log(plain);
@@ -94,7 +92,7 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 	}
 },onloadProc=function f(){
 	if(f.idx===0){
-		if(w.sha256 && sha256(location.hash)==="0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
+		if(sha256&&sha256(location.hash)=== "0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
 		if(!f.wait_blk){
 			f.wait_blk=ce('div');
 			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));
@@ -132,21 +130,21 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		}else{
 			let rv=()=>{ for(let i in objs._refreshVars) objs._refreshVars[i](); };
 			a=z=dm.createGameObjects=function f(){
-				objs.$gameTemp         = new Game_Temp();
-				objs.$gameSystem       = new Game_System();
-				objs.$gameScreen       = new Game_Screen();
-				objs.$gameTimer        = new Game_Timer();
-				objs.$gameMessage      = new Game_Message();
-				objs.$gameSwitches     = new Game_Switches();
-				objs.$gameVariables    = new Game_Variables();
-				objs.$gameSelfSwitches = new Game_SelfSwitches();
-				objs.$gameActors       = new Game_Actors();
+				objs.$gameTemp  	= new Game_Temp();
+				objs.$gameSystem	= new Game_System();
+				objs.$gameScreen	= new Game_Screen();
+				objs.$gameTimer 	= new Game_Timer();
+				objs.$gameMessage	= new Game_Message();
+				objs.$gameSwitches	= new Game_Switches();
+				objs.$gameVariables	= new Game_Variables();
+				objs.$gameSelfSwitches	= new Game_SelfSwitches();
+				objs.$gameActors	= new Game_Actors();
 				rv();
-				objs.$gameParty        = new Game_Party();
-				objs.$gameTroop        = new Game_Troop();
-				objs.$gameMap          = new Game_Map();
+				objs.$gameParty 	= new Game_Party();
+				objs.$gameTroop 	= new Game_Troop();
+				objs.$gameMap   	= new Game_Map();
 				rv();
-				objs.$gamePlayer       = new Game_Player();
+				objs.$gamePlayer	= new Game_Player();
 				rv();
 			};
 			a=dm.extractSaveContents; z=dm.extractSaveContents=function f(contents){ f.ori.call(this,contents); rv(); }; z.ori=a;
@@ -209,11 +207,11 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		while(x!==jss.length && jss[x][0]===":") if(onloadProc.isBody(jss[x])===isBody) files+="&file="+encodeURIComponent(jss[x++]); else break;
 		if(isDev_) console.log(files);
 		const idxcnt=x-idx,k=Date.now()+''+Math.random();
-		{ const lastVer=localStorage.getItem(confPrefix+'v'+src); if(verStr!==lastVer){
-			localStorage.removeItem(confPrefix+'s'+src);
-			localStorage.removeItem(confPrefix+'k'+src);
+		{ const lastVer=localStorage.getItem(confPrefix+'v'+idxcnt+src); if(verStr!==lastVer){
+			localStorage.removeItem(confPrefix+'s'+idxcnt+src);
+			localStorage.removeItem(confPrefix+'k'+idxcnt+src);
 		} }
-		{ const c=localStorage.getItem(confPrefix+'s'+src) , k=localStorage.getItem(confPrefix+'k'+src); if(c&&k){
+		{ const c=localStorage.getItem(confPrefix+'s'+idxcnt+src) , k=localStorage.getItem(confPrefix+'k'+idxcnt+src); if(c&&k){
 			putck(f,idx,idxcnt,src,c,k); continue;
 		} }
 		const u=gas+"?game=燒毀"+files+"&";
@@ -221,10 +219,11 @@ const confPrefix='rpg conf 2 ',putck=(f,idx,idxcnt,src,c,k)=>{
 		XHR(u+Date.now(),respTxt=>{
 			if(isDev_){ console.log(files,k); console.log(respTxt); }
 			const kkkkkk=kkk+kk+k;
-			localStorage.setItem(confPrefix+'s'+src,respTxt);
-			localStorage.setItem(confPrefix+'k'+src,kkkkkk);
-			putck(f,idx,idxcnt,src,respTxt,kkkkkk);
-			localStorage.setItem(confPrefix+'v'+src,verStr); // last
+			localStorage.setItem(confPrefix+'s'+idxcnt+src,respTxt);
+			localStorage.setItem(confPrefix+'k'+idxcnt+src,kkkkkk);
+			putck(f,idx,idxcnt,src,respTxt,kkkkkk,()=>{
+				localStorage.setItem(confPrefix+'v'+idxcnt+src,verStr); // last
+			});
 		},function(){
 			if(--cnt===0) return f.giveupMsg();
 			this.open("POST",u+Date.now(),true);
@@ -324,7 +323,9 @@ onloadProc.addScriptViaWait=wait=>{
 	const scr=ce('script');
 	scr.onerror=onloadProc.giveupMsg;
 	onloadProc.idx+=wait.cnt-1;
-	onloadProc.addScriptViaSrc(scr,wait.src,true,wait.plain);
+	onloadProc.addScriptViaSrc(scr,wait.src,false,wait.plain);
+	if(wait.cb && wait.cb.constructor===Function) wait.cb();
+	onloadProc();
 };
 if(d.body) onloadProc(); else w.onload=()=>{ w.onload=null; onloadProc(); }
 })();
