@@ -1476,6 +1476,112 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return curr;
 	};
 	
+	w.SegmentTree=function(){ this.initialize.apply(this,arguments); };
+	{ const DEFAULT_OP=(a,b)=>a+b;
+	w.SegmentTree.prototype.initialize=function(op,initVal,arr,noDup){
+		this._op=op||this.constructor.DEFAULT_OP||DEFAULT_OP;
+		this._initVal=initVal;
+		this._segs=[];
+		this.buildFromArr(arr,noDup);
+	};
+	w.SegmentTree.DEFAULT_OP=DEFAULT_OP;
+	}
+	w.SegmentTree.prototype.buildFromArr=function(arr,notDup){
+		if(!arr||!arr.length) return;
+		let bArr;
+		this._segs.push( bArr = (notDup?arr:arr.slice()) );
+		let b=arr.length; 
+		for(let x=arr.length;x!==1;x=(x>>1)+(x&1)){
+			const cArr=[];
+			for(let x=0;x<bArr.length;x+=2){
+				if((x|1)===bArr.length) cArr.push(bArr[x]);
+				else cArr.push(this._op(bArr[x],bArr[x|1]));
+			}
+			this._segs.push(bArr=cArr);
+		}
+	};
+	w.SegmentTree.prototype._modParentBack=function(lv,bArr){
+		// mod parent
+		let idx=bArr.length-1; // last modified idx
+		while(lv!==this._segs.length){
+			const cArr=this._segs[lv++];
+			if((idx|1)===bArr.length){
+				idx>>=1;
+				cArr[idx]=bArr[(idx<<1)];
+			}else{
+				idx>>=1;
+				cArr[idx]=this._op(bArr[(idx<<1)],bArr[(idx<<1)|1]);
+			}
+			bArr=cArr;
+		}
+	};
+	w.SegmentTree.prototype.push=function(n){
+		if(this._segs.length===0){
+			this._segs.push([n]);
+			return;
+		}
+		let lv=0;
+		let bArr=this._segs[lv++];
+		bArr.push(n);
+		while(bArr.length&1){ // addNew
+			if(bArr.length<=1) return;
+			bArr=this._segs[lv++];
+			bArr.push(n);
+		}
+		this._modParentBack(lv,bArr);
+		if(bArr.length===2) this._segs.push([this._op(bArr[0],bArr[1])]);
+	};
+	w.SegmentTree.prototype.pop=function(){
+		if(!this._segs.length) return;
+		if(!this._segs[0].length){
+			this._segs.pop();
+			return;
+		}
+		let lv=0;
+		let bArr=this._segs[lv++];
+		const rtv=bArr.pop();
+		// empty
+		if(!bArr.length){
+			this._segs.length=0;
+			return rtv;
+		}
+		// single
+		while((bArr.length&1)===0){
+			bArr=this._segs[lv++];
+			if(bArr.length===2){ // below top
+				bArr.pop();
+				this._segs.length=lv;
+				// now bArr is the top
+				return rtv;
+			}
+			bArr.pop();
+		}
+		if(bArr.length===1) this._segs.length=lv;
+		this._modParentBack(lv,bArr);
+		return rtv;
+	};
+	w.SegmentTree.prototype._query=function(strt,ende,_lv){
+		if(strt>=ende||_lv>=this._segs.length) return this._initVal;
+		let rtv=strt&1?this._segs[_lv][strt]:this._initVal;
+		rtv=this._op(rtv,this._query((strt+1)>>1,ende>>1,_lv+1));
+		if(ende&1) rtv=this._op(rtv,this._segs[_lv][ende-1]);
+		return rtv;
+	};
+	w.SegmentTree.prototype.query=function(strt,ende){
+		if(!this._segs.length) return this._initVal;
+		if(!(strt>=0)) strt=0;
+		if(!(this._segs[0].length>=ende)) ende=this._segs[0].length;
+		return this._query(strt,ende,0);
+	};
+	w.SegmentTree.prototype.edit=function(idx,val){
+		if(!this._segs.length || !(idx>=0) || !(idx<this._segs[0].length)) return;
+		this._segs[0][idx]=val;
+		for(let lv=0,arrs=this._segs;++lv!==arrs.length;){
+			idx>>=1;
+			arrs[lv][idx]=this._op(arrs[lv-1][idx<<1],arrs[lv-1][(idx<<1)|1]);
+		}
+	}
+	
 	Object.defineProperty(w.Function.prototype, '_dummy_arr', { value:[], configurable:false , writable:false });
 	
 	// https://en.wikipedia.org/wiki/UTF-8#Encoding
