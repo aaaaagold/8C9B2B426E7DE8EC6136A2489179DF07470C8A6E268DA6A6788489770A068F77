@@ -10,20 +10,174 @@ objs.test_tilemap=true; // tilemap.children is an array if true
 
 // - Tilemap
 $aaaa$=Tilemap;
+$pppp$=$aaaa$.prototype;
 $aaaa$.revealTp=0.3125; // tp:transparent
 $aaaa$.isVisibleTile=function(tid){ // take advantage of "Tilemap.TILE_ID_MAX is pow(2)", reserve original function for future editing
 	return (tid>>13)===0;
 };
-$aaaa$.prototype.refresh=function(){
+$aaaa$.getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
+	if(!mapd||!mapd.data||typeof Tilemap==='undefined'||Tilemap.isAutotile===undefined||!Tilemap.isAutotile(tileIdAsBase)) return;
+	const w=mapd.width,h=mapd.height,sz=w*h;
+	const toBase=t=>(48*~~((t-2048)/48))+2048,getTile=(x,y,lv)=>mapd.data[lv*sz+y*w+x],isEnd=(x,y)=>{
+		// TODO
+	};
+	const rx=x=>mapd.scrollType&2?(x+w)%w:x;
+	const ry=y=>mapd.scrollType&1?(y+h)%h:y;
+	const validX=x=>0<=x&&x<w;
+	const validY=y=>0<=y&&y<h;
+	let tmp;
+	lv|=0;
+	tileIdAsBase=toBase(tileIdAsBase);
+	// 以河道來思考
+	let cnt_end=0,bitmsk_end=0; // 數下右上左(8421)是岸的數量
+	
+	bitmsk_end<<=1;
+	tmp=validY(tmp=ry(dsty+1)) ? toBase(getTile(dstx,tmp,lv))!==tileIdAsBase : borderIsNotEnd;
+	cnt_end+=tmp;
+	bitmsk_end|=tmp;
+	
+	bitmsk_end<<=1;
+	tmp=validX(tmp=rx(dstx+1)) ? toBase(getTile(tmp,dsty,lv))!==tileIdAsBase : borderIsNotEnd;
+	cnt_end+=tmp;
+	bitmsk_end|=tmp;
+	
+	bitmsk_end<<=1;
+	tmp=validY(tmp=ry(dsty-1)) ? toBase(getTile(dstx,tmp,lv))!==tileIdAsBase : borderIsNotEnd;
+	cnt_end+=tmp;
+	bitmsk_end|=tmp;
+	
+	bitmsk_end<<=1;
+	tmp=validX(tmp=rx(dstx-1)) ? toBase(getTile(tmp,dsty,lv))!==tileIdAsBase : borderIsNotEnd;
+	cnt_end+=tmp;
+	bitmsk_end|=tmp;
+	
+	switch(cnt_end){
+	case 0:{ // 0..15
+		let bitmsk=0,tmpx,tmpy;
+		
+		bitmsk<<=1;
+		tmpx=rx(dstx-1); tmpy=ry(dsty+1);
+		bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		
+		bitmsk<<=1;
+		tmpx=rx(dstx+1); tmpy=ry(dsty+1);
+		bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		
+		bitmsk<<=1;
+		tmpx=rx(dstx+1); tmpy=ry(dsty-1);
+		bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		
+		bitmsk<<=1;
+		tmpx=rx(dstx-1); tmpy=ry(dsty-1);
+		bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		
+		return tileIdAsBase|bitmsk;
+	}break;
+	case 1:{ // 16..31
+		tileIdAsBase+=16; // (%48) don't use "|"
+		let bitAt=4,bitmsk=0,tmpx,tmpy;
+		while( bitAt && (bitmsk_end&(1<<--bitAt))===0 )
+			;
+		tileIdAsBase|=bitAt<<2;
+		switch(bitAt){
+		case 0: // 左岸
+			bitmsk<<=1;
+			tmpx=rx(dstx+1); tmpy=ry(dsty+1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+			
+			bitmsk<<=1;
+			tmpx=rx(dstx+1); tmpy=ry(dsty-1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		break;
+		case 1: // 上岸
+			bitmsk<<=1;
+			tmpx=rx(dstx-1); tmpy=ry(dsty+1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+			
+			bitmsk<<=1;
+			tmpx=rx(dstx+1); tmpy=ry(dsty+1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		break;
+		case 2: // 右岸
+			bitmsk<<=1;
+			tmpx=rx(dstx-1); tmpy=ry(dsty-1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+			
+			bitmsk<<=1;
+			tmpx=rx(dstx-1); tmpy=ry(dsty+1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		break;
+		case 3: // 下岸
+			bitmsk<<=1;
+			tmpx=rx(dstx+1); tmpy=ry(dsty-1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+			
+			bitmsk<<=1;
+			tmpx=rx(dstx-1); tmpy=ry(dsty-1);
+			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
+		break;
+		}
+		tileIdAsBase|=bitmsk;
+	}break;
+	default:{ // 32..47
+		tileIdAsBase+=32; // (%48) don't use "|"
+		let offset=0;
+		switch(bitmsk_end){
+		case 0x0:
+		case 0x1:
+		case 0x2:
+		case 0x4:
+		case 0x8: break;
+		case 0x3: { // 左上
+			offset=2;
+		}break;
+		case 0x5: { // 左右
+			offset=0;
+		}break;
+		case 0x6: { // 上右
+			offset=4;
+		}break;
+		case 0x7: { // 左上右
+			offset=10;
+		}break;
+		case 0x9: { // 左下
+			offset=8;
+		}break;
+		case 0xA: { // 上下
+			offset=1;
+		}break;
+		case 0xB: { // 左上下
+			offset=11;
+		}break;
+		case 0xC: { // 右下
+			offset=10;
+		}break;
+		case 0xD: { // 左右下
+			offset=6;
+		}break;
+		case 0xE: { // 上右下
+			offset=13;
+		}break;
+		case 0xF: { // 左上右下
+			offset=15;
+		}break;
+		}
+		tileIdAsBase|=offset;
+	}break;
+	}
+	return tileIdAsBase;
+};
+
+$pppp$.refresh=function(){
 	if(this.parent){
 		this.updateTransform(true);
 		this._needsRepaint=true;
 	}
 	this._lastTiles.length=0;
 };
-$aaaa$.prototype.usetree=none; // prepare
-$aaaa$.prototype.rmc_tree=function(key){}; // prepare
-$aaaa$.prototype.addc_tree=function(key,data){}; // prepare
+$pppp$.usetree=none; // prepare
+$pppp$.rmc_tree=function(key){}; // prepare
+$pppp$.addc_tree=function(key,data){}; // prepare
 Object.defineProperties(Tilemap.prototype,{
 	frameCount_2:{ get:function(){return this._fc_2;}, set:function(rhs){
 		let fc_2=Number(rhs)^0;
@@ -34,16 +188,16 @@ Object.defineProperties(Tilemap.prototype,{
 		return rhs;
 	},configurable:false},
 });
-$rrrr$=$aaaa$.prototype.setData;
-$dddd$=$aaaa$.prototype.setData=function f(w,h,d){
+$rrrr$=$pppp$.setData;
+$dddd$=$pppp$.setData=function f(w,h,d){
 	if($dataMap){
 		let tmp=$dataMap.meta.frameCount_2;
 		if(tmp) this.frameCount_2=(Number(tmp)||5)^0;
 	}
 	return f.ori.call(this,w,h,d);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){ // forEach is slowwwwwwwwww
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){ // forEach is slowwwwwwwwww
 	if(_global_conf.noAutotile) this.animationFrame=0^0;
 	else this.animationFrame = ~~(++this.animationCount>>this._fc_2); // always >=0
 	this.animationCount&=this._fc_2_msk;
@@ -55,15 +209,15 @@ $dddd$.updateChildren=function f(){
 	return this.doWaitRemove();
 };
 $dddd$.updateChildren.forEach=c=>c&&c.update&&c.update();
-$dddd$=$aaaa$.prototype._sortChildren=function f(){
+$dddd$=$pppp$._sortChildren=function f(){
 	this.children.sort(f.cmp);
 };
 $dddd$.cmp=(a,b)=>{
 	return a.z-b.z||(a.oy===undefined?a.y:a.oy)-(b.oy===undefined?b.y:b.oy)||a.z2-b.z2||a.spriteId-b.spriteId;
 };
-$aaaa$.prototype.usetree=function(){ this.children=new AVLTree(true); };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$pppp$.usetree=function(){ this.children=new AVLTree(true); };
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	//debug.log("Tilemap.prototype.initialize"); // also ShaderTilemap;
 	PIXI.Container.call(this);
 	if(!objs.test_tilemap) this.usetree(); // tilemap refreshed at the end of 'initialize'
@@ -110,13 +264,13 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._createLayers();
 	this.refresh(); // ShaderTilemap access children
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.rmc_tree=function(key){
+$pppp$.rmc_tree=function(key){
 	// return true if successfully delete else false-like
 	//if(objs.testing) console.log(this.children.length,this.children.forEach().length);
 	return this.children._del(key);
 	//if(objs.testing&&this.children.length!==this.children.forEach().length) debugger;
 };
-$aaaa$.prototype.addc_tree=function(key,data){
+$pppp$.addc_tree=function(key,data){
 	//if(objs.testing) console.log(this.children.length,this.children.forEach().length);
 	this.children._add(key,data);
 	//if(objs.testing&&this.children.length!==this.children.forEach().length) debugger;
@@ -124,12 +278,12 @@ $aaaa$.prototype.addc_tree=function(key,data){
 	data._lastKey=key;
 	if(data._character) data._character._tilemapKey=key;
 };
-$aaaa$.prototype.parseKey=function(key){
+$pppp$.parseKey=function(key){
 	// z,y,z2
 	let tmp=key[0];
 	return [tmp>>20,((tmp>>4)-this._tileHeight)&0xFFFF,tmp&0xF];
 };
-$aaaa$.prototype.genKeyFromChild=function(c){
+$pppp$.genKeyFromChild=function(c){
 	if(!c.z2) c.z2=0;
 	let z=c.z; z*=z>=0;
 	let y=(c.oy===undefined)?c.y:c.oy;
@@ -139,8 +293,8 @@ $aaaa$.prototype.genKeyFromChild=function(c){
 	if(c.spriteId===undefined) key.push(this._boundsID);
 	return key;
 };
-$rrrr$=$aaaa$.prototype.addChild;
-$dddd$=$aaaa$.prototype.addChild=function f(c){
+$rrrr$=$pppp$.addChild;
+$dddd$=$pppp$.addChild=function f(c){
 	if(c.parent && c.parent!==this) c.parent.removeChild(c);
 	c.parent=this;
 	
@@ -152,9 +306,9 @@ $dddd$=$aaaa$.prototype.addChild=function f(c){
 	c.emit('added', this);
 	return c;
 }; $dddd$.ori=$rrrr$;
-if(objs.test_tilemap)$aaaa$.prototype.addChild=$rrrr$;
-$rrrr$=$aaaa$.prototype.removeChild;
-$dddd$=$aaaa$.prototype.removeChild=function f(c){
+if(objs.test_tilemap)$pppp$.addChild=$rrrr$;
+$rrrr$=$pppp$.removeChild;
+$dddd$=$pppp$.removeChild=function f(c){
 	let key=c._lastKey,res;
 	if(!( this.children.keyOk(key)&&(res=this.rmc_tree(key)) )) return null;
 	
@@ -167,22 +321,22 @@ $dddd$=$aaaa$.prototype.removeChild=function f(c){
 	c.emit('removed', this);
 	return c;
 }; $dddd$.ori=$rrrr$;
-if(objs.test_tilemap)$aaaa$.prototype.removeChild=$rrrr$;
-$aaaa$.prototype.waitRemove=function(c){
+if(objs.test_tilemap)$pppp$.removeChild=$rrrr$;
+$pppp$.waitRemove=function(c){
 	if(c&&c.parent===this) this._waitRemoves.add(c);
 };
-$aaaa$.prototype.doWaitRemove=function(){
+$pppp$.doWaitRemove=function(){
 	this._waitRemoves.forEach(c=>c.parent===this&&this.removeChild(c));
 	return this._waitRemoves.clear();
 };
-$dddd$=$aaaa$.prototype.updateTransform_tail=function f(){
+$dddd$=$pppp$.updateTransform_tail=function f(){
 	this._boundsID++;
 	this.transform.updateTransform(this.parent.transform);
 	this.worldAlpha = this.alpha * this.parent.worldAlpha;
 	return this.children.forEach(f.forEach,true);
 };
 $dddd$.forEach=c=>c.visible&&c.updateTransform();
-$aaaa$.prototype.updateTransform=function(forced){
+$pppp$.updateTransform=function(forced){
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
 	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
@@ -204,7 +358,7 @@ $aaaa$.prototype.updateTransform=function(forced){
 	return this.updateTransform_tail();
 	}
 };
-$dddd$=$aaaa$.prototype._createLayers=function f(){ // re-write: psuedo layer
+$dddd$=$pppp$._createLayers=function f(){ // re-write: psuedo layer
 	let width = this._width;
 	let height = this._height;
 	let margin = this._margin;
@@ -279,7 +433,7 @@ if(1){
 	} }
 	this.addChild(this._upperLayer);
 };
-$aaaa$.prototype._updateLayerPositions=function(){
+$pppp$._updateLayerPositions=function(){
 	let m = this._margin;
 	let ox = Math.floor(this.origin.x);
 	let oy = Math.floor(this.origin.y);
@@ -307,7 +461,7 @@ $aaaa$.prototype._updateLayerPositions=function(){
 		children[3].setFrame(0, 0, w2, h2);
 	}
 };
-$aaaa$.prototype._paintAllTiles=function(startX, startY){
+$pppp$._paintAllTiles=function(startX, startY){
 	for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y){
 		for(let x=0;x!==xs;++x){
 			this._paintTiles(startX, startY, x, y);
@@ -319,7 +473,7 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 		this._lastOy=o.y;
 	}
 };
-$aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
+$pppp$._paintTiles=function f(startX, startY, x, y){
 	// starting from top-left
 	//debug.log("Tilemap.prototype._paintTiles");
 	let w=this._mapWidth,h=this._mapHeight;
@@ -446,10 +600,10 @@ $aaaa$.prototype._paintTiles=function f(startX, startY, x, y){
 		}
 	}
 };
-$aaaa$.prototype._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
+$pppp$._isHigherTile_id3=function(tileId0,tileId1,tileId2,tileId3){
 	return this._isHigherTile(tileId3)||tileId3===tileId0||(tileId2===0&&tileId3>=384&&tileId3<452);
 };
-$aaaa$.prototype._readLastTiles=function f(i, x, y){ // rewrite: prevent creating new array
+$pppp$._readLastTiles=function f(i, x, y){ // rewrite: prevent creating new array
 	let array1 = this._lastTiles[i];
 	if (array1) {
 		let array2 = array1[y];
@@ -462,7 +616,7 @@ $aaaa$.prototype._readLastTiles=function f(i, x, y){ // rewrite: prevent creatin
 	}
 	return f._dummy_arr;
 };
-$aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){ // polling very slow (sparse)
+$pppp$._drawTile=function(bitmap, tileId, dx, dy , tp){ // polling very slow (sparse)
 	// debug code to find out tiles drawn counts:
 	// rrrr=Tilemap.prototype._drawTile; dddd=Tilemap.prototype._drawTile=function f(b,t,x,y,p){if(!window['/tmp/'].cnt)window['/tmp/'].cnt={};cnt=window['/tmp/'].cnt; cnt[t]^=0;++cnt[t]; return f.ori.call(this,b,t,x,y,p);}; dddd.ori=rrrr;
 	if(Tilemap.isVisibleTile(tileId)){
@@ -478,7 +632,7 @@ $aaaa$.prototype._drawTile=function(bitmap, tileId, dx, dy , tp){ // polling ver
 		}
 	}
 };
-$aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
+$pppp$._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawNormalTile');
 	//let w = this._tileWidth;
 	//let h = this._tileHeight;
@@ -492,7 +646,7 @@ $aaaa$.prototype._drawNormalTile=function(bitmap, tileId, dx, dy){
 		bitmap.blt(source, ( ((tileId>>4)&8)+(tileId&7) )*w, ((tileId>>3)&15)*h, w, h, dx, dy, w, h);
 	}
 };
-$dddd$=$aaaa$.prototype._drawAutotile=function f(bitmap, tileId, dx, dy){
+$dddd$=$pppp$._drawAutotile=function f(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawAutotile');
 	
 	// const
@@ -592,7 +746,7 @@ $dddd$.an_ori=[
 	none,
 ];
 $dddd$.an=$dddd$.an_ori.map(x=>x.bind($dddd$)); // let 'this' === $dddd$
-$aaaa$.prototype._drawTableEdge=function(bitmap, tileId, dx, dy){
+$pppp$._drawTableEdge=function(bitmap, tileId, dx, dy){
 	//debug.log('Tilemap.prototype._drawTableEdge');
 	if (Tilemap.tileAn[tileId]===2) {
 		let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
@@ -621,7 +775,7 @@ $aaaa$.prototype._drawTableEdge=function(bitmap, tileId, dx, dy){
 		}
 	}
 };
-$aaaa$.prototype._drawShadow=function(bitmap, shadowBits, dx, dy){
+$pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	//debug.log('Tilemap.prototype._drawShadow');
 	if(shadowBits & 0xF){
 		let w1 = this._tileWidth_;
@@ -636,7 +790,7 @@ $aaaa$.prototype._drawShadow=function(bitmap, shadowBits, dx, dy){
 		}
 	}
 };
-$dddd$=$aaaa$.prototype.renderCanvas=function f(renderer) {
+$dddd$=$pppp$.renderCanvas=function f(renderer) {
 	//debug.log('Tilemap.prototype.renderCanvas');
 	// if not visible or the alpha is 0 then no need to render this
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
@@ -677,10 +831,11 @@ $dddd$.forEach=function f(c){
 	}else return c.renderCanvas(f.renderer);
 	//if(c.constructor!==Sprite_Character || c.isInView()) return c.renderCanvas(f.renderer);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - ShaderTilemap
 $aaaa$=ShaderTilemap;
+$pppp$=$aaaa$.prototype;
 if(0){ // debugging an array usage
 Object.defineProperties($aaaa$.prototype,{
 	bitmaps:{ get:function(){debugger;return this._bms;},
@@ -708,17 +863,17 @@ Object.defineProperties($aaaa$.prototype,{
 	}
 });
 }
-$dddd$=$aaaa$.prototype._hackRenderer=function f(renderer){
+$dddd$=$pppp$._hackRenderer=function f(renderer){
 	renderer.plugins.tilemap.tileAnim[0] = f.tbl[this.animationFrame&3] * this._tileWidth;
 	renderer.plugins.tilemap.tileAnim[1] = (this.animationFrame % 3) * this._tileHeight;
 	return renderer;
 };
 $dddd$.tbl=[0,1,2,1];
-$aaaa$.prototype.renderCanvas=function(renderer){
+$pppp$.renderCanvas=function(renderer){
 	this._hackRenderer(renderer);
 	Tilemap.prototype.renderCanvas.call(this,renderer);
 };
-$dddd$=$aaaa$.prototype.renderWebGL=function f(renderer) {
+$dddd$=$pppp$.renderWebGL=function f(renderer) {
 	this._hackRenderer(renderer);
 	//PIXI.Container.prototype.renderWebGL.call(this, renderer);
 	// if the object is not visible or the alpha is 0 then no need to render this element
@@ -745,7 +900,7 @@ $dddd$.forEach=function f(c){
 		}else if(c.isInView()) return c.renderWebGL(f.renderer);
 	}else return c.renderWebGL(f.renderer);
 };
-$dddd$=$aaaa$.prototype.refreshTileset=function f(){
+$dddd$=$pppp$.refreshTileset=function f(){
 	let bitmaps=this.bitmaps.map(f.toPIXI);
 	this.lowerLayer.setBitmaps(bitmaps);
 	for(let x=0,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x)
@@ -755,7 +910,7 @@ $dddd$=$aaaa$.prototype.refreshTileset=function f(){
 	for(let x=0,arr=this.upperLayer_a025s;x!==arr.length;++x) arr[x].setBitmaps(bitmaps);
 };
 $dddd$.toPIXI=bitmap=>bitmap._baseTexture?new PIXI.Texture(bitmap._baseTexture):bitmap;
-$aaaa$.prototype.updateTransform=function() {
+$pppp$.updateTransform=function() {
 	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
 	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
@@ -773,7 +928,7 @@ $aaaa$.prototype.updateTransform=function() {
 	return this.updateTransform_tail();
 	}
 };
-$dddd$=$aaaa$.prototype._createLayers=function f(){
+$dddd$=$pppp$._createLayers=function f(){
 	let width = this._width;
 	let height = this._height;
 	let margin = this._margin;
@@ -825,8 +980,8 @@ $dddd$=$aaaa$.prototype._createLayers=function f(){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype._updateLayerPositions;
-$dddd$=$aaaa$.prototype._updateLayerPositions=function f(){
+$rrrr$=$pppp$._updateLayerPositions;
+$dddd$=$pppp$._updateLayerPositions=function f(){
 	// f(startX, startY)
 	f.ori.apply(this,arguments);
 	for(let x=0,pos=this.lowerZLayer.position,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x){
@@ -835,7 +990,7 @@ $dddd$=$aaaa$.prototype._updateLayerPositions=function f(){
 		curr.position.y=pos.y;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._paintAllTiles=function(startX, startY){
+$pppp$._paintAllTiles=function(startX, startY){
 	this.lowerZLayer.clear(); // z=0 // this.lowerZLayer.children[0]===this.lowerLayer
 	for(let x=0,idx=this.z2Layers_ys,arr=this.z2Layers;x!==idx.length;++x)
 		arr[idx[x]].clear(); // z=3
@@ -843,7 +998,7 @@ $aaaa$.prototype._paintAllTiles=function(startX, startY){
 	return Tilemap.prototype._paintAllTiles.call(this,startX,startY); // ShaderTilemap has no 'this._z2Layers'
 	//for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y) for(let x=0;x!==xs;++x) this._paintTiles(startX, startY, x, y);
 };
-$aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
+$pppp$._paintTiles=function(startX, startY, x, y) {
 	//debug.log('ShaderTilemap.prototype._paintTiles');
 	// startX = $gameMap._displayX_tw/$gameMap.tileWidth()^0
 	// startY = $gameMap._displayY_th/$gameMap.tileHeight()^0
@@ -924,7 +1079,7 @@ $aaaa$.prototype._paintTiles=function(startX, startY, x, y) {
 		}
 	}
 };
-$aaaa$.prototype._drawTile_byTp=function(layers,tid,dx,dy,tp){
+$pppp$._drawTile_byTp=function(layers,tid,dx,dy,tp){
 	if(!tid) return;
 	tp*=64; tp^=0;
 	//let pad=window['/tmp/'].pad^0; // debug
@@ -945,8 +1100,8 @@ $aaaa$.prototype._drawTile_byTp=function(layers,tid,dx,dy,tp){
 		this._drawTile(layers[x].children[0],tid,dx,dy,baseLen);
 	}
 };
-$rrrr$=$aaaa$.prototype._drawTile;
-$dddd$=$aaaa$.prototype._drawTile=function f(layer, tileId, dx, dy , altShift){ // polling very fast (frequent)
+$rrrr$=$pppp$._drawTile;
+$dddd$=$pppp$._drawTile=function f(layer, tileId, dx, dy , altShift){ // polling very fast (frequent)
 	//debug.log('ShaderTilemap.prototype._drawTile');
 	if (Tilemap.isVisibleTile(tileId)) {
 		if (Tilemap.isAutotile(tileId)) {
@@ -956,7 +1111,7 @@ $dddd$=$aaaa$.prototype._drawTile=function f(layer, tileId, dx, dy , altShift){ 
 		}
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy , altShift){
+$pppp$._drawNormalTile=function(layer, tileId, dx, dy , altShift){
 	//debug.log('ShaderTilemap.prototype._drawNormalTile');
 	
 	let w = this._tileWidth;
@@ -970,7 +1125,7 @@ $aaaa$.prototype._drawNormalTile=function(layer, tileId, dx, dy , altShift){
 		dx, dy, w, h
 	);
 };
-$aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy , altShift) {
+$pppp$._drawAutotile = function(layer, tileId, dx, dy , altShift) {
 	//debug.log('ShaderTilemap.prototype._drawAutotile');
 	let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
 	let kind = Tilemap.getAutotileKind(tileId);
@@ -1044,7 +1199,7 @@ $aaaa$.prototype._drawAutotile = function(layer, tileId, dx, dy , altShift) {
 		}else layer.addRect(setNumber+altShift, sx1, sy1, dx1, dy1, w1, h1, animX, animY);
 	}}
 };
-$aaaa$.prototype._drawTableEdge=function(layer, tileId, dx, dy){
+$pppp$._drawTableEdge=function(layer, tileId, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawTableEdge');
 	if (Tilemap.tileAn[tileId]===2) {
 		let autotileTable = Tilemap.FLOOR_AUTOTILE_TABLE;
@@ -1069,7 +1224,7 @@ $aaaa$.prototype._drawTableEdge=function(layer, tileId, dx, dy){
 		}
 	}
 };
-$aaaa$.prototype._drawShadow=function(layer, shadowBits, dx, dy){
+$pppp$._drawShadow=function(layer, shadowBits, dx, dy){
 	//debug.log('ShaderTilemap.prototype._drawShadow');
 	if(shadowBits&0xF){
 		let w1 = this._tileWidth_;
@@ -1083,14 +1238,14 @@ $aaaa$.prototype._drawShadow=function(layer, shadowBits, dx, dy){
 		}
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 
-// --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+// --- --- BEG debugging --- --- 
 
 
 
-$rrrr$=$dddd$=$aaaa$=undef;
-// --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
+// --- --- END debugging --- --- 
 
 if(objs.isDev) console.log("obj_t0-tilemap");

@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.X" ;
+const ver = "4.2.6.8.9.6.XY" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;

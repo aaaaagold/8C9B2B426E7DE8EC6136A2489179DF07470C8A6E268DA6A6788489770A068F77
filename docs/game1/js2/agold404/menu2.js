@@ -544,10 +544,9 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 $dddd$.debugPack=notDev=>{
 	let dev=!notDev;
 	if(dev){
-		let p=$gamePlayer;
-		p._halfFps=1;
-		p._noGainMsg=1;
-		p._noGainSound=1;
+		$gameTemp.gainMsgConfigs_mute();
+		_global_conf._halfFps=1;
+		_global_conf.noGainHint=false;
 	}
 	let pt=$gameParty,itds=$dataItems,armds=$dataArmors,wpnds=$dataWeapons;
 	if(dev && SceneManager._scene.constructor!==Scene_DebugMenu2){
@@ -575,12 +574,7 @@ $dddd$.debugPack=notDev=>{
 	let consume=[23,103,129,160,166,170,185];
 	for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
 	
-	let rings=[5,6,7,12,16,21,22,23,25,26,27,28,32,53,];
-	for(let x=0,arr=rings;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e2);
-	let necklaces=[15,20,28,29,30,];
-	for(let x=0,arr=necklaces;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e2);
-	let others=[24,];
-	for(let x=0,arr=others;x!==arr.length;++x) pt.gainItem(armds[arr[x]],1e1);
+	for(let i=5;i!==125;++i) if(i!==17&&i!==31) pt.gainItem(armds[i],1e3);
 	
 	let ws=[16,19,20,];
 	for(let x=0,arr=ws;x!==arr.length;++x) pt.gainItem(wpnds[arr[x]],1e1);

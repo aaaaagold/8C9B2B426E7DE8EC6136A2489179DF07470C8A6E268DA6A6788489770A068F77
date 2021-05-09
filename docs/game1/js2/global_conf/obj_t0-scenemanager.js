@@ -403,12 +403,13 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 		}break;
 		// print info
 		case "T".charCodeAt(): if($gamePlayer && $gameMap){ // tiles
-			let p=$gamePlayer,mp=$gameMap;
+			let p=$gamePlayer,mp=$gameMap,s=$dataTilesets&&$dataTilesets[$dataMap&&$dataMap.tilesetId]||[];
 			if(!mp.isValid(p.x,p.y)) return;
+			if(s) s=s.flags||[];
 			let msgs=[];
 			for(let lv=6;lv--;){
 				let t=$dataMap.data[mp.xy2idx(p.x,p.y,lv)];
-				msgs.push(t+" ("+t.toString(2).padZero(12)+")");
+				msgs.push(t+" ("+(s[t]||0).toString(2).padZero(12)+")");
 				//$gameMessage.popup(lv+": ");
 			}
 			let maxLen=msgs.map(x=>x.length).sort().back;

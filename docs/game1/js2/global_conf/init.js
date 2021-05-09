@@ -184,7 +184,7 @@ const debug=function f(){
 	f.stack.push(arguments);
 };debug();debug.clear();
 
-let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
+let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	let undef=undefined,d=w.document||{},$rrrr$,$dddd$;
 	w.isNone=(a)=>a===undef||a===null;
 	w.sum=(a,b)=>{return a+b};

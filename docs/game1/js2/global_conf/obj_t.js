@@ -67,7 +67,7 @@ $dddd$=Input._onKeyUp=function f(e){
 	this.kstat[e.keyCode]=false;
 	return f.ori.call(this,e);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - TouchInput
 $aaaa$=TouchInput;
 $aaaa$.calDeltaToPlayer=function(){ // return true if cond. not sufficient
@@ -154,14 +154,15 @@ $dddd$=$aaaa$._onTouchEnd=function f(evt){
 	this._lastAvgX=undef;
 	this._lastAvgY=undef;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 
 // sprite
 
 // - Sprite_Base
 $aaaa$=Sprite_Base;
-$dddd$=$aaaa$.prototype.updateAnimationSprites=function f(){
+$pppp$=$aaaa$.prototype;
+$dddd$=$pppp$.updateAnimationSprites=function f(){
 	if(this._animationSprites.length){
 		const sprites = this._animationSprites; // 原版是在clone三小
 		(this._animationSprites = f.tmp).length=0;
@@ -174,28 +175,29 @@ $dddd$=$aaaa$.prototype.updateAnimationSprites=function f(){
 	}
 };
 $dddd$.tmp=[];
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
-$aaaa$.prototype.getRef=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.getRef=function(){
 	return this._character;
 };
 // - - merge multi-bitmap to one
-$aaaa$.prototype._refresh_updateCf_forEach=(v,k)=>{
+$pppp$._refresh_updateCf_forEach=(v,k)=>{
 	k._character.refresh();
 	if(k.isImageChanged()){
 		k.updateBitmap_setInfo();
 		k.updateTileFrame_frameOri();
 	}
 };
-$aaaa$.prototype._refresh_updateExtFrm=(self,sp)=>{
+$pppp$._refresh_updateExtFrm=(self,sp)=>{
 	sp._cfMap.forEach(self._refresh_updateCf_forEach);
 	sp._cfMap.set(self, self._frameOri);
 };
-$aaaa$.prototype._refresh_updateCf_frmOriOk=function(){
+$pppp$._refresh_updateCf_frmOriOk=function(){
 	return this._frameOri && this._frameOri.width && !isNaN(this._frameOri.x);
 };
-$aaaa$.prototype._refresh_updateCf_child=function(parentId){
+$pppp$._refresh_updateCf_child=function(parentId){
 	let tevt=$gameMap._events[parentId];
 	if(tevt){
 		let sp=tevt._tmp._sprite;
@@ -208,21 +210,21 @@ $aaaa$.prototype._refresh_updateCf_child=function(parentId){
 		}
 	}
 };
-$aaaa$.prototype._refresh_updateCf_parent=function f(sameStatEvts){
+$pppp$._refresh_updateCf_parent=function f(sameStatEvts){
 	if(!this._refresh_updateCf_frmOriOk()) return;
 	this._scnt=sameStatEvts.length+1;
 	this._refresh_updateExtFrm(this,this);
 	this._extendFrame_recal();
 };
-$rrrr$=$aaaa$.prototype._refresh;
-$dddd$=$aaaa$.prototype._refresh=function f(){
+$rrrr$=$pppp$._refresh;
+$dddd$=$pppp$._refresh=function f(){
 	f.ori.call(this);
 	if(this._tileId>0){ let c=this._character; if(c && $gameMap){
 		if(c.parentId) this._refresh_updateCf_child(c.parentId);
 		else if(c._sameStatEvts) this._refresh_updateCf_parent(c._sameStatEvts);
 	} }
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._extendFrame_recal=function(){
+$pppp$._extendFrame_recal=function(){
 	let cfMap=this._cfMap,cf=this._cf,tmp;
 	//this._character.imgModded=true; // no needed
 	cf.yl=cf.xl=Infinity;
@@ -245,13 +247,13 @@ $aaaa$.prototype._extendFrame_recal=function(){
 		this.anchor.x=(orix-cf.xl)/(cf.width);
 	}
 };
-$aaaa$.prototype._extendFrame=function(sprite,fr){ // not used
+$pppp$._extendFrame=function(sprite,fr){ // not used
 	let cfMap=this._cfMap,cf=this._cf,tmp;
 	//if((tmp=cfMap.get(sprite))&&tmp.x===fr.x&&tmp.y===fr.y&&tmp.width===fr.width&&tmp.height===fr.height) return; // TODO: why lead to err
 	cfMap.set(sprite,fr);
 	this._extendFrame_recal();
 };	
-$aaaa$.prototype.setText=function(txt){
+$pppp$.setText=function(txt){
 	if(this._txt===txt) return;
 	this._txt=txt;
 	let tmp=this._txtSprite;
@@ -267,8 +269,8 @@ $aaaa$.prototype.setText=function(txt){
 	tmp.drawTextEx(txt,txtp,0);
 	//if(objs.isDev) console.log(tmp.children[0]._texture._frame);
 };
-$rrrr$=$aaaa$.prototype.setCharacter;
-$dddd$=$aaaa$.prototype.setCharacter=function f(chr){
+$rrrr$=$pppp$.setCharacter;
+$dddd$=$pppp$.setCharacter=function f(chr){
 	chr.setSprite(this);
 	f.ori.call(this,chr);
 	this._scnt=~0;
@@ -293,7 +295,7 @@ $dddd$=$aaaa$.prototype.setCharacter=function f(chr){
 		}
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.isInView_inScreen=function(){
+$pppp$.isInView_inScreen=function(){
 	// this.x+24+(1-this.anchor.x)*this._frame.width                >=0 && this.x+24-this.anchor.x*this._frame.width < Graphics._boxWidth
 	// this.x-this.anchor.x*this._frame.width+24 +this._frame.width >=0 && this.x-this.anchor.x*this._frame.width+24 < Graphics._boxWidth
 	// -this._frame.width<= this.x-this.anchor.x*this._frame.width+24 < Graphics._boxWidth
@@ -308,7 +310,7 @@ $aaaa$.prototype.isInView_inScreen=function(){
 // */
 	return parseInt((this.x+Graphics._boxWidth_pad6)/Graphics._boxWidth_pad4)===1&&parseInt((this.y+Graphics._boxHeight_pad5)/Graphics._boxHeight_pad4)===1;
 };
-$aaaa$.prototype.isInView=function(){ // can view?
+$pppp$.isInView=function(){ // can view?
 	if($gameScreen.limitedView && !this._character._light){
 		let p=this.parent.player; if(!p) return false;
 		let dx=p.x-this.x,dy=p.y-this.y;
@@ -316,8 +318,8 @@ $aaaa$.prototype.isInView=function(){ // can view?
 	}else if(this._skipRender) return false;
 	else return this.isInView_inScreen();
 };
-$rrrr$=$aaaa$.prototype.update;		
-$dddd$=$aaaa$.prototype.update=function f(forced){
+$rrrr$=$pppp$.update;		
+$dddd$=$pppp$.update=function f(forced){
 	if(forced) return f.ori.call(this);
 	let c=this._character;
 	if(!c) return f.ori.call(this);
@@ -331,17 +333,17 @@ $dddd$=$aaaa$.prototype.update=function f(forced){
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateBitmap_forced=function(){
+$pppp$.updateBitmap_forced=function(){
 	this._character._imgModded=true;
 	this.updateBitmap();
 };
-$aaaa$.prototype.updateBitmap_setInfo=function(){
+$pppp$.updateBitmap_setInfo=function(){
 	this._tilesetId = $gameMap.tilesetId();
 	this._tileId = this._character.tileId();
 	this._characterName = this._character.characterName();
 	this._characterIndex = this._character.characterIndex();
 };
-$aaaa$.prototype.updateBitmap=function(){ // rewrite
+$pppp$.updateBitmap=function(){ // rewrite
 	if(this.isImageChanged()){
 		this.updateBitmap_setInfo();
 		if(this._cfMap.size===this._scnt){ this._cfMap.forEach((v,k)=>{
@@ -355,22 +357,22 @@ $aaaa$.prototype.updateBitmap=function(){ // rewrite
 		this.setText(this._character.getText());
 	}
 };
-$aaaa$.prototype.isImageChanged=function(){ // rewrite
+$pppp$.isImageChanged=function(){ // rewrite
 	return this._character.imgModded || this._tilesetId !== $gameMap.tilesetId();
 };
-$aaaa$.prototype.setTileBitmap=function f(){
+$pppp$.setTileBitmap=function f(){
 	this.bitmap = this.tilesetBitmap(this._tileId,this._setBitmap_args());
 };
-$aaaa$.prototype.setCharacterBitmap=function(){ // rewrite: edit img according to meta
+$pppp$.setCharacterBitmap=function(){ // rewrite: edit img according to meta
 	this.bitmap = ImageManager.loadCharacter(this._characterName,undefined,this._setBitmap_args());
 	this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
 };
-$aaaa$.prototype.updateFrame = function() {
+$pppp$.updateFrame = function() {
 	if(this._tileId > 0) this.updateTileFrame();
 	else this.updateCharacterFrame();
 	this.updateTextFrame();
 };
-$aaaa$.prototype.updateTileFrame_frameOri=function(){
+$pppp$.updateTileFrame_frameOri=function(){
 	let pw = ~~this.patternWidth();
 	let ph = ~~this.patternHeight();
 	let sx = ( ((this._tileId>>4)&8) + (this._tileId&7) ) * pw;
@@ -381,7 +383,7 @@ $aaaa$.prototype.updateTileFrame_frameOri=function(){
 	this._frameOri.width  =pw;
 	this._frameOri.height =ph;
 };
-$aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
+$pppp$.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' , '/' , '%'
 	if(this._cfMap.size===this._scnt){
 		let cf=this._cf;
 		return this.setFrame(cf.xl, cf.yl, cf.width, cf.height);
@@ -391,7 +393,7 @@ $aaaa$.prototype.updateTileFrame=function(){ // overwrite: ori use 'Math.floor' 
 		return this.setFrame(frm.x, frm.y, frm.width, frm.height);
 	}
 };
-$aaaa$.prototype.updateCharacterFrame_sit=function(){
+$pppp$.updateCharacterFrame_sit=function(){
 	if(0<this._bushDepth){
 		this.updateCharacterFrame.ori.call(this);
 		this._lowerBody.visible=false;
@@ -409,8 +411,8 @@ $aaaa$.prototype.updateCharacterFrame_sit=function(){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.updateCharacterFrame; // e.g. walking frames
-$dddd$=$aaaa$.prototype.updateCharacterFrame=function f(){ // add on chair facing up
+$rrrr$=$pppp$.updateCharacterFrame; // e.g. walking frames
+$dddd$=$pppp$.updateCharacterFrame=function f(){ // add on chair facing up
 	//debug.log('Sprite_Character.prototype.updateCharacterFrame');
 	if(this._characterName){ // not tiles
 		let c=this._character;
@@ -433,7 +435,7 @@ $dddd$=$aaaa$.prototype.updateCharacterFrame=function f(){ // add on chair facin
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateTextFrame=function(){
+$pppp$.updateTextFrame=function(){
 	if(this._txtSprite){
 		const sp=this._txtSprite;
 		const newx=((this._frame.width>>1)-this.anchor.x*this._frame.width||0)-(sp.width>>1);
@@ -442,47 +444,47 @@ $aaaa$.prototype.updateTextFrame=function(){
 		if(sp.y!==newy) sp.y=newy;
 	}
 };
-$aaaa$.prototype.characterBlockX=function(){ // overwrite: ori use '/' , '%'
+$pppp$.characterBlockX=function(){ // overwrite: ori use '/' , '%'
 	return this._isBigCharacter?0:((this._character.characterIndex()&3)*3);
 };
-$aaaa$.prototype.characterBlockY=function(){ // overwrite: ori use '/' , '%'
+$pppp$.characterBlockY=function(){ // overwrite: ori use '/' , '%'
 	return this._isBigCharacter?0:((this._character.characterIndex()|3)^3);
 };
-$aaaa$.prototype.characterPatternY=function(){ // overwrite: ori use '/' , '%'
+$pppp$.characterPatternY=function(){ // overwrite: ori use '/' , '%'
 	return (this._character.direction()>>1)-1;
 };
-$aaaa$.prototype.patternWidth=function(){
+$pppp$.patternWidth=function(){
 	return this.bitmap._pw;
 };
-$aaaa$.prototype.patternHeight=function(){ // overwrite: ori use '/' , '%'
+$pppp$.patternHeight=function(){ // overwrite: ori use '/' , '%'
 	return this.bitmap._ph;
 };
-$rrrr$=$aaaa$.prototype.updatePosition;
-$dddd$=$aaaa$.prototype.updatePosition=function f(){
+$rrrr$=$pppp$.updatePosition;
+$dddd$=$pppp$.updatePosition=function f(){
 	f.ori.call(this);
 	this.z2=this._character.screenZ2();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.tilesetBitmap=function(tileId,args) {
+$pppp$.tilesetBitmap=function(tileId,args) {
 	return ImageManager.loadTileset($gameMap.tileset().tilesetNames[(tileId>>8)+5],undefined,args);
 };
-$aaaa$.prototype.updateAnimationSprites=none;
-$aaaa$.prototype.startAnimation=function(animation, mirror, delay){ // rewrite: discard array access
+$pppp$.updateAnimationSprites=none;
+$pppp$.startAnimation=function(animation, mirror, delay){ // rewrite: discard array access
 	//let sprite = new Sprite_Animation();
 	//sprite.setup(this._effectTarget, animation, mirror, delay);
 	//this.parent.addChild(sprite);
 	this.parent.addChild( new Sprite_Animation().setup(this._effectTarget, animation, mirror, delay) );
 	//this._animationSprites.push(sprite);
 };
-$aaaa$.prototype.isAnimationPlaying=none; // no Array.push , no 'Array.length>0'
-$rrrr$=$aaaa$.prototype.startBalloon;
-$dddd$=$aaaa$.prototype.startBalloon=function f(){
+$pppp$.isAnimationPlaying=none; // no Array.push , no 'Array.length>0'
+$rrrr$=$pppp$.startBalloon;
+$dddd$=$pppp$.startBalloon=function f(){
 	f.ori.call(this);
 	this._balloonSprite.ref=this;
 	this._balloonSprite=false;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateBalloon=$aaaa$.prototype.setupBalloon; // following will not exec
-$aaaa$.prototype.endBalloon=none; // will not exec 'if' block
-$aaaa$.prototype.isBalloonPlaying=none; // always false
+$pppp$.updateBalloon=$pppp$.setupBalloon; // following will not exec
+$pppp$.endBalloon=none; // will not exec 'if' block
+$pppp$.isBalloonPlaying=none; // always false
 if(0)Sprite_Character.prototype._renderCanvas=function f(renderer){
 	// note
 	const bitmap=this.bitmap;
@@ -493,20 +495,21 @@ if(0)Sprite_Character.prototype._renderCanvas=function f(renderer){
 		if(x>=SceneManager._boxWidth || y>=SceneManager._boxHeight || x+w<0 || y+h<0) ; else return Sprite.prototype._renderCanvas.call(this,renderer);
 	}else return Sprite.prototype._renderCanvas.call(this,renderer);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Sprite_Battler
 $aaaa$=Sprite_Battler;
-$rrrr$=$aaaa$.prototype.initMembers;
-$dddd$=$aaaa$.prototype.initMembers=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initMembers;
+$dddd$=$pppp$.initMembers=function f(){
 	f.ori.call(this);
 	this._damages=new Queue();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setBattler=function(btlr){
+$pppp$.setBattler=function(btlr){
 	if(this._battler) this._battler.removeSprite(this);
 	if(this._battler=btlr) btlr.setSprite(this);
 };
-$dddd$=$aaaa$.prototype.updateDamagePopup=function f(){
+$dddd$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
 		this._damages.forEach(f.forEach);
@@ -517,7 +520,7 @@ $dddd$=$aaaa$.prototype.updateDamagePopup=function f(){
 	}
 };
 $dddd$.forEach=c=>c.update();
-$aaaa$.prototype.setupDamagePopup = function() {
+$pppp$.setupDamagePopup = function() {
 	if(this._battler.isDamagePopupRequested()){
 		if(this._battler.isSpriteVisible()){
 			let sprite = new Sprite_Damage();
@@ -535,15 +538,16 @@ $aaaa$.prototype.setupDamagePopup = function() {
 		this._battler.clearResult();
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Sprite_Actor
 $aaaa$=Sprite_Actor;
+$pppp$=$aaaa$.prototype;
 $aaaa$.MOTIONS['spaceout']={index:0,loop:true};
-$aaaa$.prototype.getRef=function(){
+$pppp$.getRef=function(){
 	return this._actor;
 };
-$aaaa$.prototype.initMembers=function f(){
+$pppp$.initMembers=function f(){
 	Sprite_Battler.prototype.initMembers.call(this);
 	this._battlerName = '';
 	this._motion = null;
@@ -556,7 +560,7 @@ $aaaa$.prototype.initMembers=function f(){
 	this.createStateSprite();
 	this._breathCnt=0;
 };
-$aaaa$.prototype.createWeapon2Sprite=function(){
+$pppp$.createWeapon2Sprite=function(){
 	const w2 = this._weapon2Sprite = new Sprite_Weapon();
 	this.addChild(w2);
 	w2.scale.x=-1;
@@ -566,7 +570,7 @@ $aaaa$.prototype.createWeapon2Sprite=function(){
 	pp[1]={y:0,scaley:1};
 	w2.updatePerPatternInfo();
 };
-$aaaa$.prototype.setActorHome=function(idx){ // battler position'
+$pppp$.setActorHome=function(idx){ // battler position'
 	const sx=600,sy=280;
 	//const xh=32*4+600,yh=48*4+280;
 	const ptLen=$gameParty.allMembers().length;
@@ -575,15 +579,15 @@ $aaaa$.prototype.setActorHome=function(idx){ // battler position'
 	const sh=(idx>>2)&3;
 	this.setHome(offset*32+(sh<<2)+origin+sx,(offset-sh)*48-(origin>>1)+280);
 };
-$rrrr$=$aaaa$.prototype.setupWeaponAnimation;
-$dddd$=$aaaa$.prototype.setupWeaponAnimation=function f(){
+$rrrr$=$pppp$.setupWeaponAnimation;
+$dddd$=$pppp$.setupWeaponAnimation=function f(){
 	f.ori.call(this);
 	if(this._actor.isWeapon2AnimationRequested()){
 		this._weapon2Sprite.setup(this._actor.weapon2ImageId());
 		this._actor.clearWeapon2Animation();
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateBitmap=function() {
+$pppp$.updateBitmap=function() {
 	Sprite_Battler.prototype.updateBitmap.call(this);
 	let name = this._actor.battlerName(); // (this._actor instanceof Game_Actor)
 	if(this._battlerName !== name){
@@ -597,7 +601,7 @@ $aaaa$.prototype.updateBitmap=function() {
 		this._chr2sv = this._mainSprite.bitmap = ImageManager.loadCharacter(name,undefined,args);
 	}
 };
-$aaaa$.prototype.updateMotionCount=function(){
+$pppp$.updateMotionCount=function(){
 	if(this._motion && ++this._motionCount >= this.motionSpeed()){
 		if(this._motion.loop){
 			if(++this._breathCnt>=this.breathSpeed()){
@@ -609,9 +613,9 @@ $aaaa$.prototype.updateMotionCount=function(){
 		this._motionCount = 0;
 	}
 };
-$aaaa$.prototype.motionSpeed=()=>1; // it's delay // ori:12
-$aaaa$.prototype.breathSpeed=()=>12; // it's delay // ori:12
-$dddd$=$aaaa$.prototype.refreshMotion=function f(){ // TODO // 一堆else-if沒救，判斷太多元
+$pppp$.motionSpeed=()=>1; // it's delay // ori:12
+$pppp$.breathSpeed=()=>12; // it's delay // ori:12
+$dddd$=$pppp$.refreshMotion=function f(){ // TODO // 一堆else-if沒救，判斷太多元
 	let actor = this._actor;
 	if (actor) {
 		if (f.tbl.has(this._motion) && !BattleManager.isInputting()) {
@@ -640,13 +644,14 @@ $dddd$=$aaaa$.prototype.refreshMotion=function f(){ // TODO // 一堆else-if沒�
 	}
 };
 $dddd$.tbl=new Set(['guard','spaceout',].map(x=>$aaaa$.MOTIONS[x])); // returns
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Sprite_Enemy
 $aaaa$=Sprite_Enemy;
-$aaaa$.prototype.getRef=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.getRef=function(){
 	return this._enemy;
 };
-$aaaa$.prototype.initMembers = function() {
+$pppp$.initMembers = function() {
 	Sprite_Battler.prototype.initMembers.call(this);
 	this._enemy = null;
 	this._appeared = false;
@@ -658,30 +663,30 @@ $aaaa$.prototype.initMembers = function() {
 	this.createStateIconSprite();
 	this.createHpMpSprite();
 };
-$aaaa$.prototype.createStateIconSprite=function(){
+$pppp$.createStateIconSprite=function(){
 	this.addChild( this._stateIconSprite = new Sprite_StateIcon() );
 };
-$rrrr$=$aaaa$.prototype.setBattler;
-$dddd$=$aaaa$.prototype.setBattler=function f(battler){
+$rrrr$=$pppp$.setBattler;
+$dddd$=$pppp$.setBattler=function f(battler){
 	f.ori.call(this,battler);
 	this._meta = battler.getData();
 	this._meta = this._meta&&this._meta.meta||{};
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.createHpMpSprite=function(){
+$pppp$.createHpMpSprite=function(){
 	let sp;
 	this.addChild( sp = this._hpMpSprite = new Sprite() );
 	let bm=sp.bitmap=new Bitmap;
 	bm.fontSize=16;
 	sp.alpha=0.75;
 };
-$aaaa$.prototype.refreshMotion=none;
-$aaaa$.prototype.breathSpeed=function(){
+$pppp$.refreshMotion=none;
+$pppp$.breathSpeed=function(){
 	return Sprite_Actor.prototype.breathSpeed.call(this);
 };
-$aaaa$.prototype.motionSpeed=function(){
+$pppp$.motionSpeed=function(){
 	return Sprite_Actor.prototype.motionSpeed.call(this);
 };
-$aaaa$.prototype.update=function(){
+$pppp$.update=function(){
 	Sprite_Battler.prototype.update.call(this);
 	if(this._enemy){
 		if(this._enemy._refActor){
@@ -696,7 +701,7 @@ $aaaa$.prototype.update=function(){
 		this.updateHpMpSprite();
 	}
 };
-$aaaa$.prototype.loadBitmap=function(name, hue){
+$pppp$.loadBitmap=function(name, hue){
 	const args=this._setBitmap_args();
 	if(this._enemy && this._enemy._refActor){
 		const src=$dataActors[this._enemy._refActor.toId()];
@@ -712,7 +717,7 @@ $aaaa$.prototype.loadBitmap=function(name, hue){
 	}else if($gameSystem.isSideView()) this.bitmap = ImageManager.loadSvEnemy(name,hue,args);
 	else this.bitmap = ImageManager.loadEnemy(name,hue,args);
 };
-$aaaa$.prototype.updateFrame=function(){
+$pppp$.updateFrame=function(){
 	if(this._enemy._refActor){
 		this._mainSprite=this;
 		Sprite_Actor.prototype.updateFrame.call(this);
@@ -730,7 +735,7 @@ $aaaa$.prototype.updateFrame=function(){
 		this.setFrame(0, 0, this.bitmap.width, frameHeight);
 	}
 };
-$aaaa$.prototype.updateStateSprite=function(){
+$pppp$.updateStateSprite=function(){
 	const hpmp=this._hpMpSprite , icon=this._stateIconSprite;
 	if(hpmp){
 		icon.y = hpmp.y+hpmp.height + icon.height*icon.anchor.y + 1;
@@ -741,7 +746,7 @@ $aaaa$.prototype.updateStateSprite=function(){
 		}
 	}
 };
-$dddd$=$aaaa$.prototype.updateHpMpSprite=function f(){
+$dddd$=$pppp$.updateHpMpSprite=function f(){
 	
 	const sp=this._hpMpSprite;
 	const bm=sp.bitmap;
@@ -782,11 +787,12 @@ $dddd$=$aaaa$.prototype.updateHpMpSprite=function f(){
 	if(y<0) sp.y-=y; // does scale matter?
 };
 $dddd$.tbl=["rgba()"];
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Sprite_Animation
 $aaaa$=Sprite_Animation;
-$rrrr$=$aaaa$.prototype.setup;
-$dddd$=$aaaa$.prototype.setup=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.setup;
+$dddd$=$pppp$.setup=function f(){
 	// f(target, animation, mirror, delay)
 	f.ori.apply(this,arguments);
 	// used in 'updateAllCellSprites'
@@ -799,19 +805,19 @@ $dddd$=$aaaa$.prototype.setup=function f(){
 	}
 	return this;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.remove;
-$dddd$=$aaaa$.prototype.remove=function f(){
+$rrrr$=$pppp$.remove;
+$dddd$=$pppp$.remove=function f(){
 	if(this.parent){
 		f.ori.call(this);
 		this._target.setBlendColor([0, 0, 0, 0]);
 		this._target.show();
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setupDuration=function(){
+$pppp$.setupDuration=function(){
 	this._durFloor=this._animation.frames.length * this._rate;
 	this._duration=this._durFloor+1;
 };
-$aaaa$.prototype.updateMain=function(){
+$pppp$.updateMain=function(){
 	if(this.isPlaying()){
 		if(this.isReady())
 			if(0<this._delay) --this._delay;
@@ -824,7 +830,7 @@ $aaaa$.prototype.updateMain=function(){
 			}
 	}else this.remove();
 };
-$aaaa$.prototype.updatePosition = function() {
+$pppp$.updatePosition = function() {
 	if (this._animation.position === 3) { // 原版是在/三小，我就不相信直接整數不行
 		this.x = this.parent.width>>1;
 		this.y = this.parent.height>>1;
@@ -846,7 +852,7 @@ $aaaa$.prototype.updatePosition = function() {
 		this.x=x; this.y=y;
 	}
 };
-$dddd$=$aaaa$.prototype.updateFrame=function f(){
+$dddd$=$pppp$.updateFrame=function f(){
 	if(this._duration > 0){
 		let frameIndex = this.currentFrameIndex();
 		this.updateAllCellSprites(this._animation.frames[frameIndex]);
@@ -855,10 +861,10 @@ $dddd$=$aaaa$.prototype.updateFrame=function f(){
 	}
 };
 $dddd$.forEach=function(t){ this.processTimingData(t); };
-$aaaa$.prototype.currentFrameIndex=function(){
+$pppp$.currentFrameIndex=function(){
 	return this._animation.frames.length - ~~((this._duration + this._rate - 1) / this._rate);
 };
-$aaaa$.prototype.updateAllCellSprites=function(frame){ // TODO: create cells when needed
+$pppp$.updateAllCellSprites=function(frame){ // TODO: create cells when needed
 	const arr=this._cellSprites;
 	{
 		let xs=frame.length; if(xs>arr.length) xs=arr.length;
@@ -867,29 +873,31 @@ $aaaa$.prototype.updateAllCellSprites=function(frame){ // TODO: create cells whe
 	if(this._lastCellLen > frame.length) for(let x=frame.length;x!==this._lastCellLen;++x) arr[x].visible=false;
 	this._lastCellLen = frame.length;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Sprite_Damage
 $aaaa$=Sprite_Damage;
-$rrrr$=$aaaa$.prototype.createDigits;
-$dddd$=$aaaa$.prototype.createDigits=function f(b,v){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.createDigits;
+$dddd$=$pppp$.createDigits=function f(b,v){
 	f.ori.call(this,b,v);
 	this.__value=v;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Sprite_Weapon
 $aaaa$=Sprite_Weapon;
-$rrrr$=$aaaa$.prototype.setup;
-$dddd$=$aaaa$.prototype.setup=function f(wImgId){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.setup;
+$dddd$=$pppp$.setup=function f(wImgId){
 	f.ori.call(this,wImgId);
 	this._lastPatternWaitCnt=0;
 	this._lastPatternWaitMax=4;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.animationWait=function(){
+$pppp$.animationWait=function(){
 	return this.parent&&this.parent.motionSpeed?this.parent.motionSpeed():1;
 };
-$aaaa$.prototype.updatePerPatternInfo=function(){
+$pppp$.updatePerPatternInfo=function(){
 	if(this._perPatternInfo){
 		const info=this._perPatternInfo[this._pattern];
 		if(info){
@@ -900,7 +908,7 @@ $aaaa$.prototype.updatePerPatternInfo=function(){
 		}
 	}
 };
-$aaaa$.prototype.updatePattern = function() {
+$pppp$.updatePattern = function() {
 	if(this._weaponImageId){
 		if(this._pattern===2){
 			if(++this._lastPatternWaitCnt>this._lastPatternWaitMax){
@@ -913,12 +921,13 @@ $aaaa$.prototype.updatePattern = function() {
 		this.updatePerPatternInfo();
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Sprite_Balloon
 $aaaa$=Sprite_Balloon;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	f.ori.call(this);
 	if(this._duration===0) this.remove();
 	else if(this.ref){
@@ -927,20 +936,21 @@ $dddd$=$aaaa$.prototype.update=function f(){
 		this.y = ref.y - ref.height;
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Sprite_Timer
 $aaaa$=Sprite_Timer;
-$aaaa$.prototype.setTimer=function(timer){
+$pppp$=$aaaa$.prototype;
+$pppp$.setTimer=function(timer){
 	this._timer=timer;
 };
-$aaaa$.prototype.updateBitmap = function() {
+$pppp$.updateBitmap = function() {
 	let timer=this._timer||$gameTimer;
 	if (this._seconds !== timer.seconds()) {
     		this._seconds = timer.seconds();
 	    	this.redraw();
 	}
 };
-$aaaa$.prototype.updatePosition = function(forced){
+$pppp$.updatePosition = function(forced){
 	if( forced || this._scale!==$gameTimer._scale && !isNaN($gameTimer._scale) ){
 		this._scale=$gameTimer._scale;
 		this.scale.y=this.scale.x=Number(this._scale);
@@ -957,13 +967,14 @@ $aaaa$.prototype.updatePosition = function(forced){
 		}
 	}
 };
-$aaaa$.prototype.updateVisibility=function(){
+$pppp$.updateVisibility=function(){
 	this.visible = $gameTimer.isWorking();
 	if(this._background) this._background.visible=this.visible;
 };
 // - Sprite_Destination
 $aaaa$=Sprite_Destination
-$aaaa$.prototype.updateAnimation=function(){ // ...
+$pppp$=$aaaa$.prototype;
+$pppp$.updateAnimation=function(){ // ...
     this._frameCount++;
     this._frameCount &= 15;
     this.opacity = (this._frameCount^0xF)<<3;
@@ -972,14 +983,15 @@ $aaaa$.prototype.updateAnimation=function(){ // ...
 };
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
-$rrrr$=$aaaa$.prototype.createTimer;
-$dddd$=$aaaa$.prototype.createTimer=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.createTimer;
+$dddd$=$pppp$.createTimer=function f(){
 	this.addChild(this._timerBackground = new Window_Base(0,0,96,48));
 	f.ori.call(this);
 	this._timerSprite._background=this._timerBackground;
 	this._timerSprite.updatePosition(true);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
+$pppp$.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
 	if(!f.cache) f.cache=new CacheSystem(1);
 	if(this._tileset=$gameMap.tileset()){
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
@@ -1009,7 +1021,7 @@ $aaaa$.prototype.loadTileset=function f(){ // re-write: fix bug: shadertimemap n
 		else tm.refresh();
 	}
 };
-$aaaa$.prototype.createCharacters=function(){
+$pppp$.createCharacters=function(){
 	if(this._characterSprites) this._characterSprites.length=0;
 	else this._characterSprites = [];
 	$gameMap.events().forEach(function(event){
@@ -1027,26 +1039,27 @@ $aaaa$.prototype.createCharacters=function(){
 		this._tilemap.addChild(this._characterSprites[i]);
 	}
 };
-$aaaa$.prototype.updateTilemap = function() {
+$pppp$.updateTilemap = function() {
 	this._tilemap.origin.x = $gameMap._displayX_tw;
 	this._tilemap.origin.y = $gameMap._displayY_th;
 };
-$aaaa$.prototype.updateWeather = function() {
+$pppp$.updateWeather = function() {
 	this._weather.type = $gameScreen.weatherType();
 	this._weather.power = $gameScreen.weatherPower();
 	this._weather.origin.x = $gameMap._displayX_tw;
 	this._weather.origin.y = $gameMap._displayY_th;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Spriteset_Battle
 $aaaa$=Spriteset_Battle;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(scene){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(scene){
 	this._scene=scene;
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype._sortE=function f(forced){
+$dddd$=$pppp$._sortE=function f(forced){
 	const bfc=this._battleField.children;
 	if(forced||this._lastBfcLen!==bfc.length){
 		this._lastBfcLen=bfc.length;
@@ -1057,32 +1070,32 @@ $dddd$.cmp=function f(a,b){
 	const aa=(f.tbl.get(a.constructor)|0)^3,bb=(f.tbl.get(b.constructor)|0)^3;
 	return (aa-bb)||(aa===1)&&f.cmp(a,b);
 };
-$dddd$.cmp.cmp=$aaaa$.prototype.compareEnemySprite;
+$dddd$.cmp.cmp=$pppp$.compareEnemySprite;
 $dddd$.cmp.tbl=new Map([
 	[TilingSprite,3],
 	[Sprite_Enemy,2],
 	[Sprite_Actor,1],
 ]);
-$rrrr$=$aaaa$.prototype.updateTransform;
-$dddd$=$aaaa$.prototype.updateTransform=function f(){
+$rrrr$=$pppp$.updateTransform;
+$dddd$=$pppp$.updateTransform=function f(){
 	this._sortE();
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.createActors=function(){
+$pppp$.createActors=function(){
 	this._actorSprites = [];
 	for (let i=0,sz=$gameParty.battleMembers().length;i!==sz;++i) this._battleField.addChild( this._actorSprites[i] = new Sprite_Actor() );
 };
-$aaaa$.prototype.updateActors=function(){ // exec every frame
+$pppp$.updateActors=function(){ // exec every frame
 	for(let i=0,arrv=this._actorSprites,arrk=$gameParty.battleMembers();i!==arrv.length;++i){
 		arrv[i].setBattler(arrk[i]);
 		this._scene._chr2sp.set(arrk[i],arrv[i]);
 	}
 };
-$aaaa$.prototype.isAnimationPlaying=none;
-$aaaa$.prototype.isEffecting=none;
-$aaaa$.prototype.isAnyoneMoving=none; // step forward and backward
-$aaaa$.prototype.isBusy=none; // '||' above 2
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.isAnimationPlaying=none;
+$pppp$.isEffecting=none;
+$pppp$.isAnyoneMoving=none; // step forward and backward
+$pppp$.isBusy=none; // '||' above 2
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // manager
 
@@ -1138,7 +1151,7 @@ $aaaa$.applyData=function(config) {
 		if(arr[x][1]) this[arr[x][0]]=arr[x][1].call(this,config,arr[x][0],arr[x][2]);
 		else if(arr[x][0] in config) this[arr[x][0]]=config[arr[x][0]];
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - ImageManager
 $aaaa$=ImageManager;
@@ -1262,7 +1275,7 @@ $aaaa$.reserveBitmap=function(folder, filename, hue, smooth, reservationId , arg
 		return bitmap;
 	}else return this.loadEmptyBitmap();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - AudioManager
 $aaaa$=AudioManager;
@@ -1374,7 +1387,7 @@ $dddd$=$aaaa$.saveBgs=function f(rtv){
 	if(!rtv) return f.ori.call(this);
 	return this._saveBgX(rtv,this._currentBgs,this._bgsBuffer,p);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - BattleManager
 $aaaa$=BattleManager;
@@ -1631,28 +1644,30 @@ $dddd$=$aaaa$.gainRewards=function f(){
 	$gameTemp.gainMsgConfigs_pop();
 	$gameMessage.add("\\MINOR");
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // scene
 
 // - base
 $aaaa$=Scene_Base;
-$aaaa$.prototype.updateChildren=Sprite.prototype.update;
-$rrrr$=$aaaa$.prototype.detachReservation;
-$dddd$=$aaaa$.prototype.detachReservation=function f(){
+$pppp$=$aaaa$.prototype;
+$pppp$.updateChildren=Sprite.prototype.update;
+$rrrr$=$pppp$.detachReservation;
+$dddd$=$pppp$.detachReservation=function f(){
 	debug.log('Scene_Base.prototype.detachReservation');
 	let wl=this._windowLayer; if(wl) wl.destructor();
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - boot
 $aaaa$=Scene_Boot;
-$aaaa$.prototype.isGameFontLoaded=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.isGameFontLoaded=function(){
 	if(Graphics.isFontLoaded( _global_conf.useFont ) || Graphics.canUseCssFontLoading()) return true;
 	else if(Date.now()-this._startDate>=20000) throw new Error('Failed to load font');
 };
-$dddd$=$aaaa$.prototype.arrangeData=function f(){
+$dddd$=$pppp$.arrangeData=function f(){
 	
 	// extend texts
 	if(!$dataSystem.terms.extended){
@@ -1691,6 +1706,7 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		arr.push(texts.mps);
 		isMul[arr.length]=true;
 		arr.push(texts.akr);
+		arr.push(texts.tbe);
 	}
 	
 	// custom traits // Game_BattlerBase.TRAITS_CUSTOM
@@ -1701,6 +1717,7 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		addEnum("DECDMG_P").
 		addEnum("DECDMG_M").
 		addEnum("MPSubstitute").
+		addEnum("TrgBattleEnd").
 		addEnum("__DUMMY") , f = x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.escape){ // has, built-in code
@@ -1712,7 +1729,11 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		}
 		if(meta.atktimes_mul){ // *
 			const n=Number(meta.atktimes_mul);
-			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.ATKTIMES_MUL,value:isNaN(n)?1:n});
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.ATKTIMES_MUL,value:n});
+		}
+		if(meta.trg_btlEnd){ // +
+			const n=Number(meta.trg_btlEnd);
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.TrgBattleEnd,value:n});
 		}
 		if(meta.decDmg){ // +
 			const ld=JSON.parse(meta.decDmg);
@@ -1899,6 +1920,12 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		x.tmapP=$dataStates[id].tmapP;
 	});
 	
+	// maxItem
+	$dataArmors.slice($dataArmors.arrangeStart||1).forEach(f.makeMaxStack);
+	$dataItems.slice($dataItems.arrangeStart||1).forEach(f.makeMaxStack);
+	$dataStates.slice($dataStates.arrangeStart||1).forEach(f.makeMaxStack); // TODO
+	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(f.makeMaxStack);
+	
 	// **** recursive def (_*) ****
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -1922,6 +1949,10 @@ $dddd$=$aaaa$.prototype.arrangeData=function f(){
 		if(!x.tmapS) x.tmapS=new Map();
 		if(!x.tmapP) x.tmapP=new Map();
 	});
+};
+$dddd$.makeMaxStack=dataobj=>{
+	const m=Number(dataobj.meta.maxStack);
+	dataobj.maxStack=m>=0?m:undefined;
 };
 $dddd$.makeTraitsMap=dataobj=>{
 	const tarr=dataobj.traits;
@@ -1962,53 +1993,56 @@ $dddd$.makeTraitsMap=dataobj=>{
 		if(tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) dataobj.params.push(tmp.v*1e6); // +act times
 	}
 };
-$aaaa$.prototype.create=function(){
+$pppp$.create=function(){
 	Scene_Base.prototype.create.call(this);
 	DataManager.loadDatabase();
 	ConfigManager.load();
 	this.loadSystemWindowImage();
 };
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){ // only exec once
+$rrrr$=$pppp$.start;
+$dddd$=$pppp$.start=function f(){ // only exec once
 	this.arrangeData();
 	DataManager._itemArrs={s:$dataSkills,i:$dataItems,w:$dataWeapons,a:$dataArmors,};
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - itemBase
 $aaaa$=Scene_ItemBase;
-$aaaa$.prototype.createActorWindow=function f(){ // rewrite: actorWindow on top with semi-transparent background to other windows
+$pppp$=$aaaa$.prototype;
+$pppp$.createActorWindow=function f(){ // rewrite: actorWindow on top with semi-transparent background to other windows
 	// f.ori.call(this); // some binds to window layer cause not showing the window
 	this._actorWindow = new Window_MenuActor();
 	this._actorWindow.setHandler('ok',     this.onActorOk.bind(this));
 	this._actorWindow.setHandler('cancel', this.onActorCancel.bind(this));
 	this.addChild(this._actorWindow);
 };
-$rrrr$=$aaaa$.prototype.showSubWindow;
-$dddd$=$aaaa$.prototype.showSubWindow=function f(w){
+$rrrr$=$pppp$.showSubWindow;
+$dddd$=$pppp$.showSubWindow=function f(w){
 	f.ori.call(this,w);
 	w.refresh();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.applyItem;
-$dddd$=$aaaa$.prototype.applyItem=function f(){
+$rrrr$=$pppp$.applyItem;
+$dddd$=$pppp$.applyItem=function f(){
 	//debug.log('Scene_ItemBase.prototype.applyItem');
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // item
 $aaaa$=Scene_Item;
-$aaaa$.prototype.onCategoryOk=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.onCategoryOk=function(){
 	this._itemWindow.selectLast();
 	this._itemWindow.activate();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Scene_Equip
 $aaaa$=Scene_Equip;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.create;
+$dddd$=$pppp$.create=function f(){
 	f.ori.call(this);
 /*
 	==== help ====
@@ -2108,19 +2142,19 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	iw._logIdx=this._onItem_logIdx.bind(this);
 	iw._putIdx=this._onItem_putIdx.bind(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.refreshActor=function(){
+$pppp$.refreshActor=function(){
 	const actor = this.actor();
 	this._statusWindow.setActor(actor);
 	this._slotWindow.setActor(actor);
 };
-$aaaa$.prototype._clearStatDiff=function(){
+$pppp$._clearStatDiff=function(){
 	const sw=this._statusWindow;
 	if(sw && sw._itemNew!==undefined){
 		sw._itemNew=undefined;
 		sw.refresh();
 	}
 };
-$aaaa$.prototype.commandEquip=function f(){
+$pppp$.commandEquip=function f(){
 	const sw=this._slotWindow;
 	sw.activate();
 	sw._scrollY=sw._scrollYM.get(this._actor)|0;
@@ -2128,7 +2162,7 @@ $aaaa$.prototype.commandEquip=function f(){
 	sw.reselect();
 	sw.refresh();
 };
-$aaaa$.prototype.commandOptimize=function f(){
+$pppp$.commandOptimize=function f(){
 	SoundManager.playEquip();
 	const iw=this._itemWindow;
 	const itemEmpty=iw._data&&(iw._data.length===0||iw._data[0]===null);
@@ -2139,26 +2173,26 @@ $aaaa$.prototype.commandOptimize=function f(){
 	this._slotWindow.refresh();
 	this._commandWindow.activate();
 };
-$rrrr$=$aaaa$.prototype.commandClear;
-$dddd$=$aaaa$.prototype.commandClear=function f(){
+$rrrr$=$pppp$.commandClear;
+$dddd$=$pppp$.commandClear=function f(){
 	f.ori.call(this);
 	this._slotWindow._setSlotIdTbl();
 	this._slotWindow.refresh();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.onSlotOk=function(){
+$pppp$.onSlotOk=function(){
 	const iw=this._itemWindow;
 	iw._putIdx();
 	iw.reselect();
 	iw.activate();
 };
-$aaaa$.prototype._onItem_logIdx=function(){
+$pppp$._onItem_logIdx=function(){
 	const iw=this._itemWindow;
 	if(!(iw._index>=0)) return;
 	let lastSelM=this._lastSelMM_item.get(this._actor);
 	if(!lastSelM) this._lastSelMM_item.set(this._actor,lastSelM=new Map());
 	lastSelM.set(iw._slotId,[iw._scrollY,iw._index,]);
 };
-$aaaa$.prototype._onItem_putIdx=function(){
+$pppp$._onItem_putIdx=function(){
 	const iw=this._itemWindow;
 	const lastSelM=this._lastSelMM_item.get(this._actor);
 	const info=lastSelM&&lastSelM.get(iw._slotId);
@@ -2168,20 +2202,20 @@ $aaaa$.prototype._onItem_putIdx=function(){
 		iw._index=(idx>=0?(idx>=iw._data.length?iw._data.length-1:idx):0);
 	}else iw._index=iw._scrollY=0;
 };
-$aaaa$.prototype._onItem_deSel=function(){
+$pppp$._onItem_deSel=function(){
 	const iw=this._itemWindow;
 	const idx=iw._index;
 	iw._index=-1;
 	iw.updateCursor();
 	iw._index=idx;
 };
-$aaaa$.prototype.onSlotCancel=function(){
+$pppp$.onSlotCancel=function(){
 	this._onItem_deSel();
 	this._slotWindow.deselect();
 	this._clearStatDiff();
 	this._commandWindow.activate();
 };
-$aaaa$.prototype.onItemOk=function(){
+$pppp$.onItemOk=function(){
 	SoundManager.playEquip();
 	// this.actor().changeEquip(this._slotWindow.index(), this._itemWindow.item());
 	const sw=this._slotWindow , iw=this._itemWindow;
@@ -2201,23 +2235,24 @@ $aaaa$.prototype.onItemOk=function(){
 	sw.refresh();
 	this._statusWindow.refresh();
 };
-$aaaa$.prototype.onItemCancel=function(){
+$pppp$.onItemCancel=function(){
 	this._slotWindow.activate();
 	//iw.deselect();
 	this._onItem_deSel();
 	this._clearStatDiff();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - save
 $aaaa$=Scene_Save;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this._oriSwitchVal=undefined;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.onSavefileOk;
-$dddd$=$aaaa$.prototype.onSavefileOk=function f(){
+$rrrr$=$pppp$.onSavefileOk;
+$dddd$=$pppp$.onSavefileOk=function f(){
 	if($gameTemp._switchTrue_if_saved_id){
 		this._oriSwitchVal=$gameSwitches.value($gameTemp._switchTrue_if_saved_id,true);
 		$gameSwitches.setValue($gameTemp._switchTrue_if_saved_id,true);
@@ -2225,16 +2260,17 @@ $dddd$=$aaaa$.prototype.onSavefileOk=function f(){
 	f.ori.call(this);
 	if(!$gameTemp._switchTrue_if_saved_preserveId) $gameTemp._switchTrue_if_saved_id=undefined;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.onSaveFailure;
-$dddd$=$aaaa$.prototype.onSaveFailure=function f(){
+$rrrr$=$pppp$.onSaveFailure;
+$dddd$=$pppp$.onSaveFailure=function f(){
 	f.ori.call(this);
 	if($gameTemp._switchTrue_if_saved_id) $gameSwitches.setValue($gameTemp._switchTrue_if_saved_id,this._oriSwitchVal);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - title
 $aaaa$=Scene_Title;
-$aaaa$.prototype._edt=function f(){
+$pppp$=$aaaa$.prototype;
+$pppp$._edt=function f(){
 	if(!f.ori) f.ori=deepcopy($dataSystem);
 	let tmp=location.pathname.match(/\/([A-Za-z0-9]+)\.html$/);
 	const info=tmp&&tmp[1];
@@ -2324,8 +2360,8 @@ $aaaa$.prototype._edt=function f(){
 	else history.replaceState(undefined , document.title=$dataSystem.gameTitle, "./"+info+".html" + location.search + "#"+location.hash.slice(1) );
 	if($gameTemp) $gameTemp.clearCacheAll();
 };
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$rrrr$=$pppp$.create;
+$dddd$=$pppp$.create=function f(){
 	debug.log('Scene_Title.prototype.create');
 	this._edt();
 	f.ori.call(this);
@@ -2335,7 +2371,7 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	for(let i in refreshes) refreshes[i]();
 	$gameSystem._usr=0;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.start=function(){
+$pppp$.start=function(){
 	Scene_Base.prototype.start.call(this);
 	SceneManager.clearStack();
 	this.centerSprite(this._backSprite1);
@@ -2343,7 +2379,7 @@ $aaaa$.prototype.start=function(){
 	this.playTitleMusic();
 	this.startFadeIn(this.fadeSpeed(), false);
 };
-$aaaa$.prototype.createBackground=function(){
+$pppp$.createBackground=function(){
 	let t;
 	
 	this._backSprite1 = new Sprite(ImageManager.loadTitle1(t=$dataSystem.title1Name));
@@ -2354,7 +2390,7 @@ $aaaa$.prototype.createBackground=function(){
 	if(t) this.addChild(this._backSprite2);
 	else this._backSprite2.visible=false;
 };
-$aaaa$.prototype.createCommandWindow = function() {
+$pppp$.createCommandWindow = function() {
 	const cw = this._commandWindow = new Window_TitleCommand();
 	cw.setHandler('newGame',  this.commandNewGame.bind(this));
 	cw.setHandler('continue', this.commandContinue.bind(this));
@@ -2363,7 +2399,7 @@ $aaaa$.prototype.createCommandWindow = function() {
 	cw.y = ((Graphics.boxHeight - cw.height)*7)>>3;
 	this.addWindow(cw);
 };
-$aaaa$.prototype.addCustomCommands=function(){
+$pppp$.addCustomCommands=function(){
 	const cw=this._commandWindow;
 	if(debug&&debug.isdebug()) cw.setHandler('customTitleCmd',  this.customTitleCommand.bind(this));
 	cw.setHandler('CLOSEGAME', ()=>{SceneManager.pause();d.body.rf(0);});
@@ -2373,14 +2409,14 @@ $aaaa$.prototype.addCustomCommands=function(){
 	cw.setHandler('usrSwitch_global', SceneManager._usrswitch );
 	cw.setHandler('feedback',         SceneManager._feedback  );
 };
-$aaaa$.prototype.customTitleCommand=function(){
+$pppp$.customTitleCommand=function(){
 	// do nothing
 	deubug.log("Scene_Title.prototype.customTitleCommand");
 	//debugger;
 	this._commandWindow.close();
 	return SceneManager.push(Scene_Title); // call stack not stacking . amazing !
 };
-$aaaa$.prototype.drawGameTitle=function(){
+$pppp$.drawGameTitle=function(){
 	let fontsize=72;
 	let x = 20;
 	let y = fontsize*1.25;
@@ -2391,17 +2427,18 @@ $aaaa$.prototype.drawGameTitle=function(){
 	this._gameTitleSprite.bitmap.fontSize = fontsize;
 	this._gameTitleSprite.bitmap.drawText(text, x, y, maxWidth, 48, 'center');
 };
-$aaaa$.prototype.centerSprite=function(sprite){
+$pppp$.centerSprite=function(sprite){
 	sprite.x = Graphics.width>>1;
 	sprite.y = Graphics.height>>1;
 	sprite.anchor.x = 0.5;
 	sprite.anchor.y = 0.5;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - menu
 $aaaa$=Scene_Menu;
-$aaaa$.prototype.create=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.create=function(){
 	// reset device detection
 	Utils._isAndroidChrome=undefined;
 	Utils._isMobileDevice=undefined;
@@ -2414,7 +2451,7 @@ $aaaa$.prototype.create=function(){
 	this.createCommandWindow();
 	this.createStatusWindow();
 };
-$dddd$=$aaaa$.prototype.createMsgWindow=function f(){
+$dddd$=$pppp$.createMsgWindow=function f(){
 	let msg=this._msgWindow=new f.msgc(0,0, this._goldWindow.width, this._goldWindow.height + f.msgc.prototype.lineHeight() );
 	msg.update=f.update;
 	msg.flwing=null;
@@ -2436,7 +2473,7 @@ $dddd$.update=function f(){
 	}
 };
 $dddd$.update.msgc=$dddd$.msgc;
-$aaaa$.prototype.createCommandWindow=function(){
+$pppp$.createCommandWindow=function(){
 	const sy = this._msgWindow.height , cmdw = this._commandWindow = new Window_MenuCommand(0, sy ,{maxHeight:this._goldWindow.y-sy});
 	cmdw.setHandler('item', 	this.commandItem.bind(this));
 	cmdw.setHandler('skill',	this.commandPersonal.bind(this));
@@ -2450,7 +2487,7 @@ $aaaa$.prototype.createCommandWindow=function(){
 	if(this.addCustomCommands) this.addCustomCommands();
 	this.addWindow(cmdw);
 };
-$dddd$=$aaaa$.prototype.addCustomCommands=function f(){
+$dddd$=$pppp$.addCustomCommands=function f(){
 	const cmdw=this._commandWindow;
 	cmdw.setHandler('debugMenu2', ()=>{SceneManager.push(Scene_DebugMenu2);} );
 	if(this.addV_I_M) this.addV_I_M();
@@ -2486,7 +2523,7 @@ $dddd$=$aaaa$.prototype.addCustomCommands=function f(){
 };
 $dddd$.setCancel=(w,f)=>{w.setHandler('cancel');return w;};
 // - menu: V_I_M
-$aaaa$.prototype.addV_I_M=function(){
+$pppp$.addV_I_M=function(){
 	return this._commandWindow.setHandler('gifts', ()=>{
 		let cw=this._commandWindow;
 		if(!window['/tmp/']) window['/tmp/']={};
@@ -2501,13 +2538,14 @@ $aaaa$.prototype.addV_I_M=function(){
 		//SceneManager.goto(this.constructor);
 	});
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 
 // - map
 
 $aaaa$=Scene_Map;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype;
+$dddd$=$pppp$.create=function f(){
 	//debug.log('Scene_Map.prototype.create');
 	// release Image reservations
 	if($dataMap) ImageManager.releaseReservation(f.preload);
@@ -2517,7 +2555,7 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	if(!q||mid!==midn) DataManager.loadMapData( midn );
 };
 $dddd$.preload="preload";
-$dddd$=$aaaa$.prototype._createPannels=function f(){
+$dddd$=$pppp$._createPannels=function f(){
 	if(!this._pannel){
 		this._windowLayer.addChildBefore(this._pannel=new Window_CustomRealtimeMsgs({fontSize:16}),this._messageWindow);
 	}
@@ -2625,8 +2663,8 @@ $dddd$.flwing=function(pannel){
 		$dataMap.flwing_pannel=pannel.add($gamePlayer._followers,flwrs=>flwrs._following?$dataCustom.flwingMsgs.yes:$dataCustom.flwingMsgs.no,{align:'center',updateItvl:'no'});
 	}
 };
-$rrrr$=$aaaa$.prototype.onMapLoaded;
-$dddd$=$aaaa$.prototype.onMapLoaded=function f(){
+$rrrr$=$pppp$.onMapLoaded;
+$dddd$=$pppp$.onMapLoaded=function f(){
 	debug.log('Scene_Map.prototype.onMapLoaded');
 	debug.log('!$dataMap',!$dataMap);
 	Sprite._counter&=0; // reset Sprite.spriteId counter // sprites will be in 'SceneManager._scene._spriteset._tilemap.children'
@@ -2922,8 +2960,8 @@ $dddd$.genRandMaze=function f(){
 		return;
 	}
 };
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){
+$rrrr$=$pppp$.start;
+$dddd$=$pppp$.start=function f(){
 	//debug.log('Scene_Map.prototype.start');
 	
 	//f.ori.call(this);
@@ -2960,11 +2998,12 @@ Scene_Map.prototype.updateMain=function(){
 	}
 	$gameScreen.update();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Scene_Load
 $aaaa$=Scene_Load;
-$aaaa$.prototype.reloadMapIfUpdated=function() {
+$pppp$=$aaaa$.prototype;
+$pppp$.reloadMapIfUpdated=function() {
 	if ($gameSystem.versionId() !== $dataSystem.versionId) {
 		//$gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y); // this call '$gamePlayer.locate' which sync followers' location to $gameplayer
 		$gamePlayer.requestMapReload();
@@ -2973,8 +3012,9 @@ $aaaa$.prototype.reloadMapIfUpdated=function() {
 
 // - Scene_Shop
 $aaaa$=Scene_Shop;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.create;
+$dddd$=$pppp$.create=function f(){
 	f.ori.call(this);
 	$gameTemp._scShop_balance=0; // seller gainGold
 	$gameTemp._scShop_buySth=false; // player buy
@@ -3036,59 +3076,60 @@ $dddd$=$aaaa$.prototype.create=function f(){
 	(w=this._dummyWindow).width-=tmp;
 	w.active=false;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.createDummyWindow = function() {
+$pppp$.createDummyWindow = function() {
 	let wy = this._commandWindow.y + this._commandWindow.height;
 	let wh = Graphics.boxHeight - wy;
 	this._dummyWindow = new Window_Dummy(0, wy, Graphics.boxWidth, wh);
 	this.addWindow(this._dummyWindow);
 };
-$rrrr$=$aaaa$.prototype.doBuy;
-$dddd$=$aaaa$.prototype.doBuy=function f(n){
+$rrrr$=$pppp$.doBuy;
+$dddd$=$pppp$.doBuy=function f(n){
 	$gameTemp._scShop_balance+=$gameParty._gold;
 	f.ori.call(this,n);
 	$gameTemp._scShop_balance-=$gameParty._gold;
 	$gameTemp._scShop_buySth=true;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.doSell;
-$dddd$=$aaaa$.prototype.doSell=function f(n){
+$rrrr$=$pppp$.doSell;
+$dddd$=$pppp$.doSell=function f(n){
 	$gameTemp._scShop_balance+=$gameParty._gold;
 	f.ori.call(this,n);
 	$gameTemp._scShop_balance-=$gameParty._gold;
 	$gameTemp._scShop_sellSth=true;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.terminate=function(){ // originally empty
+$pppp$.terminate=function(){ // originally empty
 	$gameTemp._scShop_negBalance=$gameTemp._scShop_balance<0;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Scene_Battle
 $aaaa$=Scene_Battle;
-$aaaa$.prototype.changeInputWindow=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.changeInputWindow=function(){
 	if(BattleManager.isInputting()){
 		if(BattleManager.actor()) this.startActorCommandSelection();
 		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
 	}else this.endCommandSelection();
 };
-$rrrr$=$aaaa$.prototype.terminate;
-$dddd$=$aaaa$.prototype.terminate=function f(){
+$rrrr$=$pppp$.terminate;
+$dddd$=$pppp$.terminate=function f(){
 	f.ori.call(this);
 	BattleManager.clearTBDCache();
 	$gameTroop.members().forEach(f.forEach);
 }; $dddd$.ori=$rrrr$;
 $dddd$.forEach=b=>b.clearCache();
-$aaaa$.prototype.createSpriteset=function(){
+$pppp$.createSpriteset=function(){
 	this._chr2sp=new Map();
 	this.addChild(this._spriteset = new Spriteset_Battle(this));
 };
-$rrrr$=$aaaa$.prototype.createAllWindows;
-$dddd$=$aaaa$.prototype.createAllWindows=function f(){
+$rrrr$=$pppp$.createAllWindows;
+$dddd$=$pppp$.createAllWindows=function f(){
 	f.ori.call(this);
 	this.createSwapActorWindow();
 	// trim
 	this._actorWindow.y=0;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.createPartyCommandWindow;
-$dddd$=$aaaa$.prototype.createPartyCommandWindow=function f(){
+$rrrr$=$pppp$.createPartyCommandWindow;
+$dddd$=$pppp$.createPartyCommandWindow=function f(){
 	f.ori.call(this);
 	const w=this._partyCommandWindow;
 	w.setHandler('swap',    	this.commandSwap.bind(this));
@@ -3098,17 +3139,17 @@ $dddd$=$aaaa$.prototype.createPartyCommandWindow=function f(){
 	w.setHandler('allSpaceout',	this.commandSpaceoutAll.bind(this));
 	w.setHandler('viewLog', 	this.commandViewLog.bind(this));
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.createSwapActorWindow=function(){
+$pppp$.createSwapActorWindow=function(){
 	let w;
 	//this.addWindow( w = this._swapActorWindow = new Window_BattleStatus() );
 	w=this._swapActorWindow=this._actorWindow;
 };
-$rrrr$=$aaaa$.prototype.createActorCommandWindow;
-$dddd$=$aaaa$.prototype.createActorCommandWindow=function f(){
+$rrrr$=$pppp$.createActorCommandWindow;
+$dddd$=$pppp$.createActorCommandWindow=function f(){
 	f.ori.call(this);
 	this._actorCommandWindow.setHandler('spaceout',   this.commandSpaceout.bind(this));
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.commandSwap=function(){
+$pppp$.commandSwap=function(){
 	const w=this._swapActorWindow;
 	w._mode='s';
 	w._pendingIndex=-1;
@@ -3117,7 +3158,7 @@ $aaaa$.prototype.commandSwap=function(){
 	if(!(w._index>=0)) w._index=0;
 	w.activate();
 };
-$aaaa$.prototype.commandUsePlan=function(){
+$pppp$.commandUsePlan=function(){
 	this._allSpecific=0;
 	this._windowLayer.visible=false;
 	const cmdw=this._partyCommandWindow;
@@ -3155,11 +3196,11 @@ $aaaa$.prototype.commandUsePlan=function(){
 		plan.refresh();
 	}
 };
-$aaaa$.prototype.commandAtkAll=function(){
+$pppp$.commandAtkAll=function(){
 	this._allSpecific=1;
 	this.selectEnemySelection();
 };
-$aaaa$.prototype.commandGuardAll=function(){
+$pppp$.commandGuardAll=function(){
 	this._allSpecific=0;
 	let subject;
 	while(true){
@@ -3177,7 +3218,7 @@ $aaaa$.prototype.commandGuardAll=function(){
 		}
 	}
 };
-$aaaa$.prototype.commandSpaceoutAll=function(){
+$pppp$.commandSpaceoutAll=function(){
 	this._allSpecific=0;
 	let subject;
 	while(true){
@@ -3195,7 +3236,7 @@ $aaaa$.prototype.commandSpaceoutAll=function(){
 		}
 	}
 };
-$aaaa$.prototype.commandViewLog=function(){
+$pppp$.commandViewLog=function(){
 	this.clearInstLog();
 	const lw=this._logWindow;
 	if(lw._scene!==this){
@@ -3219,11 +3260,11 @@ $aaaa$.prototype.commandViewLog=function(){
 		lw.activate();
 	}else $gameMessage.popup("no log",true);
 };
-$aaaa$.prototype.commandSpaceout=function(){
+$pppp$.commandSpaceout=function(){
 	BattleManager.inputtingAction().setSpaceout();
 	this.selectNextCommand();
 };
-$aaaa$.prototype.selectNextCommand=function(){
+$pppp$.selectNextCommand=function(){
 	{ const act=BattleManager.inputtingAction();
 	if(act){ const item=act.item(); if(item&&item.meta.inst){
 		const bm=BattleManager;
@@ -3264,8 +3305,8 @@ $dddd$=Scene_Battle.prototype.onActorOk=function f(){
 	break;
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.onActorCancel;
-$dddd$=$aaaa$.prototype.onActorCancel=function f(){
+$rrrr$=$pppp$.onActorCancel;
+$dddd$=$pppp$.onActorCancel=function f(){
 	const w=this._swapActorWindow;
 	switch(w._mode){
 	default: return f.ori.call(this);
@@ -3283,7 +3324,7 @@ $dddd$=$aaaa$.prototype.onActorCancel=function f(){
 	}break;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.onEnemyOk=function(){
+$pppp$.onEnemyOk=function(){
 	switch(this._allSpecific){
 	default:{
 		let action = BattleManager.inputtingAction();
@@ -3310,8 +3351,8 @@ $aaaa$.prototype.onEnemyOk=function(){
 	}break;
 	}
 };
-$rrrr$=$aaaa$.prototype.onEnemyCancel;
-$dddd$=$aaaa$.prototype.onEnemyCancel=function f(){
+$rrrr$=$pppp$.onEnemyCancel;
+$dddd$=$pppp$.onEnemyCancel=function f(){
 	switch(this._allSpecific){
 	default: return f.ori.call(this);
 	case 1:{
@@ -3321,7 +3362,7 @@ $dddd$=$aaaa$.prototype.onEnemyCancel=function f(){
 	}break;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.onSelectAction=function(){
+$pppp$.onSelectAction=function(){
 	this.clearInstLog();
 	const action = BattleManager.inputtingAction();
 	this._skillWindow.hide();
@@ -3330,7 +3371,7 @@ $aaaa$.prototype.onSelectAction=function(){
 	else if(action.isForOpponent()) this.selectEnemySelection();
 	else this.selectActorSelection();
 };
-$aaaa$.prototype.endCommandSelection=function(){
+$pppp$.endCommandSelection=function(){
 	this._partyCommandWindow.close();
 	this._actorCommandWindow.close();
 	if(this._statusWindow._index!==-1 && !BattleManager._action){
@@ -3338,63 +3379,64 @@ $aaaa$.prototype.endCommandSelection=function(){
 		this._statusWindow.deselect();
 	}
 };
-$aaaa$.prototype.clearInstLog=function(){
+$pppp$.clearInstLog=function(){
 	if(this._instUsed){
 		this._instUsed=undefined;
 		BattleManager._logWindow.popBaseLine();
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // objects
 
 // - temp
 $aaaa$=Game_Temp;
-$aaaa$.prototype.clearDestination = function(forced) {
+$pppp$=$aaaa$.prototype;
+$pppp$.clearDestination = function(forced) {
 	if(TouchInput.isPressed()&&!forced&&!TouchInput.isTriggered()) return;
 	this._destinationX = null;
 	this._destinationY = null;
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this._data=new Map();
 	this._$gameObjs_tmp=new Map(); // take advantage of re-new of game objs are at the same time
 	//this._ssSets=[];
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.get=function(key){ return this._data.get(key); };
-$aaaa$.prototype.set=function(key,val){ return this._data.set(key,val); };
-$aaaa$.prototype.getCache=function(obj,key){
+$pppp$.get=function(key){ return this._data.get(key); };
+$pppp$.set=function(key,val){ return this._data.set(key,val); };
+$pppp$.getCache=function(obj,key){
 	let rtv=this._$gameObjs_tmp.get(obj);
 	if(rtv) rtv=rtv.get(key);
 	return rtv;
 };
-$aaaa$.prototype.updateCache=function(obj,key,val){
+$pppp$.updateCache=function(obj,key,val){
 	const dct=this._$gameObjs_tmp.get(obj);
 	if(dct) dct.set(key,val);
 	else this._$gameObjs_tmp.set( obj , new Map([[key,val,]]) );
 };
-$aaaa$.prototype.clearCache=function(obj){
+$pppp$.clearCache=function(obj){
 	this._$gameObjs_tmp.delete(obj);
 };
-$aaaa$.prototype.clearCacheAll=function(){
+$pppp$.clearCacheAll=function(){
 	this._$gameObjs_tmp.clear();
 };
-$aaaa$.prototype.delCache=function(obj,key){
+$pppp$.delCache=function(obj,key){
 	const tmp=this._$gameObjs_tmp.get(obj);
 	if(tmp) tmp.delete(key);
 };
-$aaaa$.prototype.initClearedWhenNewMap=function(){
+$pppp$.initClearedWhenNewMap=function(){
 	this.clearedWhenNewMap={};
 	// bfs cache
 	this.clearedWhenNewMap.bfsCache=new Map(); // xyidx(if multi-number, use string) -> result
 	// fast access sprite
 	this.clearedWhenNewMap.mySprite=new Map(); // evt / flr -> sprite
 };
-$aaaa$.prototype.getSprite=function(obj){
+$pppp$.getSprite=function(obj){
 	return this.clearedWhenNewMap && this.clearedWhenNewMap.mySprite.get(obj);
 }
-$aaaa$.prototype.poolEvt_newMap=function(lastMapId){
+$pppp$.poolEvt_newMap=function(lastMapId){
 	let tmp;
 	if(!(tmp=this.get('pool-evt'))) this.set('pool-evt',tmp=new Queue());
 	if(tmp.length===0||$gameMap._mapId!==lastMapId){
@@ -3402,7 +3444,7 @@ $aaaa$.prototype.poolEvt_newMap=function(lastMapId){
 		tmp.push(this._mapSerial);
 	}
 };
-$aaaa$.prototype.gainMsgConfigs_push=function(){
+$pppp$.gainMsgConfigs_push=function(){
 	if(!this._gainMsgConfigs) this._gainMsgConfigs=[];
 	this._gainMsgConfigs.push({
 		snd:$gameSystem._usr._noGainSound,
@@ -3410,16 +3452,16 @@ $aaaa$.prototype.gainMsgConfigs_push=function(){
 		msg:$gameSystem._usr._noGainMsg,
 	});
 };
-$aaaa$.prototype.gainMsgConfigs_mute=function(){
+$pppp$.gainMsgConfigs_mute=function(){
 	$gameSystem._usr._noGainSound=1;
 	$gameSystem._usr._noGainHint=1;
 	$gameSystem._usr._noGainMsg=1;
 };
-$aaaa$.prototype.gainMsgConfigs_pushAndMute=function(){
+$pppp$.gainMsgConfigs_pushAndMute=function(){
 	this.gainMsgConfigs_push();
 	this.gainMsgConfigs_mute();
 };
-$aaaa$.prototype.gainMsgConfigs_pop=function(){
+$pppp$.gainMsgConfigs_pop=function(){
 	if(!this._gainMsgConfigs) return (this._gainMsgConfigs=[])&&undefined;
 	if(this._gainMsgConfigs.length===0) return;
 	const rtv=this._gainMsgConfigs.pop();
@@ -3428,22 +3470,22 @@ $aaaa$.prototype.gainMsgConfigs_pop=function(){
 	$gameSystem._usr._noGainSound=rtv.snd||0;
 	return rtv;
 };
-$aaaa$.prototype.lvUpConfigs_push=function(){
+$pppp$.lvUpConfigs_push=function(){
 	if(!this._lvUpConfigs) this._lvUpConfigs=[];
 	this._lvUpConfigs.push({
 		lvh:$gameSystem._usr._lvUpHint,
 		lvm:$gameSystem._usr._lvUpMsg,
 	});
 };
-$aaaa$.prototype.lvUpConfigs_mute=function(){
+$pppp$.lvUpConfigs_mute=function(){
 	$gameSystem._usr._lvUpHint=0;
 	$gameSystem._usr._lvUpMsg=0;
 };
-$aaaa$.prototype.lvUpConfigs_pushAndMute=function(){
+$pppp$.lvUpConfigs_pushAndMute=function(){
 	this.lvUpConfigs_push();
 	this.lvUpConfigs_mute();
 };
-$aaaa$.prototype.lvUpConfigs_pop=function(){
+$pppp$.lvUpConfigs_pop=function(){
 	if(!this._lvUpConfigs) return (this._lvUpConfigs=[])&&undefined;
 	if(this._lvUpConfigs.length===0) return;
 	const rtv=this._lvUpConfigs.pop();
@@ -3451,7 +3493,7 @@ $aaaa$.prototype.lvUpConfigs_pop=function(){
 	$gameSystem._usr._lvUpHint=rtv.lvh||0;
 	return rtv;
 };
-$aaaa$.prototype.pannelConfigs_push=function(){
+$pppp$.pannelConfigs_push=function(){
 	if(!this._pannelConfigs) this._pannelConfigs=[];
 	this._pannelConfigs.push({
 		hpl:$gameSystem._usr._noLeaderHp,
@@ -3459,16 +3501,16 @@ $aaaa$.prototype.pannelConfigs_push=function(){
 		flw:$gameSystem._usr._flwingMsg,
 	});
 };
-$aaaa$.prototype.pannelConfigs_mute=function(){
+$pppp$.pannelConfigs_mute=function(){
 	$gameSystem._usr._noLeaderHp=1;
 	$gameSystem._usr._noLeaderMp=1;
 	$gameSystem._usr._flwingMsg=0;
 };
-$aaaa$.prototype.pannelConfigs_pushAndMute=function(){
+$pppp$.pannelConfigs_pushAndMute=function(){
 	this.pannelConfigs_push();
 	this.pannelConfigs_mute();
 };
-$aaaa$.prototype.pannelConfigs_pop=function(){
+$pppp$.pannelConfigs_pop=function(){
 	if(!this._pannelConfigs) return (this._pannelConfigs=[])&&undefined;
 	if(this._pannelConfigs.length===0) return;
 	const rtv=this._pannelConfigs.pop();
@@ -3477,22 +3519,23 @@ $aaaa$.prototype.pannelConfigs_pop=function(){
 	$gameSystem._usr._flwingMsg=rtv.flw||0;
 	return rtv;
 };
-$aaaa$.prototype.gameoverMsg_clear=function(){
+$pppp$.gameoverMsg_clear=function(){
 	if(this._gameoverMsgs) this._gameoverMsgs.length=0;
 	if($dataMap && $dataMap.gameoverMsgs) $dataMap.gameoverMsgs.length=0;
 };
-$aaaa$.prototype.gameoverMsg_add=function(txt){
+$pppp$.gameoverMsg_add=function(txt){
 	if(!this._gameoverMsgs) this._gameoverMsgs=[];
 	this._gameoverMsgs.push(txt);
 };
-$aaaa$.prototype.gameoverMsg_ok=function(){
+$pppp$.gameoverMsg_ok=function(){
 	if(!this._gameoverMsgs) return;
 	for(let arr=this._gameoverMsgs,xs=arr.length,x=xs;x--;) for(let _=8;--_;) $gameMessage.addGameoverMsg(arr[x],{t_remained:2e3*(x+1),align:'center'});
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - map
 $aaaa$=Game_Map;
+$pppp$=$aaaa$.prototype;
 Object.defineProperties($aaaa$.prototype, {
 	size: { get: function() { return $dataMap ? $gameMap.width()*$gameMap.height() : undefined; }, configurable: false },
 	w: { get: function(){return this.width();}, configurable: false },
@@ -3503,8 +3546,8 @@ Object.defineProperties($aaaa$.prototype, {
 	_parallaxX: { set: function(rhs){this._parallaxX_tw=this.tileWidth()*rhs; return rhs;}, configurable: false },
 	_parallaxY: { set: function(rhs){this._parallaxY_th=this.tileHeight()*rhs; return rhs;}, configurable: false },
 });
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	this._parallaxX_tw^=0;
 	this._parallaxY_th^=0;
 	this._displayX_tw^=0;
@@ -3514,12 +3557,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	f.ori.call(this);
 	this._itrpv=undefined; // []; // construct @ 'Game_Map.prototype.updateInterpreter' , @ 'Game_Map.prototype.setupStartingMapEvent'
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.zaWarudo=function(){ return this._zaWarudo; };
-$aaaa$.prototype.zaWarudo_waitToStart=function(evtid){
+$pppp$.zaWarudo=function(){ return this._zaWarudo; };
+$pppp$.zaWarudo_waitToStart=function(evtid){
 	if(!this._zaWarudo_waits) this._zaWarudo_waits=[];
 	this._zaWarudo_waits.push(evtid);
 };
-$aaaa$.prototype.setZaWarudo=function(val){
+$pppp$.setZaWarudo=function(val){
 	let arr=this._zaWarudo_waits;
 	this._zaWarudo=val;
 	if(arr&&!val){
@@ -3527,7 +3570,7 @@ $aaaa$.prototype.setZaWarudo=function(val){
 		delete this._zaWarudo_waits;
 	}
 };
-$aaaa$.prototype.deltaX=function(x1, x2){
+$pppp$.deltaX=function(x1, x2){
 	let result=x1-x2,w;
 	if(this.isLoopHorizontal() && (w=this.width())<(Math.abs(result)<<1)){
 		if(result<0) result+=w;
@@ -3535,7 +3578,7 @@ $aaaa$.prototype.deltaX=function(x1, x2){
 	}
 	return result;
 };
-$aaaa$.prototype.deltaY=function(y1, y2){
+$pppp$.deltaY=function(y1, y2){
 	let result=y1-y2,h;
 	if (this.isLoopVertical() && (h=this.height())<(Math.abs(result)<<1)) {
 		if(result<0) result+=h;
@@ -3543,27 +3586,27 @@ $aaaa$.prototype.deltaY=function(y1, y2){
 	}
 	return result;
 };
-$aaaa$.prototype._screenTileX=0^0;
-$aaaa$.prototype._screenTileY=0^0;
-$aaaa$.prototype.isLoopHorizontal=function(){return $dataMap.scrollType&2;};
-$aaaa$.prototype.isLoopVertical=function(){return $dataMap.scrollType&1;};
-$aaaa$.prototype.adjustX_tw=function(x) {
+$pppp$._screenTileX=0^0;
+$pppp$._screenTileY=0^0;
+$pppp$.isLoopHorizontal=function(){return $dataMap.scrollType&2;};
+$pppp$.isLoopVertical=function(){return $dataMap.scrollType&1;};
+$pppp$.adjustX_tw=function(x) {
 	let rtv=x*this.tileWidth()-this._displayX_tw ^0;
 	if(this.isLoopHorizontal()&&this._wtw+(rtv<<1)<Graphics.width) rtv+=this._wtw;
 	return rtv;
 };
-$aaaa$.prototype.adjustX = function(x) {
+$pppp$.adjustX = function(x) {
 	return this.adjustX_tw(x)/this.tileWidth();
 };
-$aaaa$.prototype.adjustY_th=function(y) {
+$pppp$.adjustY_th=function(y) {
 	let rtv=y*this.tileHeight()-this._displayY_th ^0;
 	if(this.isLoopVertical()&&this._hth+(rtv<<1)<Graphics.height) rtv+=this._hth;
 	return rtv;
 };
-$aaaa$.prototype.adjustY=function(y) {
+$pppp$.adjustY=function(y) {
 	return this.adjustY_th(y)/this.tileHeight();
 };
-$aaaa$.prototype.scrollDown_th=function(distance_th) {
+$pppp$.scrollDown_th=function(distance_th) {
 	distance_th=~~(distance_th+0.5);
 	let th=this.tileHeight(),gh=Graphics.height;
 	if(this.isLoopVertical()){
@@ -3577,12 +3620,12 @@ $aaaa$.prototype.scrollDown_th=function(distance_th) {
 	}
 	this._displayY_th^=0;
 };
-$aaaa$.prototype.scrollDown = function(distance) {
+$pppp$.scrollDown = function(distance) {
 	console.warn(distance);
 	return this.scrollDown_th(this.tileHeight()*distance);
 };
 
-$aaaa$.prototype.scrollLeft_tw=function(distance_tw) {
+$pppp$.scrollLeft_tw=function(distance_tw) {
 	distance_tw=~~(distance_tw+0.5);
 	let tw=this.tileWidth(),gw=Graphics.width;
 	if(this.isLoopHorizontal()){
@@ -3596,11 +3639,11 @@ $aaaa$.prototype.scrollLeft_tw=function(distance_tw) {
 	}
 	this._displayX_tw^=0;
 };
-$aaaa$.prototype.scrollLeft = function(distance) {
+$pppp$.scrollLeft = function(distance) {
 	console.warn(distance);
 	return this.scrollLeft_tw(this.tileWidth()*distance);
 };
-$aaaa$.prototype.scrollRight_tw=function(distance_tw) {
+$pppp$.scrollRight_tw=function(distance_tw) {
 	distance_tw=~~(distance_tw+0.5);
 	let tw=this.tileWidth(),gw=Graphics.width;
 	if(this.isLoopHorizontal()){
@@ -3614,11 +3657,11 @@ $aaaa$.prototype.scrollRight_tw=function(distance_tw) {
 	}
 	this._displayX_tw^=0;
 };
-$aaaa$.prototype.scrollRight = function(distance) {
+$pppp$.scrollRight = function(distance) {
 	console.warn(distance);
 	return this.scrollRight_tw(this.tileWidth()*distance);
 };
-$aaaa$.prototype.scrollUp_th=function(distance_th) {
+$pppp$.scrollUp_th=function(distance_th) {
 	distance_th=~~(distance_th+0.5);
 	let th=this.tileHeight(),gh=Graphics.height;
 	if(this.isLoopVertical()){
@@ -3632,11 +3675,11 @@ $aaaa$.prototype.scrollUp_th=function(distance_th) {
 	}
 	this._displayY_th^=0;
 };
-$aaaa$.prototype.scrollUp = function(distance) {
+$pppp$.scrollUp = function(distance) {
 	console.warn(distance);
 	return this.scrollUp_th(this.tileHeight()*distance);
 };
-$aaaa$.prototype.scrollToT=function(tx,ty){
+$pppp$.scrollToT=function(tx,ty){
 	let lastDispX=this._displayX_tw;
 	let lastDispY=this._displayY_th;
 	if(lastDispX<tx) this.scrollRight_tw(tx-lastDispX);
@@ -3645,10 +3688,10 @@ $aaaa$.prototype.scrollToT=function(tx,ty){
 	else this.scrollUp_th(lastDispY-ty);
 	return true;
 };
-$aaaa$.prototype.scrollToT_gradually_clear=function(){
+$pppp$.scrollToT_gradually_clear=function(){
 	$gameTemp._scrollRest=0;
 };
-$aaaa$.prototype.scrollToT_gradually=function(tx,ty,kargs){
+$pppp$.scrollToT_gradually=function(tx,ty,kargs){
 	let tmp=$gameTemp;
 	tmp._scrollRest^=0;
 	if(tmp._scrollRest===0){
@@ -3668,23 +3711,23 @@ $aaaa$.prototype.scrollToT_gradually=function(tx,ty,kargs){
 	this.scrollToT(tmp._scroll_dx*r+tx,tmp._scroll_dy*r+ty);
 	return;
 };
-$aaaa$.prototype.screenTileX=function(){ return this._screenTileX^0; };
-$aaaa$.prototype.screenTileY=function(){ return this._screenTileY^0; };
-$aaaa$.prototype.parallaxOx=function(){
+$pppp$.screenTileX=function(){ return this._screenTileX^0; };
+$pppp$.screenTileY=function(){ return this._screenTileY^0; };
+$pppp$.parallaxOx=function(){
 	if (this._parallaxZero) return this._parallaxX_tw;
 	else if(this._parallaxLoopX) return this._parallaxX_tw>>1;
 	else return 0;
 };
-$aaaa$.prototype.parallaxOy=function(){
+$pppp$.parallaxOy=function(){
 	if(this._parallaxZero) return this._parallaxY_th;
 	else if(this._parallaxLoopY) return this._parallaxY_th>>1;
 	else return 0;
 };
-$aaaa$.prototype.updateParallax = function() {
+$pppp$.updateParallax = function() {
 	if(this._parallaxLoopX) this._parallaxX_tw+=this._parallaxSx>>1;
 	if(this._parallaxLoopY) this._parallaxY_th+=this._parallaxSy>>1;
 };
-$aaaa$.prototype.setDisplayPos = function(x, y) {
+$pppp$.setDisplayPos = function(x, y) {
 	// called by Game_Player
 {
 	let tw=this.tileWidth();
@@ -3725,16 +3768,16 @@ $aaaa$.prototype.setDisplayPos = function(x, y) {
 	this._displayX_tw^=0;
 	this._displayY_th^=0;
 };
-$aaaa$.prototype.canvasToMapX=function(x) {
+$pppp$.canvasToMapX=function(x) {
 	let rtv=((this._displayX_tw + x) / this.tileWidth()^0);
 	return this.roundX(rtv);
 };
-$aaaa$.prototype.canvasToMapY=function(y){
+$pppp$.canvasToMapY=function(y){
 	let rtv=((this._displayY_th + y) / this.tileHeight()^0);
 	return this.roundY(rtv);
 };
-$rrrr$=$aaaa$.prototype.setup;
-$dddd$=$aaaa$.prototype.setup=function f(){ // exec when 1. change map ; or 2. $dataMap version updated
+$rrrr$=$pppp$.setup;
+$dddd$=$pppp$.setup=function f(){ // exec when 1. change map ; or 2. $dataMap version updated
 	debug.log('Game_Map.prototype.setup');
 	// $dataMap is updated
 	this._wtw=this.width ()*this.tileWidth ();
@@ -3765,7 +3808,7 @@ $dddd$=$aaaa$.prototype.setup=function f(){ // exec when 1. change map ; or 2. $
 	// load 'meta.recordLoc' s
 	this.load_recordLoc();
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.setupEvents=function f(){
+$dddd$=$pppp$.setupEvents=function f(){
 	$gameTemp.poolEvt_newMap();
 	this._events = [];
 	for(let i=0,arr=$dataMap.events;i!==arr.length;++i){
@@ -3775,7 +3818,7 @@ $dddd$=$aaaa$.prototype.setupEvents=function f(){
 	this.refreshTileEvents();
 };
 $dddd$.forEach=commonEvent=>new Game_CommonEvent(commonEvent.id);
-$aaaa$.prototype.save_recordLoc=function(){
+$pppp$.save_recordLoc=function(){
 	// save 'meta.recordLoc' s
 	debug.log('Game_Map.prototype.save_recordLoc');
 	let arr=$dataMap.eventsByMeta.recordLoc||[];
@@ -3789,7 +3832,7 @@ $aaaa$.prototype.save_recordLoc=function(){
 		}
 	}
 };
-$aaaa$.prototype.load_recordLoc=function(){
+$pppp$.load_recordLoc=function(){
 	// load 'meta.recordLoc' s
 	debug.log('Game_Map.prototype.load_recordLoc');
 	let mc=$gameParty.mch(),recordLoc=mc.recordLoc;
@@ -3806,7 +3849,7 @@ $aaaa$.prototype.load_recordLoc=function(){
 		delete mc.recordLoc;
 	}
 };
-$dddd$=$aaaa$.prototype.loadDynamicEvents=function f(fromLoadFile,noUpdate){
+$dddd$=$pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
 	debug.log('Game_Map.prototype.loadDynamicEvents');
 	debug.log($dataMap,$gameMap&&$gameMap._mapId);
 	let childssarr=[];
@@ -3887,7 +3930,7 @@ $dddd$.trim=evt=>{ // - - event
 		evt._preventZaWarudo=tmp;
 	}
 };
-$aaaa$.prototype.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
+$pppp$.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
 	// evt.constructor === Game_Event
 	
 	// self switches
@@ -3903,7 +3946,7 @@ $aaaa$.prototype.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
 	
 	return evt;
 };
-$aaaa$.prototype.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
+$pppp$.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 	// dist2
 	// cxy = {x:Number(...),y:Number(...)};
 	let C={_realX:cxy.x,_realY:cxy.y,dist2:1};
@@ -3911,32 +3954,32 @@ $aaaa$.prototype.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 	let h=new Heap((a,b)=>{-(a[0]<b[0]);},evts,1);
 	while(h.length){ callback(h.top[1]); h.pop(); }
 };
-$aaaa$.prototype.xy2idx=function(x,y,lv=0){
+$pppp$.xy2idx=function(x,y,lv=0){
 	return this.isValid(x,y) && $dataMap ? x+$gameMap.width()*y+lv*this.size : undefined;
 };
-$aaaa$.prototype.getAllTileByRef=function(r){
+$pppp$.getAllTileByRef=function(r){
 	return this.getAllTileByPos(r.x,r.y);
 };
-$aaaa$.prototype.getAllTileByPos=function(x,y){
+$pppp$.getAllTileByPos=function(x,y){
 	let i=this.xy2idx(x,y); if(i===undefined) return [];
 	let rtv=[],arr=$gameMap.data();
 	for(let mapsz=this.size;i<arr.length;i+=mapsz) rtv.push(arr[i]);
 	return rtv;
 };
-$aaaa$.prototype.getAllTileFlagsByPos=function(x,y){
+$pppp$.getAllTileFlagsByPos=function(x,y){
 	let i=this.xy2idx(x,y); if(i===undefined) return [];
 	let rtv=[],tileIds=$gameMap.data(),tileFlags=this.tilesetFlags();
 	for(let mapsz=this.size;i<tileIds.length;i+=mapsz) rtv.push(tileFlags[ tileIds[i] ]);
 	return rtv;
 };
-$aaaa$.prototype.tilesetFlags=function() {
+$pppp$.tilesetFlags=function() {
 	let tileset=this.tileset();
 	return tileset?tileset.flags:[];
 };
-$aaaa$.prototype.isValid_round=function(x,y){
+$pppp$.isValid_round=function(x,y){
 	return this.isValid(this.roundX(x),this.roundY(y));
 };
-$aaaa$.prototype.checkPassage=function(x,y,bit){
+$pppp$.checkPassage=function(x,y,bit){
 	let flags=this.tilesetFlags();
 	let tiles=this.allTiles(x, y);
 	let i,flag;
@@ -3957,7 +4000,7 @@ $aaaa$.prototype.checkPassage=function(x,y,bit){
 	//return debug.isdebug();
 	return false; // No effect ALL
 };
-$dddd$=$aaaa$.prototype.layeredTiles=function f(x,y){ // rewrite for efficiency
+$dddd$=$pppp$.layeredTiles=function f(x,y){ // rewrite for efficiency
 	//let idx=this.width()*y+x;
 	//let rtv=$dataMap.data3d[idx];
 	//if(rtv.length!==4) DataManager.resetData3d(idx); // for future use: reduce mem usage
@@ -3965,16 +4008,16 @@ $dddd$=$aaaa$.prototype.layeredTiles=function f(x,y){ // rewrite for efficiency
 	return $dataMap.data3d[$dataMap.width*y+x]||f._dummy;
 };
 $dddd$._dummy=[];
-$aaaa$.prototype.allTiles=function(x,y){ // rewrite for efficiency
+$pppp$.allTiles=function(x,y){ // rewrite for efficiency
 	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
 	// discard tileEvents // 'this.tileEvents' is mostly empty
 	return this.layeredTiles(x, y);
 };
-$aaaa$.prototype.isPassable=function(x,y,d){
+$pppp$.isPassable=function(x,y,d){
 	return this.checkPassage(x,y,( 1<<((d>>1)-1) )&15 );
 };
-$rrrr$=$aaaa$.prototype.isDamageFloor;
-$dddd$=$aaaa$.prototype.isDamageFloor=function f(X,Y){
+$rrrr$=$pppp$.isDamageFloor;
+$dddd$=$pppp$.isDamageFloor=function f(X,Y){
 	let rtv=f.ori.call(this,X,Y);
 	if(rtv){
 		if(!$dataMap.preventDamageFloor) $dataMap.preventDamageFloor=JSON.parse($dataMap.meta.preventDamageFloor||"[]");
@@ -3998,19 +4041,19 @@ $dddd$=$aaaa$.prototype.isDamageFloor=function f(X,Y){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.isChair=function f(x,y){
+$dddd$=$pppp$.isChair=function f(x,y){
 	if(parseInt(x)!==x||parseInt(y)!==y) return false;
 	return $dataMap.isChair[y*$dataMap.width+x];
 };
 $dddd$.tbl=[];
-$rrrr$=$aaaa$.prototype.displayName;
-$dddd$=$aaaa$.prototype.displayName=function f(){
+$rrrr$=$pppp$.displayName;
+$dddd$=$pppp$.displayName=function f(){
 	debug.log('Game_Map.prototype.displayName');
 	let pt=$gameParty && $gameParty.mapChanges,id=$gameMap._mapId;
 	return pt && pt[id] && pt[id].name || f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.data;
-$dddd$=$aaaa$.prototype.data=function f(idx){
+$rrrr$=$pppp$.data;
+$dddd$=$pppp$.data=function f(idx){
 	//debug.log('Game_Map.prototype.data');
 	let tmp=$gameParty.mapChanges,id=$gameMap._mapId;
 	let delta=tmp&&tmp[id];
@@ -4070,7 +4113,7 @@ $dddd$=$aaaa$.prototype.data=function f(idx){
 	}
 }; $dddd$.ori=$rrrr$;
 $dddd$.forEach=v=>DataManager.resetData3d(v);
-$aaaa$.prototype.toBroken=function(permanent){
+$pppp$.toBroken=function(permanent){
 	let sz=$gameMap.size;
 	let brokenLvs=$dataMap.meta.brokenLvs.split(',');
 	let brokenChs=[];
@@ -4101,7 +4144,7 @@ $aaaa$.prototype.toBroken=function(permanent){
 		if(sc.constructor===Scene_Map) sc._spriteset._tilemap.refresh();
 	}
 };
-$aaaa$.prototype.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,constraintFunc){ // cp if(constraintFunc(x,y)) else omit
+$pppp$.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,constraintFunc){ // cp if(constraintFunc(x,y)) else omit
 	debug.log('Game_Map.prototype.cpevt');
 	// copy an event filling a rectangle range on this map
 	// return number of successful copied. no boundary check
@@ -4144,7 +4187,7 @@ $aaaa$.prototype.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,cons
 	}}
 	return evts.length-strt;
 };
-$aaaa$.prototype.parents=function f(mapId){
+$pppp$.parents=function f(mapId){
 	mapId=mapId||this._mapId;
 	let rtv=[]; if(!mapId) return rtv;
 	for(let id=$dataMapInfos[mapId].parentId;id;id=$dataMapInfos[id].parentId){
@@ -4152,13 +4195,13 @@ $aaaa$.prototype.parents=function f(mapId){
 	}
 	return rtv;
 };
-$aaaa$.prototype.getRoot=function(mapId){
+$pppp$.getRoot=function(mapId){
 	mapId=mapId||this._mapId;
 	let tmp;
 	while((tmp=$dataMapInfos[mapId])&&tmp.name.slice(-5)!=='-root') mapId=tmp.parentId;
 	return mapId||undef;
 };
-$aaaa$.prototype.adjMtx=function(strtx,strty,canPassOnEvts){
+$pppp$.adjMtx=function(strtx,strty,canPassOnEvts){
 	// return 1d-array
 	// use player.x if strtx not defined
 	// use player.y if strty not defined
@@ -4188,11 +4231,11 @@ $aaaa$.prototype.adjMtx=function(strtx,strty,canPassOnEvts){
 	}}
 	return $dataMap._adjMtx=rtv;
 };
-$aaaa$.prototype.ss=function(evtid,sname){
+$pppp$.ss=function(evtid,sname){
 	let res=this._events[evtid].ssState(sname);
 	return res.obj[res.key];
 };
-$aaaa$.prototype.events=function(){ // overwrite
+$pppp$.events=function(){ // overwrite
 	//debug.log('Game_Map.prototype.events');
 	let arr=this._events,rtv=[];
 	if($dataMap.templateStrt===undefined){
@@ -4210,7 +4253,7 @@ $aaaa$.prototype.events=function(){ // overwrite
 	}
 	return rtv;
 };
-$aaaa$.prototype.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwwwwwwww
+$pppp$.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwwwwwwww
 	if(!this.isValid(posx,posy)) return [];
 	let mapd=$dataMap,tbl;
 //	if(tbl=mapd&&mapd.coordTbl&&mapd.coordTbl[posx+posy*mapd.width]) return $gameParty.burnrange?tbl.filter(x=>!x.event().meta.burnable):tbl;
@@ -4222,15 +4265,15 @@ $aaaa$.prototype.eventsXy=function(posx,posy){ // overwrite. forEach is slowwwww
 	}
 	return rtv;
 };
-$aaaa$.prototype.eventsXyRef=function(xy){ xy=xy||$gamePlayer; return this.eventsXy(xy.x,xy.y); };
-$aaaa$.prototype.eventsXyNt=function(posx,posy){ // overwrite.
+$pppp$.eventsXyRef=function(xy){ xy=xy||$gamePlayer; return this.eventsXy(xy.x,xy.y); };
+$pppp$.eventsXyNt=function(posx,posy){ // overwrite.
 	if(!this.isValid(posx,posy)) return [];
 	let mapd=$dataMap,tbl;
 	if(tbl=mapd&&mapd.coordTblNt&&mapd.coordTblNt[mapd.width*posy+posx]) return tbl;
 	return (mapd&&mapd.coordTbl&&mapd.coordTbl[mapd.width*posy+posx]||this._events).filter(evt=>evt&&evt.posNt(posx,posy));
 };
-$aaaa$.prototype.eventsXyRefNt=function(xy){ return this.eventsXyNt(xy.x,xy.y); };
-$aaaa$.prototype.isAnyEventStarting=function(){ // overwrite. Array.some is slowwwwwwwwww
+$pppp$.eventsXyRefNt=function(xy){ return this.eventsXyNt(xy.x,xy.y); };
+$pppp$.isAnyEventStarting=function(){ // overwrite. Array.some is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.isAnyEventStarting'); // this is polling
 	if($dataMap.strtEvts) return $dataMap.strtEvts.length!==0;
 	for(let x=0,arr=this._events;x!==arr.length;++x){ let evt=arr[x];
@@ -4238,7 +4281,7 @@ $aaaa$.prototype.isAnyEventStarting=function(){ // overwrite. Array.some is slow
 	}
 	return false;
 };
-$aaaa$.prototype.updateEvents=function(){ // overwrite. forEach is slowwwwwwwwww
+$pppp$.updateEvents=function(){ // overwrite. forEach is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.updateEvents');
 	if($dataMap.templateStrt===undefined){
 		for(let x=0,arr=this._events;x!==arr.length;++x){ let evt=arr[x];
@@ -4264,7 +4307,7 @@ $aaaa$.prototype.updateEvents=function(){ // overwrite. forEach is slowwwwwwwwww
 	}
 	for(let x=0,arr=this._commonEvents;x!==arr.length;++x) arr[x].update();
 };
-$dddd$=$aaaa$.prototype.updateInterpreter=function f(){
+$dddd$=$pppp$.updateInterpreter=function f(){
 	// parallel map evts which exec only once
 	if(!this._itrpv) this._itrpv=[];
 	f.tmp.length=0;
@@ -4292,12 +4335,12 @@ $dddd$=$aaaa$.prototype.updateInterpreter=function f(){
 	}
 };
 $dddd$.tmp=[];
-$rrrr$=$aaaa$.prototype.setupStartingEvent;
-$dddd$=$aaaa$.prototype.setupStartingEvent=function f(){
+$rrrr$=$pppp$.setupStartingEvent;
+$dddd$=$pppp$.setupStartingEvent=function f(){
 	//debug.log('Game_Map.prototype.setupStartingEvent'); // this is polling
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. looking through everything is slowwwwwwwwww
+$pppp$.setupStartingMapEvent=function f(){ // overwrite. looking through everything is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.setupStartingMapEvent'); // this is polling
 	// 'Game_Map.prototype.setupStartingEvent' is polling => 'Game_Map.prototype.setupStartingMapEvent' becomes polling
 	let rtv=false;
@@ -4326,14 +4369,14 @@ $aaaa$.prototype.setupStartingMapEvent=function f(){ // overwrite. looking throu
 	}
 	return rtv;
 };
-$rrrr$=$aaaa$.prototype.autoplay;
-$dddd$=$aaaa$.prototype.autoplay=function f(){
+$rrrr$=$pppp$.autoplay;
+$dddd$=$pppp$.autoplay=function f(){
 	f.ori.call(this);
 	if($dataMap.meta.rndmusic) AudioManager.playBgm(objs.rndmusic());
 	else AudioManager.stopPitch_bgm();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.refresh;
-$dddd$=$aaaa$.prototype.refresh=function f(){
+$rrrr$=$pppp$.refresh;
+$dddd$=$pppp$.refresh=function f(){
 	f.ori.call(this);
 	let tm=SceneManager.getTilemap();
 	if(tm && tm.constructor===ShaderTilemap){
@@ -4341,8 +4384,8 @@ $dddd$=$aaaa$.prototype.refresh=function f(){
 		tm._paintAllTiles(sx^0,sy^0);
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.refresh;
-$dddd$=$aaaa$.prototype.refresh=function f(){ // reduce refresh calls
+$rrrr$=$pppp$.refresh;
+$dddd$=$pppp$.refresh=function f(){ // reduce refresh calls
 	//debug.log('Game_Map.prototype.refresh');
 	if(SceneManager._nextScene!==null) return;
 	let curr=Date.now();
@@ -4362,41 +4405,42 @@ $dddd$=$aaaa$.prototype.refresh=function f(){ // reduce refresh calls
 	}
 }; $dddd$.ori=$rrrr$;
 $dddd$.itvl=16; $dddd$.lastTime=0;
-$rrrr$=$aaaa$.prototype.requestRefresh;
-$dddd$=$aaaa$.prototype.requestRefresh=function f(){
+$rrrr$=$pppp$.requestRefresh;
+$dddd$=$pppp$.requestRefresh=function f(){
 	//debug.log('Game_Map.prototype.requestRefresh');
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.requestRefresh=$rrrr$; // not changed
+$pppp$.requestRefresh=$rrrr$; // not changed
 $dddd$={};
 // $dddd$.ori=$rrrr$;
-$aaaa$.e=Math.max($aaaa$.prototype.tileWidth(),$aaaa$.prototype.tileHeight());
-$rrrr$=$dddd$=$aaaa$=undef;
+$aaaa$.e=Math.max($pppp$.tileWidth(),$pppp$.tileHeight());
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - interpreter
 $aaaa$=Game_Interpreter;
+$pppp$=$aaaa$.prototype;
 $aaaa$.EMPTY={code:0,indent:0,parameters:[]};
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	this._strtMeta=undefined;
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.setup;
-$dddd$=$aaaa$.prototype.setup=function f(list,evtId,strtMeta){
+$rrrr$=$pppp$.setup;
+$dddd$=$pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
 	this._strtMeta=strtMeta;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.clear;
-$dddd$=$aaaa$.prototype.clear=function f(){
+$rrrr$=$pppp$.clear;
+$dddd$=$pppp$.clear=function f(){
 	// flow: '.terminate' , '.clear'
 	this._strtMeta=undefined;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.getStrtMeta=function(key){
+$pppp$.getStrtMeta=function(key){
 	const meta=this._strtMeta;
 	return meta&&meta[key];
 };
-$dddd$=$aaaa$.prototype.command101=function f(){
+$dddd$=$pppp$.command101=function f(){
 	if(!$gameMessage.isBusy()){
 		$gameMessage.setFaceImage(this._params[0], this._params[1]);
 		$gameMessage.setBackground(this._params[2]);
@@ -4441,10 +4485,10 @@ $dddd$=$aaaa$.prototype.command101=function f(){
 };
 $dddd$.re_faceExt=/^\[(evt-)?([0-9]+)\]/;
 $dddd$.re_faceExt_any=/^\[([^\]]+)\]/;
-$aaaa$.prototype.ssKey=function(){ // not used ?
+$pppp$.ssKey=function(){ // not used ?
 	return [this._mapId, this._eventId, this._params[1]];
 };
-$dddd$=$aaaa$.prototype.command111=function f(){ // cond branch
+$dddd$=$pppp$.command111=function f(){ // cond branch
 	let result=false;
 	switch(this._params[0]){
 	case 0:{ // switch
@@ -4616,7 +4660,7 @@ $dddd$.script=function(j){
 		return obj;
 	}
 };
-$dddd$=$aaaa$.prototype.command122=function f(){ // ctrl var
+$dddd$=$pppp$.command122=function f(){ // ctrl var
 	let value = 0;
 	switch (this._params[3]) { // Operand
 	case 0:{ // Constant
@@ -4645,24 +4689,24 @@ $dddd$=$aaaa$.prototype.command122=function f(){ // ctrl var
 	}
 	return true;
 };
-$dddd$.script=$aaaa$.prototype.command111.script;
-$aaaa$.prototype.command123=function(){ // ctrl ss
+$dddd$.script=$pppp$.command111.script;
+$pppp$.command123=function(){ // ctrl ss
 	if(this._eventId.toId()>0){
 		let key=[this._mapId,this._eventId,this._params[0]];
 		$gameSelfSwitches.setValue(key, this._params[1] === 0);
 	}
 	return true;
 };
-$aaaa$.prototype.command214=function(){ // erase evt
+$pppp$.command214=function(){ // erase evt
 	if(this.isOnCurrentMap()&&this._eventId.toId()>0) $gameMap.eraseEvent(this._eventId);
 	return true;
 };
-$dddd$=$aaaa$.prototype.command314 = function f(){
+$dddd$=$pppp$.command314 = function f(){
 	this.iterateActorEx(this._params[0], this._params[1], f.recover);
 	return true;
 };
 $dddd$.recover=actor=>actor.recoverAll(true);
-$dddd$=$aaaa$.prototype.command355 = function f() {
+$dddd$=$pppp$.command355 = function f() {
 	let script = this.currentCommand().parameters[0] + '\n';
 	let flag=script[0]===":"&&script[1]==="!"; // ===":!"
 	if(flag) script=script.slice(2);
@@ -4677,13 +4721,14 @@ $dddd$=$aaaa$.prototype.command355 = function f() {
 	}
 	return true;
 };
-$dddd$.script=$aaaa$.prototype.command111.script;
+$dddd$.script=$pppp$.command111.script;
 // - - expose info
-$aaaa$.prototype.getEvt=function(){ return $gameMap._events[this._eventId] };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.getEvt=function(){ return $gameMap._events[this._eventId] };
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Game_BattlerBase
 $aaaa$=Game_BattlerBase;
+$pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=70;
 $aaaa$.addEnum=objs._addEnum;
 $aaaa$.addEnum('CACHEKEY_LASTPAY')
@@ -4694,7 +4739,7 @@ $aaaa$.addEnum('CACHEKEY_LASTPAY')
 	.addEnum('CACHEKEY_OVERALL_S')
 	.addEnum('CACHEKEY_OVERALL_M')
 	.addEnum('__DUMMY');
-$aaaa$.prototype.clearCache=function(key){
+$pppp$.clearCache=function(key){
 	// if !key then clear all
 	if(key) $gameTemp.delCache(this,key);
 	else $gameTemp.clearCache(this);
@@ -4708,13 +4753,13 @@ Object.defineProperties($aaaa$.prototype, {
 	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
 });
 
-$dddd$=$aaaa$.prototype.updateStateTurns=function f(){
+$dddd$=$pppp$.updateStateTurns=function f(){
 	this._states.forEach(f.forEach, this._stateTurns);
 };
 $dddd$.forEach=function(stateId) {
 	this[stateId]>0 && --this[stateId];
 };
-$dddd$=$aaaa$.prototype.clearStates=function f(){
+$dddd$=$pppp$.clearStates=function f(){
 	this._states_delCache();
 	this._stateTurns={};
 	if(this._states){
@@ -4726,8 +4771,9 @@ $dddd$=$aaaa$.prototype.clearStates=function f(){
 		}
 		this._states.length=newidx;
 	}else this._states=[];
+	this._overall_delCache();
 };
-$aaaa$.prototype.eraseState=function(stateId){
+$pppp$.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
 	const rtv=index>=0;
 	if(rtv){
@@ -4745,18 +4791,18 @@ $aaaa$.prototype.eraseState=function(stateId){
 	delete this._stateTurns[stateId];
 	return rtv;
 };
-$aaaa$.prototype.isStateAffected=function(stateId){
+$pppp$.isStateAffected=function(stateId){
 	return (this._states_getCache()||this._states_updateCache()).a.has(stateId);
 };
-$dddd$=$aaaa$.prototype._states_delCache=function f(){
+$dddd$=$pppp$._states_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
-$dddd$=$aaaa$.prototype._states_getCache=function f(){
+$dddd$=$pppp$._states_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
-$dddd$=$aaaa$.prototype._states_updateCache=function f(){
+$dddd$=$pppp$._states_updateCache=function f(){
 	let rtv;
 	$gameTemp.updateCache(this,f.key,rtv=this._states.map(f.map));
 	rtv.a=new Set(this._states);
@@ -4769,7 +4815,7 @@ $dddd$=$aaaa$.prototype._states_updateCache=function f(){
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_STATE;
 $dddd$.map=id=>$dataStates[id];
-$aaaa$.prototype._addNewState_updateCache=function(stateId){
+$pppp$._addNewState_updateCache=function(stateId){
 	this._states.push(stateId);
 	const stat=this._states_getCache();
 	if(stat){
@@ -4781,10 +4827,10 @@ $aaaa$.prototype._addNewState_updateCache=function(stateId){
 	}
 	this._overall_delCache();
 };
-$aaaa$.prototype.addNewState=function(stateId){
+$pppp$.addNewState=function(stateId){
 	let cancel=false;
 	if(stateId === this.deathStateId()){
-		this.die();
+		//this.die();
 		if(this.isAbleToAutoRevive()){
 			cancel=true;
 			this._hp=1;
@@ -4799,13 +4845,13 @@ $aaaa$.prototype.addNewState=function(stateId){
 		}
 	}
 };
-$aaaa$.prototype.states_noSlice=function(){
+$pppp$.states_noSlice=function(){
 	return this._states_getCache()||this._states_updateCache();
 };
-$aaaa$.prototype.states=function f(){
+$pppp$.states=function f(){
 	return this.states_noSlice().slice();
 };
-$dddd$=$aaaa$.prototype.sortStates=function f(){
+$dddd$=$pppp$.sortStates=function f(){
 	this._states.sort(f.cmp[0]);
 	const stat=this._states_getCache();
 	if(stat) stat.sort(f.cmp[1]);
@@ -4820,78 +4866,78 @@ $dddd$.cmp=[
 		return (pa===pb)?(a.id - b.id):(pb - pa);
 	},
 ];
-$aaaa$.prototype.restriction=function(){
+$pppp$.restriction=function(){
 	let rtv=0;
 	for(let x=0,arr=this.states_noSlice();x!==arr.length;++x)
 		if(rtv<arr[x].restriction) rtv=arr[x].restriction;
 	return rtv;
 };
-$aaaa$.prototype.mostImportantStateText=function(){
+$pppp$.mostImportantStateText=function(){
 	for(let x=0,arr=this.states_noSlice();x!==arr.length;++x)
 		if(arr[x].message3) return arr[x].message3;
 	return '';
 };
-$aaaa$.prototype.stateMotionIndex=function(){
+$pppp$.stateMotionIndex=function(){
 	const states = this.states_noSlice();
 	if(states.length) return states[0].motion;
 	else return 0;
 };
-$aaaa$.prototype.stateOverlayIndex=function(){
+$pppp$.stateOverlayIndex=function(){
 	const states = this.states_noSlice();
 	if(states.length) return states[0].overlay;
 	else return 0;
 };
-$aaaa$.prototype.stateIcons=function(rtv){
+$pppp$.stateIcons=function(rtv){
 	const icons=rtv||[] , arr=this.states_noSlice();
 	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) icons.push(arr[x].iconIndex);
 	return icons;
 };
-$aaaa$.prototype.buffIcons=function(rtv){
+$pppp$.buffIcons=function(rtv){
 	const icons=rtv||[] , arr=this._buffs;
 	for(let x=0;x!==arr.length;++x)
 		if(arr[x]>0) icons.push(this.buffIconIndex(arr[x],x));
 	return icons;
 };
-$aaaa$.prototype.allIcons=function(){
+$pppp$.allIcons=function(){
 	return this.buffIcons(this.stateIcons());
 };
-$aaaa$.prototype.getTraits_states_s=function(code,id){
+$pppp$.getTraits_states_s=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.states_noSlice().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_states_m=function(code,id){
+$pppp$.getTraits_states_m=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.states_noSlice().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$dddd$=$aaaa$.prototype.getTraits_native_s=function f(code,id){
+$dddd$=$pppp$.getTraits_native_s=function f(code,id){
 	// return: undefined / Map / value (code and id provided and value got)
 	// not assign 'none' due to showing the comment above
 };
-$aaaa$.prototype.getTraits_native_m=$dddd$;
-$aaaa$.prototype.getTraits_equips_s=$dddd$;
-$aaaa$.prototype.getTraits_equips_m=$dddd$;
-$aaaa$.prototype.getTraits_custom_s=$dddd$;
-$aaaa$.prototype.getTraits_custom_m=$dddd$;
-$aaaa$.prototype._overall_delCache=function(code){
+$pppp$.getTraits_native_m=$dddd$;
+$pppp$.getTraits_equips_s=$dddd$;
+$pppp$.getTraits_equips_m=$dddd$;
+$pppp$.getTraits_custom_s=$dddd$;
+$pppp$.getTraits_custom_m=$dddd$;
+$pppp$._overall_delCache=function(code){
 	this._overall_s_delCache(code);
 	this._overall_m_delCache(code);
 };
-$dddd$=$aaaa$.prototype._overall_s_delCache=function f(code){
+$dddd$=$pppp$._overall_s_delCache=function f(code){
 	if(code){
 		const c=$gameTemp.getCache(this,f.key);
 		if(c) c.delete(code);
 	}else $gameTemp.delCache(this,f.key);
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_S;
-$dddd$=$aaaa$.prototype._overall_s_getCache=function f(code){
+$dddd$=$pppp$._overall_s_getCache=function f(code){
 	const c=$gameTemp.getCache(this,f.key);
 	if(c&&c.mapd!==$dataMap) return this._overall_s_delCache();
 	return (c&&code)?c.get(code):c;
 };
 $dddd$.key=$tttt$;
-$dddd$=$aaaa$.prototype._overall_s_updateCache=function f(code){
+$dddd$=$pppp$._overall_s_updateCache=function f(code){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_s_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
@@ -4916,7 +4962,7 @@ $dddd$=$aaaa$.prototype._overall_s_updateCache=function f(code){
 };
 $dddd$.key=$tttt$;
 $tttt$=undef;
-$aaaa$.prototype.getTraits_overall_s=function(code,id){
+$pppp$.getTraits_overall_s=function(code,id){
 	let rtv,tmp;
 	if(id===undefined) return this._overall_s_getCache(code)||this._overall_s_updateCache(code);
 	else{
@@ -4938,20 +4984,20 @@ $aaaa$.prototype.getTraits_overall_s=function(code,id){
 	}
 	return rtv;
 };
-$dddd$=$aaaa$.prototype._overall_m_delCache=function f(code){
+$dddd$=$pppp$._overall_m_delCache=function f(code){
 	if(code){
 		const c=$gameTemp.getCache(this,f.key);
 		if(c) c.delete(code);
 	}else $gameTemp.delCache(this,f.key);
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_OVERALL_M;
-$dddd$=$aaaa$.prototype._overall_m_getCache=function f(code){
+$dddd$=$pppp$._overall_m_getCache=function f(code){
 	const c=$gameTemp.getCache(this,f.key);
 	if(c&&c.mapd!==$dataMap) return this._overall_m_delCache();
 	return (c&&code)?c.get(code):c;
 };
 $dddd$.key=$tttt$;
-$dddd$=$aaaa$.prototype._overall_m_updateCache=function f(code){
+$dddd$=$pppp$._overall_m_updateCache=function f(code){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_m_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
@@ -4976,7 +5022,7 @@ $dddd$=$aaaa$.prototype._overall_m_updateCache=function f(code){
 };
 $dddd$.key=$tttt$;
 $tttt$=undef;
-$aaaa$.prototype.getTraits_overall_m=function(code,id){
+$pppp$.getTraits_overall_m=function(code,id){
 	let rtv,tmp;
 	if(id===undefined) return this._overall_m_getCache(code)||this._overall_m_updateCache(code);
 	else{
@@ -4996,30 +5042,30 @@ $aaaa$.prototype.getTraits_overall_m=function(code,id){
 	}
 	return rtv;
 };
-$aaaa$.prototype.traitsPi=function(code, id){
+$pppp$.traitsPi=function(code, id){
 	return this.getTraits_overall_m(code,id);
 };
-$aaaa$.prototype.traitsSum=function(code, id){
+$pppp$.traitsSum=function(code, id){
 	return this.getTraits_overall_s(code,id);
 };
-$aaaa$.prototype.traitsSumAll=function(code){
+$pppp$.traitsSumAll=function(code){
 	return this.getTraits_overall_s(code).v||0;
 };
-$aaaa$.prototype.traitsSet=function(code){
+$pppp$.traitsSet=function(code){
 	return this.getTraits_overall_s(code);
 };
-$aaaa$.prototype.traitsMaxId=function(code,min){
+$pppp$.traitsMaxId=function(code,min){
 	const t=this.getTraits_overall_s(code);
 	let rtv=min||0;
 	if(t) t.forEach((v,k)=>rtv<k&&(rtv=k));
 	return rtv;
 };
-$aaaa$.prototype.paramBase=function(paramId){
+$pppp$.paramBase=function(paramId){
 	let rtv=this.currentClass().params[paramId][this._level];
 	if(this.stp===0) rtv/=10;
 	return rtv||0;
 };
-$dddd$=$aaaa$.prototype.paramMin=function f(paramId){
+$dddd$=$pppp$.paramMin=function f(paramId){
 	switch(paramId){
 	case 0: return 1;
 	case 1: return 0;
@@ -5027,13 +5073,13 @@ $dddd$=$aaaa$.prototype.paramMin=function f(paramId){
 	return f.tbl;
 };
 $dddd$.tbl=-Infinity;
-$aaaa$.prototype.paramMax=function(paramId){
+$pppp$.paramMax=function(paramId){
 	return paramId>1?999999:99999999;
 };
-$aaaa$.prototype.paramRate = function(paramId) {
+$pppp$.paramRate = function(paramId) {
 	return this.getTraits_overall_m(Game_BattlerBase.TRAIT_PARAM, paramId);
 };
-$aaaa$.prototype.param=function(paramId){
+$pppp$.param=function(paramId){
 	
 	// Window_EquipStatus.prototype.drawNewParam use '-', so String(s) are casted to Number
 	switch(~~((paramId+12)/10)){
@@ -5057,6 +5103,7 @@ $aaaa$.prototype.param=function(paramId){
 		switch(paramId){
 		case 28: return this.MPSubstituteRate().toFixed(3);
 		case 29: return this.attackTimesMul  ().toFixed(3);
+		case 30: return this.TPRegenAtBattleEnd();
 		}
 		return this.param();
 	break;
@@ -5072,15 +5119,15 @@ $aaaa$.prototype.param=function(paramId){
 	} }
 	return ~~(value+(value<0?-0.5:0.5));
 };
-$aaaa$.prototype.stateResistSet = function() {
+$pppp$.stateResistSet = function() {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
 };
-$aaaa$.prototype.addedSkillTypes = function() {
+$pppp$.addedSkillTypes = function() {
 	const rtv=[];
 	this.getTraits_overall_s(Game_BattlerBase.TRAIT_STYPE_ADD).forEach((v,k)=>rtv.push(k));
 	return rtv;
 };
-$aaaa$.prototype.addedSkillTypes_arranged=function(omits){
+$pppp$.addedSkillTypes_arranged=function(omits){
 	const h=new Heap(undefined,this.addedSkillTypes(),true),s=new Set(omits);
 	const rtv=[];
 	while(h.length){
@@ -5092,68 +5139,72 @@ $aaaa$.prototype.addedSkillTypes_arranged=function(omits){
 	return rtv.reverse();
 };
 // Game_BattlerBase.prototype.addedSkills=function(){ return this.traitsSet(Game_BattlerBase.TRAIT_SKILL_ADD); }; // not used
-$aaaa$.prototype.slotType=function(){
+$pppp$.slotType=function(){
 	return this.traitsMaxId(Game_BattlerBase.TRAIT_SLOT_TYPE);
 };
-$aaaa$.prototype.actionPlusSet=function() {
+$pppp$.actionPlusSet=function() {
 	return this.traitsSet(Game_BattlerBase.TRAIT_SLOT_TYPE);
 };
-$aaaa$.prototype.specialFlag=function(flagId) {
+$pppp$.specialFlag=function(flagId) {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_SPECIAL_FLAG).has(flagId);
 };
-$aaaa$.prototype.collapseType=function(){
+$pppp$.collapseType=function(){
 	return this.traitsMaxId(Game_BattlerBase.TRAIT_COLLAPSE_TYPE);
 };
-$aaaa$.prototype.partyAbility=function(abilityId){
+$pppp$.partyAbility=function(abilityId){
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_PARTY_ABILITY).has(abilityId);
 };
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
 	addEnum("DECDMG_P").
 	addEnum("DECDMG_M").
-	addEnum("MPSubstitute") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
-$aaaa$.prototype.isAbleToAutoRevive=function(){
+	addEnum("MPSubstitute").
+	addEnum("TrgBattleEnd") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
+$pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
 };
-$aaaa$.prototype.attackTimesMul=function(){
+$pppp$.attackTimesMul=function(){
 	return this.traitsPi(gbb.TRAITS_CUSTOM,enums.ATKTIMES_MUL);
 };
-$aaaa$.prototype.decreaseDamageP=function(){
+$pppp$.decreaseDamageP=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.DECDMG_P);
 };
-$aaaa$.prototype.decreaseDamageM=function(){
+$pppp$.decreaseDamageM=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.DECDMG_M);
 };
-$aaaa$.prototype.MPSubstituteRate=function(){
+$pppp$.MPSubstituteRate=function(){
 	let rtv=1-this.traitsPi(gbb.TRAITS_CUSTOM,enums.MPSubstitute)||0;
 	// though they're checked @ data source
 	if(rtv>1) rtv=1;
 	if(rtv<0) rtv=0;
 	return rtv;
 };
+$pppp$.TPRegenAtBattleEnd=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.TrgBattleEnd);
+};
 }
-$aaaa$.prototype.setHp=function(hp){
+$pppp$.setHp=function(hp){
 	if(this._hp === hp) return;
 	this._hp = hp;
 	this.refresh(true);
 };
-$aaaa$.prototype.setMp=function(mp){
+$pppp$.setMp=function(mp){
 	if(this._mp === mp) return;
 	this._mp = mp;
 	this.refresh(true);
 };
-$aaaa$.prototype.setTp=function(tp){
+$pppp$.setTp=function(tp){
 	if(this._tp === tp) return;
 	this._tp = tp;
 	this.refresh(true);
 };
-$aaaa$.prototype.setStp=function(val){
+$pppp$.setStp=function(val){
 	if(this._stp===val) return;
 	this._stp=val;
 	this.refresh();
 };
-$aaaa$.prototype.maxStp=()=>1000;
-$dddd$=$aaaa$.prototype.refresh=function f(){
+$pppp$.maxStp=()=>1000;
+$dddd$=$pppp$.refresh=function f(){
 	this.stateResistSet().forEach(f.forEach, this);
 	let tmp;
 	
@@ -5186,8 +5237,8 @@ $dddd$=$aaaa$.prototype.refresh=function f(){
 $dddd$.forEach=function(stateId){
 	this.eraseState(stateId);
 };
-$rrrr$=$aaaa$.prototype.recoverAll;
-$dddd$=$aaaa$.prototype.recoverAll=function f(ignoreBuff){
+$rrrr$=$pppp$.recoverAll;
+$dddd$=$pppp$.recoverAll=function f(ignoreBuff){
 	if(ignoreBuff){
 		let arr=this._states.filter(f.filter);
 		let steps={},turns={};
@@ -5207,28 +5258,28 @@ $dddd$=$aaaa$.prototype.recoverAll=function f(ignoreBuff){
 	}else return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $dddd$.filter=x=>$dataStates[x.toId()].meta.buff;
-$aaaa$.prototype.stpRate=function(){
+$pppp$.stpRate=function(){
 	return this.stp/this.maxStp()||0;
 };
-$aaaa$.prototype.isStarving=function(){
+$pppp$.isStarving=function(){
 	return this.stp===0;
 };
-$aaaa$.prototype.isHungry=function(){
+$pppp$.isHungry=function(){
 	return this.stpRate()<0.1;
 };
-$aaaa$.prototype.skillHpCost=function(skill){
+$pppp$.skillHpCost=function(skill){
 	//return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
 	return ~~(this.mhp*skill.hpCostMR + this.hp*skill.hpCostCR + skill.hpCost);
 };
-$aaaa$.prototype.skillMpCost=function(skill){
+$pppp$.skillMpCost=function(skill){
 	return ~~((~~(this.mmp*skill.mpCostMR + this.mp*skill.mpCostCR + skill.mpCost + 0.5)) * this.mcr);
 	(skill.mpCost * this.mcr)
 	return skill.mpCost+~~(skill.mpCost * this.mcr);
 };
-$aaaa$.prototype.canPaySkillCost=function(skill){
+$pppp$.canPaySkillCost=function(skill){
 	return this._tp >= this.skillTpCost(skill) && this._mp >= this.skillMpCost(skill) && this._hp > this.skillHpCost(skill) ;
 };
-$dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
+$dddd$=$pppp$.paySkillCost=function f(skill){
 	const payhp=this.skillHpCost(skill);
 	const paymp=this.skillMpCost(skill);
 	const paytp=this.skillTpCost(skill);
@@ -5238,16 +5289,16 @@ $dddd$=$aaaa$.prototype.paySkillCost=function f(skill){
 	this._tp -= paytp;
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_LASTPAY;
-$dddd$=$aaaa$.prototype.lastPay=function f(){
+$dddd$=$pppp$.lastPay=function f(){
 	return $gameTemp.getCache(this,f.key)||f.tbl;
 };
 $dddd$.key=$tttt$;
 $tttt$=undef;
 $dddd$.tbl={};
-$aaaa$.prototype.isOccasionOk=function(item){
+$pppp$.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
-$aaaa$.prototype.canUse=function f(dataItem){
+$pppp$.canUse=function f(dataItem){
 	if(!dataItem) return false;
 	const meta=dataItem.meta;
 	// when use an item via press 'ok' without release, 'meta' has chance to become 'undefined'
@@ -5263,7 +5314,7 @@ $aaaa$.prototype.canUse=function f(dataItem){
 	}
 	return false;
 };
-$aaaa$.prototype.canEquip=function(dataItem){
+$pppp$.canEquip=function(dataItem){
 	if(!dataItem) return false;
 	switch(dataItem.itemType){
 	default: break;
@@ -5276,54 +5327,55 @@ $aaaa$.prototype.canEquip=function(dataItem){
 	}
 	return false;
 };
-$aaaa$.prototype.spaceoutSkillId=()=>3;
-$aaaa$.prototype.canSpaceout=function(){
+$pppp$.spaceoutSkillId=()=>3;
+$pppp$.canSpaceout=function(){
 	return this.canUse($dataSkills[this.spaceoutSkillId()]);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - battler
 $aaaa$=Game_Battler;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this._animations=new Queue();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initMembers;
-$dddd$=$aaaa$.prototype.initMembers=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
+$rrrr$=$pppp$.initMembers;
+$dddd$=$pppp$.initMembers=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
 	f.ori.call(this);
 	this._actions=new Queue(2);
 	this._weapon2ImageId = 0;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setSprite=function(sprite){
+$pppp$.setSprite=function(sprite){
 	let m=SceneManager._scene._chr2sp;
 	if(!m) m=SceneManager._scene._chr2sp=new Map();
 	m.set(this,sprite);
 };
-$aaaa$.prototype.removeSprite=function(sprite){
+$pppp$.removeSprite=function(sprite){
 	let m=SceneManager._scene._chr2sp;
 	if(!m) m=SceneManager._scene._chr2sp=new Map();
 	m.delete(this);
 };
-$aaaa$.prototype.clearAnimations=function(){
+$pppp$.clearAnimations=function(){
 	this._animations.clear();
 };
-$aaaa$.prototype.clearWeapon2Animation = function() {
+$pppp$.clearWeapon2Animation = function() {
 	this._weapon2ImageId = 0;
 };
-$aaaa$.prototype.isWeapon2AnimationRequested=function(){
+$pppp$.isWeapon2AnimationRequested=function(){
 	return this._weapon2ImageId > 0;
 };
-$aaaa$.prototype.weapon2ImageId=function(){
+$pppp$.weapon2ImageId=function(){
 	return this._weapon2ImageId;
 };
-$aaaa$.prototype.startWeapon2Animation=function(weaponImageId) {
+$pppp$.startWeapon2Animation=function(weaponImageId) {
 	this._weapon2ImageId = weaponImageId;
 };
-$aaaa$.prototype.action=function(idx){
+$pppp$.action=function(idx){
 	return this._actions.getnth(idx);
 };
-$aaaa$.prototype.setAction=function(idx,act){
+$pppp$.setAction=function(idx,act){
 	if(BattleManager._isGuardWaiting){ // also 'BattleManager._isChanting'
 		const guard=$dataSkills[this.guardSkillId()];
 		const pre=this._actions.getnth(idx);
@@ -5353,12 +5405,12 @@ $aaaa$.prototype.setAction=function(idx,act){
 		}
 	}else this._actions.setnth(index,act);
 };
-$aaaa$.prototype.clearActions=function(){
+$pppp$.clearActions=function(){
 	this._actions.clear(2);
 	BattleManager._isGuardWaiting&&BattleManager._isGuardWaiting.delete(this);
 	BattleManager._isChanting&&BattleManager._isChanting.delete(this);
 };
-$aaaa$.prototype.removeStatesAuto=function(timing){
+$pppp$.removeStatesAuto=function(timing){
 	this._states.forEach(stateId=>{
 		const state=$dataStates[stateId];
 		if(this.isStateExpired(stateId) && state.autoRemovalTiming === timing) {
@@ -5366,11 +5418,11 @@ $aaaa$.prototype.removeStatesAuto=function(timing){
 		}
 	});
 };
-$aaaa$.prototype.makeActionTimes=function(){ // change logic: rnd each -> rnd remainder(<1)
+$pppp$.makeActionTimes=function(){ // change logic: rnd each -> rnd remainder(<1)
 	const rtv=this.traitsSum(Game_BattlerBase.TRAIT_ACTION_PLUS,0)||0; // id應該是0啦。原本的code用actionPlusSet每個算機率決定是否+1，未指定id
 	return (Math.random()<(rtv-~~rtv))+rtv+1;
 };
-$aaaa$.prototype.makeActions=function(){
+$pppp$.makeActions=function(){
 	this.clearActions(); // reset action input index in Game_Actor
 	if(this.canMove()){
 		const actionTimes = this.makeActionTimes();
@@ -5380,11 +5432,11 @@ $aaaa$.prototype.makeActions=function(){
 		}
 	}
 };
-$dddd$=$aaaa$.prototype.makeSpeed=function f(){
+$dddd$=$pppp$.makeSpeed=function f(){
     this._speed = Math.min.apply(null, this._actions.map(f.forEach)) || 0;
 };
 $dddd$.forEach=act=>act.speed();
-$aaaa$.prototype.removeCurrentAction=function(){
+$pppp$.removeCurrentAction=function(){
 	const a=this._actions.shift();
 	if(BattleManager._isGuardWaiting && a&&a.item()===$dataSkills[this.guardSkillId()]){
 		const n=BattleManager._isGuardWaiting.get(this);
@@ -5396,8 +5448,8 @@ $aaaa$.prototype.removeCurrentAction=function(){
 		if(n) BattleManager._isChanting.set(this,n-1);
 	}
 };
-$rrrr$=$aaaa$.prototype.forceAction;
-$dddd$=$aaaa$.prototype.forceAction=function f(skillId, targetIndex){
+$rrrr$=$pppp$.forceAction;
+$dddd$=$pppp$.forceAction=function f(skillId, targetIndex){
 	f.ori.call(this,skillId, targetIndex);
 	if(BattleManager._isGuardWaiting && skillId===this.guardSkillId()){
 		const n=BattleManager._isGuardWaiting.get(this)|0;
@@ -5409,7 +5461,7 @@ $dddd$=$aaaa$.prototype.forceAction=function f(skillId, targetIndex){
 		BattleManager._isChanting.set(this,n+1);
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.useItem = function(item) {
+$pppp$.useItem = function(item) {
 	switch(item&&item.itemType){
 	case 's': this.paySkillCost(item);
 	break;
@@ -5417,17 +5469,17 @@ $aaaa$.prototype.useItem = function(item) {
 	break;
 	}
 };
-$aaaa$.prototype.gainStp = function(value){
+$pppp$.gainStp = function(value){
 	if(this.stp===undefined) return;
 	this._result.stpDamage = -value;
 	this.setStp(this.stp + value);
 };
-$aaaa$.prototype.onBattleStart = function() {
+$pppp$.onBattleStart = function() {
 	this.setActionState('undecided');
 	this.clearMotion();
 };
-$rrrr$=$aaaa$.prototype.onTurnEnd;
-$dddd$=$aaaa$.prototype.onTurnEnd=function f(){
+$rrrr$=$pppp$.onTurnEnd;
+$dddd$=$pppp$.onTurnEnd=function f(){
 	this.noRefresh=true;
 	f.ori.call(this);
 	this.noRefresh=0;
@@ -5436,45 +5488,51 @@ $dddd$=$aaaa$.prototype.onTurnEnd=function f(){
 		this.refresh(true);
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.isChanting=function(){
+$rrrr$=$pppp$.onBattleEnd;
+$dddd$=$pppp$.onBattleEnd=function f(){
+	f.ori.call(this);
+	this.gainSilentTp(this.TPRegenAtBattleEnd());
+}; $dddd$.ori=$rrrr$;
+$pppp$.isChanting=function(){
 	return this.isWaiting()&&BattleManager._isChanting&&BattleManager._isChanting.get(this);
 };
-$aaaa$.prototype.isGuardWaiting=function(){
+$pppp$.isGuardWaiting=function(){
 	return this.isWaiting()&&BattleManager._isGuardWaiting&&BattleManager._isGuardWaiting.get(this);
 };
-$aaaa$.prototype.performActionStart = function(action) {
+$pppp$.performActionStart = function(action) {
 	if(!action.isGuard(this)&&!action.isSpaceout(this)){
 		this.setActionState('acting');
 	}
 };
-$aaaa$.prototype.performAction=none; // ori:empty
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.performAction=none; // ori:empty
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - chrB
 $aaaa$=Game_CharacterBase;
-$aaaa$.prototype.jumpHeight=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.jumpHeight=function(){
 	const d=this._jumpCount - this._jumpPeak;
 	return (this._jumpPeak * this._jumpPeak - d*d)/2.0;
 };
-$aaaa$.prototype.scrolledX_tw=function() {
+$pppp$.scrolledX_tw=function() {
 	return $gameMap.adjustX_tw(this._realX);
 };
-$aaaa$.prototype.scrolledY_th=function() {
+$pppp$.scrolledY_th=function() {
 	return $gameMap.adjustY_th(this._realY);
 };
-$aaaa$.prototype.isNearTheScreen = function() {
+$pppp$.isNearTheScreen = function() {
 	const gw = Graphics.width , gh = Graphics.height;
 	const px = this.scrolledX_tw() + ($gameMap.tileWidth()>>1) - (gw>>1);
 	const py = this.scrolledY_th() + ($gameMap.tileHeight()>>1) - (gh>>1);
 	return px >= -gw && px <= gw && py >= -gh && py <= gh;
 };
-$aaaa$.prototype.screenX=function() {
+$pppp$.screenX=function() {
 	return this.scrolledX_tw()+($gameMap.tileWidth()>>1);
 };
-$aaaa$.prototype.screenY=function() {
+$pppp$.screenY=function() {
 	return (this._sy|0)+this.scrolledY_th()+$gameMap.tileHeight()-this.shiftY()-this.jumpHeight();
 };
-$aaaa$.prototype.screenY_deltaToParent=function(){
+$pppp$.screenY_deltaToParent=function(){
 	let rtv=0;
 	if(this._priorityType===2 && this.parentId){
 		let p=$gameMap._events[this.parentId];
@@ -5490,7 +5548,7 @@ $aaaa$.prototype.screenY_deltaToParent=function(){
 	}
 	return rtv;
 };
-$aaaa$.prototype.screenZ=function(){
+$pppp$.screenZ=function(){
 	if(!isNone(this._z)) return this._z;
 	if(this._priorityType===2&&this!==$gamePlayer){
 		let rtv=0;
@@ -5500,17 +5558,17 @@ $aaaa$.prototype.screenZ=function(){
 	}
 	return (this._priorityType<<1)|1;
 };
-$aaaa$.prototype.screenZ2=function(){ // z of (x,y sys of gameMapZ), distinguish thing at same x,y
+$pppp$.screenZ2=function(){ // z of (x,y sys of gameMapZ), distinguish thing at same x,y
 	let rtv=this.z2;
 	return isNone(rtv)?3:rtv;
 };
-$dddd$=$aaaa$.prototype.canPassDiagNumpad = function f(x,y,dir){
+$dddd$=$pppp$.canPassDiagNumpad = function f(x,y,dir){
 	return this.canPassDiagonally(x,y,f.h[dir],f.v[dir]);
 };
 //       [0,1,2,3,4,5,6,7,8,9];
 $dddd$.h=[0,4,0,6,4,0,6,4,0,6];
 $dddd$.v=[0,2,2,2,0,0,0,8,8,8];
-$dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
+$dddd$=$pppp$.moveDiagonally=function f(horz, vert) {
 	let isSucc=this.canPassDiagonally(this._x, this._y, horz, vert);
 	this.setMovementSuccess(isSucc);
 	if(isSucc){
@@ -5547,24 +5605,24 @@ $dddd$=$aaaa$.prototype.moveDiagonally=function f(horz, vert) {
 };
 //            [0,1,2,3,4,5,6,7,8,9];
 $dddd$.dirbit=[0,0,1,0,2,0,1,0,2,0]; // none:0 +:1 -:2
-$rrrr$=$aaaa$.prototype.moveDiagonally;
-$dddd$=$aaaa$.prototype.moveDiagonally=function f(dh,dv){
+$rrrr$=$pppp$.moveDiagonally;
+$dddd$=$pppp$.moveDiagonally=function f(dh,dv){
 	f.ori.call(this,dh,dv);
 	if(this.isMovementSucceeded()) this.moveSpeedBuff_ctr();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.moveStraight;
-$dddd$=$aaaa$.prototype.moveStraight=function f(dir){
+$rrrr$=$pppp$.moveStraight;
+$dddd$=$pppp$.moveStraight=function f(dir){
 	f.ori.call(this,dir);
 	if(this.isMovementSucceeded()) this.moveSpeedBuff_ctr();
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.d8to4=function f(d){ return f.tbl[d]|0; };
+$dddd$=$pppp$.d8to4=function f(d){ return f.tbl[d]|0; };
 $dddd$.tbl=[0x00,0x24,0x20,0x26,0x04,0x00,0x06,0x84,0x80,0x86]; /* Y(8,2),X(4,6) numpad */
-$aaaa$.prototype.moveDiagonally_d8=function(d8) {
+$pppp$.moveDiagonally_d8=function(d8) {
 	let dirxy=this.d8to4(d8);
 	let dirx=dirxy&0xF,diry=dirxy>>4;
 	return ((dirx===0)|(diry===0))?this.moveStraight(dirx|diry):this.moveDiagonally(dirx,diry);
 };
-$aaaa$.prototype.moveSpeedBuff_set=function(buff){ // buff or debuff
+$pppp$.moveSpeedBuff_set=function(buff){ // buff or debuff
 	// info: {remain_move,remain_time,delta}
 	// take effect after chr stop()
 	// one of remain_* reach, buff ends
@@ -5578,7 +5636,7 @@ $aaaa$.prototype.moveSpeedBuff_set=function(buff){ // buff or debuff
 	}
 	this._mvSpBuf.stack.push(buff);
 };
-$aaaa$.prototype.moveSpeedBuff_cal=function(){
+$pppp$.moveSpeedBuff_cal=function(){
 	if(!this._mvSpBuf) return 0;
 	let rtv=0;
 	let   buff=this._mvSpBuf.  buff;
@@ -5587,7 +5645,7 @@ $aaaa$.prototype.moveSpeedBuff_cal=function(){
 	for(let x=0,arr=this._mvSpBuf.debuff;x!==arr.length;++x) rtv+=arr[x].delta;
 	return rtv;
 };
-$aaaa$.prototype.moveSpeedBuff_calNext=function(){ // because _ctr is called AFTER chr.move
+$pppp$.moveSpeedBuff_calNext=function(){ // because _ctr is called AFTER chr.move
 	if(!this._mvSpBuf) return 0;
 	let rtv=0;
 	let   buff=this._mvSpBuf.  buff;
@@ -5598,7 +5656,7 @@ $aaaa$.prototype.moveSpeedBuff_calNext=function(){ // because _ctr is called AFT
 	for(let x=0,arr=this._mvSpBuf.stack;x!==arr.length;++x) if(arr[x].remain_move>=1) rtv+=arr[x].delta;
 	return rtv;
 };
-$aaaa$.prototype.moveSpeedBuff_ctr=function(){ // ctr-=1
+$pppp$.moveSpeedBuff_ctr=function(){ // ctr-=1
 	if(!this._mvSpBuf) return;
 	for(let x=0,arr=this._mvSpBuf.  buff;x!==arr.length;++x){
 		if(--arr[x].remain_move===0){
@@ -5618,23 +5676,23 @@ $aaaa$.prototype.moveSpeedBuff_ctr=function(){ // ctr-=1
 		((buff.delta<0)?this._mvSpBuf.debuff:this._mvSpBuf.buff).push(buff);
 	}
 };
-$aaaa$.prototype.realMoveSpeed=function f(){
+$pppp$.realMoveSpeed=function f(){
 	return (this.speedup^0)/2.0+this._moveSpeed+this.moveSpeedBuff_cal()+(this.isDashing()^0);
 };
-$rrrr$=$aaaa$.prototype.jump;
-$dddd$=$aaaa$.prototype.jump=function f(dx,dy){
+$rrrr$=$pppp$.jump;
+$dddd$=$pppp$.jump=function f(dx,dy){
 	return f.ori.call(this,dx|0,dy|0);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.jumpAbs=function(x,y){
+$pppp$.jumpAbs=function(x,y){
 	if(isNaN(x)||isNaN(y)) ; else{
 		let dx=Number(x)-this.x,dy=Number(y)-this.y;
 		return this.jump(dx,dy);
 	}
 };
-$aaaa$.prototype.jumpToChr=function(chr){
+$pppp$.jumpToChr=function(chr){
 	return this.jumpAbs(chr.x,chr.y);
 };
-$aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is making a new array and then search
+$pppp$.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is making a new array and then search
 	//debug.log('Game_CharacterBase.prototype.isCollidedWithEvents');
 	if(!$gameMap.isValid(posx,posy)) return false;
 	let mapd=$dataMap,idx=$gameMap.xy2idx(posx,posy),tbl;
@@ -5642,31 +5700,40 @@ $aaaa$.prototype.isCollidedWithEvents=function(posx,posy){ // overwrite. wtf is 
 	return (mapd&&mapd.coordTbl&&mapd.coordTbl[idx]||$gameMap._events).some(evt=>evt&&evt.posNt(posx,posy)&&evt.isNormalPriority());
 	// note: why normal?
 };
-$aaaa$.prototype.genBlood=function(permanent){ // tile
+$pppp$.setPriorityType=function(p){
+	this._priorityType=p;
+	return this;
+};
+$pppp$.setThrough=function(t){
+	this._through=t;
+	return this;
+};
+$pppp$.genBlood=function(permanent){ // tile
 	if(permanent){
 		let data={}; data[$gameMap.xy2idx(this.x,this.y,2)]=599;
 		$gameParty.changeMap('tile',data);
 	}
 	else $dataMap.data[$gameMap.xy2idx(this.x,this.y,2)]=599;
 };
-$rrrr$=$aaaa$.prototype.requestAnimation;
-$dddd$=$aaaa$.prototype.requestAnimation=function f(id){
+$rrrr$=$pppp$.requestAnimation;
+$dddd$=$pppp$.requestAnimation=function f(id){
 	if(!this._erased) f.ori.call(this,_global_conf.noAnimation?0:id);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - chr
 $aaaa$=Game_Character;
+$pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=45;
 $aaaa$.addEnum=objs._addEnum; // moveroute
 // - chr: getData
-$dddd$=$aaaa$.prototype.getData=function f(){
+$dddd$=$pppp$.getData=function f(){
 	return f.obj;
 };
 $dddd$.obj={};
 Object.defineProperty($dddd$.obj,'meta',{get:none,set:none,configurable:false});
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this._tmp=[];
 }; $dddd$.ori=$rrrr$;
@@ -5709,7 +5776,7 @@ Object.defineProperties($aaaa$.prototype,{
 		return this._wa=rhs&&1||0;
 	},configurable:false},
 });
-$dddd$=$aaaa$.prototype._getColorEdt=function f(){
+$dddd$=$pppp$._getColorEdt=function f(){
 	let rtv;
 	{
 		const meta=this.getData().meta;
@@ -5722,7 +5789,7 @@ $dddd$=$aaaa$.prototype._getColorEdt=function f(){
 	return rtv;
 };
 $dddd$.toJson=x=>x&&JSON.stringify(x)||undefined;
-$dddd$=$aaaa$.prototype._getScaleEdt=function f(){
+$dddd$=$pppp$._getScaleEdt=function f(){
 	let rtv;
 	{
 		const meta=this.getData().meta;
@@ -5734,8 +5801,8 @@ $dddd$=$aaaa$.prototype._getScaleEdt=function f(){
 	if(!rtv) rtv=this._scale;
 	return rtv;
 };
-$dddd$.toJson=$aaaa$.prototype._getColorEdt.toJson;
-$aaaa$.prototype._getAnchoryEdt=function f(){
+$dddd$.toJson=$pppp$._getColorEdt.toJson;
+$pppp$._getAnchoryEdt=function f(){
 	let meta=this.getData().meta;
 	if(meta.anchorys){
 		if(!meta.anchorys_lazyTbl) meta.anchorys_lazyTbl=JSON.parse(meta.scales);
@@ -5743,7 +5810,7 @@ $aaaa$.prototype._getAnchoryEdt=function f(){
 	}else return Number(meta.anchory);
 };
 // - chr: expose info
-$aaaa$.prototype.dist1=function(chr,real){
+$pppp$.dist1=function(chr,real){
 	let rtv; if(chr.dist1){
 		let dx,dy;
 		if(real){
@@ -5759,8 +5826,8 @@ $aaaa$.prototype.dist1=function(chr,real){
 		rtv^=0; rtv+=dx+dy;
 	} return rtv;
 };
-$aaaa$.prototype.dist1_r=function(chr){ return this.dist1(chr,1); };
-$aaaa$.prototype.dist2=function(chr,real){
+$pppp$.dist1_r=function(chr){ return this.dist1(chr,1); };
+$pppp$.dist2=function(chr,real){
 	let rtv; if(chr.dist2){
 		let dx,dy;
 		if(real){
@@ -5776,9 +5843,9 @@ $aaaa$.prototype.dist2=function(chr,real){
 		rtv^=0; rtv+=dx*dx+dy*dy;
 	} return rtv;
 };
-$aaaa$.prototype.dist2_r=function(chr){ return this.dist2(chr,1); };
-$aaaa$.prototype.xy2idx=function f(lv){ return $gameMap.xy2idx(this.x,this.y,lv); };
-$dddd$=$aaaa$.prototype.frontPos=function f(){
+$pppp$.dist2_r=function(chr){ return this.dist2(chr,1); };
+$pppp$.xy2idx=function f(lv){ return $gameMap.xy2idx(this.x,this.y,lv); };
+$dddd$=$pppp$.frontPos=function f(){
 	let delta=f.tbl[(this._direction>>1)];
 	return {x:this._x+delta.x,y:this._y+delta.y};
 };
@@ -5797,12 +5864,12 @@ Object.defineProperties($aaaa$.prototype, {
 	fronty: { get: function() { return this.frontPos().y; }, configurable: false },
 	_dummy:{get:function(){return'';},configurable:false}
 });
-$aaaa$.prototype.isInLoc=function(xL,yL,xH,yH){
+$pppp$.isInLoc=function(xL,yL,xH,yH){
 	// L,H included
 	return xL<=this.x&&this.x<=xH&&yL<=this.y&&this.y<=yH;
 };
 // movecmd
-$dddd$=$aaaa$.prototype.processMoveCommand=function f(command){
+$dddd$=$pppp$.processMoveCommand=function f(command){
 	//debug.log('Game_Character.prototype.processMoveCommand');
 	let foo=f.tbl[command.code];
 	return foo&&foo.call(this,command.parameters);
@@ -5994,7 +6061,7 @@ $aaaa$.addEnum("ROUTE_PLAY_PITCH",$dddd$.tbl,function(params){
 });
 gc.EMPTY_ROUTE={list:[{code:0},],repeat:false,skippable:false,wait:false,};
 } //
-$dddd$=$aaaa$.prototype.playSheet=function f(arr){
+$dddd$=$pppp$.playSheet=function f(arr){
 	if(!arr||!arr.length) return;
 	const list=[];
 	{ const enum_wait=Game_Character.ROUTE_WAIT,enum_pitch=Game_Character.ROUTE_PLAY_PITCH;
@@ -6011,10 +6078,10 @@ $dddd$.EMPTY={code:0};
 $dddd$.fadeout={code:Game_Character.ROUTE_PLAY_PITCH,indent:null,parameters:['']};//{code:Game_Character.ROUTE_SCRIPT,indent:null,parameters:['AudioManager.fadeOutBgs(0.5);']};
 $dddd$.wait   ={code:Game_Character.ROUTE_WAIT      ,indent:null,parameters:[11]};
 // - chr: move
-$aaaa$.prototype.searchLimit=function(){ // steps
+$pppp$.searchLimit=function(){ // steps
 	return _global_conf['default searchLimit']||14;
 };
-$aaaa$.prototype.moveTowardCharacter=function(chr){
+$pppp$.moveTowardCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
 	let sy=this.deltaYFrom(chr.y);
 	if(Math.abs(sy)<Math.abs(sx)){
@@ -6025,13 +6092,13 @@ $aaaa$.prototype.moveTowardCharacter=function(chr){
 		if(sx!==0&&!this.isMovementSucceeded()) this.moveStraight(sx<0?6:4);
 	}
 };
-$aaaa$.prototype.moveToChr=$aaaa$.prototype.moveTowardCharacter;
-$aaaa$.prototype.moveToChr_bfs=function(chr){
+$pppp$.moveToChr=$pppp$.moveTowardCharacter;
+$pppp$.moveToChr_bfs=function(chr){
 	let dir=this.findDirectionTo(chr.x,chr.y);
 	if(dir) this.moveDiagonally_d8(dir);
 	else this.moveToChr(chr);
 };
-$dddd$=$aaaa$.prototype.moveToChrs_bfs=function f(chrs,fullSearch){
+$dddd$=$pppp$.moveToChrs_bfs=function f(chrs,fullSearch){
 	let dir=this.findDirTo(chrs.map(f.map),undefined,{fullSearch:fullSearch});
 	if(dir) this.moveDiagonally_d8(dir);
 	else if(chrs.length) this.moveToChr(chrs[~~(Math.random()*chrs.length)]);
@@ -6045,7 +6112,7 @@ if(0)$dddd$.map=chrs=>{
 	}
 	return rtv;
 };
-$dddd$=$aaaa$.prototype.moveAwayChr_bfs=function f(chr,fullSearch){
+$dddd$=$pppp$.moveAwayChr_bfs=function f(chr,fullSearch){
 	let list=[],disables=[];
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y+1)]);
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y-1)]);
@@ -6075,8 +6142,8 @@ $dddd$=$aaaa$.prototype.moveAwayChr_bfs=function f(chr,fullSearch){
 	if(dir) this.moveDiagonally_d8(dir);
 	else if(chr) this.moveAwayFromCharacter(chr);
 };
-$dddd$.map=$aaaa$.prototype.moveToChrs_bfs;
-$aaaa$.prototype.moveAwayFromCharacter=function(chr){
+$dddd$.map=$pppp$.moveToChrs_bfs;
+$pppp$.moveAwayFromCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
 	let sy=this.deltaYFrom(chr.y);
 	if(Math.abs(sy)<Math.abs(sx)){
@@ -6087,19 +6154,19 @@ $aaaa$.prototype.moveAwayFromCharacter=function(chr){
 		if(sx!==0&&!this.isMovementSucceeded()) this.moveStraight(0<sx?6:4);
 	}
 };
-$aaaa$.prototype.turnTowardCharacter=function(chr){
+$pppp$.turnTowardCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
 	let sy=this.deltaYFrom(chr.y);
 	if(Math.abs(sy)<Math.abs(sx)) this.setDirection(sx<0?6:4);
 	else if(sy!==0) this.setDirection(sy<0?2:8);
 };
-$aaaa$.prototype.turnAwayFromCharacter=function(chr){
+$pppp$.turnAwayFromCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
 	let sy=this.deltaYFrom(chr.y);
 	if(Math.abs(sy)<Math.abs(sx)) this.setDirection(0<sx?6:4);
 	else if(sy!==0) this.setDirection(0<sy?2:8);
 };
-$dddd$=$aaaa$.prototype.findDirTo=function f(goals,disables,kargs){
+$dddd$=$pppp$.findDirTo=function f(goals,disables,kargs){
 	// goals = [ [x,y,costAdd] , ... ]
 	// kargs:
 	// 	tileOnly: check pass only on tiles = '$gameMap.isPassable', not 'chr.canPass'
@@ -6242,7 +6309,7 @@ $dddd$=$aaaa$.prototype.findDirTo=function f(goals,disables,kargs){
 	
 };
 $dddd$.forEach=function f(v,k,m){ let a=f.c[v[2]]; v.pop(); if(a) a.push(v); };
-$aaaa$.prototype.findDirectionTo_simple=function(goalx,goaly,preferdx,preferdy){
+$pppp$.findDirectionTo_simple=function(goalx,goaly,preferdx,preferdy){
 	// moveDiagonally.dirbit
 	let pdx2=preferdx*preferdx;
 	let pdy2=preferdy*preferdy;
@@ -6276,8 +6343,8 @@ $aaaa$.prototype.findDirectionTo_simple=function(goalx,goaly,preferdx,preferdy){
 	}
 	return rtv===5?0:rtv;
 };
-$rrrr$=$aaaa$.prototype.findDirectionTo;
-$dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
+$rrrr$=$pppp$.findDirectionTo;
+$dddd$=$pppp$.findDirectionTo=function f(goalx,goaly){
 	//debug.log('Game_Character.prototype.findDirectionTo');
 	//a; // debug - cracking
 		// when called by $gamePlayer
@@ -6285,22 +6352,22 @@ $dddd$=$aaaa$.prototype.findDirectionTo=function f(goalx,goaly){
 				// Game_Player.prototype.moveByInput
 	return this.findDirTo([[goalx,goaly]]);
 }; $dddd$.ori=$rrrr$;
-//$rrrr$=$aaaa$.prototype.isCollidedWithCharacters;
-//$dddd$=$aaaa$.prototype.isCollidedWithCharacters=function(){ // overwrite
+//$rrrr$=$pppp$.isCollidedWithCharacters;
+//$dddd$=$pppp$.isCollidedWithCharacters=function(){ // overwrite
 //}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.mvRefChr=function(chr){ this._x=chr._x; this._y=chr._y; };
-$aaaa$.prototype.mvAbs=function(x,y){ this._x=x; this._y=y; };
-$aaaa$.prototype.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
-$aaaa$.prototype.moveRandom = function() {
+$pppp$.mvRefChr=function(chr){ this._x=chr._x; this._y=chr._y; };
+$pppp$.mvAbs=function(x,y){ this._x=x; this._y=y; };
+$pppp$.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
+$pppp$.moveRandom = function() {
 	let d=(Math.randomInt(4)+1)<<1;
 	if(this.canPass(this.x,this.y,d)) this.moveStraight(d);
 };
 // - chr: sprite
-$aaaa$.prototype.setSprite=function(sp){
+$pppp$.setSprite=function(sp){
 	if(!this._tmp) this._tmp=[]; // ver-diff exception
 	return this._tmp._sprite=sp;
 };
-$aaaa$.prototype.getSprite=function(){
+$pppp$.getSprite=function(){
 	if(this._tmp._sprite) return this._tmp._sprite;
 	let rtv=$gameTemp.getSprite(this);
 	if(rtv) return rtv;
@@ -6313,13 +6380,14 @@ if(!objs.test_tilemap){
 	return rtv&&rtv.data;
 }
 };
-$aaaa$.prototype.getText=none;
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.getText=none;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - msg
 $aaaa$=Game_Message;
-$rrrr$=$aaaa$.prototype.clear;
-$dddd$=$aaaa$.prototype.clear=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.clear;
+$dddd$=$pppp$.clear=function f(){
 	f.ori.call(this);
 	this._txt2=[];
 	this._evtName=undef;
@@ -6328,18 +6396,18 @@ $dddd$=$aaaa$.prototype.clear=function f(){
 	this._lastFinish=undef;
 	this._lastGain=undef;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setFaceImage = function(faceName, faceIndex, faceColor) {
+$pppp$.setFaceImage = function(faceName, faceIndex, faceColor) {
 	this._faceName = faceName;
 	this._faceIndex = faceIndex;
 };
-$rrrr$=$aaaa$.prototype.isBusy;
-$dddd$=$aaaa$.prototype.isBusy=function f(){
+$rrrr$=$pppp$.isBusy;
+$dddd$=$pppp$.isBusy=function f(){
 	return this._windowCnt||f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.add=function(txt,toTxt2){
+$pppp$.add=function(txt,toTxt2){
 	(toTxt2?this._txt2:this._texts).push(txt);
 };
-$aaaa$.prototype.add_finishQuest=function f(qname){
+$pppp$.add_finishQuest=function f(qname){
 	if(f.prefix===undefined) f.prefix="\\RGB["+$dataCustom.textcolor.finish+"]完成 \\RGB["+$dataCustom.textcolor.quest+"]"; // must be set in runtime due to '$dataCustom'
 	let txt=f.prefix+qname;
 	if(this._lastMsgType==="qc"&&qname!==undefined && qname!==null&&qname===this._lastFinish){
@@ -6353,7 +6421,7 @@ $aaaa$.prototype.add_finishQuest=function f(qname){
 	this._lastMsgType="qc";
 	return this.add(txt);
 };
-$aaaa$.prototype.add_gainItem=function f(txt,cnt,dataitem){
+$pppp$.add_gainItem=function f(txt,cnt,dataitem){
 	cnt|=0;
 	const arr=$gameTemp._otherGainMsg?this._txt2:this._texts;
 	if(this._lastGain_toTxt2===$gameTemp._otherGainMsg && this._lastMsgType==="gi" && 0<this._lastGain_cnt*cnt && dataitem && this._lastGain===dataitem){
@@ -6369,18 +6437,18 @@ $aaaa$.prototype.add_gainItem=function f(txt,cnt,dataitem){
 	this._lastIdx=arr.length;
 	return this.add(txt,this._lastGain_toTxt2);
 };
-$aaaa$.prototype.addWindow=function(w){
+$pppp$.addWindow=function(w){
 	this._windowCnt^=0; ++this._windowCnt;
 	w.setHandler('cancel',()=>{ --this._windowCnt; w.destructor(); if(w.parent) w.parent.removeChild(w); });
 	SceneManager._scene.addWindow(w);
 };
-$dddd$=$aaaa$.prototype.addGameoverMsg=(txt,kargs)=>{
+$dddd$=$pppp$.addGameoverMsg=(txt,kargs)=>{
 	if(!$dataMap.gameoverMsgs) $dataMap.gameoverMsgs=[];
 	kargs=kargs||{};
 	if(!kargs.align) kargs.align='center';
 	$dataMap.gameoverMsgs.push([txt,kargs]);
 }; $dddd$.clear=()=>{if(!$dataMap.gameoverMsgs) $dataMap.gameoverMsgs=[];$dataMap.gameoverMsgs.length=0;};
-$aaaa$.prototype.popup=function(txt,top,kargs){
+$pppp$.popup=function(txt,top,kargs){
 	//debug.log('Game_Message.prototype.popup');
 	let wl=SceneManager._scene._windowLayer;
 	if(!wl) return;
@@ -6392,24 +6460,25 @@ $aaaa$.prototype.popup=function(txt,top,kargs){
 		wl._popupLayer.add(txt,undefined,{t_remained:kargs&&kargs['t_remained']||2000,align:kargs&&kargs.align,});
 	}
 };
-$aaaa$.prototype._isBusy_cache=function(){
+$pppp$._isBusy_cache=function(){
 	if(this._isBusy_n) --this._isBusy_n;
 	else this.isBusy=this.constructor.prototype.isBusy;
 	return this._isBusy;
 };
-$aaaa$.prototype.isBusy_saved=function(useMoreNTimes){
+$pppp$.isBusy_saved=function(useMoreNTimes){
 	let rtv=this._isBusy=this.isBusy();
 	this._isBusy_n=useMoreNTimes^0;
 	this.isBusy=this._isBusy_cache;
 	return rtv;
 };
-$aaaa$.prototype.setNameField=function(s){ this._nameField=s; };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.setNameField=function(s){ this._nameField=s; };
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - player
 $aaaa$=Game_Player;
-$rrrr$=$aaaa$.prototype.getData;
-$dddd$=$aaaa$.prototype.getData=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.getData;
+$dddd$=$pppp$.getData=function f(){
 	const actor=$gameParty.allMembers()[0];
 	return actor?actor.getData():f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
@@ -6483,24 +6552,24 @@ Object.defineProperties($aaaa$.prototype, {
 		get:function(){return isNone(this._z2)?3:this._z2;},
 	},
 });
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this.maxSavefiles=DataManager.maxSavefiles();
 	this._rndid=Date.now()+''+Math.random();
 	if(this.canDiag===undefined) this.canDiag=true;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.maxFollowers=function(){
+$pppp$.maxFollowers=function(){
 	return _global_conf["default maxFollowers"]||4040;
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	let actor=$gameParty.leader();
 	let characterName=actor?actor.characterName():'';
 	let characterIndex=actor?actor.characterIndex():0;
 	this.setImage(characterName,characterIndex);
 	this._followers.refresh();
 };
-$dddd$=$aaaa$.prototype.moveByInput=function f(){
+$dddd$=$pppp$.moveByInput=function f(){
 	if(!this.isMoving() && this.canMove()){
 		let direction = this.getInputDirection();
 		if(direction > 0){ // keyboard
@@ -6535,10 +6604,10 @@ $dddd$=$aaaa$.prototype.moveByInput=function f(){
 	}
 };
 $dddd$.tbl=[0];
-$aaaa$.prototype.getInputDirection = function() {
+$pppp$.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
-$aaaa$.prototype.canMove=function(d){ // discard '$gameMap.isEventRunning()'
+$pppp$.canMove=function(d){ // discard '$gameMap.isEventRunning()'
 	if($gameMessage.isBusy()) return false;
 	
 	// meta.noStopMove
@@ -6563,7 +6632,7 @@ $aaaa$.prototype.canMove=function(d){ // discard '$gameMap.isEventRunning()'
 	}
 	return true;
 };
-$aaaa$.prototype.executeMove=function(direction){ // redraw last and next standing tile
+$pppp$.executeMove=function(direction){ // redraw last and next standing tile
 	let last_x=this.x,last_y=this.y;
 	this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
 	let sc=SceneManager._scene;
@@ -6588,13 +6657,13 @@ $aaaa$.prototype.executeMove=function(direction){ // redraw last and next standi
 //		}
 	// -> this.update // this.updateNonmoving
 };
-$aaaa$.prototype.updateDashing=function(){
+$pppp$.updateDashing=function(){
 	if(this.isMoving()) return;
 	if(!this.isInVehicle() && !$gameMap.isDashDisabled()){
 		this._dashing = this.isDashButtonPressed() || $gameTemp.isDestinationValid();
 	}else this._dashing=false;
 };
-$aaaa$.prototype.update = function(sceneActive) {
+$pppp$.update = function(sceneActive) {
 	let lastScrolledX_tw = this.scrolledX_tw();
 	let lastScrolledY_th = this.scrolledY_th();
 	this.updateDashing();
@@ -6615,7 +6684,7 @@ $aaaa$.prototype.update = function(sceneActive) {
 	}
 	this._followers.update();
 };
-$aaaa$.prototype.updateScroll_t=function(lastScrolledX_tw, lastScrolledY_th) {
+$pppp$.updateScroll_t=function(lastScrolledX_tw, lastScrolledY_th) {
 	let x1=lastScrolledX_tw,y1=lastScrolledY_th;
 	let x2=this.scrolledX_tw(),y2=this.scrolledY_th();
 	let cx=this.centerX_tw(),cy=this.centerY_th();
@@ -6632,38 +6701,38 @@ $aaaa$.prototype.updateScroll_t=function(lastScrolledX_tw, lastScrolledY_th) {
 		$gameMap.scrollUp_th(y1 - y2);
 	}
 };
-$aaaa$.prototype.centerX_tw = function() {
+$pppp$.centerX_tw = function() {
 	return Graphics.width-$gameMap.tileWidth() >> 1;
 };
-$aaaa$.prototype.centerY_th=function(){
+$pppp$.centerY_th=function(){
 	return Graphics.height-$gameMap.tileHeight() >> 1;
 };
 
-$rrrr$=$aaaa$.prototype.gatherFollowers;
-$dddd$=$aaaa$.prototype.gatherFollowers=function f(viaJump=_global_conf["isGatherFollowersViaJump"]){
+$rrrr$=$pppp$.gatherFollowers;
+$dddd$=$pppp$.gatherFollowers=function f(viaJump=_global_conf["isGatherFollowersViaJump"]){
 	return viaJump?this.jump():f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.areFollowersGathering;
-$dddd$=$aaaa$.prototype.areFollowersGathering=function f(){
+$rrrr$=$pppp$.areFollowersGathering;
+$dddd$=$pppp$.areFollowersGathering=function f(){
 	return this.isJumping()||f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.areFollowersGathered;
-$dddd$=$aaaa$.prototype.areFollowersGathered=function f(){
+$rrrr$=$pppp$.areFollowersGathered;
+$dddd$=$pppp$.areFollowersGathered=function f(){
 	return !this.isJumping()&&f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.startMapEvent;
-$dddd$=$aaaa$.prototype.startMapEvent=function f(x,y,trigger,normal){
+$rrrr$=$pppp$.startMapEvent;
+$dddd$=$pppp$.startMapEvent=function f(x,y,trigger,normal){
 	//debug.keydown('Game_Player.prototype.startMapEvent');
 	// triggered when: move, pressOk @ Scene_Map
 	return f.ori.call(this,x,y,trigger,normal);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.isRangedBurnSwitched=function(){
+$pppp$.isRangedBurnSwitched=function(){
 	return (Input.isPressed('control') || $dataMap && $dataMap.triggerHere0touch) && ($gameParty.burnrange===404||$gameParty.leader().mp>=$gameParty.burnmpcost);
 };
-$aaaa$.prototype.isRangedSlashSwitched=function(){
+$pppp$.isRangedSlashSwitched=function(){
 	return (Input.isPressed('control') || $dataMap && $dataMap.triggerHere0touch) && ($gameParty.slashrange===404||$gameParty.leader().hp>$gameParty.slashhpcost);
 };
-$aaaa$.prototype.customEvtStrt=function(){
+$pppp$.customEvtStrt=function(){
 	debug.log('Game_Player.prototype.customEvtStrt');
 	// return false if not triggered
 	if(!(TouchInput.isTriggered()||Input.isPressed('ok'))){
@@ -6821,7 +6890,7 @@ $aaaa$.prototype.customEvtStrt=function(){
 	// finally no triggered
 	return rtv;
 };
-$dddd$=$aaaa$.prototype.updateNonmoving=function f(wasMoving) {
+$dddd$=$pppp$.updateNonmoving=function f(wasMoving) {
 	const noEvtRun=!$gameMap.isEventRunning();
 		if(wasMoving){
 			if(noEvtRun) $gameParty.onPlayerWalk();
@@ -6837,8 +6906,8 @@ $dddd$=$aaaa$.prototype.updateNonmoving=function f(wasMoving) {
 	}
 };
 $dddd$.tbl=[1,2];
-$rrrr$=$aaaa$.prototype.triggerAction;
-$dddd$=$aaaa$.prototype.triggerAction=function f(){
+$rrrr$=$pppp$.triggerAction;
+$dddd$=$pppp$.triggerAction=function f(){
 	//debug.log('Game_Player.prototype.triggerAction'); // this is polling
 	let rtv=$gameTemp._pl_customEvtStrt=false;
 	// customEvtStrt
@@ -6849,8 +6918,8 @@ $dddd$=$aaaa$.prototype.triggerAction=function f(){
 	$dataMap.triggerHere0touch=false;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.checkEventTriggerHere;
-$dddd$=$aaaa$.prototype.checkEventTriggerHere=function f(triggers){ // discard so-long-call and '$gameMap._interpreter.isRunning()' check
+$rrrr$=$pppp$.checkEventTriggerHere;
+$dddd$=$pppp$.checkEventTriggerHere=function f(triggers){ // discard so-long-call and '$gameMap._interpreter.isRunning()' check
 	//debug.log('Game_Player.prototype.checkEventTriggerHere');
 	// check and start
 	//debug.log($gamePlayer.x,$gamePlayer.y);
@@ -6865,8 +6934,8 @@ $dddd$=$aaaa$.prototype.checkEventTriggerHere=function f(triggers){ // discard s
 		});
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.checkEventTriggerThere;
-$dddd$=$aaaa$.prototype.checkEventTriggerThere=function f(){
+$rrrr$=$pppp$.checkEventTriggerThere;
+$dddd$=$pppp$.checkEventTriggerThere=function f(){
 	debug.log('Game_Player.prototype.checkEventTriggerThere');
 	debug.log($gamePlayer.x,$gamePlayer.y);
 	debug.log(arguments[0]);
@@ -6875,9 +6944,9 @@ $dddd$=$aaaa$.prototype.checkEventTriggerThere=function f(){
 	//if(this.customEvtStrt(none)) return;
 	if($dataMap.lastPlayerDir===this._direction) f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
-//$aaaa$.prototype.checkEventTriggerThere=$rrrr$; // currently no needed
-$rrrr$=$aaaa$.prototype.reserveTransfer;
-$dddd$=$aaaa$.prototype.reserveTransfer=function f(){
+//$pppp$.checkEventTriggerThere=$rrrr$; // currently no needed
+$rrrr$=$pppp$.reserveTransfer;
+$dddd$=$pppp$.reserveTransfer=function f(){
 	debug.log('Game_Player.prototype.reserveTransfer');
 	$gameMap.setZaWarudo(0); // clear waits
 	f.ori.apply(this,arguments); // it just do preparation for new map
@@ -6891,7 +6960,7 @@ $dddd$=$aaaa$.prototype.reserveTransfer=function f(){
 	// save 'meta.recordLoc' s
 	$gameMap.save_recordLoc();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.adjDecRate=function(what,rate,useMax){
+$pppp$.adjDecRate=function(what,rate,useMax){
 	// what: HP,MP,TP
 	let act="";
 	switch(what){
@@ -6909,7 +6978,7 @@ $aaaa$.prototype.adjDecRate=function(what,rate,useMax){
 	}
 	
 };
-$aaaa$.prototype.addOnlineSaveId=function(id){
+$pppp$.addOnlineSaveId=function(id){
 	if(this._onlineSaveIds===undefined){
 		this._onlineSaveIds=[];
 	}
@@ -6924,10 +6993,11 @@ $aaaa$.prototype.addOnlineSaveId=function(id){
 	if(ids!=='') ids+=',';
 	ids+=JSON.stringify(data);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - party
 $aaaa$=Game_Party; // member , item , gain , complete , others
+$pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=10; // preserve some
 $aaaa$.addEnum=objs._addEnum;
 $aaaa$.addEnum('ABILITY_MUST_ESCAPE');
@@ -7024,8 +7094,8 @@ Object.defineProperties($aaaa$.prototype, {
 	}, configurable: false },
 	_dummy:{get:function(){return'';},configurable:false}
 });
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	//debug.log('Game_Party.prototype.initialize');
 	let rtv=f.ori.apply(this,arguments);
 	this._extStores=[]; // [[],[{t:type,i:id,a:amount}],[],...]
@@ -7042,7 +7112,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._tbl_resetValues=function(d,needRefresh){
+$pppp$._tbl_resetValues=function(d,needRefresh){
 	// d: container ; needRefresh: refresh values for keys in cache
 	
 	let rtv=$gameTemp.getCache(this,d);
@@ -7059,22 +7129,22 @@ $aaaa$.prototype._tbl_resetValues=function(d,needRefresh){
 	}
 	return rtv;
 };
-$aaaa$.prototype._tbl_i=function(){
+$pppp$._tbl_i=function(){
 	const rtv=this._tbl_resetValues(this._items,   $gameTemp._pt_needRefresh_items   );
 	$gameTemp._pt_needRefresh_items=undefined;
 	return rtv;
 };
-$aaaa$.prototype._tbl_w=function(){
+$pppp$._tbl_w=function(){
 	const rtv=this._tbl_resetValues(this._weapons, $gameTemp._pt_needRefresh_weapons );
 	$gameTemp._pt_needRefresh_weapons=undefined;
 	return rtv;
 };
-$aaaa$.prototype._tbl_a=function(){
+$pppp$._tbl_a=function(){
 	const rtv=this._tbl_resetValues(this._armors,  $gameTemp._pt_needRefresh_armors  );
 	$gameTemp._pt_needRefresh_armors=undefined;
 	return rtv;
 };
-$aaaa$.prototype.initAllItems=function(){
+$pppp$.initAllItems=function(){
 	$gameTemp.delCache(this,this._items);
 	$gameTemp.delCache(this,this._weapons);
 	$gameTemp.delCache(this,this._armors);
@@ -7091,10 +7161,10 @@ $aaaa$.prototype.initAllItems=function(){
 	$gameTemp.updateCache(this,this._weapons, new Map());
 	$gameTemp.updateCache(this,this._armors,  new Map());
 };
-$aaaa$.prototype.exists=function(){
+$pppp$.exists=function(){
     return this.allMembers().length !== 0;
 };
-$aaaa$.prototype.battleMembers=function f(){
+$pppp$.battleMembers=function f(){
 	if($gameActors._data.length===0) return []; // due to '$gameActors.actor' will create new if not exist
 	if($gameTemp._pt_battleMembers) return $gameTemp._pt_battleMembers;
 	let tmp=$gameTemp,mbm=this.maxBattleMembers();
@@ -7102,21 +7172,21 @@ $aaaa$.prototype.battleMembers=function f(){
 	tmp._pt_battleMembers_actor2idx=new Map(rtv.map((x,i)=>[x,i]));
 	return rtv;
 };
-$dddd$=$aaaa$.prototype.allMembers=function f() {
+$dddd$=$pppp$.allMembers=function f() {
 	if($gameActors._data.length===0) return []; // due to '$gameActors.actor' will create new if not exist
 	if($gameTemp._pt_allMembers) return $gameTemp._pt_allMembers;
 	return $gameTemp._pt_allMembers=this._acs.map(f.toDataActor);
 };
 $dddd$.toDataActor=id=>$gameActors.actor(id);
-$aaaa$.prototype.maxBattleMembers = function() {
+$pppp$.maxBattleMembers = function() {
 	return _global_conf["default maxBattleMembers"]||4;
 };
-$aaaa$.prototype.leader=function(){
+$pppp$.leader=function(){
 	if(this._acs) return $gameActors.actor(this._acs[0]);
 	this._acs=this._actors;
 	return this.leader();
 };
-$aaaa$.prototype.itemContainer=function(item){
+$pppp$.itemContainer=function(item){
 	let rtv=null;
 	switch(item&&item.itemType){
 	case 'i':
@@ -7131,7 +7201,7 @@ $aaaa$.prototype.itemContainer=function(item){
 	}
 	return rtv;
 };
-$aaaa$.prototype.name=function(){
+$pppp$.name=function(){
 	const numBattleMembers = this.battleMembers().length;
 	let rtv;
 	if(numBattleMembers === 0) rtv=$dataCustom.battle.you;
@@ -7145,24 +7215,24 @@ $aaaa$.prototype.name=function(){
 	}
 	return rtv;
 };
-$aaaa$.prototype.setupStartingMembers=function(){
+$pppp$.setupStartingMembers=function(){
 	let tmp=[];
 	$dataSystem.partyMembers.forEach(x=>objs.$gameActors.actor(x)&&tmp.push(x));
 	this._actors=tmp;
 	if(tmp.length) for(let x=1;x!==tmp.length;++x) objs.$gamePlayer._followers.addFollower(new Game_Follower(x));
 };
-$aaaa$.prototype.targetActor=function(){
+$pppp$.targetActor=function(){
 	return (objs.$gameTemp._pt_allMembers_idSet.has(this._targetActorId))?
 		($gameActors.actor(this._targetActorId)):
 		(this._acs.length?$gameActors.actor(this._acs[0]):undefined);
 };
-$aaaa$.prototype.setTargetActor=function(actor){
+$pppp$.setTargetActor=function(actor){
 	this._targetActorId = actor?actor.actorId():0;
 };
-$aaaa$.prototype.addActors=function(actorId,count){
+$pppp$.addActors=function(actorId,count){
 	if(count>0) while(count--) this.addActor(actorId,true);
 };
-$aaaa$.prototype.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
+$pppp$.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
 	//debug.log('Game_Party.prototype.addActor');
 	let tmp=$gameTemp,addedActor;
 	if(tmp._pt_allMembers_idSet.has(actorId)){
@@ -7207,7 +7277,7 @@ $aaaa$.prototype.addActor = function(actorId,bool_genNewIfRepeated) { // neednot
 	}
 	return addedActor;
 };
-$aaaa$.prototype.removeActor=function(actorId,_searchFrom){
+$pppp$.removeActor=function(actorId,_searchFrom){
 	const tmp=$gameTemp;
 	const idSet=tmp._pt_allMembers_idSet;
 	if(idSet.has(actorId)){
@@ -7254,12 +7324,12 @@ $aaaa$.prototype.removeActor=function(actorId,_searchFrom){
 		$gameMap.requestRefresh();
 	}
 };
-$dddd$=$aaaa$.prototype.onPlayerWalk=function f(){
+$dddd$=$pppp$.onPlayerWalk=function f(){
 	//const isStepsForTurn=$gameParty.steps() % Game_Actor.prototype.stepsForTurn();
 	this.members().forEach(f.forEach);
 };
 $dddd$.forEach=actor=>actor.onPlayerWalk();
-$aaaa$.prototype.swapOrder=function(index1,index2){
+$pppp$.swapOrder=function(index1,index2){
 	{
 		let arr=this._acs;
 		let temp = arr[index1]; arr[index1] = arr[index2]; arr[index2] = temp;
@@ -7279,7 +7349,7 @@ $aaaa$.prototype.swapOrder=function(index1,index2){
 	const btlPlan=SceneManager._scene&&SceneManager._scene._battlePlan;
 	if(btlPlan) btlPlan.refresh_plans();
 };
-$aaaa$.prototype.swapOrderByActor=function(actor1,actor2){
+$pppp$.swapOrderByActor=function(actor1,actor2){
 	{ const s=$gameTemp._pt_allMembers_idSet;
 	if(!s.has(actor1.actorId())||!s.has(actor2.actorId())) return;
 	}
@@ -7287,19 +7357,19 @@ $aaaa$.prototype.swapOrderByActor=function(actor1,actor2){
 	this.swapOrder(arr.indexOf(actor1),arr.indexOf(actor2));
 	}
 };
-$aaaa$.prototype.maxItems=function f(item){
-	return _global_conf["default maxItems"]||404;
+$pppp$.maxItems=function f(item){
+	return item&&item.maxStack>=0?item.maxStack:(_global_conf["default maxItems"]||404);
 };
-$aaaa$.prototype.numItems_i=function(id){ // 'i' for 'item'
+$pppp$.numItems_i=function(id){ // 'i' for 'item'
 	let rtv=this._items[id]^0;
 	// preserve for future treated-as-same items
 	return rtv;
 };
-$aaaa$.prototype.numItems=function(item,container){ // item in $dataItems / $dataWeapons / $dataArmors
+$pppp$.numItems=function(item,container){ // item in $dataItems / $dataWeapons / $dataArmors
 	container=container||this.itemContainer(item);
 	return (container && container[item.id])|0;
 };
-$aaaa$.prototype.arrangeMaxDayItems=function(){ // TODO(?)
+$pppp$.arrangeMaxDayItems=function(){ // TODO(?)
 	const tmp=[];
 	for(let x=0,arr=$dataItems.maxDayItems,ptitem=$gameParty._items;x!==arr.length;++x){
 		let id=arr[x];
@@ -7315,14 +7385,14 @@ $aaaa$.prototype.arrangeMaxDayItems=function(){ // TODO(?)
 	}
 	$gameTemp.delCache($gameParty,Game_Party.prototype.items.key);
 };
-$aaaa$.prototype.gainAllItems=function(cnt){
+$pppp$.gainAllItems=function(cnt){
 	cnt=~~cnt||1; if(0<cnt);else cnt=1;
 	$dataWeapons.filter(x=>x&&x.name).map(x=>$gameParty.gainItem(x,cnt));
 	$dataArmors.filter(x=>x&&x.name).map(x=>$gameParty.gainItem(x,cnt));
 	$dataItems.filter(x=>x&&x.name).map(x=>$gameParty.gainItem(x,cnt));
 };
-$aaaa$.prototype.__gainAllItems=$aaaa$.prototype.gainAllItems;
-$dddd$=$aaaa$.prototype.items=function f(){
+$pppp$.__gainAllItems=$pppp$.gainAllItems;
+$dddd$=$pppp$.items=function f(){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -7332,7 +7402,7 @@ $dddd$=$aaaa$.prototype.items=function f(){
 	return rtv.sort(DataManager.sortCmp);
 }; $dddd$.ori=$rrrr$;
 $dddd$.key='item';
-$dddd$=$aaaa$.prototype.weapons=function f(includeEquip){
+$dddd$=$pppp$.weapons=function f(includeEquip){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -7343,7 +7413,7 @@ $dddd$=$aaaa$.prototype.weapons=function f(includeEquip){
 	return rtv.sort(DataManager.sortCmp);
 };
 $dddd$.key='weapon';
-$dddd$=$aaaa$.prototype.armors=function f(includeEquip){
+$dddd$=$pppp$.armors=function f(includeEquip){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -7354,27 +7424,27 @@ $dddd$=$aaaa$.prototype.armors=function f(includeEquip){
 	return rtv.sort(DataManager.sortCmp);
 }; $dddd$.ori=$rrrr$;
 $dddd$.key='armor';
-$aaaa$.prototype.menuActor = function() {
+$pppp$.menuActor = function() {
 	let actor=$gameActors.actor(this._menuActorId);
 	if(!this.members().contains(actor)) actor=this.members()[0];
 	return actor;
 };
-$aaaa$.prototype.makeMenuActorNext=function(){
+$pppp$.makeMenuActorNext=function(){
 	const members=this.members();
 	let index = members.indexOf(this.menuActor());
 	this.setMenuActor(members[index = this._menuActorIdx = index>=0 ? (index+1) % members.length : 0]);
 	return index;
 };
-$aaaa$.prototype.makeMenuActorPrevious = function() {
+$pppp$.makeMenuActorPrevious = function() {
 	const members=this.members();
 	let index = members.indexOf(this.menuActor());
 	this.setMenuActor(members[index = this._menuActorIdx = index>=0 ? (index+members.length-1) % members.length : 0]);
 	return index;
 };
-$aaaa$.prototype.LName=function(n){
+$pppp$.LName=function(n){
 	return $gameActors._data[$gameParty._acs[n||0]].name();
 };
-$aaaa$.prototype.setFace=function(n){
+$pppp$.setFace=function(n){
 	//debug.log('Game_Party.prototype.setFace');
 	n=n||0;
 	let chr=$gameActors.actor($gameParty._acs[n]);
@@ -7382,11 +7452,11 @@ $aaaa$.prototype.setFace=function(n){
 	$gameMessage.setFaceImage(chr._faceName+(ce?"?color="+encodeURIComponent(ce):""),chr._faceIndex);
 	$gameMessage._nameField=chr.name();
 };
-$aaaa$.prototype.speak=function(txt,n,kargs){
+$pppp$.speak=function(txt,n,kargs){
 	this.setFace(n);
 	return $gameMessage.add(txt);
 };
-$aaaa$.prototype.extStore_searchTbl_make=function(id){
+$pppp$.extStore_searchTbl_make=function(id){
 	if(!$gameTemp._pt_extStores) $gameTemp._pt_extStores=[];
 	if(!$gameTemp._pt_extStores[id]) $gameTemp._pt_extStores[id]={a:[],i:[],s:[],w:[],cnt:0};
 	const tbl=$gameTemp._pt_extStores[id]; tbl.cnt=0;
@@ -7396,32 +7466,32 @@ $aaaa$.prototype.extStore_searchTbl_make=function(id){
 	});
 	return tbl;
 };
-$aaaa$.prototype.extStore_searchTbl_get=function(id){
+$pppp$.extStore_searchTbl_get=function(id){
 	let tmp=$gameTemp._pt_extStores;
 	return tmp&&tmp[id]||this.extStore_searchTbl_make(id);
 };
-$aaaa$.prototype.extStore_get=function(id){
+$pppp$.extStore_get=function(id){
 	if(!this._extStores) this._extStores=[];
 	if(!this._extStores[id]) this._extStores[id]=[];
 	return this._extStores[id];
 };
-$aaaa$.prototype.extStore_getMax=function(id){
+$pppp$.extStore_getMax=function(id){
 	if(!this._extStoreMaxs) this._extStoreMaxs=[];
 	return this._extStoreMaxs[id];
 };
-$aaaa$.prototype.extStore_setMax=function(id,val){
+$pppp$.extStore_setMax=function(id,val){
 	if(!this._extStoreMaxs) this._extStoreMaxs=[];
 	this._extStoreMaxs[id]=val;
 	return this;
 };
-$aaaa$.prototype.extStore_open=function(id,disables,title){
+$pppp$.extStore_open=function(id,disables,title){
 	$gameTemp.storeId=id;
 	$gameTemp.disables=disables;
 	$gameTemp.storeTitle=title||"";
 	SceneManager.push(Scene_ExtStore);
 	return this;
 };
-$aaaa$.prototype.extStore_add1=function(storeId,dataitem){
+$pppp$.extStore_add1=function(storeId,dataitem){
 	if(!dataitem) return;
 	const tbls=this.extStore_searchTbl_get(storeId);
 	if(tbls.cnt>=this.extStore_getMax(storeId)) return;
@@ -7437,7 +7507,7 @@ $aaaa$.prototype.extStore_add1=function(storeId,dataitem){
 	}
 	return true;
 };
-$aaaa$.prototype.extStore_rm1=function(storeId,dataitem){
+$pppp$.extStore_rm1=function(storeId,dataitem){
 	if(!dataitem) return;
 	const itemId=dataitem.id;
 	const tbls=this.extStore_searchTbl_get(storeId);
@@ -7451,7 +7521,7 @@ $aaaa$.prototype.extStore_rm1=function(storeId,dataitem){
 		tbl[itemId]=undefined;
 	} return true; }
 };
-$aaaa$.prototype.extStore_mvIn1=function(storeId,dataitem){
+$pppp$.extStore_mvIn1=function(storeId,dataitem){
 	const arr=this.itemContainer(dataitem);
 	if(!arr||!(arr[dataitem.id]>0)) return;
 	if(this.extStore_add1(storeId,dataitem)){
@@ -7459,20 +7529,20 @@ $aaaa$.prototype.extStore_mvIn1=function(storeId,dataitem){
 		return true;
 	}
 };
-$aaaa$.prototype.extStore_mvOut1=function(storeId,dataitem){
+$pppp$.extStore_mvOut1=function(storeId,dataitem){
 	if(this.extStore_rm1(storeId,dataitem)){
 		const arr=this.itemContainer(dataitem);
 		$gameParty.gainItem_q(dataitem,1);
 		return true;
 	}
 };
-$aaaa$.prototype.mch=function(mapid){
+$pppp$.mch=function(mapid){
 	let mchs=this.mapChanges;
 	if(mapid===undefined) mapid=$gameMap._mapId;
 	if(mchs[mapid]===undefined) mchs[mapid]={};
 	return mchs[mapid];
 };
-$dddd$=$aaaa$.prototype.changeMap=function f(type,data,mapid,noupdate){
+$dddd$=$pppp$.changeMap=function f(type,data,mapid,noupdate){
 	debug.log('$gameParty.prototype.changeMap');
 	let target=this.mch(mapid);
 	switch(type){
@@ -7497,7 +7567,7 @@ $dddd$=$aaaa$.prototype.changeMap=function f(type,data,mapid,noupdate){
 	}
 };
 $dddd$.forEach=v=>DataManager.resetData3d(v);
-$aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
+$pppp$.saveDynamicEvents=function(fromTransfer){
 	let evts=$gameMap._events;
 	let mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef
 	mc.events={};
@@ -7533,7 +7603,7 @@ $aaaa$.prototype.saveDynamicEvents=function(fromTransfer){
 		for(let x=0;x!==arr.length;++x) delete evt[arr[x]];
 	}
 };
-$aaaa$.prototype.gainAchievement=function(id){
+$pppp$.gainAchievement=function(id){
 	id^=0;
 	if(this._achievement===undefined) this._achievement=[0];
 	if(id===0 || this._achievement[id]) return;
@@ -7557,7 +7627,7 @@ $aaaa$.prototype.gainAchievement=function(id){
 		this._achievement_lastMaxId=id;
 	}
 };
-$aaaa$.prototype.gain_amountHead=function(amount,noSound){
+$pppp$.gain_amountHead=function(amount,noSound){
 	let rtv="",color=$dataCustom.textcolor;
 	if(amount<0){ amount*=-1;
 		if(!$gameSystem._usr._noGainSound && !noSound) SoundManager.playMiss();
@@ -7572,7 +7642,7 @@ $aaaa$.prototype.gain_amountHead=function(amount,noSound){
 	}
 	return rtv+" \\RGB["+color.default+"]";
 };
-$aaaa$.prototype.gainGold=function f(amount,noSound){
+$pppp$.gainGold=function f(amount,noSound){
 	if(this._gold){
 		let h=sha256(this._gold+'/'+this._hashn_gold),g=0;
 		while(h.slice(-3)!=="000") h=sha256(g+++'/'+this._hashn_gold);
@@ -7599,9 +7669,9 @@ $aaaa$.prototype.gainGold=function f(amount,noSound){
 	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
 	return txt;
 };
-$aaaa$.prototype.maxGold=()=>99999999;
-$rrrr$=$aaaa$.prototype.consumeItem;
-$dddd$=$aaaa$.prototype.consumeItem=function f(item,forced){
+$pppp$.maxGold=()=>99999999;
+$rrrr$=$pppp$.consumeItem;
+$dddd$=$pppp$.consumeItem=function f(item,forced){
 	debug.log('Game_Party.prototype.consumeItem');
 	$gameTemp.gainMsgConfigs_push();
 	$gameTemp.gainMsgConfigs_mute();
@@ -7612,20 +7682,20 @@ $dddd$=$aaaa$.prototype.consumeItem=function f(item,forced){
 	$gameTemp.____byConsume=false;
 	$gameTemp.gainMsgConfigs_pop();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.hasItem=function(item,includeEquip){
+$pppp$.hasItem=function(item,includeEquip){
 	return this.numItems(item)>0 || (includeEquip && this.isAnyMemberEquipped(item)) || false;
 };
-$aaaa$.prototype.isAnyMemberEquipped=function(item){
+$pppp$.isAnyMemberEquipped=function(item){
 	return this.members().some(actor=>actor.isEquipped(item));
 };
-$aaaa$.prototype.gainItem_q=function(item, amount, includeEquip, noSound){
+$pppp$.gainItem_q=function(item, amount, includeEquip, noSound){
 	$gameTemp.gainMsgConfigs_push();
 	$gameTemp.gainMsgConfigs_mute();
 	const rtv=this.gainItem(item, amount, includeEquip, noSound);
 	$gameTemp.gainMsgConfigs_pop();
 	return rtv;
 };
-$aaaa$.prototype._gainItem_container=function(item, amount, includeEquip, container, tbl){
+$pppp$._gainItem_container=function(item, amount, includeEquip, container, tbl){
 	if(container){
 		let tmp;
 		let lastNumber = this.numItems(item,container);
@@ -7645,7 +7715,7 @@ $aaaa$.prototype._gainItem_container=function(item, amount, includeEquip, contai
 		$gameMap.requestRefresh();
 	}
 };
-$aaaa$.prototype._gainItem_data=function(item, amount, includeEquip, noSound){
+$pppp$._gainItem_data=function(item, amount, includeEquip, noSound){
 	const item_=(!item.maxDayRef && item.meta.maxDay)?item._arr[item.days.back]:item,p=Game_Party.prototype;
 	let container,cacheKey,tbl;
 	switch(item_.itemType){ // this.itemContainer(item);
@@ -7688,7 +7758,7 @@ $aaaa$.prototype._gainItem_data=function(item, amount, includeEquip, noSound){
 	}
 	return true;
 };
-$aaaa$.prototype._gainItem_msg=function(item, cnt, includeEquip, noSound){
+$pppp$._gainItem_msg=function(item, cnt, includeEquip, noSound){
 	if(!cnt) return '';
 	let head=this.gain_amountHead(cnt,noSound),color=$dataCustom.textcolor;
 	if(item.meta){
@@ -7716,16 +7786,16 @@ $aaaa$.prototype._gainItem_msg=function(item, cnt, includeEquip, noSound){
 	}
 	return txt;
 };
-$aaaa$.prototype.gainItem=function(item, amount, includeEquip, noSound){
+$pppp$.gainItem=function(item, amount, includeEquip, noSound){
 	//debug.log('Game_Party.prototype.gainItem');
 	if(!item || !amount) return '';
 	if(!this._gainItem_data(item, amount, includeEquip, noSound)) return '';
 	return this._gainItem_msg(item, amount, includeEquip, noSound);
 };
-$aaaa$.prototype.loseItemAll=function(item, includeEquip, noSound){
+$pppp$.loseItemAll=function(item, includeEquip, noSound){
 	return this.gainItem(item,-this.numItems(item));
 };
-$aaaa$.prototype.upgradeItem=function f(itemFrom,itemTo, amount, includeEquip, noSound){
+$pppp$.upgradeItem=function f(itemFrom,itemTo, amount, includeEquip, noSound){
 	let txt="升級道具：";
 	if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt);
 	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
@@ -7736,7 +7806,7 @@ $aaaa$.prototype.upgradeItem=function f(itemFrom,itemTo, amount, includeEquip, n
 	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt,1);
 	if(!$gameSystem._usr._noGainSound&&!noSound) SoundManager.playUseItem();
 };
-$aaaa$.prototype.gainApp=function(appName_or_argv){
+$pppp$.gainApp=function(appName_or_argv){
 	if(isNone(appName_or_argv)) return;
 	const flag=appName_or_argv.constructor===Array;
 	const appName=flag?appName_or_argv[0]:appName_or_argv;
@@ -7756,7 +7826,7 @@ $aaaa$.prototype.gainApp=function(appName_or_argv){
 	$gameMessage.popup($dataCustom.gainApps[mgr],true,{t_remained:5000});
 	return true;
 };
-$aaaa$.prototype.quests=function(rankMin,rankMax,reserveNan){
+$pppp$.quests=function(rankMin,rankMax,reserveNan){
 	rankMin=rankMin===0?0:(rankMin||-inf);
 	rankMax=rankMax===0?0:(rankMax|| inf);
 	let list=rpgquests.list;
@@ -7765,16 +7835,16 @@ $aaaa$.prototype.quests=function(rankMin,rankMax,reserveNan){
 		|| (reserveNan && isNaN(list[x.meta.ref].rank)) );
 	});
 };
-$aaaa$.prototype.questsNeeded=function(rank){
+$pppp$.questsNeeded=function(rank){
 	return rank[2]-this.completedQuestsCnt(rank[0],rank[1]);
 };
-$aaaa$.prototype.questRemainedCnt=function(itemId){
+$pppp$.questRemainedCnt=function(itemId){
 	let list=rpgquests.list;
 	let lim=rpgquests.list[$dataItems[itemId].meta.ref].limit;
 	if(isNaN(lim)) return inf;
 	return lim-(this._completedQuests[itemId]^0)-(this._items[itemId]^0);
 };
-$aaaa$.prototype.completedQuestsCnt=function(rankMin,rankMax,reserveNan){
+$pppp$.completedQuestsCnt=function(rankMin,rankMax,reserveNan){
 	if(!this._completedQuests) this._completedQuests={};
 	let obj=this._completedQuests,list=rpgquests.list,rtv=0;
 	for(let i in obj){
@@ -7783,7 +7853,7 @@ $aaaa$.prototype.completedQuestsCnt=function(rankMin,rankMax,reserveNan){
 	}
 	return rtv;
 };
-$aaaa$.prototype.completeQuest=function(itemId,q){
+$pppp$.completeQuest=function(itemId,q){
 	let self=this;
 	if(!this._completedQuests) this._completedQuests={};
 	let item=$dataItems[itemId];
@@ -7808,7 +7878,7 @@ $aaaa$.prototype.completeQuest=function(itemId,q){
 	}
 	$gameSystem._usr._noGainMsg=noGainMsg;
 };
-$dddd$=$aaaa$.prototype.genQuestReportWindow=function f(rankMin,rankMax,reserveNan){
+$dddd$=$pppp$.genQuestReportWindow=function f(rankMin,rankMax,reserveNan){
 	let self=this;
 	let list=rpgquests.list,func=rpgquests.func,w;
 	let map=function(x){
@@ -7857,61 +7927,62 @@ $dddd$.genDoneQList.map=function f(qid){
 	}];
 };
 $dddd$=undef;
-$aaaa$.prototype.openQuestReportWindow=function(rankMin,rankMax,reserveNan){
+$pppp$.openQuestReportWindow=function(rankMin,rankMax,reserveNan){
 	return SceneManager.addWindowB(this.genQuestReportWindow(rankMin,rankMax,reserveNan));
 };
-$aaaa$.prototype.logLoc_list=function(){
+$pppp$.logLoc_list=function(){
 	let t=this._locLog;
 	if(!t||t.constructor!==Array) t=this._locLog=[];
 	return t;
 };
-$aaaa$.prototype.logLoc_save=function(){
+$pppp$.logLoc_save=function(){
 	let p=$gamePlayer,m=$gameMap;
 	this.logLoc_list().push([m.name,m._mapId,p.x,p.y,p._direction]);
 };
-$aaaa$.prototype.logLoc_load=function(id){
+$pppp$.logLoc_load=function(id){
 	let t=this.logLoc_list()[id];
 	if(!t) return -1;
 	$gamePlayer.reserveTransfer(t[1],t[2],t[3],t[4],1);
 };
-$aaaa$.prototype.noteApp_list=function(){
+$pppp$.noteApp_list=function(){
 	let t=this._noteApp;
 	if(!t||t.constructor!==Array) t=this._noteApp=[];
 	return t;
 };
-$aaaa$.prototype.noteApp_save=function(fname,txt){
+$pppp$.noteApp_save=function(fname,txt){
 	this.noteApp_list().push([fname,txt]);
 };
-$aaaa$.prototype.noteApp_load=function(id){
+$pppp$.noteApp_load=function(id){
 	let t=this.noteApp_list()[id];
 	if(!t) return -1;
 	return t;
 };
-$aaaa$.prototype.noteApp_del=function(id){
+$pppp$.noteApp_del=function(id){
 	let list=this.noteApp_list();
 	let t=list[id];
 	if(!t) return -1;
 	list.splice(id,1);
 };
-$aaaa$.prototype.burnLvOutput=function(parents){
+$pppp$.burnLvOutput=function(parents){
 	parents=parents||$gameMap.parents();
 	// 燃燒棒、木亥村莊專用燃燒棒
 	if($gameParty._items[55] || ($gameParty._items[56]&&parents.indexOf(Number($dataItems[56].meta.map))!==-1)) return this.burnLv;
 	return 0;
 };
-$aaaa$.prototype.mustEscape=function(){
+$pppp$.mustEscape=function(){
 	return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - follower
 $aaaa$=Game_Follower;
-$rrrr$=$aaaa$.prototype.getData;
-$dddd$=$aaaa$.prototype.getData=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.getData;
+$dddd$=$pppp$.getData=function f(){
 	let actor=this.actor();
 	return actor?actor.getData():f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.resetWalkAni=function(){
+$pppp$.resetWalkAni=function(){
 	this._stopCount=0;
 	if(!this._tmp) this._tmp=[];
 	this._tmp.wa=true; // walkAnime
@@ -7921,7 +7992,7 @@ $aaaa$.prototype.resetWalkAni=function(){
 		this._tmp.wa=!meta.noWalk;
 	}
 };
-$aaaa$.prototype.updateAppearance=function(){
+$pppp$.updateAppearance=function(){
 	// not doing them in 'this.update'
 	if(!$gamePlayer) return;
 	this.setMoveSpeed($gamePlayer.realMoveSpeed()); 
@@ -7932,34 +8003,34 @@ $aaaa$.prototype.updateAppearance=function(){
 	this.setDirectionFix($gamePlayer.isDirectionFixed());
 	// this.setTransparent(_objs.$gamePlayer.isTransparent()); // not really needed
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(idx){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(idx){
 	f.ori.call(this,idx);
 	//if(!this._tmp) this._tmp=[]; // Game_Character
 	// special settings:
 	//this.resetWalkAni();
 	//this.updateAppearance(); // done @setFollowers
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setWalkAnime=function(wa){ // ori: chrB
+$pppp$.setWalkAnime=function(wa){ // ori: chrB
 	this._walkAnime = this._tmp.wa&&wa;
 };
-$aaaa$.prototype.actor=function(){ // btlr -> all
+$pppp$.actor=function(){ // btlr -> all
 	return $gameParty.allMembers()[this._memberIndex];
 };
-$aaaa$.prototype.setFollowers=function(flrs){
+$pppp$.setFollowers=function(flrs){
 	if(!this._tmp) this._tmp=[];
 	if(this._tmp._followers=flrs){
 		this.resetWalkAni();
 		this.updateAppearance();
 	}
 };
-$rrrr$=$aaaa$.prototype.locate;
-$dddd$=$aaaa$.prototype.locate=function f(x,y){
+$rrrr$=$pppp$.locate;
+$dddd$=$pppp$.locate=function f(x,y){
 	f.ori.call(this,x,y);
 	if(this._tmp&&this._tmp._followers&&!$gamePlayer._newMapId) this._tmp._followers.updateTbl(this);
 	return this;
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.chaseCharacter=function f(character){
+$dddd$=$pppp$.chaseCharacter=function f(character){
 	let sx=this.deltaXFrom(character.x); // int
 	let sy=this.deltaYFrom(character.y); // int
 	if(sx!==0) sx=sx<0?6:4;
@@ -7970,13 +8041,14 @@ $dddd$=$aaaa$.prototype.chaseCharacter=function f(character){
 };
 $dddd$.h1=[6,0,4];
 $dddd$.v1=[2,0,8];
-$aaaa$.prototype.update = function() {
+$pppp$.update = function() {
 	Game_Character.prototype.update.call(this);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - followers
 $aaaa$=Game_Followers;
+$pppp$=$aaaa$.prototype;
 Object.defineProperties($aaaa$.prototype,{
 	length:{
 		get:function(){return this._data.length;},
@@ -7994,7 +8066,7 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	},
 });
-$aaaa$.prototype.initialize = function() {
+$pppp$.initialize = function() {
 	this._visible = $dataSystem.optFollowers;
 	this._gathering = false;
 	this._following = true;
@@ -8002,37 +8074,37 @@ $aaaa$.prototype.initialize = function() {
 	//this.clearTbl();
 	//for(let i=1,ie=objs.$gameParty.maxBattleMembers();i<ie;++i) this.addFollower(new Game_Follower(i));
 };
-$aaaa$.prototype.addFollower=function(fo){
+$pppp$.addFollower=function(fo){
 	fo.setFollowers(this);
 	this._data.push(fo);
 	this.updateTbl(fo);
 };
-$aaaa$.prototype.clearFollowerFromTbl=function(fo){
+$pppp$.clearFollowerFromTbl=function(fo){
 	if(!$gameTemp._flrs_coord) return;
 	let tmp;
 	if(tmp=$gameTemp._flrs_coord[fo._lastIdx]) tmp.delete(fo);
 };
-$aaaa$.prototype.popFollower=function(){
+$pppp$.popFollower=function(){
 	if(this._data.length){
 		const flr=this._data.pop();
 		flr.setFollowers(undefined);
 		this.clearFollowerFromTbl(flr);
 	}
 };
-$aaaa$.prototype.clearTbl=function(){
+$pppp$.clearTbl=function(){
 	//$gameTemp._flrs_coord=[]; // created @ Scene_Map.prototype.onMapLoaded
 };
-$aaaa$.prototype.updateTbl=function(fo){
+$pppp$.updateTbl=function(fo){
 	if(!(fo._memberIndex<objs.$gameParty.battleMembers().length) || !$gameTemp._flrs_coord) return;
 	let tmp;
 	if(tmp=$gameTemp._flrs_coord[fo._lastIdx]) tmp.delete(fo);
 	if(tmp=$gameTemp._flrs_coord[fo._lastIdx=fo.xy2idx()]) tmp.add(fo);
 };
-$dddd$=$aaaa$.prototype.refresh=function f(){
+$dddd$=$pppp$.refresh=function f(){
 	this.forEach(f.forEach, this);
 };
 $dddd$.forEach=flwr=>flwr.refresh();
-$aaaa$.prototype.updateMove_1=function(c,t){
+$pppp$.updateMove_1=function(c,t){
 	let sx,sy;
 	if($gameTemp.LH){
 		if(c._x<t.x){
@@ -8059,7 +8131,7 @@ $aaaa$.prototype.updateMove_1=function(c,t){
 	this.updateTbl(c);
 	c.increaseSteps();
 };
-$aaaa$.prototype.updateMove=function(){
+$pppp$.updateMove=function(){
 	if(this._following&&this._data.length){
 		$gameTemp.LH=$gameMap.isLoopHorizontal();
 		$gameTemp.LV=$gameMap.isLoopVertical();
@@ -8074,27 +8146,28 @@ $aaaa$.prototype.updateMove=function(){
 			this.updateMove_1(c,t);
 	}
 };
-$aaaa$.prototype.visibleFollowers=function f(){
+$pppp$.visibleFollowers=function f(){
 	if(this.isVisible()&&$gameParty._acs.length) return this._data; //this._data.slice(0,$gameParty._acs.length-1);
 	return f._dummy_arr;
 };
-$aaaa$.prototype.isSomeoneCollided=function(x,y){
+$pppp$.isSomeoneCollided=function(x,y){
 	return $gameTemp._flrs_coord[$dataMap.width*y+x].size!==0;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - selfswitches
 $aaaa$=Game_SelfSwitches;
-//$aaaa$.prototype.clear=function(){ this._data = []; };
-$aaaa$.prototype.initialize = function() {
+$pppp$=$aaaa$.prototype;
+//$pppp$.clear=function(){ this._data = []; };
+$pppp$.initialize = function() {
 	this._data=[0];
 };
-$aaaa$.prototype.switches=["A","B","C","D"];
-$aaaa$.prototype.value=function(k){
+$pppp$.switches=["A","B","C","D"];
+$pppp$.value=function(k){
 	let t=this._data[k.shift()];
 	return !!(t&&t[k]);
 };
-$aaaa$.prototype.setValue_=function(t,k,v,m){
+$pppp$.setValue_=function(t,k,v,m){
 	if(v){
 		t[k] = true;
 		//$gameTemp._ssSets[m].set(k.join()); // 改天
@@ -8111,22 +8184,23 @@ $aaaa$.prototype.setValue_=function(t,k,v,m){
 	}
 	if(evt&&!evt.noUpdate) return this.onChange();
 };
-$aaaa$.prototype.setValue=function(k,v){
+$pppp$.setValue=function(k,v){
 	let mapid=k.shift();
 	let t=this._data[mapid];
 	if(!t) t=this._data[mapid]={};
 	return this.setValue_(t,k,v,mapid);
 };
-$aaaa$.prototype.clear = function(mapid) {
+$pppp$.clear = function(mapid) {
 	if(mapid>0) this._data[n]={};
 	else this._data = [];
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - event
 
 $aaaa$=Game_Event;
-$aaaa$.prototype.getData=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.getData=function(){
 	return this.event();
 };
 Object.defineProperties($aaaa$.prototype,{
@@ -8138,8 +8212,8 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	}
 });
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(mapId,evtId){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(mapId,evtId){
 	//debug.log2('Game_Event.prototype.initialize');
 	this.imgModded=true;
 this.refresh=none;
@@ -8245,7 +8319,7 @@ delete this.refresh;
 	delete this.parentId;
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._rmFromCoordTbl=function(){
+$pppp$._rmFromCoordTbl=function(){
 	if(this._rmFromCoordTbl_1()!==undefined){ // valid rm
 		if(!this._through){
 			this._rmFromCoordTbl_1($dataMap.coordTblNt);
@@ -8257,7 +8331,7 @@ $aaaa$.prototype._rmFromCoordTbl=function(){
 		}
 	}
 };
-$aaaa$.prototype._rmFromCoordTbl_1=function(tbl){
+$pppp$._rmFromCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._rmFromCoordTbl');
 	let mapd=$dataMap;
 	// x,y may be out of bound
@@ -8273,7 +8347,7 @@ $aaaa$.prototype._rmFromCoordTbl_1=function(tbl){
 		return tbl.pop_back();
 	}
 };
-$aaaa$.prototype._addToCoordTbl=function(){
+$pppp$._addToCoordTbl=function(){
 	if(this._addToCoordTbl_1()!==undefined){ // valid add
 		if(!this._through){
 			this._addToCoordTbl_1($dataMap.coordTblNt);
@@ -8285,7 +8359,7 @@ $aaaa$.prototype._addToCoordTbl=function(){
 		}
 	}
 };
-$aaaa$.prototype._addToCoordTbl_1=function(tbl){
+$pppp$._addToCoordTbl_1=function(tbl){
 	//debug.log2('Game_Event.prototype._addToCoordTbl');
 	if(this.refresh===none) return; // is constructing
 	let mapd=$dataMap;
@@ -8294,13 +8368,13 @@ $aaaa$.prototype._addToCoordTbl_1=function(tbl){
 	else if(!(tbl = $gameMap.isValid(this.x,this.y) && mapd && mapd.coordTbl && mapd.coordTbl[this.xy2idx()])) return;
 	return tbl.push(this);
 };
-$rrrr$=$aaaa$.prototype.isCollidedWithEvents;
-$dddd$=$aaaa$.prototype.isCollidedWithEvents=function f(posx,posy){
+$rrrr$=$pppp$.isCollidedWithEvents;
+$dddd$=$pppp$.isCollidedWithEvents=function f(posx,posy){
 	let rtv=f.ori.call(this,posx,posy),id=this._eventId.toId();
 	if(rtv&&this.getData().meta.passSelf) rtv=$dataMap.coordTblNt[$gameMap.xy2idx(posx,posy)].some(evt=>evt._eventId.toId()!==id);
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._deleteOldDataMember=function(){
+$pppp$._deleteOldDataMember=function(){
 	if(this._evtid===undefined){
 		const evtid=this._eventId;
 		delete this._eventId;
@@ -8411,34 +8485,34 @@ Object.defineProperties($aaaa$.prototype,{
 		return this._odir=rhs;
 	},configurable:false},
 });
-$aaaa$.prototype.queuePush=function(qidx,data){ qidx^=0;
+$pppp$.queuePush=function(qidx,data){ qidx^=0;
 	if(!this._queues[qidx]) this._queues[qidx]=new Queue();
 	return this._queues[qidx].push(data);
 };
-$aaaa$.prototype.queuePop=function(qidx){ qidx^=0;
+$pppp$.queuePop=function(qidx){ qidx^=0;
 	return this._queues[qidx]&&this._queues[qidx].pop();
 };
-$aaaa$.prototype.queueLen=function(qidx){
+$pppp$.queueLen=function(qidx){
 	return (this._queues[qidx]&&this._queues[qidx].length)^0;
 };
-$aaaa$.prototype.queueGetnth=function(qidx,n){ qidx^=0;
+$pppp$.queueGetnth=function(qidx,n){ qidx^=0;
 	return this._queues[qidx]&&this._queues[qidx].getnth(n);
 };
-$aaaa$.prototype.pushXyToQueue=function(qidx,obj){
+$pppp$.pushXyToQueue=function(qidx,obj){
 	return this.queuePush(qidx,[obj.x,obj.y]);
 };
-$aaaa$.prototype.findDirFromQueue=function(qidx,disables,kargs){ // try from newest to oldest
+$pppp$.findDirFromQueue=function(qidx,disables,kargs){ // try from newest to oldest
 	let q=this._queues[qidx^0]; // 'this.pushXyToQueue' // [ ... , [x,y], ... ] 
 	if(!q) return 0;
 	let goals=[];
 	for(let nth=q.length;nth--;) goals.push(q.getnth(nth));
 	return this.findDirTo(goals,disables,kargs);
 };
-$aaaa$.prototype.isInitPos=function(){
+$pppp$.isInitPos=function(){
 	let evtd=this.event();
 	return this.x===evtd.x && this.y==evtd.y;
 };
-$aaaa$.prototype.resetDir=function(alsoSetupPage){
+$pppp$.resetDir=function(alsoSetupPage){
 	let p=this.findProperPageIndex();
 	if(p<0) return;
 	let img=this.event().pages[p].image;
@@ -8448,15 +8522,15 @@ $aaaa$.prototype.resetDir=function(alsoSetupPage){
 		this.setupPage();
 	}
 };
-$rrrr$=$aaaa$.prototype.moveStraight;
-$dddd$=$aaaa$.prototype.moveStraight=function f(d){ // .strtByAny
+$rrrr$=$pppp$.moveStraight;
+$dddd$=$pppp$.moveStraight=function f(d){ // .strtByAny
 	f.ori.call(this,d);
 	if(!this.isMovementSucceeded()) return; // handled by this.checkEventTriggerTouch
 	let strtMeta={startBy:this._eventId},strtByAny=$dataMap.coordTbl_strtByAny[this.xy2idx()];
 	if(strtByAny) strtByAny.forEach(evt=>!evt._starting&&!evt.strtByAny_skips.has(this._eventId)&&evt.start(undefined,strtMeta)); // 'if' for preventing myself moving an evt out of the map
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.checkEventTriggerTouch;
-$dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(x,y){ // .strtByAny
+$rrrr$=$pppp$.checkEventTriggerTouch;
+$dddd$=$pppp$.checkEventTriggerTouch=function f(x,y){ // .strtByAny
 	//debug.log('Game_Event.prototype.checkEventTriggerTouch');
 	if(this.x===x&&this.y===y){
 		let strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)]; // for _pri===0
@@ -8475,15 +8549,15 @@ $dddd$=$aaaa$.prototype.checkEventTriggerTouch=function f(x,y){ // .strtByAny
 	}
 	f.ori.call(this,x,y);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	if(this.canUpdate()) return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._initItrpQIfNeeded=function(){
+$pppp$._initItrpQIfNeeded=function(){
 	if(!this._itrpQ) this._itrpQ=new Queue();
 	else if(this._itrpQ.constructor!==Queue) this._itrpQ=Object.toType(this._itrpQ,Queue);
 };
-$aaaa$.prototype.updateParallel=function(){
+$pppp$.updateParallel=function(){
 	if(this._trigger===4){ // parallel
 		if(!this._interpreter) this._interpreter=objs.new_Game_Interpreter();
 		if(!this._interpreter.isRunning()) this._interpreter.setup(this.list(), this._eventId);
@@ -8502,38 +8576,38 @@ $aaaa$.prototype.updateParallel=function(){
 		this._itrp2.update();
 	}
 };
-$aaaa$.prototype.canUpdate=function(){
+$pppp$.canUpdate=function(){
 	return !$gameMap.zaWarudo()||this.preventZaWarudo();
 };
-$aaaa$.prototype.preventZaWarudo=function(){
+$pppp$.preventZaWarudo=function(){
 	return this._preventZaWarudo; // ||this._trigger===1; // player touch
 };
-$aaaa$.prototype.setPreventZaWarudo=function(val){
+$pppp$.setPreventZaWarudo=function(val){
 	this._preventZaWarudo=val;
 };
-$aaaa$.prototype.event=function(){ return $dataMap.events[this._idd]; };
-//$aaaa$.prototype.event=function(){ return $dataMap.events[this._eventId.toId()]; };
-$dddd$=$aaaa$.prototype.stopCountThreshold=function f(){
+$pppp$.event=function(){ return $dataMap.events[this._idd]; };
+//$pppp$.event=function(){ return $dataMap.events[this._eventId.toId()]; };
+$dddd$=$pppp$.stopCountThreshold=function f(){
 	// return 30 * (5 - this.moveFrequency());
 	return f.tbl[this.moveFrequency()]|0;
 };
 $dddd$.tbl=[]; for(let x=0,arr=$dddd$.tbl;x!==5;++x) arr[x]=30*(5-x); for(let x=5,arr=$dddd$.tbl;x!==11;++x) arr[x]=0; for(let x=-10,arr=$dddd$.tbl;x!==0;++x) arr[x]=30*(5-x);
-$aaaa$.prototype.isNearThePlayer=function(p,dist){
+$pppp$.isNearThePlayer=function(p,dist){
 	p=p||$gamePlayer;
 	dist=dist===undefined?20:dist; dist^=0;
 	return Math.abs(this.deltaXFrom(p.x)) + Math.abs(this.deltaYFrom(p.y)) < dist;
 };
-$aaaa$.prototype.hasStrtType=function(key){
+$pppp$.hasStrtType=function(key){
 	// strtType will be clear when 'this.start'
 	return this.strt && this.strt[key];
 };
-$aaaa$.prototype.addStrtType=function(key){
+$pppp$.addStrtType=function(key){
 	// strtType will be clear when 'this.start'
 	if(!this.strt) this.strt={};
 	this.strt[key]=1;
 };
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.strtEvts
+$rrrr$=$pppp$.start;
+$dddd$=$pppp$.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.strtEvts
 	// isFromPlayerCustom: no condition checks (in this func.) if true
 	// * 'strtMeta' and 'this.strt' have chance to be edited if ''!isFromPlayerCustom'
 	//debug.log2('Game_Event.prototype.start');
@@ -8606,8 +8680,8 @@ $dddd$=$aaaa$.prototype.start=function f(isFromPlayerCustom,strtMeta){ // fit $d
 		return;
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.clearStartingFlag;
-$dddd$=$aaaa$.prototype.clearStartingFlag=function f(){ // overwrite to fit $dataMap.strtEvts
+$rrrr$=$pppp$.clearStartingFlag;
+$dddd$=$pppp$.clearStartingFlag=function f(){ // overwrite to fit $dataMap.strtEvts
 	//debug.log2('Game_Event.prototype.clearStartingFlag'); // annoying
 	//debug.log2('',this._eventId);
 	//debug.log2('',this._trigger);
@@ -8617,7 +8691,7 @@ $dddd$=$aaaa$.prototype.clearStartingFlag=function f(){ // overwrite to fit $dat
 	this._addedCnt_strtEvts-=0<this._addedCnt_strtEvts;
 	delete this.strt;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.erase_inv=function(){
+$pppp$.erase_inv=function(){
 	let arr=this._sameStatEvts;
 	if(arr&&0<arr.length){
 		for(let x=0,dict={};x!==arr.length;++x){ let evtid=arr[x];
@@ -8636,8 +8710,8 @@ $aaaa$.prototype.erase_inv=function(){
 	}
 	return rtv;
 };
-$rrrr$=$aaaa$.prototype.erase;
-$dddd$=$aaaa$.prototype.erase=function f(by){
+$rrrr$=$pppp$.erase;
+$dddd$=$pppp$.erase=function f(by){
 	//debug.log('Game_Event.prototype.erase');
 	let arr=this._sameStatEvts;
 	if(arr&&0<arr.length){
@@ -8663,10 +8737,10 @@ $dddd$=$aaaa$.prototype.erase=function f(by){
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 // <erasedBy:{"key":evtid}> ; when 'by' provided to 'Game_Event.erase(by)' exists in 'erasedBy', corresponding event will start
-$aaaa$.prototype.parent=function(){
+$pppp$.parent=function(){
 	return (this.parentId)?$gameMap._events[this.parentId]:this;
 };
-$aaaa$.prototype._constructChildren=function(tm,ssStates){
+$pppp$._constructChildren=function(tm,ssStates){
 	//debug.log('Game_Event.prototype._constructChildren');
 	let meta=this.event().meta;
 	//debug.log('',meta.child && !this._sameStatEvts);
@@ -8688,17 +8762,17 @@ $aaaa$.prototype._constructChildren=function(tm,ssStates){
 		}
 	}
 };
-$aaaa$.prototype.ssState=function(ssname){
+$pppp$.ssState=function(ssname){
 	// 'ss' for "self switch"
 	return {obj:$gameSelfSwitches._data[this._mapId],key:[this._eventId,ssname]};
 };
-$aaaa$.prototype.ssStateInv=function(ssname){
+$pppp$.ssStateInv=function(ssname){
 	let res=this.ssState(ssname);
 	let v=!res.obj[res.key];
 	$gameSelfSwitches.setValue_(res.obj,res.key,v);
 	return v;
 };
-$aaaa$.prototype.ssStateSet=function(ssname,toFalse){
+$pppp$.ssStateSet=function(ssname,toFalse){
 	let res=this.ssState(ssname);
 	//if(!toFalse && !res.obj[res.key]) setTrue
 	//if(toFalse && res.obj[res.key]) setFalse
@@ -8707,7 +8781,7 @@ $aaaa$.prototype.ssStateSet=function(ssname,toFalse){
 	if(toFalse^res.obj[res.key]) $gameSelfSwitches.setValue_(res.obj,res.key,toFalse);
 	return toFalse;
 };
-$aaaa$.prototype.findProperPageIndex=function f(){
+$pppp$.findProperPageIndex=function f(){
 	let pages=this.event().pages;
 	for(let x=pages.length;x--;){
 		let c=pages[x].conditions,ss=$gameSelfSwitches._data[this._mapId];
@@ -8724,14 +8798,14 @@ $aaaa$.prototype.findProperPageIndex=function f(){
 	}
 	return -1;
 };
-$rrrr$=$aaaa$.prototype.clearPageSettings;
-$dddd$=$aaaa$.prototype.clearPageSettings=function f(){
+$rrrr$=$pppp$.clearPageSettings;
+$dddd$=$pppp$.clearPageSettings=function f(){
 	this._light=undefined;
 	this.imgModded=true;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.setupPageSettings;
-$dddd$=$aaaa$.prototype.setupPageSettings=function f(){
+$rrrr$=$pppp$.setupPageSettings;
+$dddd$=$pppp$.setupPageSettings=function f(){
 	let evtd=this.event();
 	const sp=this.getSprite();
 	sp && sp.setText(this.getText());
@@ -8739,7 +8813,7 @@ $dddd$=$aaaa$.prototype.setupPageSettings=function f(){
 	if(evtd.light && evtd.light.constructor===Array) this._light=evtd.light[this._pageIndex]^0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.refresh=function(forced){
+$pppp$.refresh=function(forced){
 	//if(this.imgModded===undefined) return; // constructing...
 	let newPageIndex=this._erased?-1:this.findProperPageIndex();
 	if(forced || this._pageIndex!==newPageIndex){
@@ -8748,8 +8822,8 @@ $aaaa$.prototype.refresh=function(forced){
 	}
 	return this;
 };
-$rrrr$=$aaaa$.prototype.list;
-$dddd$=$aaaa$.prototype.list=function f(){
+$rrrr$=$pppp$.list;
+$dddd$=$pppp$.list=function f(){
 	let olist=f.ori.call(this),rtv=[];
 	for(let x=0;x!==olist.length;++x){
 		let curr=olist[x];
@@ -8804,7 +8878,7 @@ $dddd$=$aaaa$.prototype.list=function f(){
 	rtv.push(Game_Interpreter.EMPTY);
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._genFaceData=function(c){
+$pppp$._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
 	// Sprite_Character.prototype.patternHeight
@@ -8821,7 +8895,7 @@ $aaaa$.prototype._genFaceData=function(c){
 	]; rtv.ref=c;
 	return rtv;
 };
-$dddd$=$aaaa$.prototype.setFace=function f(idx){
+$dddd$=$pppp$.setFace=function f(idx){
 	//debug.log('Game_Event.prototype.setFace');
 	if(this._isObjectCharacter){
 		$gameMessage.setFaceImage(this._genFaceData(),"data");
@@ -8835,33 +8909,33 @@ $dddd$=$aaaa$.prototype.setFace=function f(idx){
 		}
 	}
 };
-$aaaa$.prototype.speak=function(txt,kargs){
+$pppp$.speak=function(txt,kargs){
 	this.setFace();
 	//$gameMap._interpreter.clear();
 	return $gameMessage.add(txt);
 };
-$aaaa$.prototype.choices=function(txt,chTxtArr,defaultType,cancelType,chCallback,kargs){
+$pppp$.choices=function(txt,chTxtArr,defaultType,cancelType,chCallback,kargs){
 	if(txt) this.speak(txt,kargs);
 	$gameMessage.setChoiceCallback(chCallback);
 	return $gameMessage.setChoices(chTxtArr,defaultType,cancelType);
 };
-$aaaa$.prototype.playerJumpToMy=function(dx,dy){
+$pppp$.playerJumpToMy=function(dx,dy){
 	dx+=this.x-$gamePlayer.x;
 	dy+=this.y-$gamePlayer.y;
 	return $gamePlayer.jump(dx,dy);
 };
-$dddd$=$aaaa$.prototype.canEdited_auth=function f(parents){
+$dddd$=$pppp$.canEdited_auth=function f(parents){
 	if(this.getData().meta.noAuth) return true;
 	parents=new Set(parents||$gameMap.parents());
 	return parents.has($gameParty.burnAuth) || parents.intersect(f.tbl).size!==0;
 	//return !(parents.indexOf(13)===-1 && parents.indexOf(90)===-1 && parents.indexOf($gameParty.burnAuth)===-1);
 };
 $dddd$.tbl=new Set([13,157,159,173,55]); // 13:forest 157:sky 159:noob 173:zone1 176:拉起封鎖線-遊樂場
-$aaaa$.prototype.canBurned_auth=function(parents){
+$pppp$.canBurned_auth=function(parents){
 	if($gameParty.burnrange===404) return true;
 	return this.canEdited_auth(parents);
 };
-$aaaa$.prototype.canBurned=function(){
+$pppp$.canBurned=function(){
 	// 活著嗎
 	if(this._erased) return false;
 	let evtd=this.event(),meta=evtd.meta;
@@ -8877,11 +8951,11 @@ $aaaa$.prototype.canBurned=function(){
 	// 權限
 	return this.canBurned_auth(parents);
 };
-$aaaa$.prototype.canSlashed_auth=function(parents){
+$pppp$.canSlashed_auth=function(parents){
 	if($gameParty.slashrange===404) return true;
 	return this.canEdited_auth(parents);
 };
-$aaaa$.prototype.canSlashed=function(){
+$pppp$.canSlashed=function(){
 	// 活著嗎
 	if(this._erased) return false;
 	let evtd=this.event(),meta=evtd.meta;
@@ -8895,14 +8969,14 @@ $aaaa$.prototype.canSlashed=function(){
 	// 權限
 	return this.canSlashed_auth(parents);
 };
-$aaaa$.prototype.updateSelfMovement_cond=function(forced){
+$pppp$.updateSelfMovement_cond=function(forced){
 	return (forced || 
 		!this._locked && 
 		(this.longDistDetection||this.isNearTheScreen()) &&
 		this.checkStop(this.stopCountThreshold())
 	);
 };
-$aaaa$.prototype.updateSelfMovement=function(forced){
+$pppp$.updateSelfMovement=function(forced){
 	switch(this._moveType){
 	case 1:
 		if(this.updateSelfMovement_cond(forced)) this.moveTypeRandom();
@@ -8915,15 +8989,16 @@ $aaaa$.prototype.updateSelfMovement=function(forced){
 		break;
 	}
 };
-$aaaa$.prototype.getText=function(){
+$pppp$.getText=function(){
 	const data=this.getData();
 	return data&&data.txts[this._pageIndex];
 };
-$rrrr$=$dddd$=$aaaa$=undef; // END Game_Event
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef; // END Game_Event
 
 // - switches
 $aaaa$=Game_Switches;
-$aaaa$.prototype.setValue=function f(switchId,value,noUpdate){
+$pppp$=$aaaa$.prototype;
+$pppp$.setValue=function f(switchId,value,noUpdate){
 	if(switchId>=0 && switchId<$dataSystem.switches.length){
 		this._data[switchId]=(!value)^1;
 		if(!noUpdate) this.onChange();
@@ -8932,7 +9007,8 @@ $aaaa$.prototype.setValue=function f(switchId,value,noUpdate){
 
 // - vars
 $aaaa$=Game_Variables;
-$aaaa$.prototype.setValue=function f(varId,val){
+$pppp$=$aaaa$.prototype;
+$pppp$.setValue=function f(varId,val){
 	let strt=$gameTemp.gameVarTrimStrt^=0;
 	if(strt<varId){
 		for(;strt!==varId;++strt) if(!this._data[strt] && this._data[strt]!=='') this._data[strt]^=0;
@@ -8944,10 +9020,11 @@ $aaaa$.prototype.setValue=function f(varId,val){
 		this.onChange();
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - item
 $aaaa$=Game_Item;
+$pppp$=$aaaa$.prototype;
 Object.defineProperties($aaaa$.prototype,{
 	_dataClass:{get:function(){ return this._dc; },set:function(rhs){
 		return this._dc=rhs;
@@ -8956,7 +9033,7 @@ Object.defineProperties($aaaa$.prototype,{
 		return this._id=rhs;
 	},configurable:false},
 });
-$aaaa$.prototype._deleteOldDataMember=function(){
+$pppp$._deleteOldDataMember=function(){
 	if(this._id===undefined){
 		const dc=this._dataClass,id=this._itemId;
 		delete this._dataClass;
@@ -8965,7 +9042,7 @@ $aaaa$.prototype._deleteOldDataMember=function(){
 		this._id=id;
 	}
 };
-$aaaa$.prototype.object=function(){
+$pppp$.object=function(){
 	switch(this._dataClass){
 	default: return null;
 	case 'skill':
@@ -8982,7 +9059,7 @@ $aaaa$.prototype.object=function(){
 	break;
 	}
 };
-$dddd$=$aaaa$.prototype.setObject=function f(item){
+$dddd$=$pppp$.setObject=function f(item){
 	if(!item) this._itemId=0;
 	else{
 		this._dataClass=f.tbl[item.itemType]||'';
@@ -8990,18 +9067,19 @@ $dddd$=$aaaa$.prototype.setObject=function f(item){
 	}
 };
 $dddd$.tbl={a:'armor',i:'item',s:'skill',w:'weapon',};
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - action
 $aaaa$=Game_Action;
+$pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=50;
 $aaaa$.addEnum=objs._addEnum;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(subject,forcing){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
 	this.meta={};
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.toMotion=function f(){
+$dddd$=$pppp$.toMotion=function f(){
 	const item=this._item;
 	switch(item._dataClass){
 	case 'skill':{
@@ -9020,10 +9098,10 @@ $dddd$.tbl=new Map([
 	[2,'guard'],
 	[3,'spaceout'],
 ]);
-$aaaa$.prototype.setSpaceout=function(){
+$pppp$.setSpaceout=function(){
 	this.setSkill(this.subject().spaceoutSkillId());
 };
-$aaaa$.prototype.setSkill=function(skillId){
+$pppp$.setSkill=function(skillId){
 	let subject;
 	if(BattleManager._isGuardWaiting){
 		const now=this.item(); subject=this.subject();
@@ -9055,17 +9133,17 @@ $aaaa$.prototype.setSkill=function(skillId){
 		BattleManager._isChanting.set(subject,n+1);
 	}
 };
-$dddd$=$aaaa$.prototype.needsSelection=function f(){
+$dddd$=$pppp$.needsSelection=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([1,7,9]);
-$aaaa$.prototype.isGuard=function(subject){
+$pppp$.isGuard=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).guardSkillId()];
 };
-$aaaa$.prototype.isSpaceout=function(subject){
+$pppp$.isSpaceout=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).spaceoutSkillId()];
 };
-$aaaa$.prototype.decideRandomTarget=function(){
+$pppp$.decideRandomTarget=function(){
 	let target;
 	switch(this.item().scope){
 	case 9:
@@ -9083,7 +9161,7 @@ $aaaa$.prototype.decideRandomTarget=function(){
 	if(target) this._targetIndex = target.index();
 	else this.clear();
 };
-$aaaa$.prototype.speed=function(){
+$pppp$.speed=function(){
 	//let agi=this.subject().agi;
 	let speed=this.subject().agi; // + Math.randomInt(Math.floor(5 + agi / 4)); // edit: fixed speed
 	if(this.item()){
@@ -9094,7 +9172,7 @@ $aaaa$.prototype.speed=function(){
 	}
 	return speed;
 };
-$dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
+$dddd$=$pppp$.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
 	// and add repeat times
 	if(this.isAttack()) return true;
 	else{
@@ -9103,7 +9181,7 @@ $dddd$=$aaaa$.prototype.isKindOfAttack=function f(){ // is a type of normal atta
 	}
 };
 $dddd$.forEach=e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0; // state 0 === attack state
-$aaaa$.prototype.numRepeats=function f(){
+$pppp$.numRepeats=function f(){
 	const item=this.item(),subject=this.subject();
 	let repeats=item.repeats;
 	//if(this.isAttack()) repeats += subject.attackTimesAdd();
@@ -9115,7 +9193,7 @@ $aaaa$.prototype.numRepeats=function f(){
 	if(item.itemType!=='i') repeats*=subject.attackTimesMul();
 	return Math.floor(repeats);
 };
-$aaaa$.prototype.repeatTargets=function(targets){ // reverse order
+$pppp$.repeatTargets=function(targets){ // reverse order
 	const repeatedTargets = [];
 	let j=this.numRepeats(); if(j>1e15){
 		let cnt=0,nv=[j%1e15];
@@ -9133,7 +9211,7 @@ $aaaa$.prototype.repeatTargets=function(targets){ // reverse order
 	}else for(let szi=targets.length;j-->0;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
 	return repeatedTargets;
 };
-$aaaa$.prototype.makeTargets = function() {
+$pppp$.makeTargets = function() {
 	let targets;
 	if(!this._forcing && this.subject().isConfused()) targets = [this.confusionTarget()];
 	else switch(this.item().scope){
@@ -9155,7 +9233,7 @@ $aaaa$.prototype.makeTargets = function() {
 	}
 	return this.repeatTargets(targets||[]);
 };
-$aaaa$.prototype.targetsForOpponents=function(){
+$pppp$.targetsForOpponents=function(){
 	const targets = [];
 	const unit = this.opponentsUnit();
 	switch(this.item().scope){
@@ -9180,7 +9258,7 @@ $aaaa$.prototype.targetsForOpponents=function(){
 	}
 	return targets;
 };
-$aaaa$.prototype.targetsForFriends=function(){
+$pppp$.targetsForFriends=function(){
 	const targets = [];
 	const unit = this.friendsUnit();
 	switch(this.item().scope){
@@ -9203,7 +9281,7 @@ $aaaa$.prototype.targetsForFriends=function(){
 	}
 	return targets;
 };
-$aaaa$.prototype.itemTargetCandidates = function() {
+$pppp$.itemTargetCandidates = function() {
 	if(!this.isValid()) return [];
 	switch(this.item().scope){
 	case 1:
@@ -9226,15 +9304,15 @@ $aaaa$.prototype.itemTargetCandidates = function() {
 	break;
 	}
 };
-$rrrr$=$aaaa$.prototype.testApply;
-$dddd$=$aaaa$.prototype.testApply=function f(target){
+$rrrr$=$pppp$.testApply;
+$dddd$=$pppp$.testApply=function f(target){
 	if(!target) return false;
 	const meta=this.item().meta;
 	const filter=meta.filter;
 	if(filter) return objs._getObj(filter)(target,this.subject());
 	return (meta.stomach && target.stp!==undefined && target.stp<target.mstp)||f.ori.call(this,target);
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype.testItemEffect=function f(target,effect){
+$dddd$=$pppp$.testItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
 	return !func||func.call(this,target,effect); // default true
 };
@@ -9267,7 +9345,7 @@ $dddd$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
-$aaaa$.prototype.apply=function(target){
+$pppp$.apply=function(target){
 	const result = target.result();
 	this.subject().clearResult();
 	result.clear();
@@ -9290,7 +9368,7 @@ $aaaa$.prototype.apply=function(target){
 		this.applyItemUserEffect(target);
 	}
 };
-$aaaa$.prototype.makeDamageValue=function(target,isCri){
+$pppp$.makeDamageValue=function(target,isCri){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
 	let value = baseValue * this.calcElementRate(target) , decDmg=0;
 	switch(item.hitType){
@@ -9317,7 +9395,7 @@ $aaaa$.prototype.makeDamageValue=function(target,isCri){
 	value-=decDmg;
 	return ~~value;
 };
-$dddd$=$aaaa$.prototype.evalDamageFormula=function f(target){
+$dddd$=$pppp$.evalDamageFormula=function f(target){
 	try{
 		const item = this.item(); if(!item) return 0;
 		const dmg=item.damage;
@@ -9338,7 +9416,7 @@ $dddd$.tbl=[
 	['window','a','b',], // def func args
 	new Set([3,4,]), // recover type
 ];
-$aaaa$.prototype.elementsMaxRate=function(target,map_ele){
+$pppp$.elementsMaxRate=function(target,map_ele){
 	if(map_ele.size){
 		let rtv=0;
 		map_ele.forEach((v,k)=>{
@@ -9348,11 +9426,11 @@ $aaaa$.prototype.elementsMaxRate=function(target,map_ele){
 		return rtv;
 	}else return 1;
 };
-$aaaa$.prototype.applyGuard=function(damage,target){
+$pppp$.applyGuard=function(damage,target){
 	const r=damage>0 && target.isGuard() && 2*target.grd;
 	return r>1?damage/r:damage;
 };
-$aaaa$.prototype.executeHpDamage = function(target, value) {
+$pppp$.executeHpDamage = function(target, value) {
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
 	target.noRefresh=true;
@@ -9370,7 +9448,7 @@ $aaaa$.prototype.executeHpDamage = function(target, value) {
 	if(value) target.refresh();
 	this.gainDrainedHp(value);
 };
-$dddd$=$aaaa$.prototype.applyItemEffect=function f(target,effect){
+$dddd$=$pppp$.applyItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
 	if(func) func.call(this,target,effect);
 };
@@ -9421,7 +9499,7 @@ $aaaa$.addEnum("CUSTOM_EFFECT_GAIN_STP",$dddd$.tbl,function(target,effect){
 	}
 });
 } // Game_Action.prototype.applyItemEffect.tbl
-$aaaa$.prototype.itemEffectAddNormalState=function(target, effect){
+$pppp$.itemEffectAddNormalState=function(target, effect){
 	let chance = effect.value1;
 	if(!this.isCertainHit()){
 		chance *= target.stateRate(effect.dataId);
@@ -9439,8 +9517,8 @@ $aaaa$.prototype.itemEffectAddNormalState=function(target, effect){
 		this.makeSuccess(target);
 	}
 };
-$rrrr$=$aaaa$.prototype.applyGlobal;
-$dddd$=$aaaa$.prototype.applyGlobal=function f(){
+$rrrr$=$pppp$.applyGlobal;
+$dddd$=$pppp$.applyGlobal=function f(){
 	debug.log('Game_Action.prototype.applyGlobal');
 	let dataItem=this.item();
 	if(dataItem.effects) dataItem.effects.forEach(ef=>ef.code===Game_Action.EFFECT_COMMON_EVENT&&$gameTemp.reserveCommonEvent(ef.dataId)); // f.ori.call(this);
@@ -9462,7 +9540,7 @@ $dddd$=$aaaa$.prototype.applyGlobal=function f(){
 	if(meta&&meta.func) objs._getObj.call(none,meta.func.replace(/\(|\)/g,''))(this);
 	if(meta&&meta.code) objs._doFlow.call(this,meta.code);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.itemEffectAddAttackState=function(target, effect){
+$pppp$.itemEffectAddAttackState=function(target, effect){
 	this.subject().attackStates().forEach((_,stateId)=>{
 		let chance = effect.value1;
 		chance *= target.stateRate(stateId);
@@ -9474,15 +9552,16 @@ $aaaa$.prototype.itemEffectAddAttackState=function(target, effect){
 		}
 	});
 };
-$aaaa$.prototype.subject=function(){
+$pppp$.subject=function(){
 	if(this._subjectActorId.toId() > 0) return $gameActors.actor(this._subjectActorId);
 	else return $gameTroop.members()[this._subjectEnemyIndex];
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - actres
 $aaaa$=Game_ActionResult;
-$aaaa$.prototype.initialize = function() {
+$pppp$=$aaaa$.prototype;
+$pppp$.initialize = function() {
 	this.addedStates = [];
 	this.removedStates = [];
 	this.addedBuffs = [];
@@ -9490,7 +9569,7 @@ $aaaa$.prototype.initialize = function() {
 	this.removedBuffs = [];
 	this.clear();
 };
-$aaaa$.prototype.clear=function(){
+$pppp$.clear=function(){
 	this.used = false;
 	this.missed = false;
 	this.evaded = false;
@@ -9502,7 +9581,7 @@ $aaaa$.prototype.clear=function(){
 	this.stpDamage = this.tpDamage = this.mpDamage = this.hpDamage = 0;
 	this.removedBuffs.length = this.addedDebuffs.length = this.addedBuffs.length = this.removedStates.length = this.addedStates.length = 0;
 };
-$dddd$=$aaaa$.prototype.copy=function f(){
+$dddd$=$pppp$.copy=function f(){
 	const rtv=new this.constructor();
 	for(let x=0,arr=f.tbl.arr;x!==arr.length;++x) rtv[arr[x]] = this[arr[x]].slice();
 	for(let x=0,arr=f.tbl.val;x!==arr.length;++x) rtv[arr[x]] = this[arr[x]];
@@ -9550,7 +9629,7 @@ Object.defineProperties($aaaa$.prototype,{
 		set:function(rhs){return this.tpDmg=rhs;},
 	configurable:false},
 });
-$aaaa$.prototype._deleteOldDataMember=function(){
+$pppp$._deleteOldDataMember=function(){
 	if(this.cri===undefined){
 		[
 			['','addedBuffs'],
@@ -9572,17 +9651,18 @@ $aaaa$.prototype._deleteOldDataMember=function(){
 		});
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - actor
 $aaaa$=Game_Actor;
-$aaaa$.prototype.getData=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.getData=function(){
 	return this.actor();
 };
 $rrrr$=Game_Character.prototype;
-$aaaa$.prototype._getColorEdt=$rrrr$._getColorEdt;
-$aaaa$.prototype._getScaleEdt=$rrrr$._getScaleEdt;
-$aaaa$.prototype._getAnchoryEdt=$rrrr$._getAnchoryEdt;
+$pppp$._getColorEdt=$rrrr$._getColorEdt;
+$pppp$._getScaleEdt=$rrrr$._getScaleEdt;
+$pppp$._getAnchoryEdt=$rrrr$._getAnchoryEdt;
 Object.defineProperties($aaaa$.prototype,{
 	_actionInputIndex:{ get:function(){return this._actInIdx;},
 		set:function(rhs){return this._actInIdx=rhs;},
@@ -9666,7 +9746,7 @@ Object.defineProperties($aaaa$.prototype,{
 		set:function(rhs){return this._w2ImgId=rhs;},
 	configurable:false},
 });
-$aaaa$.prototype._deleteOldDataMember=function(){
+$pppp$._deleteOldDataMember=function(){
 	if(this._pp===undefined){
 		[ // 'arr[.][0]' are not used
 			['_actInIdx','_actionInputIndex'],
@@ -9704,7 +9784,7 @@ $aaaa$.prototype._deleteOldDataMember=function(){
 		this._result._deleteOldDataMember();
 	}
 };
-$aaaa$.prototype._toSaveData=function(){
+$pppp$._toSaveData=function(){
 	[
 		'_actions',
 		'_animations',
@@ -9715,8 +9795,8 @@ $aaaa$.prototype._toSaveData=function(){
 	delete this.noRefresh;
 };
 
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(actorId){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(actorId){
 	f.ori.call(this,actorId);
 	this._plan=[];
 	this._meta={};
@@ -9724,18 +9804,18 @@ $dddd$=$aaaa$.prototype.initialize=function f(actorId){
 		this._stp=500;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.actor=function(){
+$pppp$.actor=function(){
 	return $dataActors[this._actorId.toId()];
 };
-$aaaa$.prototype.characterName = function() {
+$pppp$.characterName = function() {
 	//let ce=this._getColorEdt();
 	return this._characterName; //+(ce?"?color="+ce:"");
 };
-$aaaa$.prototype.faceName = function() { // seems only 'Game_Actor' has method 'faceName'
+$pppp$.faceName = function() { // seems only 'Game_Actor' has method 'faceName'
 	const ce=this._getColorEdt();
 	return this._faceName+(ce?"?color="+ce:"");
 };
-$aaaa$.prototype.expForLevel=function(level,class_){
+$pppp$.expForLevel=function(level,class_){
 	const c=class_||this.currentClass();
 	if(!c.expTbl) c.expTbl=[];
 	if(c.expTbl[level]!==undefined) return c.expTbl[level];
@@ -9749,9 +9829,10 @@ $aaaa$.prototype.expForLevel=function(level,class_){
 		basis*(Math.pow(lv_1, 0.9+acc_a/250))*(lvlv+level)
 		/(lvlv/50/acc_b+6)
 		+lv_1*extra
+		+0.5
 	);
 };
-$aaaa$.prototype.initImages=function(){
+$pppp$.initImages=function(){
 	let actor=this.actor();
 	this._characterName = actor.characterName;
 	this._characterIndex = actor.characterIndex;
@@ -9759,7 +9840,7 @@ $aaaa$.prototype.initImages=function(){
 	this._faceIndex = actor.faceIndex;
 	this._battlerName = actor.battlerName;
 };
-$aaaa$.prototype.initEquips=function(equips){
+$pppp$.initEquips=function(equips){
 	const slots=this.equipSlots();
 	const maxSlots=slots.length,repeats=$dataSystem.equipTypes.meta.repeat;
 	this._equips=[]; this._equips.length=maxSlots;
@@ -9779,7 +9860,7 @@ $aaaa$.prototype.initEquips=function(equips){
 	this.releaseUnequippableItems(true);
 	this.refresh();
 };
-$dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
+$dddd$=$pppp$.changeExp=function f(exp, show){
 	this._exp[this._classId] = Math.max(exp, 0);
 	
 	// clear last learned skills
@@ -9809,7 +9890,7 @@ $dddd$=$aaaa$.prototype.changeExp=function f(exp, show){
 	} this.refresh(); }
 };
 $dddd$.tbl=[];
-$aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
+$pppp$.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 	const arr=this.currentClass().learnings.byLv.get(++this._level);
 	if(arr){ arr.forEach(learning=>{
 		this.learnSkill(learning.skillId,arrangeSkillsLater);
@@ -9819,7 +9900,7 @@ $aaaa$.prototype.levelUp=function f(notRestoreHpMp,arrangeSkillsLater){
 		this._mp=this.mmp;
 	}
 };
-$dddd$=$aaaa$.prototype.displayLevelUp=function f(newSkills){
+$dddd$=$pppp$.displayLevelUp=function f(newSkills){
 	let text = TextManager.levelUp.format(this._name, TextManager.level, this._level);
 	if($gameSystem._usr._lvUpMsg){
 		$gameMessage.newPage();
@@ -9835,21 +9916,21 @@ $dddd$.forEach=[
 	id=>$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name)),
 	id=>$gameMessage.popup(TextManager.obtainSkill.format($dataSkills[id].name),true),
 ];
-$aaaa$.prototype.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
-$aaaa$.prototype.isLearnedSkill=function(skillId){
+$pppp$.shouldDisplayLevelUp=()=>$gameSystem._usr&&($gameSystem._usr._lvUpMsg||$gameSystem._usr._lvUpHint)||false;
+$pppp$.isLearnedSkill=function(skillId){
 	return this._skills_getUpdatedCache().has(skillId);
 };
-$aaaa$.prototype.hasSkill=function(skillId){
+$pppp$.hasSkill=function(skillId){
 	return this.isLearnedSkill(skillId)||this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD).has(skillId);
 };
-$aaaa$.prototype.changeClass=function(classId, keepExp){
+$pppp$.changeClass=function(classId, keepExp){
 	const oldCid=this._classId;
 	if(classId===oldCid) return;
 	this.clearCache();
 	this.changeExp(this._exp[this._classId=classId] = keepExp&&this._exp[oldCid]||0, false);
 	this.refresh();
 };
-$aaaa$.prototype.changeLevel=function(level,show){
+$pppp$.changeLevel=function(level,show){
 	if(level<1) level=1;
 	else{
 		let tmp=this.maxLevel();
@@ -9857,7 +9938,7 @@ $aaaa$.prototype.changeLevel=function(level,show){
 	}
 	this.changeExp(this.expForLevel(level), show);
 };
-$aaaa$.prototype.setup=function(actorId){
+$pppp$.setup=function(actorId){
 	//debug.log('Game_Actor.prototype.setup');
 	let tid=actorId.toId();
 	let actor=$dataActors[tid];
@@ -9874,7 +9955,7 @@ $aaaa$.prototype.setup=function(actorId){
 	this.clearParamPlus();
 	this.recoverAll();
 };
-$aaaa$.prototype.equipSlots=function f(){
+$pppp$.equipSlots=function f(){
 	const rtv=[];
 	for (let i=1,sz=Math.max($dataSystem.equipTypes.length,1);i!==sz;++i){
 		rtv.push(i);
@@ -9884,22 +9965,22 @@ $aaaa$.prototype.equipSlots=function f(){
 	}
 	return rtv;
 };
-$dddd$=$aaaa$.prototype._equips_delCache=function f(){
+$dddd$=$pppp$._equips_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
-$dddd$=$aaaa$.prototype._equips_getCache=function f(){
+$dddd$=$pppp$._equips_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
-$aaaa$.prototype._equips_updateCache_item=(item,a,s,m)=>{
+$pppp$._equips_updateCache_item=(item,a,s,m)=>{
 	const c=a.get(item);
 	if(c===undefined) a.set(item,1);
 	else a.set(item,c+1);
 	s.byKey2_sum(item.tmapS);
 	m.byKey2_mul(item.tmapP);
 };
-$dddd$=$aaaa$.prototype._equips_updateCache=function f(){
+$dddd$=$pppp$._equips_updateCache=function f(){
 	const rtv=this._equips.map(f.map);
 	$gameTemp.updateCache(this,f.key,rtv);
 	const a=rtv.a=new Map();
@@ -9918,7 +9999,7 @@ $dddd$.key=Game_BattlerBase.CACHEKEY_EQUIP;
 {
 	const f=$dddd$.map=item=>item.constructor===Array?item.map(x=>f(x)):item.object();
 }
-$aaaa$.prototype._equips_editCache_del=function(dataobj){
+$pppp$._equips_editCache_del=function(dataobj){
 	if(!dataobj) return;
 	const equips=this._equips_getCache();
 	if(!equips) return;
@@ -9951,7 +10032,7 @@ $aaaa$.prototype._equips_editCache_del=function(dataobj){
 	// delete overall
 	this._overall_delCache();
 };
-$aaaa$.prototype._equips_editCache_add=function(dataobj){
+$pppp$._equips_editCache_add=function(dataobj){
 	if(!dataobj) return;
 	const equips=this._equips_getCache();
 	if(!equips) return;
@@ -9982,7 +10063,7 @@ $aaaa$.prototype._equips_editCache_add=function(dataobj){
 	// delete overall
 	this._overall_delCache();
 };
-$aaaa$.prototype._equips_slotChanged=function(lastSlots){
+$pppp$._equips_slotChanged=function(lastSlots){
 	const newSlots=this.equipSlots();
 	const xs=lastSlots.length;
 	if(xs!==newSlots.length) this._equips_delCache(); // I'm lazy LOL
@@ -9999,10 +10080,10 @@ $aaaa$.prototype._equips_slotChanged=function(lastSlots){
 	} }
 	this._overall_delCache(); // clear cache for calling equipSlots
 };
-$aaaa$.prototype.equips=function(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
+$pppp$.equips=function(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
 	return this._equips_getCache()||this._equips_updateCache();
 };
-$aaaa$.prototype.weapons=function(n){
+$pppp$.weapons=function(n){
 	const ref=this.equips();
 	if(!ref.w){
 		const slots=this.equipSlots(),rtv=ref.w=[];
@@ -10016,7 +10097,7 @@ $aaaa$.prototype.weapons=function(n){
 		return rtv;
 	}else return ref.w;
 };
-$aaaa$.prototype.armors=function(){
+$pppp$.armors=function(){
 	const ref=this.equips();
 	if(!ref.r){
 		const slots=this.equipSlots(),rtv=ref.r=[];
@@ -10030,13 +10111,13 @@ $aaaa$.prototype.armors=function(){
 		return rtv;
 	}else return ref.r;
 };
-$aaaa$.prototype.isEquipChangeOk=function(slotId,slotIdExt) {
+$pppp$.isEquipChangeOk=function(slotId,slotIdExt) {
 	const s=this.equipSlots()[slotId];
 	return (!this.isEquipTypeLocked(s) &&
 		!this.isEquipTypeSealed(s)
 	);
 };
-$aaaa$.prototype._equipR_ch=function(slotId,slotIdExt,ori,item){
+$pppp$._equipR_ch=function(slotId,slotIdExt,ori,item){
 	this._equips_editCache_del(ori);
 	const c=this._equips_getCache();
 	if(c) c[slotId][slotIdExt]=item;
@@ -10063,7 +10144,7 @@ $aaaa$.prototype._equipR_ch=function(slotId,slotIdExt,ori,item){
 	}
 	this._equips_editCache_add(item);
 };
-$aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
+$pppp$.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	//debug.log('Game_Actor.prototype.changeEquip');
 	if(!(slotId>=0)) return null;
 	let ori;
@@ -10090,7 +10171,7 @@ $aaaa$.prototype.changeEquip=function(slotId,item,slotIdExt,noRefresh){
 	//this._equips_delCache();
 	return ori;
 };
-$aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt){
+$pppp$.forceChangeEquip=function(slotId, item, slotIdExt){
 	if(!(slotId>=0)) return;
 	if(slotIdExt>=0){
 		const arr=this._equips[slotId];
@@ -10107,7 +10188,7 @@ $aaaa$.prototype.forceChangeEquip=function(slotId, item, slotIdExt){
 	this.releaseUnequippableItems(true);
 	this.refresh();
 };
-$aaaa$.prototype.changeEquipById=function(etypeId, itemId, slotIdExt) {
+$pppp$.changeEquipById=function(etypeId, itemId, slotIdExt) {
 	const slotId = etypeId - 1;
 	if(!(slotId>=0)) return;
 	if( (slotIdExt>=0?this.equipSlots()[slotId][slotIdExt]:this.equipSlots()[slotId]) === 1 ){
@@ -10116,13 +10197,13 @@ $aaaa$.prototype.changeEquipById=function(etypeId, itemId, slotIdExt) {
 		this.changeEquip(slotId, $dataArmors[itemId], slotIdExt);
 	}
 };
-$dddd$=$aaaa$.prototype.isEquipped = function(item){ // $dddd$ for same func. below
+$dddd$=$pppp$.isEquipped = function(item){ // $dddd$ for same func. below
 	if(!item) return false; // or true ?
 	return this.equips().a.has(item);
 };
-$aaaa$.prototype.hasWeapon = $dddd$; // change logic: search in equipped weapons -> search in all equipments
-$aaaa$.prototype.hasArmor = $dddd$; // change logic: search in equipped armors -> search in all equipments
-$aaaa$.prototype.discardEquip = function(item){
+$pppp$.hasWeapon = $dddd$; // change logic: search in equipped weapons -> search in all equipments
+$pppp$.hasArmor = $dddd$; // change logic: search in equipped armors -> search in all equipments
+$pppp$.discardEquip = function(item){
 	if(!item) return;
 	if($dataSystem.equipTypes.meta.repeat[item.etypeId]){
 		const slots=this.equipSlots();
@@ -10145,7 +10226,7 @@ $aaaa$.prototype.discardEquip = function(item){
 		}
 	}
 };
-$aaaa$.prototype._releaseUnequippableItems_item=function(forcing_i,slots,i,e,ext){
+$pppp$._releaseUnequippableItems_item=function(forcing_i,slots,i,e,ext){
 	const item=e.object();
 	if(!item) return;
 	if(!this.canEquip(item) || item.etypeId !== slots[i]){
@@ -10159,7 +10240,7 @@ $aaaa$.prototype._releaseUnequippableItems_item=function(forcing_i,slots,i,e,ext
 		return true;
 	}
 };
-$aaaa$.prototype.releaseUnequippableItems=function(forcing){ // forcing: do not put back equipment to pack
+$pppp$.releaseUnequippableItems=function(forcing){ // forcing: do not put back equipment to pack
 	const forcing_i = !forcing , equips = this._equips;
 	for(let changed=true;changed;){
 		changed=false;
@@ -10179,7 +10260,7 @@ $aaaa$.prototype.releaseUnequippableItems=function(forcing){ // forcing: do not 
 		//if(changed) this._equips_delCache(); // 'equipSlots' use 'isDualWield'
 	}
 };
-$aaaa$.prototype.clearEquipments=function(kargs){
+$pppp$.clearEquipments=function(kargs){
 	kargs=kargs||{};
 	const repeats=$dataSystem.equipTypes.meta.repeat;
 	const slots=this.equipSlots();
@@ -10193,7 +10274,7 @@ $aaaa$.prototype.clearEquipments=function(kargs){
 	}
 	this.refresh();
 };
-$dddd$=$aaaa$.prototype.optimizeEquipments=function f(){
+$dddd$=$pppp$.optimizeEquipments=function f(){
 	const slots=this.equipSlots();
 	const maxSlotTypes = slots.length,repeats=$dataSystem.equipTypes.meta.repeat;
 	const recnt=this._equips.map(x=>x&&x.constructor===Array&&x.length);
@@ -10223,20 +10304,20 @@ $dddd$=$aaaa$.prototype.optimizeEquipments=function f(){
 };
 $dddd$.cmp=(a,b)=>a[1]-b[1];
 $dddd$.tbl={preserveRepeats:true};
-$aaaa$.prototype.refresh=function(noReleaseEquips){
+$pppp$.refresh=function(noReleaseEquips){
 	if(this.noRefresh) return this._needRefresh=true;
 	if(!noReleaseEquips) this.releaseUnequippableItems(false);
 	Game_Battler.prototype.refresh.call(this);
 };
-$dddd$=$aaaa$.prototype._skills_delCache=function f(){
+$dddd$=$pppp$._skills_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
 $tttt$=$dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
-$dddd$=$aaaa$.prototype._skills_getCache=function f(){
+$dddd$=$pppp$._skills_getCache=function f(){
 	return $gameTemp.getCache(this,f.key);
 };
 $dddd$.key=$tttt$;
-$dddd$=$aaaa$.prototype._skills_updateCache=function f(){
+$dddd$=$pppp$._skills_updateCache=function f(){
 	this._skills.sort(f.cmp);
 	const rtv=new Set(this._skills);
 	$gameTemp.updateCache(this,f.key,rtv);
@@ -10250,14 +10331,14 @@ $dddd$=$aaaa$.prototype._skills_updateCache=function f(){
 };
 $dddd$.key=$tttt$;
 $tttt$=$dddd$.cmp=(a,b)=>$dataSkills[a].ord-$dataSkills[b].ord||a-b;
-$aaaa$.prototype._skills_getUpdatedCache=function(){
+$pppp$._skills_getUpdatedCache=function(){
 	return this._skills_getCache()||this._skills_updateCache();
 };
-$aaaa$.prototype._skills_delCache_added=function(){
+$pppp$._skills_delCache_added=function(){
 	const c=this._skills_getCache();
 	if(c) c.tm=c.ts=c.added=c.all=0;
 };
-$aaaa$.prototype.skills_tmap_s=function(){
+$pppp$.skills_tmap_s=function(){
 	const c=this._skills_getUpdatedCache();
 	if(c.ts) return c.ts;
 	const rtv=new Map(),caled=new Set();
@@ -10266,7 +10347,7 @@ $aaaa$.prototype.skills_tmap_s=function(){
 	added.forEach((v,k)=>!c.has(k)&&!caled.has(k)&&caled.add(k)&&rtv.byKey2_sum($dataSkills[k].tmapS));
 	return c.ts=rtv;
 };
-$aaaa$.prototype.skills_tmap_m=function(){
+$pppp$.skills_tmap_m=function(){
 	const c=this._skills_getUpdatedCache();
 	if(c.tm) return c.tm;
 	const rtv=new Map(),caled=new Set();
@@ -10275,7 +10356,7 @@ $aaaa$.prototype.skills_tmap_m=function(){
 	added.forEach((v,k)=>!c.has(k)&&!caled.has(k)&&caled.add(k)&&rtv.byKey2_mul($dataSkills[k].tmapP));
 	return c.tm=rtv;
 };
-$dddd$=$aaaa$.prototype.skills=function f(){
+$dddd$=$pppp$.skills=function f(){
 	let rtv;
 	const added=this.traitSet(Game_BattlerBase.TRAIT_SKILL_ADD);
 	let s=this._skills_getCache();
@@ -10303,7 +10384,7 @@ $dddd$.key=Game_BattlerBase.CACHEKEY_SKILL;
 $dddd$.cmp=$tttt$;
 $tttt$=undef;
 $dddd$.map=id=>$dataSkills[id];
-$aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
+$pppp$.learnSkill=function(skillId,arrangeLater){
 	if(!this.isLearnedSkill(skillId)){ // will create cache
 		this._skills.push(skillId);
 		if(arrangeLater){
@@ -10322,7 +10403,7 @@ $aaaa$.prototype.learnSkill=function(skillId,arrangeLater){
 		}
 	}
 };
-$aaaa$.prototype.forgetSkill=function(skillId){
+$pppp$.forgetSkill=function(skillId){
 	const index = this._skills.indexOf(skillId);
 	if(index >= 0){
 		this._skills.splice(index, 1);
@@ -10343,7 +10424,7 @@ $aaaa$.prototype.forgetSkill=function(skillId){
 		this._overall_delCache();
 	}
 };
-$dddd$=$aaaa$.prototype._getTraits_native=function f(){
+$dddd$=$pppp$._getTraits_native=function f(){
 	const a=this.getData() , c=this.currentClass();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.a!==a || rtv.c!==c){
@@ -10361,41 +10442,41 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
-$aaaa$.prototype.getTraits_native_s=function(code,id){
+$pppp$.getTraits_native_s=function(code,id){
 	const rtv=this._getTraits_native().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_native_m=function(code,id){
+$pppp$.getTraits_native_m=function(code,id){
 	const rtv=this._getTraits_native().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_equips_s=function(code,id){
+$pppp$.getTraits_equips_s=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.equips().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_equips_m=function(code,id){
+$pppp$.getTraits_equips_m=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.equips().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_custom_s=function(code,id){
+$pppp$.getTraits_custom_s=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.skills_tmap_s().get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_custom_m=function(code,id){
+$pppp$.getTraits_custom_m=function(code,id){
 	// return: undefined / Map / value
 	const rtv=this.skills_tmap_m().get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.traitSet=function(code,id){
+$pppp$.traitSet=function(code,id){
 	return this.getTraits_overall_s(code,id);
 };
-$aaaa$.prototype.traitSetP=function(code,id){
+$pppp$.traitSetP=function(code,id){
 	return this.getTraits_overall_m(code,id);
 };
-$aaaa$.prototype.attackElements=function(){
+$pppp$.attackElements=function(){
 	let rtv=Game_Battler.prototype.attackElements.call(this);
 	const bid=this.bareHandsElementId();
 	if( !rtv.has(bid) && this.hasNoWeapons() ){
@@ -10404,7 +10485,7 @@ $aaaa$.prototype.attackElements=function(){
 	}
 	return rtv;
 };
-$aaaa$.prototype.clearStates = function() {
+$pppp$.clearStates = function() {
 	if(!this._states){ // init, no cache
 		Game_Battler.prototype.clearStates.call(this);
 		this.clearCache(); // ensure nothing go wrong
@@ -10422,7 +10503,7 @@ $aaaa$.prototype.clearStates = function() {
 	}
 	this._stateSteps = {};
 };
-$aaaa$.prototype.eraseState=function(stateId){
+$pppp$.eraseState=function(stateId){
 	const stat=$dataStates[stateId];
 	const slotChanged=stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
 	const lastSlots=slotChanged&&this.equipSlots(); // this is new Array
@@ -10434,7 +10515,7 @@ $aaaa$.prototype.eraseState=function(stateId){
 	}
 	delete this._stateSteps[stateId];
 };
-$aaaa$.prototype._addNewState_updateCache=function(stateId){
+$pppp$._addNewState_updateCache=function(stateId){
 	// supposed must add new
 	const stat=$dataStates[stateId];
 	const slotChanged=stat.tmapS.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
@@ -10446,7 +10527,7 @@ $aaaa$.prototype._addNewState_updateCache=function(stateId){
 		this._skills_delCache_added(); // I'm lazy LOL
 	}
 };
-$aaaa$.prototype.paramPlus=function(paramId){
+$pppp$.paramPlus=function(paramId){
 	let rtv = Game_Battler.prototype.paramPlus.call(this, paramId);
 	const equips = this.equips();
 	if(equips.u===undefined) equips.u=[];
@@ -10463,7 +10544,7 @@ $aaaa$.prototype.paramPlus=function(paramId){
 	}else rtv+=equips.u[paramId];
 	return rtv;
 };
-$aaaa$.prototype.performAction=function(action){
+$pppp$.performAction=function(action){
 	Game_Battler.prototype.performAction.call(this, action);
 	if(action.isKindOfAttack()) this.performAttack();
 	else{
@@ -10471,7 +10552,7 @@ $aaaa$.prototype.performAction=function(action){
 		if(tmp) this.requestMotion(tmp);
 	}
 };
-$aaaa$.prototype.performAttack=function(){
+$pppp$.performAttack=function(){
 	const weapons = this.weapons();
 	const attackMotion = $dataSystem.attackMotions[weapons[0]&&weapons[0].wtypeId];
 	if(attackMotion){
@@ -10488,7 +10569,7 @@ $aaaa$.prototype.performAttack=function(){
 		if(m2) this.startWeapon2Animation(m2.weaponImageId);
 	}
 };
-$aaaa$.prototype.onPlayerWalk=function(){
+$pppp$.onPlayerWalk=function(){
 	this.clearResult();
 	this.checkFloorEffect();
 	if($gamePlayer.isNormal()){
@@ -10498,12 +10579,12 @@ $aaaa$.prototype.onPlayerWalk=function(){
 		this.showRemovedStates();
 	}
 };
-$aaaa$.prototype.updateStateSteps = function(stateId){
+$pppp$.updateStateSteps = function(stateId){
 	if($dataStates[stateId].removeByWalking && !(--this._stateSteps[stateId]>0)){
 		this.removeState(stateId);
 	}
 };
-$dddd$=$aaaa$.prototype.showAddedStates=function f(){
+$dddd$=$pppp$.showAddedStates=function f(){
 	this.result().addedStateObjects().forEach(f.forEach, this);
 };
 $dddd$.forEach=function(state){
@@ -10511,7 +10592,7 @@ $dddd$.forEach=function(state){
 		$gameMessage.popup(this._name + state.message1,true);
 	}
 };
-$dddd$=$aaaa$.prototype.showRemovedStates=function f(){
+$dddd$=$pppp$.showRemovedStates=function f(){
 	this.result().removedStateObjects().forEach(f.forEach, this);
 };
 $dddd$.forEach=function(state){
@@ -10519,25 +10600,25 @@ $dddd$.forEach=function(state){
 		$gameMessage.popup(this._name + state.message4,true);
 	}
 };
-$aaaa$.prototype.stepsForTurn=()=>3;
-$aaaa$.prototype.setPlan=function(idx,obj,target){ // target is indexed from 1
+$pppp$.stepsForTurn=()=>3;
+$pppp$.setPlan=function(idx,obj,target){ // target is indexed from 1
 	if(!this._plan) this._plan=[];
 	this._plan[idx]=[obj&&obj.itemType,obj&&obj.id,target];
 };
-$aaaa$.prototype.insertPlan=function(idx,obj,target){
+$pppp$.insertPlan=function(idx,obj,target){
 	if(!this._plan) this._plan=[];
 	const data=[obj&&obj.itemType,obj&&obj.id,target];
 	if(idx>=this._plan.length) this._plan[idx]=data;
 	else this._plan.splice(idx,0,data);
 };
-$aaaa$.prototype.appendPlan=function(idx,obj,target){
+$pppp$.appendPlan=function(idx,obj,target){
 	this.insertPlan(++idx,obj,target);
 };
-$aaaa$.prototype.getPlan=function(idx){
+$pppp$.getPlan=function(idx){
 	if(!this._plan) this._plan=[];
 	return this._plan[idx];
 };
-$aaaa$.prototype.getPlanObj=function(idx){
+$pppp$.getPlanObj=function(idx){
 	const tmp=this.getPlan(idx);
 	let rtv;
 	switch(tmp&&tmp[0]){
@@ -10550,7 +10631,7 @@ $aaaa$.prototype.getPlanObj=function(idx){
 	}
 	return rtv;
 };
-$aaaa$.prototype.getPlanObjName=function(idx){
+$pppp$.getPlanObjName=function(idx){
 	const tmp=this.getPlan(idx);
 	let rtv;
 	switch(tmp&&tmp[0]){
@@ -10563,19 +10644,20 @@ $aaaa$.prototype.getPlanObjName=function(idx){
 	}
 	return rtv;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - actors
 $aaaa$=Game_Actors;
-$aaaa$.prototype.initialize=function(){ // its short
+$pppp$=$aaaa$.prototype;
+$pppp$.initialize=function(){ // its short
 	this._data=[];
 	this._clones=[]; // [templateId][subId]=actor , clean 'undefined' actor to zero when save
 	objs.$gameTemp._acs_holes=[]; // empty hole-segs of this._clones[id]
 };
-$aaaa$.prototype.maxRepeat=function(){
+$pppp$.maxRepeat=function(){
 	return _global_conf['default allowRepeatedMembers']||404;
 };
-$aaaa$.prototype.updateTbl_toQ=function(actor){
+$pppp$.updateTbl_toQ=function(actor){
 	if(!actor) return;
 	[
 		'_actions',
@@ -10586,7 +10668,7 @@ $aaaa$.prototype.updateTbl_toQ=function(actor){
 		else if(q.constructor!==Queue) actor[key] = Object.toType(q,Queue);
 	});
 };
-$dddd$=$aaaa$.prototype.updateTbl_deleteOldDataMember=function f(actor){
+$dddd$=$pppp$.updateTbl_deleteOldDataMember=function f(actor){
 	if(!actor) return;
 	actor._deleteOldDataMember();
 	this.updateTbl_toQ(actor);
@@ -10602,7 +10684,7 @@ $dddd$.forEach=function f(item){
 	if(item.constructor===Array) return item.forEach(f);
 	item._deleteOldDataMember();
 };
-$aaaa$.prototype.updateTbl=function(tid){
+$pppp$.updateTbl=function(tid){
 	if(!tid) return;
 	if(!$gameTemp._acs_holes[tid]) $gameTemp._acs_holes[tid]=new AVLTree(true,true); // sort by left startpoint , [)
 	let tbl=$gameTemp._acs_holes[tid];
@@ -10617,7 +10699,7 @@ $aaaa$.prototype.updateTbl=function(tid){
 		}
 	} }
 };
-$aaaa$.prototype.updateTbl_all=function(){
+$pppp$.updateTbl_all=function(){
 	for(let x=0,arrs=this._clones;x!==arrs.length;++x){ if(arrs[x]){
 		for(let z=0,arr=arrs[x];z!==arr.length;++z) this.updateTbl_deleteOldDataMember(arr[z]);
 		this.updateTbl(x);
@@ -10626,7 +10708,7 @@ $aaaa$.prototype.updateTbl_all=function(){
 		this.updateTbl_deleteOldDataMember(arr[x]);
 	}
 };
-$aaaa$.prototype.genClone=function(id){
+$pppp$.genClone=function(id){
 	if( !id || !(id=id.toId()) ) return; // $dataActors[0] is invalid
 	if(!this._clones[id]) this._clones[id]=[0];
 	let arr=this._clones[id],tbl=$gameTemp._acs_holes[id];
@@ -10645,7 +10727,7 @@ $aaaa$.prototype.genClone=function(id){
 		return rtv;
 	}
 };
-$aaaa$.prototype.actor=function(actorId) {
+$pppp$.actor=function(actorId) {
 	if(!actorId) return; // expected: /[0-9]+-[0-9]+/
 	let tid=actorId.toId();
 	if(!$dataActors[tid]) return;
@@ -10688,7 +10770,7 @@ $aaaa$.prototype.actor=function(actorId) {
 		return this._data[tid];
 	}
 };
-$aaaa$.prototype.destroy=function(actorId){
+$pppp$.destroy=function(actorId){
 	if(!actorId) return; // expected: /[0-9]+-[0-9]+/
 	let tid=actorId.toId();
 	if(!$dataActors[tid]) return;
@@ -10741,17 +10823,18 @@ $aaaa$.prototype.destroy=function(actorId){
 	}
 		return true;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Game_Enemy
 $aaaa$=Game_Enemy;
-$aaaa$.prototype.getData=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.getData=function(){
 	return this.enemy();
 };
 $rrrr$=Game_Character.prototype;
-$aaaa$.prototype._getColorEdt=$rrrr$._getColorEdt;
-$aaaa$.prototype._getScaleEdt=$rrrr$._getScaleEdt;
-$aaaa$.prototype._getAnchoryEdt=$rrrr$._getAnchoryEdt;
+$pppp$._getColorEdt=$rrrr$._getColorEdt;
+$pppp$._getScaleEdt=$rrrr$._getScaleEdt;
+$pppp$._getAnchoryEdt=$rrrr$._getAnchoryEdt;
 Object.defineProperties($aaaa$.prototype,{
 	_refActor:{
 		get:function(){return this._rActr;},
@@ -10767,8 +10850,8 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	configurable:true},
 });
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(eid,x,y){
 	f.ori.call(this,eid,x,y);
 	delete this._mimic;
 	delete this._refActor;
@@ -10795,7 +10878,7 @@ $dddd$=$aaaa$.prototype.initialize=function f(eid,x,y){
 		this._refActor=refActor;
 	}
 }; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype._getTraits_native=function f(){
+$dddd$=$pppp$._getTraits_native=function f(){
 	const d=this.getData();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.d!==d){
@@ -10809,27 +10892,27 @@ $dddd$=$aaaa$.prototype._getTraits_native=function f(){
 	return rtv;
 };
 $dddd$.key=Game_BattlerBase.CACHEKEY_NATIVE;
-$aaaa$.prototype.getTraits_native_s=function f(code,id){
+$pppp$.getTraits_native_s=function f(code,id){
 	const rtv=this._getTraits_native().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_native_m=function f(code,id){
+$pppp$.getTraits_native_m=function f(code,id){
 	const rtv=this._getTraits_native().m.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
 };
-$aaaa$.prototype.getTraits_custom_s=function f(code,id){
+$pppp$.getTraits_custom_s=function f(code,id){
 	if(this._mimic){
 		const a=$gameActors.actor(this._mimic);
 		if(a) return a.getTraits_overall_s(code,id);
 	}
 };
-$aaaa$.prototype.getTraits_custom_m=function f(code,id){
+$pppp$.getTraits_custom_m=function f(code,id){
 	if(this._mimic){
 		const a=$gameActors.actor(this._mimic);
 		if(a) return a.getTraits_overall_m(code,id);
 	}
 };
-$dddd$=$aaaa$.prototype.makeDropItems=function f(){
+$dddd$=$pppp$.makeDropItems=function f(){
 	const rtv=[]; rtv.self=this;
 	return this.enemy().dropItems.reduce(f.reduce,rtv);
 };
@@ -10839,7 +10922,7 @@ $dddd$.reduce=(r,di)=>{ // TODO: merge same item, add amount info
 	}
 	return r;
 };
-$aaaa$.prototype.itemObject = function(kind, dataId) {
+$pppp$.itemObject = function(kind, dataId) {
 	let rtv=null;
 	switch(kind){
 	default: break;
@@ -10849,16 +10932,17 @@ $aaaa$.prototype.itemObject = function(kind, dataId) {
 	}
 	return rtv;
 };
-$aaaa$.prototype.performDamage=function(){
+$pppp$.performDamage=function(){
 	Game_Battler.prototype.performDamage.call(this);
 	SoundManager.playEnemyDamage();
 	//this.requestEffect('blink');
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Game_Troop
 $aaaa$=Game_Troop;
-$aaaa$.prototype.clear = function() {
+$pppp$=$aaaa$.prototype;
+$pppp$.clear = function() {
 	this._interpreter.clear();
 	this._troopId = 0;
 	this._eventFlags = {};
@@ -10867,7 +10951,7 @@ $aaaa$.prototype.clear = function() {
 	this._namesCount = {};
 	this._trueEscape=false;
 };
-$aaaa$.prototype.addEnemy=function(enemyId,x,y,dur,ox,oy){
+$pppp$.addEnemy=function(enemyId,x,y,dur,ox,oy){
 	if(!$dataEnemies[enemyId]) return;
 	if(dur!==0) dur=dur||23;
 	if(ox!==0) ox=ox||-64;
@@ -10884,7 +10968,7 @@ $aaaa$.prototype.addEnemy=function(enemyId,x,y,dur,ox,oy){
 	sp.startMove(0,0,dur);
 	return e;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 if(window.Scenen_Debug) window.Scenen_Debug=undefined;
 
@@ -10892,13 +10976,14 @@ if(window.Scenen_Debug) window.Scenen_Debug=undefined;
 
 // - base
 $aaaa$=Window_Base;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(x,y,w,h){
 	f.ori.call(this,x,y,w,h);
 	this._iconloop=undefined;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	if(this._iconloop){
 		for(let x=0,arr=this._iconloop;x!==arr.length;++x){
 			const info=arr[x]; if(this._index===info[5]) f.forEach.call(this,info,x);
@@ -10915,7 +11000,7 @@ $dddd$.forEach=function(info,index){
 		this.drawLoopIcon(index);
 	}
 };
-$dddd$=$aaaa$.prototype.drawLoopIcon=function f(idx){
+$dddd$=$pppp$.drawLoopIcon=function f(idx){
 	if(this._iconloop && this._iconloop.length){
 		if(idx===undefined) this._iconloop.forEach(f.forEach,this);
 		else f.forEach.call(this,this._iconloop[idx]);
@@ -10928,10 +11013,10 @@ $dddd$.forEach=function f(info){
 	this.processDrawIcon(icons[idx][0],f.tbl);
 };
 $dddd$.forEach.tbl={x:0,y:0};
-if(0)$aaaa$.prototype.refresh=function(){
+if(0)$pppp$.refresh=function(){
 	//SceneManager.addRefresh(this);
 };
-$aaaa$.prototype.drawActorFace = function(actor, x, y, width, height) {
+$pppp$.drawActorFace = function(actor, x, y, width, height) {
 	this.drawFace(actor.faceName(), actor.faceIndex(), x, y, width, height);
 	const iconw=Window_Base._iconHeight+1;
 	x+=Window_Base._faceWidth;
@@ -10944,7 +11029,7 @@ $aaaa$.prototype.drawActorFace = function(actor, x, y, width, height) {
 		this.drawIcon($dataSkills[12].iconIndex,x,y);
 	}
 };
-$aaaa$.prototype.drawActorStp=function(actor, x, y, width){
+$pppp$.drawActorStp=function(actor, x, y, width){
 	width = width || 186;
 	const color1 = this.stpGaugeColor1(),color2 = this.stpGaugeColor2();
 	this.drawGauge(x, y, width, actor.stpRate(), color1, color2);
@@ -10952,7 +11037,7 @@ $aaaa$.prototype.drawActorStp=function(actor, x, y, width){
 	this.drawText($dataCustom.stpA, x, y, 44);
 	this.drawCurrentAndMax(actor.stp, actor.mstp, x, y, width, this.stpColor(actor), this.normalColor());
 };
-$aaaa$.prototype.drawActorExp=function(actor, x, y, width){
+$pppp$.drawActorExp=function(actor, x, y, width){
 	width = width || 186;
 	const color1 = this.expGaugeColor1(),color2 = this.expGaugeColor2();
 	const clvexp=actor.currentLevelExp();
@@ -10964,7 +11049,7 @@ $aaaa$.prototype.drawActorExp=function(actor, x, y, width){
 	const color=this.normalColor();
 	this.drawCurrentAndMax(c, m, x, y, width, color, color, width>>2);
 };
-$aaaa$.prototype.drawActorSimpleStatus=function(actor, x, y, width) {
+$pppp$.drawActorSimpleStatus=function(actor, x, y, width) {
 	const lineHeight = this.lineHeight();
 	const c=180;
 	const x2 = x + c , width2 = width - c - this.textPadding();
@@ -10989,7 +11074,7 @@ $aaaa$.prototype.drawActorSimpleStatus=function(actor, x, y, width) {
 		this.drawActorExp(actor, x2,             (lineHeight<<1) + y, width2);
 	}
 };
-$aaaa$.prototype.textWidth=function f(txt,ende){ // TODO: aligned tab width
+$pppp$.textWidth=function f(txt,ende){ // TODO: aligned tab width
 	// ende must be int>=0 or undefined
 	if(this._tabWidth===undefined) this._tabWidth=4;
 	if(!this._textWidthCaches) this._textWidthCaches=textWidthCaches||[];
@@ -11007,7 +11092,7 @@ $aaaa$.prototype.textWidth=function f(txt,ende){ // TODO: aligned tab width
 	}
 	return rtv;
 };
-$aaaa$.prototype.drawTextEx=function(text, x, y, _w , _a , rtv){
+$pppp$.drawTextEx=function(text, x, y, _w , _a , rtv){
 	if(text){
 		let textState = { index: 0, x: x, y: y, left: x };
 		textState.text = this.convertEscapeCharacters(text);
@@ -11021,7 +11106,7 @@ $aaaa$.prototype.drawTextEx=function(text, x, y, _w , _a , rtv){
 		return textState.x - x;
 	}else return 0;
 };
-$dddd$=$aaaa$.prototype.convertEscapeCharacters=function f(text) {
+$dddd$=$pppp$.convertEscapeCharacters=function f(text) {
 	text = text || "";
 	text = text.replace(/\\/g, '\x1b');
 	text = text.replace(/\x1b\x1b/g, '\\');
@@ -11120,7 +11205,7 @@ $dddd$.f_name=function(){
 };
 $dddd$.re_party=/\x1bP\[(\d+)\]/gi;
 $dddd$.f_party=function(){ return this.partyMemberName(parseInt(arguments[1])); };
-$aaaa$.prototype.processNormalCharacter = function(textState) {
+$pppp$.processNormalCharacter = function(textState) {
 	let c = textState.text[textState.index++];
 	let w = this.textWidth(c);
 	if(!this.inaline && this.constructor===Window_Message && textState.x + w > this.contentsWidth()){
@@ -11136,18 +11221,18 @@ $aaaa$.prototype.processNormalCharacter = function(textState) {
 	textState.x += w;
 	if(!(textState.maxX>=textState.x)) textState.maxX=textState.x;
 };
-$aaaa$.prototype.processNewLine=function(textState) {
+$pppp$.processNewLine=function(textState) {
 	textState.x = textState.left;
 	textState.y += textState.height;
 	++textState.index;
 	if(textState.texts) ++textState.texts.idx;
 	textState.height = this.calcTextHeight(textState, false);
 };
-$aaaa$.prototype.processNewPage=function(textState){
+$pppp$.processNewPage=function(textState){
 	if(this._iconloop) this._iconloop.length=0;
 	++textState.index;
 };
-$dddd$=$aaaa$.prototype.obtainEscapeCode=function f(textState){
+$dddd$=$pppp$.obtainEscapeCode=function f(textState){
 	++textState.index;
 	const arr = f.regExp.exec(textState.text.slice(textState.index));
 	if(arr){
@@ -11156,7 +11241,7 @@ $dddd$=$aaaa$.prototype.obtainEscapeCode=function f(textState){
 	}else return '';
 };
 $dddd$.regExp=/^[\$\.\|\^!><\{\}\\-]|^[A-Z]+/i;
-$dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
+$dddd$=$pppp$.processEscapeCharacter=function f(code, textState){
 	// upper case str
 	switch(code){
 	case '-': break; // a break, no function
@@ -11207,7 +11292,7 @@ $dddd$=$aaaa$.prototype.processEscapeCharacter=function f(code, textState){
 };
 $dddd$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
 $dddd$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*\])/;
-$aaaa$.prototype.calcTextHeight=function f(textState, all){
+$pppp$.calcTextHeight=function f(textState, all){
 	let textHeight = 0; // rtv
 	
 	const lastFontSize = this.contents.fontSize;
@@ -11236,16 +11321,17 @@ $aaaa$.prototype.calcTextHeight=function f(textState, all){
 	this.contents.fontSize = lastFontSize;
 	return textHeight;
 };
-$aaaa$.prototype.clearContents=function(){
+$pppp$.clearContents=function(){
 	if(this.contents){
 		if( !this.contents._reCreateTextureIfNeeded(this.contentsWidth(),this.contentsHeight()) ) this.contents.clear();
 		return true;
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - selectable
 $aaaa$=Window_Selectable;
+$pppp$=$aaaa$.prototype;
 Object.defineProperties($aaaa$.prototype,{
 	fontSize:{
 		get:function(){return this._fontSize;},
@@ -11256,23 +11342,23 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	configurable:true},
 });
-$aaaa$.prototype.lineHeight=function(){
+$pppp$.lineHeight=function(){
 	return this.fontSize&&this._lineHeight||((Utils.isMobileDevice()*6)+36);
 };
-$aaaa$.prototype.standardFontSize=function(){ 
+$pppp$.standardFontSize=function(){ 
 	return this.fontSize||((Utils.isMobileDevice()<<2)+28);
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x,y,w,h){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(x,y,w,h){
 	f.ori.call(this,x,y,w,h);
 	// create member
 	if(this._maxCols===undefined) this._maxCols=undefined;
 	if(this._drawingIdx===undefined) this._drawingIdx=undefined;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.maxCols=function(){
+$pppp$.maxCols=function(){
 	return this._maxCols===undefined?1:this._maxCols;
 };
-$aaaa$.prototype.deselect=function(){ // rewrite: consist 'this._scrollY'
+$pppp$.deselect=function(){ // rewrite: consist 'this._scrollY'
 	if(this._index===-1) return;
 	this._stayCount = 0;
 	{
@@ -11284,7 +11370,7 @@ $aaaa$.prototype.deselect=function(){ // rewrite: consist 'this._scrollY'
 	this.updateCursor();
 	this.callUpdateHelp();
 };
-$aaaa$.prototype.update=function() {
+$pppp$.update=function() {
 	Window_Base.prototype.update.call(this);
 	this.updateArrows();
 	if(this.isOpenAndActive()){
@@ -11295,7 +11381,7 @@ $aaaa$.prototype.update=function() {
 	}else this._touching = false;
 	this._stayCount++;
 };
-$aaaa$.prototype.processHandling=function f(){
+$pppp$.processHandling=function f(){
 	if (SceneManager._nextScene===null) {
 		if (this.isOkEnabled() && this.isOkTriggered()) {
 			this.processOk();
@@ -11308,7 +11394,7 @@ $aaaa$.prototype.processHandling=function f(){
 		}
 	}
 };
-$aaaa$.prototype.processWheel = function() {
+$pppp$.processWheel = function() {
 	let threshold = 20;
 	if (TouchInput.wheelY >= threshold) {
 		this.scrollDown();
@@ -11317,7 +11403,7 @@ $aaaa$.prototype.processWheel = function() {
 		this.scrollUp();
 	}
 };
-$aaaa$.prototype.processTouch = function() {
+$pppp$.processTouch = function() {
 	if (TouchInput.isTriggered() && this.isTouchedInsideFrame()) {
 		this._touching = true;
 		this.onTouch(true);
@@ -11334,8 +11420,8 @@ $aaaa$.prototype.processTouch = function() {
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.updateArrows;
-$dddd$=$aaaa$.prototype.updateArrows=function f(){
+$rrrr$=$pppp$.updateArrows;
+$dddd$=$pppp$.updateArrows=function f(){
 	const maxItems=this.maxItems();
 	if(this._lastScrollY===this._scrollY && this._lastLineHeight===this._lineHeight && this._lastMaxItems===maxItems) return;
 	this._lastScrollY=this._scrollY;
@@ -11343,7 +11429,7 @@ $dddd$=$aaaa$.prototype.updateArrows=function f(){
 	this._lastMaxItems=maxItems;
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processCursorMove=function(){ // overwrite for efficiency
+$pppp$.processCursorMove=function(){ // overwrite for efficiency
 	if (!this._cursorFixed && !this._cursorAll && this.maxItems() > 0) {
 		let lastIndex = this.index();
 		if (Input.isRepeated('down')) {
@@ -11387,17 +11473,17 @@ $aaaa$.prototype.processCursorMove=function(){ // overwrite for efficiency
 		}
 	}
 };
-$aaaa$.prototype.cursorPageup=function() { // overwrite because it's wrong
+$pppp$.cursorPageup=function() { // overwrite because it's wrong
 	if(0<this.topRow()) this.setTopRow(this.topRow() - this.maxPageRows());
 	this.select(Math.max(this.index() - this.maxPageItems(), 0));
 };
-$aaaa$.prototype.cursorPagedown=function() { // overwrite because it's wrong
+$pppp$.cursorPagedown=function() { // overwrite because it's wrong
 	let tmp=this.topRow() + this.maxPageRows();
 	if(tmp < this.maxRows()) this.setTopRow(tmp);
 	let idx=this.index(); idx*=idx>=0;
 	this.select(Math.min(idx + this.maxPageItems(), this.maxItems() - 1));
 };
-$aaaa$.prototype.trimSel=function(idx){
+$pppp$.trimSel=function(idx){
 	if(!idx&&idx!==0) return;
 	idx^=0;
 	let maxItems=this.maxItems();
@@ -11405,15 +11491,15 @@ $aaaa$.prototype.trimSel=function(idx){
 	if(idx<0) idx=0;
 	this.select(idx);
 };
-$aaaa$.prototype.processCancel = function(noSound) {
+$pppp$.processCancel = function(noSound) {
 	if(!noSound) SoundManager.playCancel();
 	this.updateInputData();
 	this.deactivate();
 	this.callCancelHandler();
 };
-$aaaa$.prototype.touchOutsideFrame=none;
-$rrrr$=$aaaa$.prototype.onTouch;
-$dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
+$pppp$.touchOutsideFrame=none;
+$rrrr$=$pppp$.onTouch;
+$dddd$=$pppp$.onTouch=$pppp$._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
 	if(!this.parent) return;
 	if(!iw) return f.ori.call(this,triggered);
 	let lastIndex = this.index();
@@ -11431,14 +11517,14 @@ $dddd$=$aaaa$.prototype.onTouch=$aaaa$.prototype._onTouch_iw=function f(triggere
 	}
 	if(this.index() !== lastIndex) SoundManager.playCursor();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processTouchOutsideFrame=none;
-$aaaa$.prototype.refresh_do=function(){
+$pppp$.processTouchOutsideFrame=none;
+$pppp$.refresh_do=function(){
 	if(this.clearContents()) this.drawAllItems();
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$aaaa$.prototype.drawAllItems=function(){
+$pppp$.drawAllItems=function(){
 	let i=this.topIndex();
 	const ende=Math.min(this.maxItems(),this.maxPageItems()+i);
 	if(ende>i) for(;ende!==i;++i){
@@ -11446,13 +11532,14 @@ $aaaa$.prototype.drawAllItems=function(){
 		this.drawItem(i);
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - itemCat
 $aaaa$=Window_ItemCategory;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true,true);
-$rrrr$=$aaaa$.prototype.processOk;
-$dddd$=$aaaa$.prototype.processOk=function f(){
+$rrrr$=$pppp$.processOk;
+$dddd$=$pppp$.processOk=function f(){
 	if(this._lastScrollYs) this._itemWindow._scrollY=this._lastScrollYs[this._index]^0;
 	if(this._lastIdxs){
 		this._itemWindow.trimSel(this._lastIdxs[this._index]^0);
@@ -11460,7 +11547,7 @@ $dddd$=$aaaa$.prototype.processOk=function f(){
 	}
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processTouch=function(){
+$pppp$.processTouch=function(){
 	if(this.isOpenAndActive()){
 		if(TouchInput.isTriggered()){
 			if(this.isTouchedInsideFrame()) this._touching = true;
@@ -11474,10 +11561,10 @@ $aaaa$.prototype.processTouch=function(){
 		}
 	}else this._touching = false;
 };
-$aaaa$.prototype.processTouchOutsideFrame_ws=function(triggered,x,y,iws){
+$pppp$.processTouchOutsideFrame_ws=function(triggered,x,y,iws){
 	for(let i=0;i!==iws.length;++i) if(this.processTouchOutsideFrame(triggered,x,y,iws[i])) return true;
 };
-$aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
+$pppp$.processTouchOutsideFrame=function(triggered,x,y,iw){
 	if(iw.constructor===Array) return this.processTouchOutsideFrame_ws(triggered,x,y,iw);
 	if( triggered && this.isTouchOkEnabled() && iw.isTouchedInsideFrame() ){
 		//this.processOk();
@@ -11494,18 +11581,19 @@ $aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
 		return true;
 	}
 };
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this._itemWindow);
 };
-$aaaa$.prototype.maxCols=function(){
+$pppp$.maxCols=function(){
 	return this._maxCols||4;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - itemList
 $aaaa$=Window_ItemList;
-$rrrr$=$aaaa$.prototype.processCancel;
-$dddd$=$aaaa$.prototype.processCancel=function f(noSound){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.processCancel;
+$dddd$=$pppp$.processCancel=function f(noSound){
 	if(!f.inited){
 		f.recIdxTypes=new Set([Scene_Item,Scene_ExtStore]);
 	}
@@ -11524,18 +11612,18 @@ $dddd$=$aaaa$.prototype.processCancel=function f(noSound){
 	this._scrollY=lastScrollY;
 	this.refresh(); // TODO: reduce this 'this.refresh'
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processTouch=Window_ItemCategory.prototype.processTouch;
-$aaaa$.prototype.processTouchOutsideFrame=function(triggered,x,y,iw){
+$pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
+$pppp$.processTouchOutsideFrame=function(triggered,x,y,iw){
 	if( triggered && this.isTouchOkEnabled() && iw.isTouchedInsideFrame() ){
 		this.processCancel(true);
 		let idx=iw.hitTest(x+this.x-iw.x,y+this.y-iw.y);
 		if(idx>=0) iw.trimSel(idx);
 	}
 };
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this.parent.parent._categoryWindow);
 };
-$dddd$=$aaaa$.prototype.setCategory=function f(catKey){ // rewrite: return true if updated else false; use last scrollY;
+$dddd$=$pppp$.setCategory=function f(catKey){ // rewrite: return true if updated else false; use last scrollY;
 	if (this._category !== catKey){
 		this._category = catKey;
 		this._scrollY=0;
@@ -11554,17 +11642,17 @@ $dddd$=$aaaa$.prototype.setCategory=function f(catKey){ // rewrite: return true 
 	return false;
 };
 $dddd$.tbl=new Set([Scene_Item]);
-$rrrr$=$aaaa$.prototype.selectLast;
-$dddd$=$aaaa$.prototype.selectLast=function f(){
+$rrrr$=$pppp$.selectLast;
+$dddd$=$pppp$.selectLast=function f(){
 	if(this._index>=0) ; else f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.numberWidth=function(n){
+$pppp$.numberWidth=function(n){
 	return this.textWidth('0')*(n===undefined?7:n);
 };
-$aaaa$.prototype.maxCols=function(){
+$pppp$.maxCols=function(){
 	return this._maxCols||$gameSystem._usr._itemListMaxCol||2;
 };
-$aaaa$.prototype.drawItemNumber = function(item, x, y, width) {
+$pppp$.drawItemNumber = function(item, x, y, width) {
 	if (this.needsNumber()) {
 		const w1=this.textWidth('0');
 		const wc=width-w1*5;
@@ -11572,16 +11660,17 @@ $aaaa$.prototype.drawItemNumber = function(item, x, y, width) {
 		this.drawText($gameParty.numItems(item), x+wc, y, w1*3, 'right');
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_SkillType
 $aaaa$=Window_SkillType;
-$aaaa$.prototype.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
-$aaaa$.prototype.processTouch=Window_ItemCategory.prototype.processTouch;
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$=$aaaa$.prototype;
+$pppp$.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
+$pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
+$pppp$.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this._skillWindow);
 };
-$dddd$=$aaaa$.prototype.makeCommandList=function f(omits){
+$dddd$=$pppp$.makeCommandList=function f(omits){
 	if(this._actor){
 		this._actor.addedSkillTypes_arranged(omits).forEach(f.forEach, this); // omit non-battle skill types
 		this.addCommand($dataCustom.passiveSkill.txt, 'skill', true, $dataCustom.passiveSkill.id);
@@ -11590,25 +11679,26 @@ $dddd$=$aaaa$.prototype.makeCommandList=function f(omits){
 $dddd$.forEach=function(stypeId){
 	this.addCommand($dataSystem.skillTypes[stypeId], 'skill', true, stypeId);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_SkillList
 $aaaa$=Window_SkillList;
-$aaaa$.prototype.processTouchOutsideFrame=Window_ItemList.prototype.processTouchOutsideFrame;
-$aaaa$.prototype.processTouch=Window_ItemList.prototype.processTouch;
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$=$aaaa$.prototype;
+$pppp$.processTouchOutsideFrame=Window_ItemList.prototype.processTouchOutsideFrame;
+$pppp$.processTouch=Window_ItemList.prototype.processTouch;
+$pppp$.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this.parent.parent._skillTypeWindow);
 };
-$aaaa$.prototype.setHelpWindowItem=function(item){
+$pppp$.setHelpWindowItem=function(item){
 	if(this._helpWindow){
 		if(item && item.skillId) item=$dataSkills[item.skillId];
 		this._helpWindow.setItem(item);
 	}
 };
-$aaaa$.prototype.includes=function(item){
+$pppp$.includes=function(item){
 	return item && (item.meta.passive?this._stypeId===$dataCustom.passiveSkill.id:this._stypeId===item.stypeId);
 };
-$dddd$=$aaaa$.prototype.makeItemList=function f(){
+$dddd$=$pppp$.makeItemList=function f(){
 	if(this._actor){
 		const a=this._actor;
 		const c=a._skills_getUpdatedCache(),rtv=this._data=a.skills().filter(f.forEach, this);
@@ -11621,7 +11711,7 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	}else if(this._data) this._data.length=0; else this._data=[];
 };
 $dddd$.forEach=function(item){ return this.includes(item); };
-$aaaa$.prototype.drawItem=function(index){
+$pppp$.drawItem=function(index){
 	let skill = this._data[index]; if(!skill) return;
 	const costWidth = this.costWidth() , rect = this.itemRect(index);
 	rect.width -= this.textPadding();
@@ -11638,11 +11728,12 @@ $aaaa$.prototype.drawItem=function(index){
 	this.drawSkillCost(skill, rect.x, rect.y, rect.width);
 	this.changePaintOpacity(true);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - evtItem
 $aaaa$=Window_EventItem;
-$aaaa$.prototype.updatePlacement=function f(){
+$pppp$=$aaaa$.prototype;
+$pppp$.updatePlacement=function f(){
 	// re-cal. windowHeight
 	let sc=SceneManager._scene;
 	if(sc){
@@ -11663,15 +11754,16 @@ $aaaa$.prototype.updatePlacement=function f(){
 	if((this._messageWindow.y<<1) >= Graphics.boxHeight) this.y = 0;
 	else this.y = Graphics.boxHeight - this.height;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - msg
 $aaaa$=Window_Message;
-$aaaa$.prototype.subWindows=function f(){
+$pppp$=$aaaa$.prototype;
+$pppp$.subWindows=function f(){
 	return this._subWindows;
 };
-$rrrr$=$aaaa$.prototype.createSubWindows;
-$dddd$=$aaaa$.prototype.createSubWindows=function f(){
+$rrrr$=$pppp$.createSubWindows;
+$dddd$=$pppp$.createSubWindows=function f(){
 	f.ori.call(this);
 	this._msg2=new Window_Message2();
 	this._subWindows=[
@@ -11682,26 +11774,26 @@ $dddd$=$aaaa$.prototype.createSubWindows=function f(){
 		this._msg2, 
 	];
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.onEndOfText;
-$dddd$=$aaaa$.prototype.onEndOfText=function f(){
+$rrrr$=$pppp$.onEndOfText;
+$dddd$=$pppp$.onEndOfText=function f(){
 	f.ori.call(this);
 	this.inaline=false;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.newPage;
-$dddd$=$aaaa$.prototype.newPage=function f(txtstat){
+$rrrr$=$pppp$.newPage;
+$dddd$=$pppp$.newPage=function f(txtstat){
 	if(this._iconloop) this._iconloop.length=0;
 	f.ori.call(this,txtstat);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	let fr=this.faceRef;
 	if(fr && this.faceRef_updateID!==fr.texture._updateID){
 		if(fr._character) this._drawFaceFromData(fr._character._genFaceData(fr));
 	}
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.startMessage;
-$dddd$=$aaaa$.prototype.startMessage=function f(){
+$rrrr$=$pppp$.startMessage;
+$dddd$=$pppp$.startMessage=function f(){
 	if(!isNone($gameMessage._evtName)) this._evtName=$gameMessage._evtName;
 	if(!isNone($gameMessage._nameField)){
 		let w=this.textWidth($gameMessage._nameField);
@@ -11722,7 +11814,7 @@ $dddd$=$aaaa$.prototype.startMessage=function f(){
 	}else if(this._nameField) this._nameField.enabled=this._nameField.alpha=0;
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype._moveTxtInput=function(){ // if 'this._nameField' is presented
+$pppp$._moveTxtInput=function(){ // if 'this._nameField' is presented
 	let wl=SceneManager._scene._windowLayer;
 	if(wl){
 		let txtIn=wl.children.back;
@@ -11738,8 +11830,8 @@ $aaaa$.prototype._moveTxtInput=function(){ // if 'this._nameField' is presented
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.updateOpen;
-$dddd$=$aaaa$.prototype.updateOpen=function f(){
+$rrrr$=$pppp$.updateOpen;
+$dddd$=$pppp$.updateOpen=function f(){
 	let op=this._opening;
 	f.ori.call(this);
 	if(this._opening===false && this._nameField && this._nameField.enabled){
@@ -11748,14 +11840,14 @@ $dddd$=$aaaa$.prototype.updateOpen=function f(){
 	}
 	return this._opening;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.updateClose;
-$dddd$=$aaaa$.prototype.updateClose=function f(){
+$rrrr$=$pppp$.updateClose;
+$dddd$=$pppp$.updateClose=function f(){
 	if(this._closing && this._nameField) this._nameField.alpha=0;
 	f.ori.call(this);
 	return this._closing;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.terminateMessage;
-$dddd$=$aaaa$.prototype.terminateMessage=function f(){
+$rrrr$=$pppp$.terminateMessage;
+$dddd$=$pppp$.terminateMessage=function f(){
 	if(this._nameField!==undefined){
 		//this.removeChild(this._nameField);
 		//this._nameField.contents.clear();
@@ -11764,7 +11856,7 @@ $dddd$=$aaaa$.prototype.terminateMessage=function f(){
 	return f.ori.call(this);
 	//delete Input._currentState['ok'];
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateWait=function(){
+$pppp$.updateWait=function(){
 	if(this._waitCount>0){
 		const delta=Graphics.frameCount-this._lastFrameCnt;
 		if(delta===0) --this._waitCount;
@@ -11775,7 +11867,7 @@ $aaaa$.prototype.updateWait=function(){
 		return true;
 	}else return false;
 };
-$aaaa$.prototype.updateInput=function(){
+$pppp$.updateInput=function(){
 	if(this.isAnySubWindowActive()){
 		return true;
 	}
@@ -11801,7 +11893,7 @@ $aaaa$.prototype.updateInput=function(){
 	}
 	return false;
 };
-$aaaa$.prototype.isAnySubWindowActive=function(){
+$pppp$.isAnySubWindowActive=function(){
 	return (
 		this._choiceWindow.active ||
 		this._numberWindow.active ||
@@ -11810,7 +11902,7 @@ $aaaa$.prototype.isAnySubWindowActive=function(){
 		false
 	);
 };
-$aaaa$.prototype._drawFaceFromData=function(data){
+$pppp$._drawFaceFromData=function(data){
 	this.faceRef=data.ref;
 	this.faceRef_updateID=data.ref.texture._updateID;
 	let c=this.contents,tmp=d.ce('canvas');
@@ -11827,8 +11919,8 @@ $aaaa$.prototype._drawFaceFromData=function(data){
 	c.clearRect(data[5]||data[1],data[6]||data[2],data[7]||data[3],data[8]||data[4]);
 	c.blt.apply(c,data);
 };
-$rrrr$=$aaaa$.prototype.loadMessageFace;
-$dddd$=$aaaa$.prototype.loadMessageFace=function f(){
+$rrrr$=$pppp$.loadMessageFace;
+$dddd$=$pppp$.loadMessageFace=function f(){
 	//debug.log('Window_Message.prototype.loadMessageFace');
 	this.faceRef=undefined;
 	if($gameMessage.faceIndex()==="data"){
@@ -11837,21 +11929,22 @@ $dddd$=$aaaa$.prototype.loadMessageFace=function f(){
 		this._drawFaceFromData(data);
 	}else return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.drawMessageFace;
-$dddd$=$aaaa$.prototype.drawMessageFace=function f(){
+$rrrr$=$pppp$.drawMessageFace;
+$dddd$=$pppp$.drawMessageFace=function f(){
 	if($gameMessage.faceIndex()==="data") return; // ensurance
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.startWait=function(cnt){
+$pppp$.startWait=function(cnt){
 	this._waitCount    = cnt;
 	this._lastFrameCnt = Graphics.frameCount;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - battleLog
 $aaaa$=Window_BattleLog;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	this._historyLines=[];
 	f.ori.call(this);
 	this._methods=new Queue();
@@ -11861,10 +11954,10 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	this._maxLines=this.maxLines();
 	this._mode=undefined;
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.maxLines=function(){
+$pppp$.maxLines=function(){
 	return this._maxLines===undefined?10:this._maxLines;
 };
-$aaaa$.prototype.numLines_arrange=function(curr){
+$pppp$.numLines_arrange=function(curr){
 	// **** O(N) CODE WARNING ****
 	
 	const q=this._historyNumLines;
@@ -11882,15 +11975,15 @@ $aaaa$.prototype.numLines_arrange=function(curr){
 	q.forEach(obj=>(rtv<obj.val)&&(rtv=obj.val));
 	return rtv;
 };
-$aaaa$.prototype.numLines=function(){
+$pppp$.numLines=function(){
 	if(this._mode==='h'){
 		const rtv=this._historyLines.length;
 		return rtv<this._maxLines?rtv:this._maxLines;
 	}else return this.numLines_arrange(this._lines.length);
 };
-$aaaa$.prototype.messageSpeed=()=>0; // ori:16
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$pppp$.messageSpeed=()=>0; // ori:16
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	if(this._mode==='h'){
 		this._historyNumLines.clear();
 		Window_Selectable.prototype.update.call(this);
@@ -11903,13 +11996,13 @@ $dddd$=$aaaa$.prototype.update=function f(){
 		}
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.skipMeta=function(){
+$pppp$.skipMeta=function(){
 	let rtv=0;
 	for(let q=this._methods;q.length&&q.front.name[0]==="-";q.shift())
 		++rtv;
 	return rtv;
 };
-$aaaa$.prototype.callNextMethod=function(){
+$pppp$.callNextMethod=function(){
 	this.skipMeta();
 	if(this._methods.length){
 		let method = this._methods.shift();
@@ -11919,25 +12012,25 @@ $aaaa$.prototype.callNextMethod=function(){
 	}
 	this.skipMeta();
 };
-$rrrr$=$aaaa$.prototype.addText;
-$dddd$=$aaaa$.prototype.addText=function f(txt){
+$rrrr$=$pppp$.addText;
+$dddd$=$pppp$.addText=function f(txt){
 	this._historyLines.push(txt);
 	f.ori.call(this,txt);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.popBaseLine=function(){
+$pppp$.popBaseLine=function(){
 	const baseLine = this._baseLineStack.pop();
 	if(this._lines.length>baseLine) this._lines.length=baseLine;
 };
 // Window_BattleLog.prototype.popupDamage
-$aaaa$.prototype.animationNextDelay=()=>2; // ori:12
-$aaaa$.prototype.clearLine=function(index){
+$pppp$.animationNextDelay=()=>2; // ori:12
+$pppp$.clearLine=function(index){
 	const rect = this.itemRectForText(index);
 	this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
 };
-$aaaa$.prototype.maxItems=function(){
+$pppp$.maxItems=function(){
 	return this._historyLines.length;
 };
-$aaaa$.prototype.setTopRow=function(row){ // setBottomRow use this function
+$pppp$.setTopRow=function(row){ // setBottomRow use this function
 	if(!(row>=0)) row=0;
 	{ const t=this.maxTopRow(); if(row>=t) row=t; }
 	const scrollY=(this._scrollIdx=row)* this.itemHeight();
@@ -11947,7 +12040,7 @@ $aaaa$.prototype.setTopRow=function(row){ // setBottomRow use this function
 		this.updateCursor();
 	}
 };
-$aaaa$.prototype.refresh_do=function(){
+$pppp$.refresh_do=function(){
 if(this._mode==="h"){
 	this.drawBackground();
 	const viewCount=this.numLines() , scrollIdx=(this._scrollIdx|=0) , head=this._historyLines.length+". ";
@@ -11973,13 +12066,13 @@ if(this._mode==="h"){
 	this._lastLines.length=this._lines.length;
 }
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$aaaa$.prototype.isRepeatedAnimationAction=function(action){
+$pppp$.isRepeatedAnimationAction=function(action){
 	return action.isKindOfAttack() && action.numRepeats()>0;
 };
-$aaaa$.prototype.drawItem=function(index,headLength,headWidth){
+$pppp$.drawItem=function(index,headLength,headWidth){
 	const rect=this.itemRect(index) , pad=this.textPadding();
 	rect.x+=pad;
 	rect.width-=pad<<1;
@@ -11990,13 +12083,13 @@ $aaaa$.prototype.drawItem=function(index,headLength,headWidth){
 	}
 	this.drawTextEx(this._historyLines[index], rect.x, rect.y, rect.width);
 };
-$aaaa$.prototype.drawLineText=function(index,txt){
+$pppp$.drawLineText=function(index,txt){
 	const rect=this.itemRect(index);
 	this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
 	const pad=this.textPadding();
 	this.drawTextEx(txt===undefined?this._lines[index]:txt, rect.x+pad, rect.y, rect.width-(pad<<1));
 };
-$aaaa$.prototype.startAction=function(subject, action, targets){
+$pppp$.startAction=function(subject, action, targets){
 	const item = action.item();
 	this.push('performActionStart', subject, action);
 	this.push('waitForMovement');
@@ -12007,7 +12100,7 @@ $aaaa$.prototype.startAction=function(subject, action, targets){
 	}
 	this.displayAction(subject, item);
 };
-$dddd$=$aaaa$.prototype.displayActionResults=function f(subject,target,action){
+$dddd$=$pppp$.displayActionResults=function f(subject,target,action){
 	if(target.result().used){
 		this.push('-actResStrt');
 		if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
@@ -12021,7 +12114,7 @@ $dddd$=$aaaa$.prototype.displayActionResults=function f(subject,target,action){
 	}
 };
 // Window_BattleLog.prototype.displayDamage
-$aaaa$.prototype.displayStpDamage = function(target) {
+$pppp$.displayStpDamage = function(target) {
 	if (target.isAlive() && target.result().stpDamage !== 0) {
 		if (target.result().stpDamage < 0) {
 			this.push('performRecovery', target);
@@ -12029,13 +12122,13 @@ $aaaa$.prototype.displayStpDamage = function(target) {
 		this.push('addText', this.makeStpDamageText(target));
 	}
 };
-$aaaa$.prototype.displayAffectedStatus=function(target){
+$pppp$.displayAffectedStatus=function(target){
 	if (target.result().isStatusAffected()) {
 		this.displayChangedStates(target);
 		this.displayChangedBuffs(target);
 	}
 };
-$aaaa$.prototype.displayAddedStates=function(target){
+$pppp$.displayAddedStates=function(target){
 	target.result().addedStateObjects().forEach(state=>{
 		let stateMsg = target.isActor() ? state.message1 : state.message2;
 		if(state.id === target.deathStateId()){
@@ -12047,7 +12140,7 @@ $aaaa$.prototype.displayAddedStates=function(target){
 		}
 	});
 };
-$aaaa$.prototype.makeStpDamageText = function(target) {
+$pppp$.makeStpDamageText = function(target) {
 	let result = target.result();
 	let damage = result.tpDamage;
 	let isActor = target.isActor();
@@ -12062,12 +12155,13 @@ $aaaa$.prototype.makeStpDamageText = function(target) {
 		return '';
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_PartyCommand;
 $aaaa$=Window_PartyCommand;
-$rrrr$=$aaaa$.prototype.makeCommandList;
-$dddd$=$aaaa$.prototype.makeCommandList=function f(){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.makeCommandList;
+$dddd$=$pppp$.makeCommandList=function f(){
 	this.addCommand(TextManager.fight,	'fight');
 	this.addCommand(TextManager.formation,	'swap');
 	this.addCommand($dataCustom.plan.use,	'usePlan');
@@ -12077,7 +12171,7 @@ $dddd$=$aaaa$.prototype.makeCommandList=function f(){
 	this.addCommand($dataCustom.battle.viewLog,	'viewLog');
 	this.addCommand(TextManager.escape,	'escape', BattleManager.canEscape());
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.setup=function(){
+$pppp$.setup=function(){
 	this.clearCommandList();
 	this.makeCommandList();
 	this.refresh();
@@ -12085,11 +12179,12 @@ $aaaa$.prototype.setup=function(){
 	this.activate();
 	this.open();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_ActorCommand
 $aaaa$=Window_ActorCommand;
-$aaaa$.prototype.makeCommandList=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.makeCommandList=function(){
 	if(this._actor){
 		this.addAttackCommand();
 		this.addSkillCommands();
@@ -12098,37 +12193,38 @@ $aaaa$.prototype.makeCommandList=function(){
 		this.addSpaceoutCommand();
 	}
 };
-$aaaa$.prototype.addSkillCommands=function f(omits){
+$pppp$.addSkillCommands=function f(omits){
 	Window_SkillType.prototype.makeCommandList.call(this,[16,]); // omit non-battle skill types
 };
-$aaaa$.prototype.addSpaceoutCommand=function(){
+$pppp$.addSpaceoutCommand=function(){
 	this.addCommand($dataCustom.spaceout, 'spaceout', this._actor.canSpaceout());
 };
 
 // - command
 $aaaa$=Window_Command;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x, y, kargs) {
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(x, y, kargs) {
 	for(let i in kargs) this[i]=kargs[i];
 	return f.ori.call(this,x,y);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.windowWidth=function(){
+$pppp$.windowWidth=function(){
 	if(this._windowWidth===undefined){
 		let defaultVal=240;
 		return Math.min(defaultVal,this.maxWidth||defaultVal);
 	}else return this._windowWidth;
 };
-$aaaa$.prototype.windowHeight=function() {
+$pppp$.windowHeight=function() {
 	if(this._windowHeight===undefined){
 		let defaultVal=this.fittingHeight(this.numVisibleRows());
 		return Math.min(defaultVal,this.maxHeight||defaultVal);
 	}else return this._windowHeight;
 };
-$aaaa$.prototype.clearCommandList=function(){
+$pppp$.clearCommandList=function(){
 	if(!this._list) this._list=[];
 	this._list.length=0;
 };
-$aaaa$.prototype.drawItem=function(index) {
+$pppp$.drawItem=function(index) {
 	let rect=this.itemRectForText(index);
 	let align = this.itemTextAlign();
 	if(this._list[index] && this._list[index].once) this.contents.textColor=$dataCustom.textcolor.keyword;
@@ -12136,33 +12232,36 @@ $aaaa$.prototype.drawItem=function(index) {
 	this.changePaintOpacity(this.isCommandEnabled(index));
 	this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_HorzCommand
 $aaaa$=Window_HorzCommand;
-$aaaa$.prototype.initialize=Window_Command.prototype.initialize;
-$aaaa$.prototype.maxCols=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.initialize=Window_Command.prototype.initialize;
+$pppp$.maxCols=function(){
 	return this._maxCols===undefined?4:this._maxCols;
 };
 
 // - Window_Help
 $aaaa$=Window_Help;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true);
-$aaaa$.prototype.refresh_do=function(){
+$pppp$.refresh_do=function(){
 	if(this._lastText===this._text) return;
 	if(this.contents){
 		this.createContents();
 		this.drawTextEx(this._lastText=this._text, this.textPadding(), 0);
 	}
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_BattleStatus
 $aaaa$=Window_BattleStatus;
-$dddd$=$aaaa$.prototype.refresh_do=function f(){
+$pppp$=$aaaa$.prototype;
+$dddd$=$pppp$.refresh_do=function f(){
 	if(this.noRefresh) return;
 	if(BattleManager._phase===f.key){
 		let idx=$gameTemp._pt_battleMembers_actor2idx.get(BattleManager._subject);
@@ -12171,11 +12270,11 @@ $dddd$=$aaaa$.prototype.refresh_do=function f(){
 	if(this.clearContents()) this.drawAllItems();
 };
 $dddd$.key="action";
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$rrrr$=$aaaa$.prototype.drawBasicArea;
-$dddd$=$aaaa$.prototype.drawBasicArea=function f(r,a){
+$rrrr$=$pppp$.drawBasicArea;
+$dddd$=$pppp$.drawBasicArea=function f(r,a){
 	if(a.stp!==undefined){
 		const w=r.width>>2;
 		r.width-=w;
@@ -12183,18 +12282,19 @@ $dddd$=$aaaa$.prototype.drawBasicArea=function f(r,a){
 	}
 	f.ori.call(this,r,a);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 $aaaa$=Window_BattleActor;
-$aaaa$.prototype.numVisibleRows=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.numVisibleRows=function(){
 	return ~~((Graphics.boxHeight - (this.standardPadding()<<1)) / this.lineHeight());
 };
-$rrrr$=$aaaa$.prototype.drawItem;
-$dddd$=$aaaa$.prototype.drawItem=function f(idx){
+$rrrr$=$pppp$.drawItem;
+$dddd$=$pppp$.drawItem=function f(idx){
 	Window_MenuActor.prototype.drawItemBackground.call(this,idx);
 	f.ori.call(this,idx);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.initialize=function(x,y){
+$pppp$.initialize=function(x,y){
 	Window_BattleStatus.prototype.initialize.call(this);
 	this._mode=undefined;
 	this._pendingIndex=-1;
@@ -12203,17 +12303,18 @@ $aaaa$.prototype.initialize=function(x,y){
 	this.openness = 255;
 	this.hide();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - titleCommand
 $aaaa$=Window_TitleCommand;
-$aaaa$.prototype.makeCommandList = function() {
+$pppp$=$aaaa$.prototype;
+$pppp$.makeCommandList = function() {
 	this.addCommand(TextManager.newGame,   'newGame');
 	this.addCommand(TextManager.continue_, 'continue', this.isContinueEnabled());
 	this.addCommand(TextManager.options,   'options');
 	if(this.addCustomCommands) this.addCustomCommands();
 };
-$aaaa$.prototype.addCustomCommands=function(){
+$pppp$.addCustomCommands=function(){
 	this.addCommand($dataCustom.usrSwitch,         'usrSwitch_global');
 	this.addCommand(_global_conf.sep,'sep',false);
 	this.addCommand($dataCustom.saveLocal,         'saveLocal');
@@ -12227,17 +12328,18 @@ $aaaa$.prototype.addCustomCommands=function(){
 
 // - menuCommand
 $aaaa$=Window_MenuCommand;
-delete $aaaa$.prototype.windowWidth; // use 'Window_Command.prototype.windowWidth'
-$aaaa$.prototype.initialize = function(x, y ,kargs) {
+$pppp$=$aaaa$.prototype;
+delete $pppp$.windowWidth; // use 'Window_Command.prototype.windowWidth'
+$pppp$.initialize = function(x, y ,kargs) {
 	Window_Command.prototype.initialize.call(this, x, y ,kargs);
 	this.selectLast();
 };
-$aaaa$.prototype.addCustomCommands=function(){
+$pppp$.addCustomCommands=function(){
 	this.addCommand($dataCustom.plan.name, 'plan');
 	this.addCommand($dataCustom.apps,'apps');
 };
-$rrrr$=$aaaa$.prototype.addSaveCommand;
-$dddd$=$aaaa$.prototype.addSaveCommand=function f(){ // overwrite for efficiency
+$rrrr$=$pppp$.addSaveCommand;
+$dddd$=$pppp$.addSaveCommand=function f(){ // overwrite for efficiency
 	if ($dataSystem.menuCommands[5]) {
 		let enabled = this.isSaveEnabled();
 		this.addCommand(TextManager.save, 'save', enabled);
@@ -12245,13 +12347,13 @@ $dddd$=$aaaa$.prototype.addSaveCommand=function f(){ // overwrite for efficiency
 		this.addCommand($dataCustom.saveOnline, 'saveOnline', enabled);
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.addOnceCommand=function(){
+$pppp$.addOnceCommand=function(){
 	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED"){
 		this.addCommand('Visit It', 'gifts');
 		this._list.back.once=1;
 	}
 };
-$aaaa$.prototype.addMainCommands=function(){ // 
+$pppp$.addMainCommands=function(){ // 
 	const enabled = this.areMainCommandsEnabled();
 	if(this.needsCommand('item')){
 		this.addCommand($dataCustom.itemSlot, 'item', enabled);
@@ -12264,7 +12366,7 @@ $aaaa$.prototype.addMainCommands=function(){ //
 	}
 	//if(this.needsCommand('status')) this.addCommand(TextManager.status, 'status', enabled);
 };
-$aaaa$.prototype.makeCommandList = function() {
+$pppp$.makeCommandList = function() {
 	this.addOnceCommand();
 	if(debug.isdepress()) this.addCommand("debug2",'debugMenu2');
 	this.addMainCommands();
@@ -12277,12 +12379,13 @@ $aaaa$.prototype.makeCommandList = function() {
 	this.addSaveCommand();
 	this.addGameEndCommand();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_MenuStatus
 $aaaa$=Window_MenuStatus;
-$rrrr$=$aaaa$.prototype.drawItem;
-$dddd$=$aaaa$.prototype.drawItem=function f(idx){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.drawItem;
+$dddd$=$pppp$.drawItem=function f(idx){
 	const rect = this.itemRect(idx);
 	const actor = $gameParty.members()[idx];
 //	this.drawItemBackground(idx);
@@ -12306,11 +12409,12 @@ $dddd$=$aaaa$.prototype.drawItem=function f(idx){
 	this.drawText((idx+1)+'.',rect.x,y);
 	this.resetTextColor();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_SkillList
 $aaaa$=Window_SkillList;
-$dddd$=$aaaa$.prototype.drawSkillCost=function f(skill, x, y, width){
+$pppp$=$aaaa$.prototype;
+$dddd$=$pppp$.drawSkillCost=function f(skill, x, y, width){
 	let tmp;
 	// width is the width of the skill's item rect
 	x+=width;
@@ -12338,12 +12442,13 @@ $dddd$=$aaaa$.prototype.drawSkillCost=function f(skill, x, y, width){
 	return x-nextPad;
 };
 $dddd$.key='000 000 000';
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_EquipStatus
 $aaaa$=Window_EquipStatus;
-$rrrr$=$aaaa$.prototype.drawActorName;
-$dddd$=$aaaa$.prototype.drawActorName=function f(actor,x,y,width){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.drawActorName;
+$dddd$=$pppp$.drawActorName=function f(actor,x,y,width){
 	const cw=this.contentsWidth()-this.textPadding();
 	width=width||cw>>1;
 	{
@@ -12354,8 +12459,8 @@ $dddd$=$aaaa$.prototype.drawActorName=function f(actor,x,y,width){
 	this.changeTextColor("rgba(234,234,234,0.5)");
 	this.drawText(($gameParty._menuActorIdx||0)+1, cw-width, y-(this.textPadding()>>1), width, 'right');
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x,y){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(x,y){
 	f.ori.call(this,x,y);
 	if($gameParty.members().length>1){
 		this.downArrowVisible = this.upArrowVisible = true;
@@ -12365,12 +12470,12 @@ $dddd$=$aaaa$.prototype.initialize=function f(x,y){
 	}
 	this._itemOld=this._itemNew=undefined;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	f.ori.call(this);
 	if(this._commandWindow.active) this._arrowsFloating();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.drawAllVal=function(x,oy){
+$pppp$.drawAllVal=function(x,oy){
 	const h=this.lineHeight()-4,txtpad=this.textPadding(),sz=$dataSystem.terms.params.length;
 	const x1=x+txtpad,x2=x+140,x3=x+189,x4=x+222,vals=[];
 	oy-=h;
@@ -12400,7 +12505,7 @@ $aaaa$.prototype.drawAllVal=function(x,oy){
 		this._actor._equips_editCache_add(ori);
 	}
 };
-$aaaa$.prototype.refresh_do=function(){
+$pppp$.refresh_do=function(){
 	if(this.clearContents() && this._actor){
 		this.drawActorName(this._actor, this.textPadding(), 0);
 		const h=this.lineHeight();
@@ -12425,42 +12530,44 @@ $aaaa$.prototype.refresh_do=function(){
 		this.drawAllVal(0,y+=h);
 	}
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_EquipCommand
 $aaaa$=Window_EquipCommand;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true,true);
-$aaaa$.prototype.processTouch=Window_ItemCategory.prototype.processTouch;
-$aaaa$.prototype.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
+$pppp$.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
+$pppp$.onTouch=function(triggered){
 	this.touchUpDnArrowsPgUpDn(triggered,this._statusWindow);
 	return this._onTouch_iw(triggered,this._slotWindow);
 };
-$aaaa$.prototype.maxCols=()=>1;
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.maxCols=()=>1;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_EquipSlot
 $aaaa$=Window_EquipSlot;
+$pppp$=$aaaa$.prototype;
 { $tttt$=Window_ItemCategory.prototype;
-$aaaa$.prototype.processTouch                = $tttt$.processTouch;
-$aaaa$.prototype.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$aaaa$.prototype.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+$pppp$.processTouch                = $tttt$.processTouch;
+$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
+$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
 }
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$.onTouch=function(triggered){
 	const args=[];
 	if(this._itemWindow) args.push(this._itemWindow);
 	if(this._commandWindow) args.push(this._commandWindow);
 	return this._onTouch_iw(triggered,args);
 };
-$rrrr$=$aaaa$.prototype.deactivate;
-$dddd$=$aaaa$.prototype.deactivate=function f(){
+$rrrr$=$pppp$.deactivate;
+$dddd$=$pppp$.deactivate=function f(){
 	if(this._scrollYM) this._scrollYM.set(this._actor,this._scrollY);
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.reselIdx=function(noUpdate){
+$pppp$.reselIdx=function(noUpdate){
 	const lastSel=this._lastSelM.get(this._actor);
 	let idx;
 	if(lastSel){
@@ -12487,7 +12594,7 @@ Object.defineProperty($aaaa$.prototype,'_index',{
 		return this._idx;
 	},
 });
-$aaaa$.prototype.initialize = function(x, y, width, height) {
+$pppp$.initialize = function(x, y, width, height) {
 	Window_Selectable.prototype.initialize.call(this, x, y, width, height);
 	this._actor = null;
 	this._slotId=~0;
@@ -12500,7 +12607,7 @@ $aaaa$.prototype.initialize = function(x, y, width, height) {
 	this._lastIdx=undefined; // prevent repeated 'this.setSlotId'
 	this.refresh();
 };
-$aaaa$.prototype._setSlotIdTbl=function(){
+$pppp$._setSlotIdTbl=function(){
 	this._slotIdTbl.length=2;
 	for(let x=0,tbl=this._slotIdTbl,es=this._actor._equips;x!==es.length;++x){
 		let arr=es[x];
@@ -12508,10 +12615,10 @@ $aaaa$.prototype._setSlotIdTbl=function(){
 		else tbl.push(tbl.back+1);
 	}
 };
-$aaaa$.prototype._idx2slotId=function(idx){
+$pppp$._idx2slotId=function(idx){
 	return this._slotIdTbl.lower_bound(idx+1)-2; // -1-1
 };
-$aaaa$.prototype.setActor=function(actor){
+$pppp$.setActor=function(actor){
 	if(this._actor===actor) return;
 	this._actor = actor;
 	this._scrollY = this._scrollYM.get(actor)|0;
@@ -12528,12 +12635,12 @@ $aaaa$.prototype.setActor=function(actor){
 	this.ensureCursorVisible();
 	this.refresh();
 };
-$aaaa$.prototype._calSlotId=function(idx){ // just cal. prepared to be use. maybe not now
+$pppp$._calSlotId=function(idx){ // just cal. prepared to be use. maybe not now
 	this.__slotId=this._idx2slotId(idx);
 	const tmp=this._actor._equips[this.__slotId];
 	this.__slotIdExt=(tmp&&tmp.constructor===Array)?idx-this._slotIdTbl[this.__slotId+1]:undefined;
 };
-$aaaa$.prototype.update_slotId=function(){ // actual update
+$pppp$.update_slotId=function(){ // actual update
 	this._lastIdx=this._index;
 	this._calSlotId(this._index);
 	this._itemWindow.setInfo(this._actor,this.__slotId,this.__slotIdExt);
@@ -12541,19 +12648,19 @@ $aaaa$.prototype.update_slotId=function(){ // actual update
 	this._slotIdExt=this.__slotIdExt;
 	if(this._index>=0) this._lastSelM.set(this._actor,[this._slotId,this._slotIdExt,]);
 };
-$aaaa$.prototype.update=function(){
+$pppp$.update=function(){
 	Window_Selectable.prototype.update.call(this);
 	if(this._lastIdx!==this._index&&this._itemWindow){
 		this.update_slotId();
 	}
 };
-$aaaa$.prototype.maxItems=function(){
+$pppp$.maxItems=function(){
 	return this._actor ? this._slotIdTbl.back : 0;
 };
-$aaaa$.prototype.item=function(){
+$pppp$.item=function(){
 	return this._actor ?( this._slotIdExt===undefined?this._actor.equips()[this._slotId]:this._actor.equips()[this._slotId][this._slotIdExt] ): null;
 };
-$aaaa$.prototype.drawItem=function(index){
+$pppp$.drawItem=function(index){
 	if(this._actor){
 		this.changeTextColor(this.systemColor());
 		this.changePaintOpacity(this.isEnabled(index));
@@ -12565,15 +12672,15 @@ $aaaa$.prototype.drawItem=function(index){
 		this.changePaintOpacity(true);
 	}
 };
-$aaaa$.prototype.slotName=function(index){ // TODO: prevent search (now is binary search)
+$pppp$.slotName=function(index){ // TODO: prevent search (now is binary search)
 	const slots = this._actor.equipSlots() , slotId = this._idx2slotId(index);
 	return this._actor ? $dataSystem.equipTypes[slots[slotId]] : '';
 };
-$aaaa$.prototype.isEnabled=function(idx){
+$pppp$.isEnabled=function(idx){
 	this._calSlotId(idx);
 	return this._actor ? this._actor.isEquipChangeOk(this.__slotId,this.__slotIdExt) : false;
 };
-$aaaa$.prototype.updateStatus=function(noRefresh){
+$pppp$.updateStatus=function(noRefresh){
 	// cursor on slot , update itemOld
 	const sw=this._statusWindow;
 	if(sw && this._actor){
@@ -12589,7 +12696,7 @@ $aaaa$.prototype.updateStatus=function(noRefresh){
 		}
 	}
 };
-$aaaa$.prototype.updateHelp=function(){
+$pppp$.updateHelp=function(){
 	Window_Selectable.prototype.updateHelp.call(this);
 	this.setHelpWindowItem(this.item());
 	
@@ -12602,16 +12709,17 @@ $aaaa$.prototype.updateHelp=function(){
 	}
 	if(needRefresh) this._statusWindow.refresh();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_EquipItem
 $aaaa$=Window_EquipItem;
+$pppp$=$aaaa$.prototype;
 { $tttt$=Window_ItemCategory.prototype;
-$aaaa$.prototype.processTouch                = $tttt$.processTouch;
-$aaaa$.prototype.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$aaaa$.prototype.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+$pppp$.processTouch                = $tttt$.processTouch;
+$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
+$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
 }
-$aaaa$.prototype.onTouch=function(triggered){
+$pppp$.onTouch=function(triggered){
 	const args=[];
 	if(this._slotWindow) args.push(this._slotWindow);
 	if(this._commandWindow) args.push(this._commandWindow);
@@ -12626,7 +12734,7 @@ Object.defineProperty($aaaa$.prototype,'_index',{
 		return this._idx;
 	},
 });
-$aaaa$.prototype.initialize=function(x, y, w, h){
+$pppp$.initialize=function(x, y, w, h){
 	Window_ItemList.prototype.initialize.call(this, x, y, w, h);
 	this._actor = null;
 	this._slotId = ~0;
@@ -12634,7 +12742,7 @@ $aaaa$.prototype.initialize=function(x, y, w, h){
 	this._newUnEquip = null;
 	this._putIdx=this._logIdx=undefined;
 };
-$aaaa$.prototype.setInfo=function(actor,slotId,slotIdExt){
+$pppp$.setInfo=function(actor,slotId,slotIdExt){
 	if(this._actor===actor && this._slotId===slotId){
 		// same actor and slot , only log idx
 		if(this._slotIdExt===slotIdExt) return; // exact same , don't waste time
@@ -12652,7 +12760,7 @@ $aaaa$.prototype.setInfo=function(actor,slotId,slotIdExt){
 		this.refresh();
 	}
 };
-$dddd$=$aaaa$.prototype.makeItemList=function f(){
+$dddd$=$pppp$.makeItemList=function f(){
 	if(this._data){
 		const arr=this._data;
 		if( arr.a===this._actor && arr.s===this._slotId ){
@@ -12693,7 +12801,7 @@ $dddd$=$aaaa$.prototype.makeItemList=function f(){
 	this._data.a=this._actor;
 	this._data.s=this._slotId;
 };
-$aaaa$.prototype.setSlotId=function(idx,ext){
+$pppp$.setSlotId=function(idx,ext){
 	this._slotIdExt = ext;
 	if(this._slotId !== idx){
 		this._slotId = idx;
@@ -12701,7 +12809,7 @@ $aaaa$.prototype.setSlotId=function(idx,ext){
 		this.resetScroll();
 	}
 };
-$aaaa$.prototype.updateStatus=function(noRefresh){
+$pppp$.updateStatus=function(noRefresh){
 	// set new item , refresh temp status (though original value will be drawn again)
 	const sw=this._statusWindow;
 	if(sw && this._actor){
@@ -12717,22 +12825,23 @@ $aaaa$.prototype.updateStatus=function(noRefresh){
 		}
 	}
 };
-$aaaa$.prototype.updateHelp=function() {
+$pppp$.updateHelp=function() {
 	Window_ItemList.prototype.updateHelp.call(this);
 	this.updateStatus();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 $tttt$={};
 
 // - Window_Status
 $aaaa$=Window_Status;
-$rrrr$=$aaaa$.prototype.onTouch;
-$dddd$=$aaaa$.prototype.onTouch=function f(triggered){
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.onTouch;
+$dddd$=$pppp$.onTouch=function f(triggered){
 	this.touchUpDnArrowsPgUpDn(triggered,this);
 	return f.ori.call(this,triggered);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$rrrr$=$pppp$.initialize;
+$dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	if(this._arrows_actor = $gameParty.members().length>1){
 		this.downArrowVisible = this.upArrowVisible = true;
@@ -12743,16 +12852,16 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 		this.addChild(this._upArrowSprite);
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updateArrows=function(){
+$pppp$.updateArrows=function(){
 	this.downArrowVisible = this.upArrowVisible =  this._arrows_actor;
 };
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$rrrr$=$pppp$.update;
+$dddd$=$pppp$.update=function f(){
 	f.ori.call(this);
 	this._arrowsFloating();
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.drawBlock1;
-$dddd$=$aaaa$.prototype.drawBlock1=function f(y){
+$rrrr$=$pppp$.drawBlock1;
+$dddd$=$pppp$.drawBlock1=function f(y){
 	f.ori.call(this,y);
 	const cw=this.contentsWidth()-this.textPadding();
 	const w=cw>>2;
@@ -12766,7 +12875,7 @@ $dddd$=$aaaa$.prototype.drawBlock1=function f(y){
 	this.drawText(''+($gameParty._menuActorIdx||0), cw-w_8, y-this.textPadding(), w_8, 'right');
 	this.resetTextColor();
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.drawExpInfo=function(x,y){
+$pppp$.drawExpInfo=function(x,y){
 	const expTotal = TextManager.expTotal.format(TextManager.exp);
 	const expNext = TextManager.expNext.format(TextManager.level);
 	this.changeTextColor(this.systemColor());
@@ -12779,21 +12888,22 @@ $aaaa$.prototype.drawExpInfo=function(x,y){
 	this.drawText(value1, x, y + lineHeight * 1, 270, 'right');
 	this.drawText(value2, x, y + lineHeight * 3, 270, 'right');
 };
-$aaaa$.prototype.drawEquipments=function(x,y){
+$pppp$.drawEquipments=function(x,y){
 	const equips = this._actor.equips().flat();
 	const count = Math.min( equips.length, this.maxEquipmentLines() );
 	for(let i=0;i!==count;++i){
 		this.drawItemName(equips[i], x, y + this.lineHeight() * i);
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - options
 $aaaa$=Window_Options;
-$aaaa$.prototype.statusWidth=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.statusWidth=function(){
 	return 64;
 };
-$aaaa$.prototype.processOk = function() {
+$pppp$.processOk = function() {
 	if(this.leftArrowVisible && this._onTouch_ing){
 		let ori=this.getGlobalPosition();
 		let rect=this.itemRectForText(this._index);
@@ -12821,12 +12931,12 @@ $aaaa$.prototype.processOk = function() {
 		return;
 	}else this.changeValue(symbol, !value);
 };
-$aaaa$.prototype._volumeOffset = _global_conf["default volume offset"] || 10 ;
-$aaaa$.prototype.volumeOffset=function() {
+$pppp$._volumeOffset = _global_conf["default volume offset"] || 10 ;
+$pppp$.volumeOffset=function() {
 	return this._volumeOffset;
 };
-$rrrr$=$aaaa$.prototype.updateArrows;
-$dddd$=$aaaa$.prototype.updateArrows=function f(){
+$rrrr$=$pppp$.updateArrows;
+$dddd$=$pppp$.updateArrows=function f(){
 	f.ori.call(this);
 	let la=this._leftArrowSprite,ra=this._rightArrowSprite;
 	if(this._lastIdx!==this._index){
@@ -12850,22 +12960,23 @@ $dddd$=$aaaa$.prototype.updateArrows=function f(){
 	}
 }; $dddd$.ori=$rrrr$;
 $dddd$.rad1=PI_64;
-$rrrr$=$aaaa$.prototype.processTouch;
-$dddd$=$aaaa$.prototype.processTouch=function f(){
+$rrrr$=$pppp$.processTouch;
+$dddd$=$pppp$.processTouch=function f(){
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.onTouch;
-$dddd$=$aaaa$.prototype.onTouch=function f(triggered){
+$rrrr$=$pppp$.onTouch;
+$dddd$=$pppp$.onTouch=function f(triggered){
 	this._onTouch_ing=true;
 	f.ori.call(this,triggered);
 	this._onTouch_ing=undefined;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - choicelist
 $aaaa$=Window_ChoiceList;
-$aaaa$.prototype._minChoiceWidth = _global_conf["min choicebox width"];
-$aaaa$.prototype.maxChoiceWidth = function() {
+$pppp$=$aaaa$.prototype;
+$pppp$._minChoiceWidth = _global_conf["min choicebox width"];
+$pppp$.maxChoiceWidth = function() {
 	const maxWidth = this._minChoiceWidth;
 	let tmp=maxWidth.toString().toUpperCase();
 	if(tmp==="MAX") return Graphics.boxWidth;
@@ -12878,7 +12989,7 @@ $aaaa$.prototype.maxChoiceWidth = function() {
 	}
 	return maxWidth;
 };
-$aaaa$.prototype._moveTxtInput=function(){
+$pppp$._moveTxtInput=function(){
 	let wl=SceneManager._scene._windowLayer;
 	if(wl){
 		let txtIn=wl.children.back;
@@ -12896,15 +13007,15 @@ $aaaa$.prototype._moveTxtInput=function(){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.updateOpen;
-$dddd$=$aaaa$.prototype.updateOpen=function f(){
+$rrrr$=$pppp$.updateOpen;
+$dddd$=$pppp$.updateOpen=function f(){
 	if(this._opening){
 		f.ori.call(this); // return undefined
 		let txtIn=this._moveTxtInput();
 		if(this._opening===false && txtIn && txtIn.y>=0) txtIn.y=this.y-txtIn.height;
 	}
 }; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.updatePlacement = function() { // called in 'this.start' ; then no called
+$pppp$.updatePlacement = function() { // called in 'this.start' ; then no called
 	let positionType = $gameMessage.choicePositionType();
 	let messageY = this._messageWindow.y;
 	this.width = this.windowWidth();
@@ -12943,8 +13054,8 @@ $aaaa$.prototype.updatePlacement = function() { // called in 'this.start' ; then
 		dddd.ch=this;
 	}
 };
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){
+$rrrr$=$pppp$.start;
+$dddd$=$pppp$.start=function f(){
 	let rtv=f.ori.call(this),nf=SceneManager._scene._messageWindow._nameField;
 	if(nf&&nf.enabled){
 		if((this.y-=nf.height)<0){
@@ -12954,16 +13065,17 @@ $dddd$=$aaaa$.prototype.start=function f(){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - savefilelist
 $aaaa$=Window_SavefileList;
-$aaaa$.prototype.drawGameTitle = function(info, x, y, width) {
+$pppp$=$aaaa$.prototype;
+$pppp$.drawGameTitle = function(info, x, y, width) {
 	if (info.title) {
 		this.drawText(DataManager.titleAddName(info), x, y, width);
 	}
 };
-$aaaa$.prototype.drawPartyCharacters = function(info, x, y) {
+$pppp$.drawPartyCharacters = function(info, x, y) {
 	if (info.characters&&info.characters.length>0) {
 		for (let i = 0; i !== info.characters.length; ++i) {
 			let data = info.characters[i] , sx=x + i * 48;
@@ -12972,12 +13084,13 @@ $aaaa$.prototype.drawPartyCharacters = function(info, x, y) {
 		}
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_ShopNumber
 $aaaa$=Window_ShopNumber;
-$aaaa$.prototype.processNumberChange = function() { // rewrite: add: shift*10
+$pppp$=$aaaa$.prototype;
+$pppp$.processNumberChange = function() { // rewrite: add: shift*10
 	if (this.isOpenAndActive()) {
 		let t10=Input.isPressed('shift')*9+1;
 		if(Input.isRepeated('right')) this.changeNumber(t10*1);
@@ -12986,11 +13099,12 @@ $aaaa$.prototype.processNumberChange = function() { // rewrite: add: shift*10
 		if(Input.isRepeated('down')) this.changeNumber(t10*-10);
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Window_ShopStatus
 $aaaa$=Window_ShopStatus;
-$dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
+$pppp$=$aaaa$.prototype;
+$dddd$=$pppp$.drawItemEffect=function f(item){
 	// item = $data* items weapons armors
 	if(!item) return;
 	const ox=this.textPadding(),lh=this.lineHeight(),cw=this.contentsWidth();
@@ -13057,15 +13171,15 @@ $dddd$=$aaaa$.prototype.drawItemEffect=function f(item){
 };
 $dddd$.max=()=>Infinity;
 $dddd$.min=()=>-Infinity;
-$aaaa$.prototype.refresh_do=function(){
+$pppp$.refresh_do=function(){
 	if(!this.clearContents()) return;
 	this.drawItemEffect(this._item);
 };
-$aaaa$.prototype.refresh=function(){
+$pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-//$aaaa$.prototype.drawEquipInfo=0;
-$aaaa$.prototype.currentEquippedItem = function(actor, etypeId){
+//$pppp$.drawEquipInfo=0;
+$pppp$.currentEquippedItem = function(actor, etypeId){
 	const equips = actor.equips() , slots = actor.equipSlots() , list = [];
 	for(let i=0;i!==slots.length;++i){
 		if(slots[i] === etypeId){
@@ -13084,13 +13198,13 @@ $aaaa$.prototype.currentEquippedItem = function(actor, etypeId){
 	}
 	return worstItem;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 
 
-$rrrr$=$dddd$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
 
 if(objs.isDev) console.log("obj_t");
