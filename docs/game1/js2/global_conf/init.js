@@ -1500,9 +1500,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			this._segs.push(bArr=cArr);
 		}
 	};
-	w.SegmentTree.prototype._modParentBack=function(lv,bArr){
-		// mod parent
-		let idx=bArr.length-1; // last modified idx
+	w.SegmentTree.prototype._modParent=function(lv,bArr,idx){
 		while(lv!==this._segs.length){
 			const cArr=this._segs[lv++];
 			if((idx|1)===bArr.length){
@@ -1514,7 +1512,8 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 			}
 			bArr=cArr;
 		}
-	};
+	}
+	w.SegmentTree.prototype._modParentBack=function(lv,bArr){ this._modParent(lv,bArr,bArr.length-1); }
 	w.SegmentTree.prototype.push=function(n){
 		if(this._segs.length===0){
 			this._segs.push([n]);
@@ -1576,10 +1575,7 @@ let $aaaa$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	w.SegmentTree.prototype.edit=function(idx,val){
 		if(!this._segs.length || !(idx>=0) || !(idx<this._segs[0].length)) return;
 		this._segs[0][idx]=val;
-		for(let lv=0,arrs=this._segs;++lv!==arrs.length;){
-			idx>>=1;
-			arrs[lv][idx]=this._op(arrs[lv-1][idx<<1],arrs[lv-1][(idx<<1)|1]);
-		}
+		this._modParent(1,this._segs[0],idx);
 	}
 	
 	Object.defineProperty(w.Function.prototype, '_dummy_arr', { value:[], configurable:false , writable:false });
