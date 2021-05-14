@@ -48,6 +48,7 @@ list.newMyself_enemy=(action,leaveAtBattleEnd)=>{
 };
 list.newMyself=(action,leaveAtBattleEnd)=>action._subjectActorId.toId()>0?list.newMyself_actor(action):list.newMyself_enemy(action);
 list.newMyself_battle=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true):list.newMyself_enemy(action,true);
+list.newMyself_battle_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true,true):list.newMyself_enemy(action,true,true);
 list.newMyself_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,undefined,true):list.newMyself_enemy(action,undefined,true);
 
 })();

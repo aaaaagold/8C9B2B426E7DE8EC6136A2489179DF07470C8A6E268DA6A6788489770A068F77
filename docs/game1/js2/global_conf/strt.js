@@ -8,6 +8,7 @@ _global_conf["newDiv"]("backDiv",-1);
 _global_conf["newDiv"]("LowerDiv",zInit+1);
 _global_conf["newDiv"]("LowerDiv-s",zInit+2);
 _global_conf["newDiv"]("UpperDiv",zInit+23);
+_global_conf["newDiv"]("div999",999);
 d.body.sa('style',(d.body.ga('style')||'')+';touch-action:none;');
 
 if(Utils.isMobileDevice()) _global_conf.halfFps=1;

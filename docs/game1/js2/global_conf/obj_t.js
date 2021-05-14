@@ -888,6 +888,8 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Sprite_Weapon
 $aaaa$=Sprite_Weapon;
 $pppp$=$aaaa$.prototype;
+$aaaa$.width=96;
+$aaaa$.height=64;
 $rrrr$=$pppp$.setup;
 $dddd$=$pppp$.setup=function f(wImgId){
 	f.ori.call(this,wImgId);
@@ -1594,6 +1596,15 @@ $aaaa$.invokeCounterAttack = function(subject, target){
 	this._logWindow.displayCounter(target);
 	this._logWindow.displayActionResults(target, subject, action);
 };
+$aaaa$.applySubstitute=function(target){
+	const unit=target.friendsUnit();
+	let subst=unit.alwaysSubstitute()||this.checkSubstitute(target)&&unit.substituteBattler();
+	if(subst && target !== subst){
+		this._logWindow.displaySubstitute(subst, target);
+		return subst;
+	}
+	return target;
+};
 $aaaa$.forceAction=function(battler){
 	this._actionForcedBattler = battler;
 	let index=this._actionBattlers_obj2id.get(battler);
@@ -1713,6 +1724,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 {
 	const enums = objs.enums.
 		addEnum("AUTOREVIVE").
+		addEnum("MUST_SUBST").
 		addEnum("ATKTIMES_MUL").
 		addEnum("DECDMG_P").
 		addEnum("DECDMG_M").
@@ -1726,6 +1738,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		}
 		if(meta.revive){ // has
 			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.AUTOREVIVE,value:meta.revive});
+		}
+		if(meta.mustSubst){ // has
+			//x.traits.push({code:Game_BattlerBase.TRAIT_SPECIAL_FLAG.dataId:Game_BattlerBase.FLAG_ID_SUBSTITUTE,value:1});
+			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.MUST_SUBST,value:meta.mustSubst});
 		}
 		if(meta.atktimes_mul){ // *
 			const n=Number(meta.atktimes_mul);
@@ -2271,9 +2287,18 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 $aaaa$=Scene_Title;
 $pppp$=$aaaa$.prototype;
 $pppp$._edt=function f(){
-	if(!f.ori) f.ori=deepcopy($dataSystem);
+	if(!f.ori){
+		f.ori=deepcopy($dataSystem);
+		f.tbl={};
+	}
 	let tmp=location.pathname.match(/\/([A-Za-z0-9]+)\.html$/);
 	const info=tmp&&tmp[1];
+	
+	const cursorDiv_id='cursorDiv';
+	const cursorDiv=d.ge(cursorDiv_id);
+	let cursorCss;
+	let mouseMvEvtFunc;
+	
 	let useDefault=false;
 	$dataCustom.apps=$dataCustom.apps_ori;
 	$dataSystem.currencyUnit=$dataSystem.currencyUnit_ori;
@@ -2295,12 +2320,6 @@ $pppp$._edt=function f(){
 		let burnLv = localStorage.getItem("maxBurnLv")|0;
 		$dataSystem.title1Name+="?color="+encodeURIComponent("[[4,"+burnLv+",0],["+burnLv+",44,0],[0,0,1]]");
 		$dataSystem.currencyUnit="B幣";
-	}break;
-	case "0xB5D61DC89A35D2C924B28C9760765DA94039E94184C50F87DDE54532F126B4AC":{
-		$dataSystem. gameTitle  = "分身乏術";
-		$dataSystem. startMapId = 276 ;
-		$dataSystem.currencyUnit="C幣";
-		objs.confs.useStp=true;
 	}break;
 	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
 		$dataSystem. title1Name = "Fountain";
@@ -2333,6 +2352,37 @@ $pppp$._edt=function f(){
 		$dataSystem. startMapId = 101 ;
 		$dataSystem.currencyUnit="M幣";
 	}break;
+	case "0x909CA0096D519DCF94ABA6069FA664842BDF9DE264725A6C543C4926ABE6BDFA":{
+		$dataSystem. title1Name = "Sword";
+		$dataSystem. gameTitle  = "反射";
+		$dataSystem. startMapId = 276 ;
+		$dataSystem.currencyUnit="ㄈ幣";
+		objs.confs.useStp=true;
+		
+		if(!f.tbl.cursorImg_rfl){
+			const c=d.ce('canvas'),c2=d.ce('canvas');
+			const sx=-24,sy=-30;
+			const w=c2.width  =c.width  =Sprite_Weapon.width;
+			const h=c2.height =c.height =Sprite_Weapon.height;
+			c.getContext('2d').drawImage(ImageManager.loadSystem("Weapons1")._image,w*2,0,w,h,sx,sy,w,h);
+			const ctx2=c2.getContext('2d');
+			ctx2.scale(-1,1);
+			ctx2.drawImage(c,-w,0);
+			f.tbl.cursorImg_rfl=c.toDataURL();
+			f.tbl.cursorImg2=c2.sa('class','abs').sa('style','z-index:-1');
+			f.tbl.cursorImg2.onmousemove=e=>e.preventDefault();
+			f.tbl.mouseMvEvtFunc=function(e){
+				const x=e.layerX,y=e.layerY;
+				console.log(x,y,e);
+				f.tbl.cursorImg2.style.top=y+"px";
+				f.tbl.cursorImg2.style.right=x+"px";
+			};
+		}
+		const id='cursorCss_rfl';
+		cursorCss=d.ge(id);
+		if(!cursorCss) d.head.ac(cursorCss=d.ce('style').sa("id",id).at("div."+id+"{z-index:404;cursor:url("+f.tbl.cursorImg_rfl+") 0 0,auto;}"));
+		mouseMvEvtFunc=f.tbl.mouseMvEvtFunc;
+	}break;
 	case "0x0CF35AB8CF8D2C5A4D14CB9E2E4ED472C72C7D65A5095B0EE095CE92223CF661":{
 		$dataSystem. title1Name = "Crystal";
 		$dataSystem. gameTitle  = "如果我有一座新冰箱";
@@ -2354,6 +2404,22 @@ $pppp$._edt=function f(){
 		$dataSystem. titleBgm = objs.rndmusic();
 		$dataSystem.currencyUnit = "T幣";
 	}break;
+	}
+	
+	if(cursorCss){
+		if(!cursorDiv) d.ge('div999').ac(f.tbl.cursorImg2).ac(f.tbl.cursorDiv||(
+			f.tbl.cursorDiv=d.ce('div').sa('id',cursorDiv_id).sa('class','full '+cursorCss.id).ac(
+				f.tbl.cursorImg2
+			).ac(
+				d.ce('div').sa('class','full')
+			)
+			//d.ce('div').sa('id',cursorDiv_id).sa('class','full '+cursorCss.id).sa('style','touch-action: none; user-select: none;').ac(f.tbl.cursorImg2)
+		));
+		f.tbl.cursorDiv.onmousemove=mouseMvEvtFunc;
+		this._cursorDiv=f.tbl.cursorDiv;
+	}else{
+		if(cursorDiv) cursorDiv.parentNode.removeChild(cursorDiv);
+		this._cursorDiv=null;
 	}
 	
 	if(useDefault) history.replaceState(undefined , document.title=$dataSystem.gameTitle, location.search + "#"+location.hash.slice(1) );
@@ -2379,6 +2445,11 @@ $pppp$.start=function(){
 	this.playTitleMusic();
 	this.startFadeIn(this.fadeSpeed(), false);
 };
+$rrrr$=$pppp$.terminate;
+$dddd$=$pppp$.terminate=function f(){
+	f.ori.call(this);
+	if(this._cursorDiv) this._cursorDiv.parentNode.removeChild(this._cursorDiv);
+}; $dddd$.ori=$rrrr$;
 $pppp$.createBackground=function(){
 	let t;
 	
@@ -5156,12 +5227,18 @@ $pppp$.partyAbility=function(abilityId){
 };
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
+	addEnum("MUST_SUBST").
+	addEnum("ATKTIMES_MUL").
 	addEnum("DECDMG_P").
 	addEnum("DECDMG_M").
 	addEnum("MPSubstitute").
-	addEnum("TrgBattleEnd") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
+	addEnum("TrgBattleEnd").
+	addEnum("__DUMMY") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
+};
+$pppp$.isAlwaysSubstitute=function(){
+	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.MUST_SUBST) && this.canMove();
 };
 $pppp$.attackTimesMul=function(){
 	return this.traitsPi(gbb.TRAITS_CUSTOM,enums.ATKTIMES_MUL);

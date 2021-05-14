@@ -2038,6 +2038,12 @@ $dddd$=$aaaa$.prototype.isAllDead=function f(){
 	return !this.members().some(f.some);
 };
 $dddd$.some=b=>b.isAlive();
+$aaaa$.prototype.alwaysSubstitute=function(){
+	const members = this.members();
+	for(let i=0;i!==members.length;++i)
+		if(members[i].isAlwaysSubstitute())
+			return members[i];
+};
 
 
 // window
