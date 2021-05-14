@@ -34,6 +34,7 @@ list.newMyself_actor=(action,leaveAtBattleEnd,equFixed)=>{
 		rtv._meta.isClone=1;
 		rtv._exp=deepcopy(subject._exp);
 		$gameTemp.lvUpConfigs_pushAndMute();
+		rtv._level-=rtv._level>0;
 		rtv.gainExp(0);
 		$gameTemp.lvUpConfigs_pop();
 		$gameTemp.popuptmp=subject.name().replace(/\\/g,"\\\\");

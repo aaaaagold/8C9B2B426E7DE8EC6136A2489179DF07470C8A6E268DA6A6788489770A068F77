@@ -870,7 +870,7 @@ $pppp$.updateAllCellSprites=function(frame){ // TODO: create cells when needed
 		let xs=frame.length; if(xs>arr.length) xs=arr.length;
 		for(let x=0;x!==xs;++x) this.updateCellSprite(arr[x], frame[x]);
 	}
-	if(this._lastCellLen > frame.length) for(let x=frame.length;x!==this._lastCellLen;++x) arr[x].visible=false;
+	if(arr.length >= this._lastCellLen && this._lastCellLen > frame.length) for(let x=frame.length;x!==this._lastCellLen;++x) arr[x].visible=false;
 	this._lastCellLen = frame.length;
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
