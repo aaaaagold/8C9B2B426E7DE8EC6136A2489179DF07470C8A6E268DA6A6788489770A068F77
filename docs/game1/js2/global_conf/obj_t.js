@@ -504,10 +504,12 @@ $rrrr$=$pppp$.initMembers;
 $dddd$=$pppp$.initMembers=function f(){
 	f.ori.call(this);
 	this._damages=new Queue();
+	this._actResQ=new Queue();
 }; $dddd$.ori=$rrrr$;
 $pppp$.setBattler=function(btlr){
 	if(this._battler) this._battler.removeSprite(this);
 	if(this._battler=btlr) btlr.setSprite(this);
+	this._actResQ.clear();
 };
 $dddd$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
@@ -1537,10 +1539,10 @@ $dddd$=$aaaa$.updateAction=function f(instPopDmg){
 			this._action.meta.stpReduced=true;
 		}
 		const q=tmp; if(q) q.clear();
-		this.invokeAction(this._subject,target,q);
+		const realTarget=this.invokeAction(this._subject,target,q);
 		if(instPopDmg && SceneManager._scene._chr2sp){
-			const sp=SceneManager._scene._chr2sp.get(target);
-			target.startDamagePopup();
+			const sp=SceneManager._scene._chr2sp.get(realTarget);
+			realTarget.startDamagePopup();
 			sp.setupDamagePopup();
 		}
 		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
@@ -1574,20 +1576,23 @@ $dddd$=$aaaa$.updateAction=function f(instPopDmg){
 };
 $dddd$.tmp=new Set();
 $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
+	let realTarget=t;
 	if(Math.random()<this._action.itemCnt(t)) this.invokeCounterAttack(s,t);
 	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(s,t);
-	else this.invokeNormalAction(s,t);
+	else realTarget=this.invokeNormalAction(s,t);
 	s.setLastTarget(t);
 	if(q){
 		const res=s._result;
 		if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0) q.push(res.copy());
 	}
 	this.refreshStatus();
+	return realTarget;
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
 	this._action.apply(realTarget);
 	this._logWindow.displayActionResults(subject, realTarget, this._action);
+	return realTarget;
 };
 $aaaa$.invokeCounterAttack = function(subject, target){
 	const action = new Game_Action(target);
@@ -1598,7 +1603,10 @@ $aaaa$.invokeCounterAttack = function(subject, target){
 };
 $aaaa$.applySubstitute=function(target){
 	const unit=target.friendsUnit();
-	let subst=unit.alwaysSubstitute()||this.checkSubstitute(target)&&unit.substituteBattler();
+	let subst=!this._action.isCertainHit()&&(
+		unit.alwaysSubstitute()||target.isDying()&&unit.substituteBattler()
+			// this.checkSubstitute
+	);
 	if(subst && target !== subst){
 		this._logWindow.displaySubstitute(subst, target);
 		return subst;
@@ -5317,7 +5325,7 @@ $dddd$.forEach=function(stateId){
 $rrrr$=$pppp$.recoverAll;
 $dddd$=$pppp$.recoverAll=function f(ignoreBuff){
 	if(ignoreBuff){
-		let arr=this._states.filter(f.filter);
+		let arr=this._states.filter(f.forEach);
 		let steps={},turns={};
 		for(let x=0;x!==arr.length;++x){
 			let id=arr[x];
@@ -5334,7 +5342,7 @@ $dddd$=$pppp$.recoverAll=function f(ignoreBuff){
 		}
 	}else return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.filter=x=>$dataStates[x.toId()].meta.buff;
+$dddd$.forEach=x=>$dataStates[x.toId()].meta.buff;
 $pppp$.stpRate=function(){
 	return this.stp/this.maxStp()||0;
 };
@@ -9443,6 +9451,15 @@ $pppp$.apply=function(target){
 			this.applyItemEffect(target, effect);
 		}, this);
 		this.applyItemUserEffect(target);
+	}
+	
+	if(result.used){
+		// prepare for displaying this info
+		const m=SceneManager._scene._chr2sp;
+		if(m){
+			const sp=SceneManager._scene._chr2sp.get(target);
+			if(sp) sp._actResQ.push(result.copy());
+		}
 	}
 };
 $pppp$.makeDamageValue=function(target,isCri){
