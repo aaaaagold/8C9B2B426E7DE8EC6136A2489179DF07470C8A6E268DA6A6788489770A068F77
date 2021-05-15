@@ -3318,6 +3318,7 @@ $pppp$.commandViewLog=function(){
 			lw.deselect();
 			lw.clearContents();
 			lw._scrollY=0;
+			lw.updateArrows();
 			lw.refresh();
 			this._partyCommandWindow.activate();
 		});
@@ -3329,6 +3330,7 @@ $pppp$.commandViewLog=function(){
 		lw.select(len-1);
 		lw.refresh();
 		lw.activate();
+		lw._lines.length=0;
 	}else $gameMessage.popup("no log",true);
 };
 $pppp$.commandSpaceout=function(){
@@ -12050,6 +12052,7 @@ $pppp$=$aaaa$.prototype;
 $rrrr$=$pppp$.initialize;
 $dddd$=$pppp$.initialize=function f(){
 	this._historyLines=[];
+	this._lines=[];
 	f.ori.call(this);
 	this._methods=new Queue();
 	this._historyNumLines=new Queue();
@@ -12132,7 +12135,7 @@ $pppp$.clearLine=function(index){
 	this.contents.clearRect(rect.x, rect.y, rect.width, rect.height);
 };
 $pppp$.maxItems=function(){
-	return this._historyLines.length;
+	return (this._mode==='h'?this._historyLines:this._lines).length;
 };
 $pppp$.setTopRow=function(row){ // setBottomRow use this function
 	if(!(row>=0)) row=0;
