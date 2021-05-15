@@ -504,12 +504,10 @@ $rrrr$=$pppp$.initMembers;
 $dddd$=$pppp$.initMembers=function f(){
 	f.ori.call(this);
 	this._damages=new Queue();
-	this._actResQ=new Queue();
 }; $dddd$.ori=$rrrr$;
 $pppp$.setBattler=function(btlr){
 	if(this._battler) this._battler.removeSprite(this);
 	if(this._battler=btlr) btlr.setSprite(this);
-	this._actResQ.clear();
 };
 $dddd$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
@@ -529,9 +527,8 @@ $pppp$.setupDamagePopup = function() {
 			sprite.x = this.x + this.damageOffsetX();
 			sprite.y = this.y + this.damageOffsetY(); 
 			if(this._damages.length && this._damages.back.y>=64) sprite.y=this._damages.back.y-23;
-			if(SceneManager._scene && SceneManager._scene._chr2sp){ const sp=SceneManager._scene._chr2sp.get(this._battler); if(sp && sp._actResQ && sp._actResQ.length){
-				this._battler._result=sp._actResQ.shift();
-			} }
+			const res=this._battler.popActResQ();
+			if(res) this._battler._result=res;
 			sprite.setup(this._battler);
 			this._damages.push(sprite);
 			this.parent.addChild(sprite);
@@ -1523,14 +1520,7 @@ $dddd$.forEach=(e,i)=>[e,i];
 $dddd$=$aaaa$.updateAction=function f(instPopDmg){
 	const target = this._targets.pop(); // reverse order
 	if(target){
-		let tmp;
-		{
-			const sp=SceneManager._scene._chr2sp&&SceneManager._scene._chr2sp.get(this._subject);
-			if(sp){
-				if(!sp._actResQ) sp._actResQ=new Queue();
-				tmp=sp._actResQ;
-			}
-		}
+		//let tmp;
 		const st=this._statusWindow,lg=this._logWindow;
 		st.noRefresh=true;
 		lg.push('pushBaseLine');
@@ -1538,12 +1528,13 @@ $dddd$=$aaaa$.updateAction=function f(instPopDmg){
 			if(!this._action.meta) this._action.meta={};
 			this._action.meta.stpReduced=true;
 		}
-		const q=tmp; if(q) q.clear();
-		const realTarget=this.invokeAction(this._subject,target,q);
+		const q=this._subject.reserveActResQ(); if(q) q.clear();
+		{ const realTarget=this.invokeAction(this._subject,target,q);
 		if(instPopDmg && SceneManager._scene._chr2sp){
 			const sp=SceneManager._scene._chr2sp.get(realTarget);
 			realTarget.startDamagePopup();
 			sp.setupDamagePopup();
+		}
 		}
 		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
 			lg._methods.pop_back();
@@ -1577,8 +1568,8 @@ $dddd$=$aaaa$.updateAction=function f(instPopDmg){
 $dddd$.tmp=new Set();
 $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
 	let realTarget=t;
-	if(Math.random()<this._action.itemCnt(t)) this.invokeCounterAttack(s,t);
-	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(s,t);
+	if(Math.random()<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
+	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
 	s.setLastTarget(t);
 	if(q){
@@ -3198,6 +3189,7 @@ $dddd$=$pppp$.terminate=function f(){
 $dddd$.forEach=b=>b.clearCache();
 $pppp$.createSpriteset=function(){
 	this._chr2sp=new Map();
+	this._chr2actResQ=new Map();
 	this.addChild(this._spriteset = new Spriteset_Battle(this));
 };
 $rrrr$=$pppp$.createAllWindows;
@@ -5441,6 +5433,26 @@ $pppp$.removeSprite=function(sprite){
 	let m=SceneManager._scene._chr2sp;
 	if(!m) m=SceneManager._scene._chr2sp=new Map();
 	m.delete(this);
+};
+$pppp$.getActResQ=function(){
+	const m=SceneManager._scene._chr2actResQ;
+	if(!m) return;
+	return m.get(this);
+};
+$pppp$.reserveActResQ=function(){
+	const m=SceneManager._scene._chr2actResQ;
+	if(!m) return;
+	let q=m.get(this);
+	if(!q) m.set(this,q=new Queue());
+	return q;
+};
+$pppp$.pushActResQ=function(actResRef){
+	let q=this.reserveActResQ();
+	if(q) q.push(actResRef.copy());
+};
+$pppp$.popActResQ=function(){
+	const q=this.reserveActResQ();
+	if(q) return q.shift();
 };
 $pppp$.clearAnimations=function(){
 	this._animations.clear();
@@ -9430,15 +9442,15 @@ $dddd$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
-$pppp$.apply=function(target){
+$dddd$=$pppp$.apply=function f(target){
 	const result = target.result();
 	this.subject().clearResult();
 	result.clear();
 	result.used = this.testApply(target);
 	result.physical = this.isPhysical();
 	result.drain = this.isDrain();
-	if( result.missed = (result.used && Math.random() >= this.itemHit(target)) ) return; // if(result.isHit())
-	if( result.evaded = (!result.missed && Math.random() < this.itemEva(target)) ) return; // if(result.isHit())
+	if( result.missed = (result.used && Math.random() >= this.itemHit(target)) ) return f.toQ(result,target); // if(result.isHit())
+	if( result.evaded = (!result.missed && Math.random() < this.itemEva(target)) ) return f.toQ(result,target); // if(result.isHit())
 	// if(result.isHit())
 	{
 		const item=this.item();
@@ -9453,14 +9465,12 @@ $pppp$.apply=function(target){
 		this.applyItemUserEffect(target);
 	}
 	
-	if(result.used){
-		// prepare for displaying this info
-		const m=SceneManager._scene._chr2sp;
-		if(m){
-			const sp=SceneManager._scene._chr2sp.get(target);
-			if(sp) sp._actResQ.push(result.copy());
-		}
-	}
+	f.toQ(result,target);
+};
+$dddd$.toQ=(res,trgt)=>{
+	if(!res.used) return;
+	// prepare for displaying this info
+	trgt.pushActResQ(res);
 };
 $pppp$.makeDamageValue=function(target,isCri){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
