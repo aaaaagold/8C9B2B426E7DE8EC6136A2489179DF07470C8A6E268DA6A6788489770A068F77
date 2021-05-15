@@ -2191,8 +2191,12 @@ $pppp$.commandOptimize=function f(){
 $rrrr$=$pppp$.commandClear;
 $dddd$=$pppp$.commandClear=function f(){
 	f.ori.call(this);
-	this._slotWindow._setSlotIdTbl();
-	this._slotWindow.refresh();
+	const slw=this._slotWindow;
+	slw._setSlotIdTbl();
+	slw.refresh();
+	const iw=this._itemWindow;
+	iw._data.s=-1;
+	iw.refresh();
 }; $dddd$.ori=$rrrr$;
 $pppp$.onSlotOk=function(){
 	const iw=this._itemWindow;
@@ -2368,11 +2372,10 @@ $pppp$._edt=function f(){
 			ctx2.scale(-1,1);
 			ctx2.drawImage(c,-w,0);
 			f.tbl.cursorImg_rfl=c.toDataURL();
-			f.tbl.cursorImg2=c2.sa('class','abs').sa('style','z-index:-1');
+			f.tbl.cursorImg2=c2.sa('class','abs').sa('style','z-index:-1;top:100%');
 			f.tbl.cursorImg2.onmousemove=e=>e.preventDefault();
 			f.tbl.mouseMvEvtFunc=function(e){
 				const x=e.layerX,y=e.layerY;
-				console.log(x,y,e);
 				f.tbl.cursorImg2.style.top=y+"px";
 				f.tbl.cursorImg2.style.right=x+"px";
 			};
@@ -2406,7 +2409,7 @@ $pppp$._edt=function f(){
 	}
 	
 	if(cursorCss){
-		if(!cursorDiv) d.ge('div999').ac(f.tbl.cursorImg2).ac(f.tbl.cursorDiv||(
+		if(!cursorDiv) d.ge('div999').ac(f.tbl.cursorDiv||(
 			f.tbl.cursorDiv=d.ce('div').sa('id',cursorDiv_id).sa('class','full '+cursorCss.id).ac(
 				f.tbl.cursorImg2
 			).ac(
@@ -5875,6 +5878,24 @@ Object.defineProperties($aaaa$.prototype,{
 	_walkAnime:{ get:function(){ return this._wa; },set:function(rhs){
 		return this._wa=rhs&&1||0;
 	},configurable:false},
+	// appearance
+	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
+		if(this._chrIdx!==rhs) this.imgModded=true;
+		this._chrIdx=rhs;
+	},configurable:false},
+	_characterName:{ get:function(){return this._chrName;},set:function(rhs){
+		if(this._chrName!==rhs) this.imgModded=true;
+		this._chrName=rhs;
+	},configurable:false},
+	_tileId:{ get:function(){return this._tid;},set:function(rhs){
+		if(this._tid!==rhs) this.imgModded=true;
+		return this._tid=rhs;
+	},configurable:false},
+	//  ext
+	imgModded:{ get:function(){return this._imgModded;},set:function(rhs){
+		if(this._imgModded=rhs) ;//this._imgModded_timestamp=Date.now();
+		return rhs;
+	},configurable:false},
 });
 $dddd$=$pppp$._getColorEdt=function f(){
 	let rtv;
@@ -7410,17 +7431,18 @@ $pppp$.removeActor=function(actorId,_searchFrom){
 			if(!tmp._pt_battleMembers_actor2idx) tmp._pt_battleMembers_actor2idx=new Map(tmp._pt_battleMembers.map((x,i)=>[x,i]));
 		}
 		
-		idx=this.allMembers().length-1;
-		if(idx>=0){
-			const flrs=$gamePlayer._followers;
+		const last=this.allMembers().length-1,flrs=$gamePlayer._followers;
+		if(last>=0){
 			if(SceneManager._scene._spriteset){
-				const sp=flrs._data[idx]._tmp._sprite;
+				const sp=flrs._data[last]._tmp._sprite;
 				if(sp) sp.remove();
 			}
 			flrs.popFollower();
 		}
 		
 		$gamePlayer.refresh();
+		if(idx===0) $gamePlayer.imgModded=true;
+		if(idx>=0) for(let x=idx;x<last;++x) flrs._data[x].imgModded=true;
 		$gameMap.requestRefresh();
 	}
 };
@@ -7457,6 +7479,17 @@ $pppp$.swapOrderByActor=function(actor1,actor2){
 	this.swapOrder(arr.indexOf(actor1),arr.indexOf(actor2));
 	}
 };
+$dddd$=$pppp$.charactersForSavefile=function f(){
+	return this.battleMembers().slice(23).map(f.forEach);
+};
+$dddd$.forEach=actor=>{
+	const ce=actor._getColorEdt();
+	return [actor.characterName()+(ce?"?color="+ce:""),actor.characterIndex()];
+};
+$dddd$=$pppp$.facesForSavefile=function f(){
+	return this.battleMembers().slice(23).map(f.forEach);
+};
+$dddd$.forEach=actor=>[actor.faceName(), actor.faceIndex()];
 $pppp$.maxItems=function f(item){
 	return item&&item.maxStack>=0?item.maxStack:(_global_conf["default maxItems"]||404);
 };
@@ -8375,6 +8408,13 @@ this.refresh=none;
 		let tmp=Number(meta.animationCount);
 		if(0<tmp) this._animationCount=tmp; // is light src if > 0
 	}
+	// style
+	this._dmg=(meta.damaged)?1:0;
+	this._plyr=-1;
+	if(meta.player){
+		this._plyr=(meta.player===true)?0:Number(meta.player);
+		if(!(this._plyr>=0)) this._plyr=-1;
+	}
 	// interact
 	this._strtByAny=!!meta.strtByAny;
 	// moving
@@ -8550,23 +8590,6 @@ Object.defineProperties($aaaa$.prototype,{
 			}
 		return rhs;
 	},configurable:false},
-	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
-		if(this._chrIdx!==rhs) this.imgModded=true;
-		this._chrIdx=rhs;
-	},configurable:false},
-	_characterName:{ get:function(){return this._chrName;},set:function(rhs){
-		if(this._chrName!==rhs) this.imgModded=true;
-		this._chrName=rhs;
-	},configurable:false},
-	_tileId:{ get:function(){return this._tid;},set:function(rhs){
-		if(this._tid!==rhs) this.imgModded=true;
-		return this._tid=rhs;
-	},configurable:false},
-	// ext
-	imgModded:{ get:function(){return this._imgModded;},set:function(rhs){
-		if(this._imgModded=rhs) ;//this._imgModded_timestamp=Date.now();
-		return rhs;
-	},configurable:false},
 	longDistDetection:{ get:function(){ return this._lld; },set:function(rhs){
 		return this._lld=rhs;
 	},configurable:false},
@@ -8579,6 +8602,30 @@ Object.defineProperties($aaaa$.prototype,{
 	_preventZaWarudo:{
 		get:function(){ this._pz; },
 		set:function(rhs){ return this._pz=rhs; },
+	configurable:false},
+	_color:{
+		get:function(){ return this._clr; },
+		set:function(rhs){
+			if(this._clr===rhs) return rhs;
+			this.imgModded=true;
+			return this._clr=rhs;
+		},
+	configurable:false},
+	_scale:{
+		get:function(){ return this._scl; },
+		set:function(rhs){
+			if(this._scl===rhs) return rhs;
+			this.imgModded=true;
+			return this._scl=rhs;
+		},
+	configurable:false},
+	_player:{
+		get:function(){ return this._plyr; },
+		set:function(rhs){
+			if(this._plyr===rhs) return rhs;
+			this.imgModded=true;
+			return this._plyr=rhs;
+		},
 	configurable:false},
 	// simply shorten (default members)
 	_originalDirection:{ get:function(){ return this._odir||2; },set:function(rhs){
@@ -8651,6 +8698,28 @@ $dddd$=$pppp$.checkEventTriggerTouch=function f(x,y){ // .strtByAny
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.update;
 $dddd$=$pppp$.update=function f(){
+	if(this._player>=0){
+		const a=$gameActors.actor($gameParty._acs[this._player]);
+		if(a){
+			this._color=a._getColorEdt();
+			this._scale=a._getScaleEdt();
+			let dmgimg;
+			if(this._dmg && (dmgimg=a.getData().dmgimg)){
+				if(this._dirfx_bak===undefined) this._dirfx_bak=this._dirfx;
+				this._characterName  =dmgimg[0];
+				this._characterIndex =dmgimg[1];
+				this._direction=(dmgimg[2]+1)<<1;
+				this._dirfx=1;
+			}else{
+				this._characterName  =a.characterName ();
+				this._characterIndex =a.characterIndex();
+				if(this._dirfx_bak!==undefined){
+					this._dirfx=this._dirfx_bak;
+					delete this._dirfx_bak;
+				}
+			}
+		}else this._characterName='';
+	}
 	if(this.canUpdate()) return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $pppp$._initItrpQIfNeeded=function(){
@@ -9918,9 +9987,23 @@ $pppp$.characterName = function() {
 	//let ce=this._getColorEdt();
 	return this._characterName; //+(ce?"?color="+ce:"");
 };
-$pppp$.faceName = function() { // seems only 'Game_Actor' has method 'faceName'
+$pppp$.faceName=function() { // seems only 'Game_Actor' has method 'faceName'
 	const ce=this._getColorEdt();
 	return this._faceName+(ce?"?color="+ce:"");
+};
+$pppp$._genFaceData=function(){
+	const ce=this._getColorEdt();
+	let args; if(ce) args={color:ce};
+	const bm=ImageManager.loadCharacter(this._characterName,undefined,args);
+	return [bm,
+		(bm._isBigChr?0:(this._characterIndex&3)*bm._pw*3)+bm._pw,
+		(this._characterIndex>>(bm._isBigChr<<2))*bm._ph,
+		bm._pw,
+		bm._ph,
+	];
+};
+$pppp$.faceIndex=function(){
+	return (!this._faceIndex && this.getData().meta.chrAsFace)?this._genFaceData():this._faceIndex;
 };
 $pppp$.expForLevel=function(level,class_){
 	const c=class_||this.currentClass();
@@ -10925,7 +11008,7 @@ $pppp$.destroy=function(actorId){
 		else tbl.add(sid,[sid,sid1]);
 		return true;
 	}else{
-		this._data[tid].clearCache();
+		const t=this._data[tid]; if(t) t.clearCache();
 		this._data[tid]=0;
 	}
 		return true;

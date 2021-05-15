@@ -91,7 +91,11 @@ $dddd$.set=function f(name,txt ,changesCallback,changesKArgs){
 	objs._oriLens[tname]=obj.length;
 }; $dddd$.set.tuning={
 	// may be added data in-game
-	'$dataActors'       :(obj,prefix)=>logOriLen('$dataActors'       ,obj,prefix),
+	'$dataActors'       :(obj,prefix)=>{
+		const key='$dataActors';
+		if(obj===window[key] && obj.length>0) for(let x=1;x!==obj.length;++x) obj[x].dmgimg=(obj[x].meta.dmgimg)?JSON.parse(obj[x].meta.dmgimg):undefined;
+		return logOriLen(key,obj,prefix);
+	},
 	'$dataAnimations'   :(obj,prefix)=>logOriLen('$dataAnimations'   ,obj,prefix),
 	'$dataArmors'       :(obj,prefix)=>logOriLen('$dataArmors'       ,obj,prefix),
 	'$dataClasses'      :(obj,prefix)=>logOriLen('$dataClasses'      ,obj,prefix),

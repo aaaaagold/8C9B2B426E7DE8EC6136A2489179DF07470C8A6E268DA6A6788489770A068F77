@@ -317,6 +317,35 @@ $aaaa$.prototype.drawIcon=function(iconIndex, x, y){
 		this.contents.blt(bitmap, sx, sy, pw, ph, x, y);
 	}else this.contents.clearRect(x,y,pw,ph);
 };
+$rrrr$=$aaaa$.prototype.drawFace;
+$dddd$=$aaaa$.prototype.drawFace=function f(fn, fi, x, y, w, h){
+	x|=0; y|=0;
+	w = w || Window_Base._faceWidth;
+	h = h || Window_Base._faceHeight;
+	let bitmap,sx,sy,sw,sh,dx,dy,dw,dh;
+	if(fi>=0){
+		const pw = Window_Base._faceWidth , ph = Window_Base._faceHeight;
+		bitmap=ImageManager.loadFace(fn);
+		if(w<pw){ sw=w; dx=x; }
+		else{ sw=pw; dx=x+((w-pw)>>1); }
+		if(h<ph){ sh=h; dy=y; }
+		else{ sh=ph; dy=y+((h-ph)>>1); }
+		sx=(fi  &3)*pw+((pw-sw)>>1);
+		sy=(fi >>2)*ph+((ph-sh)>>1);
+	}else{
+		bitmap=fi[0];
+		sx=fi[1]; sy=fi[2]; sw=fi[3]; sh=fi[4];
+		const r=Math.min(~~(w/sw),~~(h/sh));
+		if(!r) return; // image is empty
+		dw=r*sw; dh=r*sh;
+		dx=(w-dw)>>1; dy=(h-dh)>>1;
+	}
+	this.contents.blt(bitmap, 
+		sx,sy,sw,sh,
+		dx,dy,dw,dh
+	);
+	return;
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1, color2, valWidth) {
 	const labelWidth = this.textWidth('HP');
 	const valueWidth = valWidth||this.textWidth('000');
@@ -884,7 +913,8 @@ $aaaa$.prototype.fadeOut = function(duration) {
 		const gain = this._gainNode.gain , currentTime = WebAudio._context.currentTime;
 		gain.setValueAtTime(this._volume, currentTime);
 		//gain.linearRampToValueAtTime(0, currentTime + duration);
-		gain.exponentialRampToValueAtTime(0.03125, currentTime + duration);
+		//gain.exponentialRampToValueAtTime(0.03125, currentTime + duration);
+		gain.exponentialRampToValueAtTime(0.0009765625, currentTime + duration);
 	}
 	this._autoPlay = false;
 };
