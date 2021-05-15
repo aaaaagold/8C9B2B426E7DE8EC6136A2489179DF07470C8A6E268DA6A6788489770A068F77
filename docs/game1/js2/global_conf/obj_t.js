@@ -13005,8 +13005,9 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 $aaaa$=Window_Options;
 $pppp$=$aaaa$.prototype;
 $pppp$.statusWidth=function(){
-	return 64;
+	return 89;
 };
+$pppp$.volumeStatusText=val=>val+"% ";
 $pppp$.processOk = function() {
 	if(this.leftArrowVisible && this._onTouch_ing){
 		let ori=this.getGlobalPosition();
@@ -13050,10 +13051,10 @@ $dddd$=$pppp$.updateArrows=function f(){
 		this.rightArrowVisible=this.leftArrowVisible=flag;
 		if(flag){
 			let rect=this.itemRectForText(this._index);
-			let xbase=rect.x+rect.width+2;
+			let xbase=rect.x+rect.width;
 			let y=rect.y+this.lineHeight()+((rect.heigh)>>1);
 			la.move(xbase-this.statusWidth(),y);
-			ra.move(xbase+(ra.width<<1),y);
+			ra.move(xbase+ra.width,y);
 		}
 	}
 	this.ctr^=0; ++this.ctr;
