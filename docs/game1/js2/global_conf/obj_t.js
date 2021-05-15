@@ -3352,6 +3352,7 @@ $pppp$.selectNextCommand=function(){
 		act.meta={};
 		bm._subject=null;
 		bm._targets.length=0;
+		BattleManager.checkBattleEnd();
 		return this._instUsed=true;
 	} } }
 	BattleManager.selectNextCommand();
