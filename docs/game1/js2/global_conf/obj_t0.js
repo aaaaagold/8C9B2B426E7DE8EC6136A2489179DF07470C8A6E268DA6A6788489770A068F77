@@ -1185,12 +1185,14 @@ $dddd$=$aaaa$.printLoadingError=function f(type,url){
 	if (this._errorPrinter && !this._errorShowed) {
 		// create error board
 		this._errorPrinter.rf(0).ac(this._makeErrorHtml("Loading Error", "Failed to load: " + url));
+		this._errorPrinter.style.zIndex=999;
 		
 		// retry?
 		let btn = d.ce('button').at("Retry");
 		btn.onmousedown = btn.ontouchstart = function(event) {
 			ResourceHandler.retry();
 			event.stopPropagation();
+			rtv.style.zIndex=99;
 		};
 		this._errorPrinter.ac(btn);
 		this._loadingCount = -Infinity;
@@ -1225,6 +1227,7 @@ $dddd$.alts={
 		btn.onmousedown = btn.ontouchstart = function(evt) {
 			ResourceHandler.retry(1);
 			evt.stopPropagation();
+			self._errorPrinter.style.zIndex=99;
 		};
 		self._errorPrinter.ac(d.ce('br')).ac(btn);
 		self._loadingCount = -Infinity;

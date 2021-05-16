@@ -7480,14 +7480,14 @@ $pppp$.swapOrderByActor=function(actor1,actor2){
 	}
 };
 $dddd$=$pppp$.charactersForSavefile=function f(){
-	return this.battleMembers().slice(23).map(f.forEach);
+	return this.battleMembers().slice(0,23).map(f.forEach);
 };
 $dddd$.forEach=actor=>{
 	const ce=actor._getColorEdt();
 	return [actor.characterName()+(ce?"?color="+ce:""),actor.characterIndex()];
 };
 $dddd$=$pppp$.facesForSavefile=function f(){
-	return this.battleMembers().slice(23).map(f.forEach);
+	return this.battleMembers().slice(0,23).map(f.forEach);
 };
 $dddd$.forEach=actor=>[actor.faceName(), actor.faceIndex()];
 $pppp$.maxItems=function f(item){

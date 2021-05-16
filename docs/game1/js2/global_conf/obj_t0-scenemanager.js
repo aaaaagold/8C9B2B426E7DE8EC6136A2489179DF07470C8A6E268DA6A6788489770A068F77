@@ -157,7 +157,7 @@ $dddd$=$aaaa$.pause=function f(){
 	if(!btn.ref){
 		btn.ref=this;
 		sty.position="absolute";
-		sty.zIndex=222;
+		sty.zIndex=1023;
 		sty.margin="11px";
 		d.ge("UpperDiv").ac(info.msg);
 		d.body.ac(btn);
