@@ -1679,6 +1679,28 @@ $pppp$.isGameFontLoaded=function(){
 };
 $dddd$=$pppp$.arrangeData=function f(){
 	
+	// not ability
+	//  damaged img
+	$dataActors.slice($dataActors.arrangeStart||1).forEach(x=>{
+		x.dmgimg=x.meta.dmgimg?JSON.parse(x.meta.dmgimg):undefined;
+	});
+	// comment in first non-runable page as note
+	$dataTroops.slice($dataTroops.arrangeStart||1).forEach(x=>{
+		const pg0=x.pages[0]; if(pg0){
+		const cond=pg0.conditions; if(!(cond.actorValid||cond.enemyValid||cond.switchValid||cond.turnEnding||cond.turnValid)){
+		const arr=pg0.list;
+		if(arr.length){ if(x.note===undefined) x.note=""; for(let i=0;i!==arr.length;++i){
+			if(arr[i].code!==108 || arr[i].parameters[0]!=="<meta>") continue;
+			for(++i;i!==arr.length && arr[i].code===408;++i){
+				x.note+=arr[i].parameters[0]; x.note+="\n";
+			}
+			--i; // maybe break on code===108
+		} }
+		}
+		}
+		DataManager.extractMetadata(x);
+	});
+	
 	// extend texts
 	if(!$dataSystem.terms.extended){
 		$dataSystem.terms.extended=true;
@@ -1959,10 +1981,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.itemType='a';
 	});
 	
-	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataWeapons,].forEach(x=>{ if(!x) return; // ????
+	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(x=>{ if(!x) return; // ????
 		x.arrangeStart=x.length;
-		if(!x.tmapS) x.tmapS=new Map();
-		if(!x.tmapP) x.tmapP=new Map();
+		//if(!x.tmapS) x.tmapS=new Map(); // ???
+		//if(!x.tmapP) x.tmapP=new Map(); // ???
 	});
 };
 $dddd$.makeMaxStack=dataobj=>{
@@ -11132,6 +11154,9 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - Game_Troop
 $aaaa$=Game_Troop;
 $pppp$=$aaaa$.prototype;
+$pppp$.getDate=function(){
+	return this.troop();
+};
 $pppp$.clear = function() {
 	this._interpreter.clear();
 	this._troopId = 0;
@@ -11141,6 +11166,11 @@ $pppp$.clear = function() {
 	this._namesCount = {};
 	this._trueEscape=false;
 };
+$rrrr$=$pppp$.setup;
+$dddd$=$pppp$.setup=function f(id){
+	f.ori.call(this,id);
+	// meta 
+}; $dddd$.ori=$rrrr$;
 $pppp$.addEnemy=function(enemyId,x,y,dur,ox,oy){
 	if(!$dataEnemies[enemyId]) return;
 	if(dur!==0) dur=dur||23;
