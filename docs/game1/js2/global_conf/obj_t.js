@@ -11033,6 +11033,8 @@ $dddd$=$pppp$.convertEscapeCharacters=function f(text) {
 	text = text.replace(f.re_keyword, f.f_keyword);
 	text = text.replace(f.re_txtin, f.f_txtin);
 	text = text.replace(f.re_txtarea, f.f_txtarea.bind(this));
+	text = text.replace(f.re_armor, f.f_armor);
+	text = text.replace(f.re_weapon, f.f_weapon);
 	text = text.replace(f.re_skill, f.f_skill);
 	text = text.replace(f.re_item, f.f_item);
 	text = text.replace(f.re_quest, f.f_quest);
@@ -11104,6 +11106,10 @@ $dddd$.f_txtarea=function(){
 	back.open();
 	return "";
 };
+$dddd$.re_armor=/\x1barmor\[(\d+)\]/g;
+$dddd$.f_armor=function(){ return "\x1bRGB["+$dataCustom.textcolor.armor+"]"+$dataArmors[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
+$dddd$.re_weapon=/\x1bweapon\[(\d+)\]/g;
+$dddd$.f_weapon=function(){ return "\x1bRGB["+$dataCustom.textcolor.weapon+"]"+$dataWeapons[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_skill=/\x1bskill\[(\d+)\]/g;
 $dddd$.f_skill=function(){ return "\x1bRGB["+$dataCustom.textcolor.skill+"]"+$dataSkills[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $dddd$.re_item=/\x1bitem\[(\d+)\]/g;

@@ -34,6 +34,35 @@ list.discardShopItemsFirstN=n=>{
 		return n;
 	};
 };
+const randSelCmdFromNextIf0_ifTrue_param=[12,"1"];
+const randSelCmdFromNextIf0_forEach=function(x){this.push(x);};
+list.randSelCmdFromNextIf0=(olist,c,rtv)=>{
+	if(!olist.length) return 0; // how would this error happen?
+	// use elseSkipN , skip next "if" cmd
+	// sel indent = if's + 1
+	if(olist[c].code!==111) throw new Error('the following command in the event page is not an if command');
+	if(olist.back.code) olist.push(Game_Interpreter.EMPTY);
+	const indent=olist[c].indent;
+	const indent_=indent+1;
+	const cmds=[];
+	let i=c+1;
+	while(olist[i].indent!==indent){ if(olist[i].indent===indent_){
+		if(!olist[i].code){ ++i; break; }
+		let j=i;
+		while(olist[++j].indent!==indent_)
+			;
+		while(olist[j].code>=400 && olist[j].indent===indent_) ++j; // seq cmd
+		cmds.push(i,j);
+		i=j-1;
+	} ++i; }
+	// now i = endIf
+	rtv.push({code:111,indent:indent,parameters:randSelCmdFromNextIf0_ifTrue_param});
+	const ch=~~(Math.random()*(cmds.length>>1));
+	olist.slice(cmds[ch<<1],cmds[(ch<<1)|1]).forEach(randSelCmdFromNextIf0_forEach,rtv);
+	// seems code:0 if not needed
+	rtv.push(olist[i]); // endIf
+	return ++i-c; // now i = next to endIf
+};
 list.getSS=(self,argv)=>{
 	if(!argv) return false;
 	return $gameMap.ss(argv[0],argv[1]);
