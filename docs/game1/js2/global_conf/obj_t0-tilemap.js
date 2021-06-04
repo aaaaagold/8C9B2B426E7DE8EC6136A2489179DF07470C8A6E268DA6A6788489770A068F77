@@ -15,7 +15,10 @@ $aaaa$.revealTp=0.3125; // tp:transparent
 $aaaa$.isVisibleTile=function(tid){ // take advantage of "Tilemap.TILE_ID_MAX is pow(2)", reserve original function for future editing
 	return (tid>>13)===0;
 };
-$aaaa$.getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
+$aaaa$._getProperAutoile_A5=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
+	// TODO
+};
+$aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 	if(!mapd||!mapd.data||typeof Tilemap==='undefined'||Tilemap.isAutotile===undefined||!Tilemap.isAutotile(tileIdAsBase)) return;
 	const w=mapd.width,h=mapd.height,sz=w*h;
 	const toBase=t=>(48*~~((t-2048)/48))+2048,getTile=(x,y,lv)=>mapd.data[lv*sz+y*w+x],isEnd=(x,y)=>{
@@ -799,7 +802,7 @@ $dddd$=$pppp$.renderCanvas=function f(renderer) {
 	//if(this._mask){ renderer.maskManager.pushMask(this._mask); console.log("?"); }
 	//this._renderCanvas(renderer); // empty function
 	if($gameScreen.limitedView){
-		let ctx=renderer.context,p=this.player;
+		const ctx=renderer.context,p=this.player;
 		ctx.save();
 		ctx.fillStyle = '#000000';
 		ctx.globalCompositeOperation='source-in';
@@ -884,10 +887,111 @@ $dddd$=$pppp$.renderWebGL=function f(renderer) {
 	if (this._mask || this._filters) this.renderAdvancedWebGL(renderer); // not executed
 	else {
 		this._renderWebGL(renderer); // is empty func.
+		
 		// simple render children!
 		f.forEach.renderer=renderer;
-		return this.children.forEach(f.forEach,true);
+		this.children.forEach(f.forEach,true);
+		
+		const gl=renderer.gl,p=this.player;
+		if($gameScreen.limitedView && gl){
+			const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+			const old_abi=gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+			const old_prog=gl.getParameter(gl.CURRENT_PROGRAM);
+			const old_attr=gl.getActiveAttrib(old_prog,0);
+			const old_attr_idx=gl.getAttribLocation(old_prog,old_attr.name);
+			const old_attr_size=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_SIZE);
+			const old_attr_type=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_TYPE);
+			const old_attr_isNorm=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_NORMALIZED);
+			const old_attr_stride=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_STRIDE);
+			const old_attr_offset=gl.getVertexAttribOffset(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_POINTER);
+			
+			if(!f.tbl.prog){
+				const shaderV=f.tbl.shaderV||(f.tbl.shaderV=gl.createShader(gl.VERTEX_SHADER));
+				const shaderF=f.tbl.shaderF||(f.tbl.shaderF=gl.createShader(gl.FRAGMENT_SHADER));
+				
+				gl.shaderSource(shaderV, f.tbl.shaderSrcV);
+				gl.shaderSource(shaderF, f.tbl.shaderSrcF);
+				
+				gl.compileShader(shaderV);
+				gl.compileShader(shaderF);
+				
+				const prog=f.tbl.prog=gl.createProgram();
+				gl.attachShader(prog, shaderV); 
+				gl.attachShader(prog, shaderF);
+				gl.linkProgram(prog);
+				
+				gl.deleteShader(shaderV);
+				gl.deleteShader(shaderF);
+				
+				if(f.tbl.glbuf){
+				}else{
+					f.tbl.glbuf_i =gl.createBuffer();
+					f.tbl.glbuf   =gl.createBuffer();
+				}
+			}
+			const prog=f.tbl.prog;
+			gl.useProgram(prog);
+			
+			const circle = {x: p.x, y: p.y, r: Game_Map.e*3};
+			const ATTRIBUTES = 2 , data = [];
+			const canvas=gl.canvas;
+			{ let j = 0;
+			data[j++] = 0;
+			data[j++] = 0;
+	
+			data[j++] = canvas.width;
+			data[j++] = 0;
+	
+			data[j++] = 0;
+			data[j++] = canvas.height;
+	
+			data[j++] = canvas.width;
+			data[j++] = canvas.height;
+			}
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, f.tbl.glbuf_i);
+			gl.bindBuffer(gl.ARRAY_BUFFER, f.tbl.glbuf);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(f.tbl.idxv), gl.STATIC_DRAW);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+			const loc_reso = gl.getUniformLocation(prog, "u_resolution");
+			const loc_cent = gl.getUniformLocation(prog, "u_center");
+			const loc_radi = gl.getUniformLocation(prog, "u_radius");
+			gl.uniform2f(loc_reso, canvas.width, canvas.height);
+			gl.uniform2f(loc_cent, circle.x, circle.y);
+			gl.uniform1f(loc_radi, circle.r);
+			
+			const loc_posi = gl.getAttribLocation(prog, "a_position");
+			if(!f.tbl.enabled){
+				f.tbl.enabled=true;
+				gl.enableVertexAttribArray(loc_posi);
+			}
+			gl.vertexAttribPointer(loc_posi, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT, 0);
+			
+			gl.drawElements(gl.TRIANGLES, f.tbl.idxv.length, gl.UNSIGNED_SHORT, 0);
+			if(objs.isDev && !f.tbl.firstErrPrinted) console.log(gl.getError())||(f.tbl.firstErrPrinted=1);
+			
+			// restore
+			gl.useProgram(old_prog);
+			//gl.disableVertexAttribArray(loc_posi);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
+			//gl.vertexAttribPointer( gl.getAttribLocation(old_prog, old_attr.name) , old_attr.size , old_attr.type , false , 0 , 0);
+			gl.vertexAttribPointer(old_attr_idx,old_attr_size,old_attr_type,old_attr_isNorm,old_attr_stride,old_attr_offset);
+		}
 	}
+};
+$dddd$.tbl={
+	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), 0, 1);\n\t\n\tradius = u_radius;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
+	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
+	shaderV:undefined,
+	shaderF:undefined,
+	idxv:[ 0,1,2, 1,2,3, ],
+	glbuf:undefined,
+	glbuf_i:undefined,
+	ab:undefined,
+	ab_i:undefined,
+	prog:undefined,
+	firstErrPrinted:false,
+	enabled:false,
 };
 $dddd$.forEach=function f(c){
 	//if(!c._skipRender) c.renderWebGL(f.renderer); return;

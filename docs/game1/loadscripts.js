@@ -152,16 +152,11 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 			rv();
 		}
 		
-	//	a=dm.loadDataFile; z=dm.loadDataFile=function f(){
-	//		if(arguments[1]==="System.json"){ this.loadDataFile=f.ori;
-	//			return f.ori.call(this,arguments[0],"System.json",()=>{ let strt=Number(location.search.slice(1)); if(strt) $dataSystem.startMapId=strt; });
-	//		}else return f.ori.apply(this,arguments);
-	//	}; z.ori=a;
-		
 		// disable some buffers to reduce mem. usage
 		//   not very effective (about 10%) (1GB -> 0.9GB)
-		a=PIXI.glCore.createContext; z=PIXI.glCore.createContext=function f(canvas,opt){ opt.alpha=true;
-			opt.premultipliedAlpha=opt.depth=opt.stencil=opt.antialias=false;
+		a=PIXI.glCore.createContext; z=PIXI.glCore.createContext=function f(canvas,opt){
+			opt.preserveDrawingBuffer=opt.alpha=!(opt.premultipliedAlpha=opt.depth=opt.stencil=opt.antialias=false);
+			opt.powerPreference="low-power";
 			return f.ori.call(this,canvas,opt);
 		}; z.ori=a;
 		

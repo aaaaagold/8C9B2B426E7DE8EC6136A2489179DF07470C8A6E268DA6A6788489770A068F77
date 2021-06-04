@@ -257,7 +257,12 @@ $pppp$.setText=function(txt){
 	if(this._txt===txt) return;
 	this._txt=txt;
 	let tmp=this._txtSprite;
-	if(!tmp) this.addChild( this._txtSprite = tmp = new Window_TextOnly(0,0,1,1) );
+	const s=this.scale;
+	if(!tmp){
+		this.addChild( this._txtSprite = tmp = new Window_TextOnly(0,0,1,1) );
+		tmp.scale.x=1/s.x;
+		tmp.scale.y=1/s.y;
+	}
 	if(!txt) return tmp.clearContents();
 	const detail={} , txtp = tmp.textPadding();
 	tmp.drawTextEx(txt,0,0,undefined,undefined,detail);
@@ -438,9 +443,10 @@ $dddd$=$pppp$.updateCharacterFrame=function f(){ // add on chair facing up
 $pppp$.updateTextFrame=function(){
 	if(this._txtSprite){
 		const sp=this._txtSprite;
-		const newx=((this._frame.width>>1)-this.anchor.x*this._frame.width||0)-(sp.width>>1);
+		const sc=this.scale;
+		const newx=((this._frame.width>>1)-this.anchor.x*this._frame.width||0)-(sp.width>>1)/sc.x;
 		if(sp.x!==newx) sp.x=newx;
-		const newy=(-this.anchor.y*this._frame.height||0)-sp.height;
+		const newy=(-this.anchor.y*this._frame.height||0)-sp.height/sc.y;
 		if(sp.y!==newy) sp.y=newy;
 	}
 };
