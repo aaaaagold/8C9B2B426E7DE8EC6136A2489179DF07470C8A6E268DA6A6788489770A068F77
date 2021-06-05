@@ -288,7 +288,7 @@ $dddd$=$pppp$.setCharacter=function f(chr){
 		// text
 		this.setText(chr.getText());
 		// parentId in meta
-		let pid=Number(chr.getData().meta.parentId);
+		let pid=chr.parentId||Number(chr.getData().meta.parentId);
 		if(pid){
 			chr.parentId=pid;
 			let p=$gameMap._events[chr.parentId];
@@ -317,9 +317,16 @@ $pppp$.isInView_inScreen=function(){
 };
 $pppp$.isInView=function(){ // can view?
 	if($gameScreen.limitedView && !this._character._light){
-		let p=this.parent.player; if(!p) return false;
-		let dx=p.x-this.x,dy=p.y-this.y;
-		return dx*dx+dy*dy<this.parent._tileEdge4p2;
+		const p=this.parent.player; if(!p) return false;
+		const frm=this._frame,s=this.scale,a=this.anchor;
+		const ws=frm.width*s.x,hs=frm.height*s.y;
+		let r=p._character.viewRadius_buf;
+		const L=this.x-r-ws*a.x;
+		const U=this.y-r-hs*a.y;
+		r<<=1;
+		const R=(ws+r)+L;
+		const D=(hs+r)+U;
+		return (L<=p.x&&p.x<=R&&U<=p.y&&p.y<=D);
 	}else if(this._skipRender) return false;
 	else return this.isInView_inScreen();
 };
@@ -1180,9 +1187,9 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - ImageManager
 $aaaa$=ImageManager;
-$aaaa$._trimColorArg=p=>p.replace(/(\?|&)color=[^&]*(&|$)/g,'');
-$aaaa$._trimScaleArg=p=>p.replace(/(\?|&)scale=[^&]*(&|$)/g,'');
-$aaaa$._trimRndArg=p=>p.replace(/(\?|&)rnd=[^&]*(&|$)/g,'');
+{ const f=function(){ return arguments[2]===""?"":(arguments[1]==="?"?"?":"&"); };
+$aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=[^&]*)?(?=(&|$))/g,'$1').replace(/(\?)?[&]+($)?/g,f);
+}
 $aaaa$.loadEnemy=function(filename,hue,args){
 	return this.loadBitmap('img/enemies/', filename, hue, true, args);
 };
@@ -2473,6 +2480,10 @@ $dddd$.flwing=function(pannel){
 		$dataMap.flwing_pannel=pannel.add($gamePlayer._followers,flwrs=>flwrs._following?$dataCustom.flwingMsgs.yes:$dataCustom.flwingMsgs.no,{align:'center',updateItvl:'no'});
 	}
 };
+$rrrr$=$pppp$.checkGameover;
+$dddd$=$pppp$.checkGameover=function f(){
+	return !$gameMap._interpreter.isRunning()&&f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.onMapLoaded;
 $dddd$=$pppp$.onMapLoaded=function f(){
 	debug.log('Scene_Map.prototype.onMapLoaded');
@@ -2810,6 +2821,7 @@ Scene_Map.prototype.updateMain=function(){
 	}
 	$gameScreen.update();
 };
+$pppp$.isBlurBorder=()=>$dataMap&&$dataMap.meta.blurBorder;
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - Scene_Load
@@ -4241,9 +4253,20 @@ $pppp$=$aaaa$.prototype;
 $aaaa$.EMPTY={code:0,indent:0,parameters:[]};
 $rrrr$=$pppp$.initialize;
 $dddd$=$pppp$.initialize=function f(){
-	this._strtMeta=undefined;
+	this._strtMeta=this._chrParam=null;
 	return f.ori.call(this,arguments[0]);
 }; $dddd$.ori=$rrrr$;
+$rrrr$=$pppp$.character;
+$dddd$=$pppp$.character=function f(param){
+	return f.ori.call(this,this._chrParam=param);
+}; $dddd$.ori=$rrrr$;
+Object.defineProperty($pppp$,'_character',{
+	get:function(){ return this.character(this._chrParam); },
+	set:function(rhs){
+		if(!rhs) this._chrParam=null;
+		return rhs;
+	},
+});
 $rrrr$=$pppp$.setup;
 $dddd$=$pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
@@ -4999,7 +5022,10 @@ $dddd$=$pppp$.recoverAll=function f(ignoreBuff){
 		}
 	}else return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.forEach=x=>$dataStates[x.toId()].meta.buff;
+$dddd$.forEach=x=>{
+	const meta=$dataStates[x.toId()].meta;
+	return meta.buff||meta.persist;
+};
 $pppp$.stpRate=function(){
 	return this.stp/this.maxStp()||0;
 };
@@ -6341,6 +6367,17 @@ Object.defineProperties($aaaa$.prototype, {
 	z2:{
 		get:function(){return isNone(this._z2)?3:this._z2;},
 	},
+	viewRadius:{
+		get:function(){ return this._viewRadius; },
+		set:function(rhs){
+			this._viewRadius_buf=rhs+Game_Map.e;
+			return this._viewRadius=rhs;
+		},
+	},
+	viewRadius_buf:{
+		get:function(){ return this._viewRadius_buf; },
+		set:none,
+	},
 });
 $rrrr$=$pppp$.initialize;
 $dddd$=$pppp$.initialize=function f(){
@@ -6348,6 +6385,7 @@ $dddd$=$pppp$.initialize=function f(){
 	this.maxSavefiles=DataManager.maxSavefiles();
 	this._rndid=Date.now()+''+Math.random();
 	if(this.canDiag===undefined) this.canDiag=true;
+	this.viewRadius=Game_Map.e*3;
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.isTransparent;
 $dddd$=$pppp$.isTransparent=function f(){
@@ -6790,7 +6828,7 @@ $pppp$.addOnlineSaveId=function(id){
 	if(ids!=='') ids+=',';
 	ids+=JSON.stringify(data);
 };
-$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
+$rrrr$=$dddd$=$pppp$=$aaaa$=undef; // END player
 
 // - party
 $aaaa$=Game_Party; // member , item , gain , complete , others

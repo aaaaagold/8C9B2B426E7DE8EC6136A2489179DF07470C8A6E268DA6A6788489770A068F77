@@ -1805,7 +1805,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
 		{ // cache?
 			let im=ImageManager;
-			let urlWithoutArgs=im._trimColorArg(im._trimScaleArg(im._trimRndArg(url)));
+			let urlWithoutArgs=im._trimMetaArgs(url);
 			if(urlWithoutArgs!==url){
 				const newOnload=(bm)=>{
 					this._image=bm._image_ori||bm._image;
