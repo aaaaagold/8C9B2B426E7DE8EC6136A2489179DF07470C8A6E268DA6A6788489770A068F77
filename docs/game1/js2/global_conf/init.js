@@ -553,6 +553,20 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		return n?(( this.valueOf()>>n )&( ( (0xFFFFFFFF<<(bitlen-n))^(~0) ) )):this.valueOf();
 	};
 	
+	
+	Object.defineProperties(w.Set.prototype,{
+		0: {
+			get:function(){
+				if(this.keys) return this.keys().next().value;
+				else{
+					let init=1;
+					let rtv;
+					this.forEach(x=>{ if(init){ rtv=x; init=0; } });
+					return rtv;
+				}
+			},
+		configurable: false},
+	});
 	w.Set.prototype.push=w.Set.prototype.add;
 	w.Set.prototype.contains=w.Set.prototype.has;
 	w.Set.prototype.intersect=function(set2){

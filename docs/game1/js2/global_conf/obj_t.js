@@ -3785,7 +3785,7 @@ $pppp$.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 	while(h.length){ callback(h.top[1]); h.pop(); }
 };
 $pppp$.xy2idx=function(x,y,lv=0){
-	return this.isValid(x,y) && $dataMap ? x+$gameMap.width()*y+lv*this.size : undefined;
+	return $dataMap && this.isValid(x,y) ? x+$gameMap.width()*y+lv*this.size : undefined;
 };
 $pppp$.getAllTileByRef=function(r){
 	return this.getAllTileByPos(r.x,r.y);
@@ -7951,6 +7951,13 @@ $dddd$=$pppp$.refresh=function f(){
 	this.forEach(f.forEach, this);
 };
 $dddd$.forEach=flwr=>flwr.refresh();
+$pppp$.getFlrAtTblIdx=function(idx){
+	if(!$gameMap||!$gameTemp._flrs_coord) return [];
+	return $gameTemp._flrs_coord[idx];
+};
+$pppp$.getFlrAt=function(x,y){
+	return this.getFlrAtTblIdx($gameMap.xy2idx(x,y));
+};
 $pppp$.updateMove_1=function(c,t){
 	let sx,sy;
 	if($gameTemp.LH){
@@ -8135,6 +8142,7 @@ this.refresh=none;
 	this._strtByAny=!!meta.strtByAny;
 	this._nu=(meta.noUpdate)?1:0;
 	this._ps=(meta.passSelf)?1:0;
+	this._tf=(meta.triggerFollower)?1:0;
 	this._itrpQ=0;
 	this._itrp2=0;
 	// moving
@@ -8240,6 +8248,24 @@ $dddd$=$pppp$.isCollidedWithEvents=function f(posx,posy){
 	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
+$pppp$.turnTowardStartee=function(){
+	const m=this._tmp&&this._tmp._strtMeta;
+	if(m){
+		let c;
+		if(m.btlr) c=$gamePlayer._followers.follower(m.flrIdx);
+		else if(m.startBy) c=$gameMap._events[m.startBy];
+		this._tmp._strtMeta=undefined;
+		if(c) return this.turnTowardCharacter(c);
+	}
+	this.turnTowardPlayer();
+};
+$pppp$.lock=function(){
+	if(!this._locked){
+		this._prelockDirection = this.direction();
+		this.turnTowardStartee();
+		this._locked = true;
+	}
+};
 $pppp$._deleteOldDataMember=function(){
 	if(this._evtid===undefined){
 		const evtid=this._eventId;
@@ -8375,6 +8401,10 @@ Object.defineProperties($aaaa$.prototype,{
 		get:function(){ return this._aa; },
 		set:function(rhs){ return this._aa=rhs; },
 	configurable:false},
+	_triggerFollower:{
+		get:function(){ return this._tf; },
+		set:function(rhs){ return this._tf=rhs; },
+	configurable:false},
 });
 $pppp$.queuePush=function(qidx,data){ qidx^=0;
 	if(!this._queues[qidx]) this._queues[qidx]=new Queue();
@@ -8417,26 +8447,29 @@ $rrrr$=$pppp$.moveStraight;
 $dddd$=$pppp$.moveStraight=function f(d){ // .strtByAny
 	f.ori.call(this,d);
 	if(!this.isMovementSucceeded()) return; // handled by this.checkEventTriggerTouch
-	let strtMeta={startBy:this._eventId},strtByAny=$dataMap.coordTbl_strtByAny[this.xy2idx()];
+	const idx=this.xy2idx();
+	let strtMeta={startBy:this._eventId},strtByAny=$dataMap.coordTbl_strtByAny[idx];
 	if(strtByAny) strtByAny.forEach(evt=>!evt._starting&&!evt.strtByAny_skips.has(this._eventId)&&evt.start(undefined,strtMeta)); // 'if' for preventing myself moving an evt out of the map
+	if( this._triggerFollower && this._trigger === 2 && $gamePlayer.xy2idx()!==idx ){
+		const flr=$gamePlayer._followers.getFlrAtTblIdx(idx)[0];
+		if( flr && !this.isJumping() && this.isNormalPriority() ) return this.start(undefined,{btlr:flr.actor()._actorId,flrIdx:flr._memberIndex-1});
+	}
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.checkEventTriggerTouch;
 $dddd$=$pppp$.checkEventTriggerTouch=function f(x,y){ // .strtByAny
+	// see also Game_Event.prototype.moveStraight
 	//debug.log('Game_Event.prototype.checkEventTriggerTouch');
-	if(this.x===x&&this.y===y){
-		let strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)]; // for _pri===0
-		if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
-			let strtMeta={startBy:this._eventId};
-			strtByAny.forEach(evt=>!evt._starting&&!evt.strtByAny_skips.has(this._eventId)&&evt.start(undefined,strtMeta));
-			return;
-		}
-	}else if($gameMap.isValid(x,y)){
-		let strtByAny=$dataMap.coordTbl_strtByAny_P1[$gameMap.xy2idx(x,y)]; // for _pri===0
-		if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
-			let strtMeta={startBy:this._eventId};
-			strtByAny.forEach(evt=>!evt._starting&&!evt.strtByAny_skips.has(this._eventId)&&evt.start(undefined,strtMeta));
-			return;
-		}
+	let strtByAny;
+	if(this.x===x&&this.y===y) strtByAny=$dataMap.coordTbl_strtByAny[$gameMap.xy2idx(x,y)]; // for _pri===0
+	else if($gameMap.isValid(x,y)) strtByAny=$dataMap.coordTbl_strtByAny_P1[$gameMap.xy2idx(x,y)]; // for _pri===1
+	if(strtByAny && strtByAny.length){ // evt triggers front @ border -> out of map -> undef
+		let strtMeta={startBy:this._eventId};
+		strtByAny.forEach(evt=>!evt._starting&&!evt.strtByAny_skips.has(this._eventId)&&evt.start(undefined,strtMeta));
+		return;
+	}
+	if( this._triggerFollower && this._trigger === 2 ){
+		const flr=$gamePlayer._followers.getFlrAt(x,y)[0];
+		if( flr && !this.isJumping() && this.isNormalPriority() ) return this.start(undefined,{btlr:flr.actor()._actorId,flrIdx:flr._memberIndex-1});
 	}
 	f.ori.call(this,x,y);
 }; $dddd$.ori=$rrrr$;
@@ -8579,6 +8612,7 @@ $dddd$=$pppp$.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.str
 		}
 	}
 	let notStrt=!this._starting;
+	if(this._tmp) this._tmp._strtMeta=strtMeta;
 	f.ori.call(this);
 	if(!this._starting ^notStrt){
 		++this._addedCnt_strtEvts;

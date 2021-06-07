@@ -1863,7 +1863,8 @@ $aaaa$=Window_Message2;
 window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Message.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.processNewLine=function(){
+$aaaa$.prototype.processNewLine=function(textState){
+	++textState.index;
 	this._newLineWarning=true;
 };
 $aaaa$.prototype.numVisibleRows=function(){
