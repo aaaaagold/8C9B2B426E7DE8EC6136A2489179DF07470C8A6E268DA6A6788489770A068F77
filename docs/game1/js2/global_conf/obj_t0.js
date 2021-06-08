@@ -1202,7 +1202,7 @@ $aaaa$.playVideo=function(src) {
 	this._videoLoader = ResourceHandler.createLoader('video',null, this._playVideo.bind(this, src), this._onVideoError.bind(this));
 	this._playVideo(src);
 };
-$aaaa$.blurBorder=function f(stage){
+$dddd$=$aaaa$.blurBorder=function f(stage){
 	// light weight: 1/4 width , 1/4 height. and that's the limit
 	const c=this._canvas;//,ctx=c.getContext('2d');
 	const w=c.width>>2,h=c.height>>2;
@@ -1217,10 +1217,10 @@ $aaaa$.blurBorder=function f(stage){
 		gc2.height=h;
 		gc2.style.filter="blur("+((crn>>1)-1)+"px)";
 	}
+	if(!stage.isBlurBorder()) return gc2.style.display="none";
 	if(gc2.style.width!==c.style.width) gc2.style.width=c.style.width;
 	if(gc2.style.height!==c.style.height) gc2.style.height=c.style.height;
 	
-	if(!f.template) f.template=d.ce('canvas');
 	const t=f.template;
 	if(t.width!==w||t.height!==h){
 		if(t.width!==w)   gc2.width=t.width=w;
@@ -1233,15 +1233,17 @@ $aaaa$.blurBorder=function f(stage){
 		ctx.fillRect( crnw , h-crnh , w-crnw , crnh );
 		ctx.fillRect( 0 , crnh , crnw , h-crnh );
 	}
-	if(stage.isBlurBorder()){
-		if(gc2.style.display==="none") gc2.style.display="";
-		const ctx2=gc2.getContext('2d');
-		ctx2.globalCompositeOperation="source-over";
-		ctx2.drawImage(f.template,0,0);
-		ctx2.globalCompositeOperation="source-atop";
-		ctx2.drawImage(c,0,0,w,h);
-	}else gc2.style.display="none";
+	
+	const ctx2=gc2.getContext('2d');
+	ctx2.globalCompositeOperation="source-over";
+	ctx2.drawImage(f.template,0,0);
+	ctx2.globalCompositeOperation="source-atop";
+	ctx2.drawImage(c,0,0,w,h);
+	
+	if(gc2.style.display==="none") gc2.style.display="";
 };
+$dddd$.template=d.ce('canvas');
+$dddd$.gc2=undefined;
 $aaaa$.render=function f(stage){
 	if(0<this._skipCount) this._skipCount^=0;
 	else this._skipCount&=0;
@@ -2236,14 +2238,20 @@ $aaaa$.prototype.maxPictures=()=>3;
 
 // - action
 $aaaa$=Game_Action;
+$aaaa$.TARGET_ENUM_MAX=12;
+$aaaa$.TARGET_ENUM_forAllFriends=12; // item,skill: meta.forAllFriends
 $dddd$=$aaaa$.prototype.isForOpponent=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([1, 2, 3, 4, 5, 6]);
+$dddd$=$aaaa$.prototype.isForAllFriend=function f(){
+	return this.item().scope===f.tbl;
+};
+$dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriends;
 $dddd$=$aaaa$.prototype.isForFriend=function f(){
 	return this.checkItemScope(f.tbl);
-}; 
-$dddd$.tbl=new Set([7, 8, 9, 10, 11]);
+};
+$dddd$.tbl=new Set([7, 8, 9, 10, 11, $aaaa$.TARGET_ENUM_forAllFriends]);
 $dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
@@ -2263,7 +2271,7 @@ $dddd$.tbl=new Set([3, 4, 5, 6]);
 $dddd$=$aaaa$.prototype.isForAll=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([2, 8, 10]);
+$dddd$.tbl=new Set([2, 8, 10, $aaaa$.TARGET_ENUM_forAllFriends]);
 $dddd$=$aaaa$.prototype.isHpEffect=function f(){
 	return this.checkDamageType(f.tbl);
 };

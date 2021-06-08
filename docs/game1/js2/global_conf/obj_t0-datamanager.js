@@ -842,7 +842,7 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 		let arr=tmp._followers._data;
 		tmp._followers._data=[];
 		arr.length=content.party._acs.length-1;
-		for(let x=0;x!==arr.length;++x) tmp._followers.addFollower(arr[x]);
+		for(let x=0;x!==arr.length;++x) tmp._followers.addFollower(arr[x],true);
 	}
 	// - actors
 	tmp=content.actors;

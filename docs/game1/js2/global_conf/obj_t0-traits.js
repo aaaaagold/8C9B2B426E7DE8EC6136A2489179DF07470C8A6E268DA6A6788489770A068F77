@@ -1,6 +1,7 @@
 ﻿"use strict";
 // after rpg_*
 // traits && custom traits
+// any edit database @ runtime
 
 // - boot
 $aaaa$=Scene_Boot;
@@ -291,6 +292,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	$dataStates.slice($dataStates.arrangeStart||1).forEach(f.makeMaxStack); // TODO
 	$dataWeapons.slice($dataWeapons.arrangeStart||1).forEach(f.makeMaxStack);
 	
+	// forAllFriends
+	$dataItems.slice($dataItems.arrangeStart||1).forEach(f.makeForAllFriends);
+	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(f.makeForAllFriends);
+	
 	// **** recursive def (_*) ****
 	$dataSkills.slice($dataSkills.arrangeStart||1).forEach(x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -315,6 +320,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		//if(!x.tmapP) x.tmapP=new Map(); // ???
 	});
 };
+$dddd$.makeForAllFriends=dataobj=>dataobj.meta.forAllFriends&&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriends);
 $dddd$.makeMaxStack=dataobj=>{
 	const m=Number(dataobj.meta.maxStack);
 	dataobj.maxStack=m>=0?m:undefined;

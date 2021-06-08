@@ -5520,6 +5520,7 @@ $dddd$=$pppp$.getData=function f(){
 };
 $dddd$.obj={};
 Object.defineProperty($dddd$.obj,'meta',{get:none,set:none,configurable:false});
+$pppp$.getActor=none;
 $rrrr$=$pppp$.initialize;
 $dddd$=$pppp$.initialize=function f(){
 	f.ori.call(this);
@@ -7826,9 +7827,10 @@ $aaaa$=Game_Follower;
 $pppp$=$aaaa$.prototype;
 $rrrr$=$pppp$.getData;
 $dddd$=$pppp$.getData=function f(){
-	let actor=this.actor();
+	const actor=this.actor();
 	return actor?actor.getData():f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$pppp$.getActor=function(){ return this.actor(); };
 $pppp$.resetWalkAni=function(){
 	this._stopCount=0;
 	if(!this._tmp) this._tmp=[];
@@ -7857,18 +7859,45 @@ $dddd$=$pppp$.initialize=function f(idx){
 	// special settings:
 	//this.resetWalkAni();
 	//this.updateAppearance(); // done @setFollowers
+	this._dir2=0; // propergate dir when dirfx
 }; $dddd$.ori=$rrrr$;
+$pppp$.refresh=function(){
+	if(this.isVisible()){
+		const a=this.actor();
+		let dead;
+		if(this._tmp&&(
+			this._tmp._lastActor!==a||
+			((dead=a.isDeathStateAffected())!==this._tmp._lastActorDead)
+		)){
+			this._tmp._lastActor=a;
+			if(!dead && this._tmp._lastActorDead!==dead) this._direction=this._dir2;
+			this._tmp._lastActorDead=dead;
+			let dmgimg;
+			if(dead && (dmgimg=a.getData().dmgimg)){
+				this._dirfx=1;
+				this.setImage(dmgimg[0],dmgimg[1]);
+				this._direction=(dmgimg[2]+1)<<1;
+			}else{
+				this._dirfx=0;
+				this.setImage(a.characterName(), a.characterIndex());
+			}
+		}
+	}else{
+		this._dirfx=0;
+		this.setImage('', 0);
+	}
+};
 $pppp$.setWalkAnime=function(wa){ // ori: chrB
 	this._walkAnime = this._tmp.wa&&wa;
 };
 $pppp$.actor=function(){ // btlr -> all
 	return $gameParty.allMembers()[this._memberIndex];
 };
-$pppp$.setFollowers=function(flrs){
+$pppp$.setFollowers=function(flrs,fromLoad){
 	if(!this._tmp) this._tmp=[];
 	if(this._tmp._followers=flrs){
 		this.resetWalkAni();
-		this.updateAppearance();
+		if(!fromLoad) this.updateAppearance();
 	}
 };
 $rrrr$=$pppp$.locate;
@@ -7890,6 +7919,10 @@ $dddd$.h1=[6,0,4];
 $dddd$.v1=[2,0,8];
 $pppp$.update = function() {
 	Game_Character.prototype.update.call(this);
+	if(this._tmp&&this._tmp._lastActor&&this._tmp._lastActor.isDeathStateAffected()!==this._tmp._lastActorDead){
+		// change actor will be refreshed from $gameParty's function
+		this.refresh();
+	}
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
@@ -7921,8 +7954,8 @@ $pppp$.initialize = function() {
 	//this.clearTbl();
 	//for(let i=1,ie=objs.$gameParty.maxBattleMembers();i<ie;++i) this.addFollower(new Game_Follower(i));
 };
-$pppp$.addFollower=function(fo){
-	fo.setFollowers(this);
+$pppp$.addFollower=function(fo,fromLoad){
+	fo.setFollowers(this,fromLoad);
 	this._data.push(fo);
 	this.updateTbl(fo);
 };
@@ -7981,7 +8014,10 @@ $pppp$.updateMove_1=function(c,t){
 	c.setPosition(sx,sy); // used for looped map
 	c._x=t.x;
 	c._y=t.y;
-	c._direction=t._direction;
+	{ const dir=t._dirfx?t._dir2:t._direction;
+	if(!c._dirfx) c._direction=dir;
+	c._dir2=dir;
+	}
 	this.updateTbl(c);
 	c.increaseSteps();
 };
@@ -8057,6 +8093,20 @@ $pppp$=$aaaa$.prototype;
 $pppp$.getData=function(){
 	return this.event();
 };
+$pppp$.getAvatarActor=function(){
+	if(this._actorAvatar) return $gameActors.actor(this._actorAvatar);
+};
+$pppp$.getPartyActor=function(){
+	const id=$gameParty._acs[this._player];
+	return id && $gameActors.actor(id);
+};
+$pppp$.getRefActor=function(){
+	const id=this.getData().meta.refActor;
+	return id && $gameActors.actor(id);
+};
+$pppp$.getActor=function(){
+	return this.getAvatarActor()||this.getPartyActor(); // others can use 'pages' to do dmg
+};
 Object.defineProperties($aaaa$.prototype,{
 	z2:{
 		get:function(){
@@ -8129,7 +8179,7 @@ this.refresh=none;
 		let tmp=Number(meta.animationCount);
 		if(0<tmp) this._animationCount=tmp; // is light src if > 0
 	}
-	this._asPlayer=0; // as player
+	this._asPlayer=0; // as player collision others
 	// style
 	this._dmg=(meta.damaged)?1:0;
 	this._plyr=-1;
@@ -8157,6 +8207,7 @@ this.refresh=none;
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
 	// as
 	this._aa=undefined;
+	this._ref_mvr=0;
 	
 	let x=this._x,y=this._y; // will be used later
 	
@@ -8475,13 +8526,19 @@ $dddd$=$pppp$.checkEventTriggerTouch=function f(x,y){ // .strtByAny
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.update;
 $dddd$=$pppp$.update=function f(){
-	if(this._player>=0){
-		const a=$gameActors.actor($gameParty._acs[this._player]);
-		if(a){
+	//if(this._player>=0)
+	{
+		const a=this.getActor();
+		//const a=$gameActors.actor($gameParty._acs[this._player]);
+		if(a&&(this._tmp&&(
+			this._tmp._lastActor!==a ||
+			this._tmp._lastActorDead!==this._dmg
+		))){
+			this._tmp._lastActor=a;
 			this._color=a._getColorEdt();
 			this._scale=a._getScaleEdt();
 			let dmgimg;
-			if(this._dmg && (dmgimg=a.getData().dmgimg)){
+			if((this._tmp._lastActorDead=this._dmg) && (dmgimg=a.getData().dmgimg)){
 				if(this._dirfx_bak===undefined) this._dirfx_bak=this._dirfx;
 				this._ref_chrIdx=a._characterIndex;
 				this._ref_chrName=a._characterName;
@@ -8497,7 +8554,7 @@ $dddd$=$pppp$.update=function f(){
 					delete this._dirfx_bak;
 				}
 			}
-		}else this._characterName='';
+		}//else this._characterName='';
 	}
 	if(this.canUpdate()) return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
@@ -8961,6 +9018,22 @@ $pppp$.setActorAvatar=function(actorId_or_actor,opt){
 	this._color=color;
 	this._scale=scale;
 	this._actorAvatar=a._actorId;
+	if(a.isDeathStateAffected()){
+		this._dmg=1;
+		if(!this._ref_mvr){
+			this._ref_mvr=this._moveRoute;
+			this._ref_mvi=this._moveRouteIndex;
+			this._moveRoute=0;
+			this._moveRouteIndex=0;
+		}
+	}else{
+		this._dmg=0;
+		if(this._ref_mvr){
+			this._moveRoute=this._ref_mvr;
+			this._moveRouteIndex=this._ref_mvi;
+			this._ref_mvr=0;
+		}
+	}
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef; // END Game_Event
 
@@ -9124,6 +9197,9 @@ $pppp$.decideRandomTarget=function(){
 	case 11: // this.isForFriend
 		target = this.friendsUnit().randomTarget();
 	break;
+	case 12: // this.isForAllFriend
+		target = this.friendsUnit().members().rnd();
+	break;
 	default: // otherwise
 		target = this.opponentsUnit().randomTarget();
 	}
@@ -9196,59 +9272,40 @@ $pppp$.makeTargets = function() {
 	case 8:
 	case 9:
 	case 10:
-	case 11: // this.isForFriend
+	case 11:
+	case 12: // this.isForFriend
 		targets = this.targetsForFriends();
 	break;
 	}
 	return this.repeatTargets(targets||[]);
 };
-$pppp$.targetsForOpponents=function(){
-	const targets = [];
+$pppp$.targetsForOpponents=function(){ // scope: [1..6]
 	const unit = this.opponentsUnit();
 	switch(this.item().scope){
+	case 1: return [ this._targetIndex<0 ? unit.randomTarget() : unit.smoothTarget(this._targetIndex) ] ; // this.isForOne
+	case 2: return unit.aliveMembers();
 	case 3:
 	case 4:
 	case 5:
-	case 6: // this.isForRandom
-		for(let i=0,sz=this.numTargets();i!==sz;++i) targets.push(unit.randomTarget());
-	break;
-	case 1:
-	case 7:
-	case 9:
-	case 11: // this.isForOne
-		if (this._targetIndex < 0) {
-			targets.push(unit.randomTarget());
-		} else {
-			targets.push(unit.smoothTarget(this._targetIndex));
-		}
-	break;
-	default: return unit.aliveMembers();
-	break;
+	case 6:{ // this.isForRandom
+		const rtv=[];
+		for(let i=0,sz=this.numTargets();i!==sz;++i) rtv.push(unit.randomTarget());
+		return rtv;
+	}break;
 	}
-	return targets;
+	return [];
 };
-$pppp$.targetsForFriends=function(){
-	const targets = [];
+$pppp$.targetsForFriends=function(){ // scope: [7..12]
 	const unit = this.friendsUnit();
 	switch(this.item().scope){
-	case 11: // this.isForUser
-		targets.push(this.subject());
-	break;
-	case 9:
-	case 10: // this.isForDeadFriend
-		if(this.isForOne()) targets.push(unit.smoothDeadTarget(this._targetIndex));
-		else return unit.deadMembers();
-	break;
-	case 1:
-	case 3:
-	case 7: // isForOne
-		targets.push((this._targetIndex < 0)?unit.randomTarget():unit.smoothTarget(this._targetIndex));
-	break;
-	default: // otherwise
-		return unit.aliveMembers();
-	break;
+	case  7: return [ (this._targetIndex < 0) ? unit.randomTarget() : unit.smoothTarget(this._targetIndex) ]; // isForFriend (1)
+	case  8: return unit.aliveMembers(); // isForFriend (all)
+	case  9: return [unit.smoothDeadTarget(this._targetIndex)]; // this.isForDeadFriend (1)
+	case 10: return unit.deadMembers(); // this.isForDeadFriend (all)
+	case 11: return [this.subject()]; // this.isForUser
+	case 12: return unit.members(); // this.isForAllFriends
 	}
-	return targets;
+	return [];
 };
 $pppp$.itemTargetCandidates = function() {
 	if(!this.isValid()) return [];
@@ -9261,12 +9318,15 @@ $pppp$.itemTargetCandidates = function() {
 	case 6: // this.isForOpponent
 		return this.opponentsUnit().aliveMembers();
 	break;
-	case 11: // this.isForUser
-		return [this.subject()];
-	break;
 	case 9:
 	case 10:
 		return this.friendsUnit().deadMembers();
+	break;
+	case 11: // this.isForUser
+		return [this.subject()];
+	break;
+	case 12: // this.isForAllFriends
+		return this.friendsUnit().members();
 	break;
 	default:
 		return this.friendsUnit().aliveMembers();
@@ -9279,7 +9339,16 @@ $dddd$=$pppp$.testApply=function f(target){
 	const meta=this.item().meta;
 	const filter=meta.filter;
 	if(filter) return objs._getObj(filter)(target,this.subject());
-	return (meta.stomach && target.stp!==undefined && target.stp<target.mstp)||f.ori.call(this,target);
+	return (
+		( this.isForAllFriend() || this.isForDeadFriend() === target.isDead() ) &&
+		(
+			(meta.stomach && target.stp!==undefined && target.stp<target.mstp) || // inline stp cond.
+			$gameParty.inBattle() || this.isForOpponent() ||
+			(this.isHpRecover() && target.hp < target.mhp) ||
+			(this.isMpRecover() && target.mp < target.mmp) ||
+			this.hasItemAnyValidEffects(target)
+		)
+	);
 }; $dddd$.ori=$rrrr$;
 $dddd$=$pppp$.testItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
