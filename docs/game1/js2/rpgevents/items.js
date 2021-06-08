@@ -62,6 +62,27 @@ list.manual=(action)=>{
 	txtarr.push("\n");
 	txtarr.push("\n");
 	
+	txtarr.push({txt:"HP: Health Point, 意即體力點數, HP為0的角色無法做任何動作。\\key'\"全部隊友HP皆為0則遊戲結束\"'"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"MP: Mana Point, 意即魔力點數, 使用部分技能需要消耗數量不等的MP。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"TP: Technique Point, 意即技術點數, 使用部分技能需要消耗數量不等的TP。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	if(objs&&objs.confs&&objs.confs.useStp){
+		txtarr.push({txt:"STP: STomach Point, 意即肚子點數, 最大值是 1000"});
+		txtarr.push("\n");
+		txtarr.push({txt:$dataCustom.cstp+" = 0 代表你快餓死了, 該角色所有基礎能力值將剩下 10% ，裝備、狀態等加成則不變。"});
+		txtarr.push("\n");
+		txtarr.push({txt:$dataCustom.cstp+" = 0 時睡覺, "+$dataCustom.cstp+"會變成1"});
+		txtarr.push("\n");
+		txtarr.push({txt:"使用某些物品會影響 "+$dataCustom.cstp});
+		txtarr.push("\n");
+		txtarr.push({txt:"戰鬥時除了使用\\key'$dataCustom.spaceout'以外，每次行動會消耗 "+$dataCustom.cstp+" 1"});
+	}
+	
 	switch(DataManager.getTitle()){
 	case "燒毀":{
 		txtarr.push({txt:"焚木技巧:"});
@@ -73,15 +94,6 @@ list.manual=(action)=>{
 		}
 	}break;
 	case "如果我有一座新冰箱":{
-		txtarr.push({txt:"STP: STomach Point, 意即肚子點數, 最大值是 1000"});
-		txtarr.push("\n");
-		txtarr.push({txt:$dataCustom.cstp+" = 0 代表你快餓死了, 該角色所有基礎能力值將剩下 10% ，裝備、狀態等加成不受影響。"});
-		txtarr.push("\n");
-		txtarr.push({txt:$dataCustom.cstp+" = 0 時睡覺, "+$dataCustom.cstp+"會變成1"});
-		txtarr.push("\n");
-		txtarr.push({txt:"使用某些物品會影響 "+$dataCustom.cstp});
-		txtarr.push("\n");
-		txtarr.push({txt:"戰鬥時除了使用\\key'$dataCustom.spaceout'以外，每次行動會消耗 "+$dataCustom.cstp+" 1"});
 	}break;
 	}
 	let w=new Window_CustomTextBoard(txtarr);
