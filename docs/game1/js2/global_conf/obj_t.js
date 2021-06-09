@@ -308,7 +308,7 @@ $pppp$.isInView_inScreen=function(){
 	return parseInt(/)===1 &&
 		parseInt(/)===1
 // */
-	return parseInt((this.x+Graphics._boxWidth_pad6)/Graphics._boxWidth_pad4)===1&&parseInt((this.y+Graphics._boxHeight_pad5)/Graphics._boxHeight_pad4)===1;
+	return (~~((this.x+Graphics._boxWidth_pad6)/Graphics._boxWidth_pad4))===1 && (~~((this.y+Graphics._boxHeight_pad5)/Graphics._boxHeight_pad4))===1;
 };
 $pppp$.isInView=function(){ // can view?
 	if($gameScreen.limitedView && !this._character._light){
@@ -416,7 +416,7 @@ $dddd$=$pppp$.updateCharacterFrame=function f(){ // add on chair facing up
 	//debug.log('Sprite_Character.prototype.updateCharacterFrame');
 	if(this._characterName){ // not tiles
 		let c=this._character;
-		if(c===$gamePlayer||c.page && c.page().image.hasFaceImg){ // has walking frames
+		if(c===$gamePlayer||c._pageIndex>=0 && c.page().image.hasFaceImg){ // has walking frames
 			if(c._direction===8 && $gameMap.isChair(c._realX,c._realY)){
 				let lastX=this._last_realX , lastY=this._last_realY;
 				this._last_realX=c._realX; this._last_realY=c._realY;
@@ -981,6 +981,17 @@ $pppp$.updateAnimation=function(){ // ...
     this.opacity = (this._frameCount^0xF)<<3;
     this.scale.x = this._frameCount / 16 + 1;
     this.scale.y = this.scale.x;
+};
+// - Spriteset_Base
+$aaaa$=Spriteset_Base;
+$pppp$=$aaaa$.prototype;
+$pppp$.updateCanvasToneChanger=function(){
+	const t=this._tone;
+	if(_global_conf.useCanvasSatur) return this._toneSprite.setTone(t[0], t[1], t[2], t[3]);
+	const satur=SceneManager._scene._cssSatur=((255-t[3])/256);
+	const c=d.ge("GameCanvas") , css=c&&c.style;
+	if(css) css.filter=t[3]>0?"saturate("+ satur +")":"";
+	this._toneSprite.setTone(t[0], t[1], t[2], 0);
 };
 // - Spriteset_Map
 $aaaa$=Spriteset_Map;
@@ -1668,6 +1679,11 @@ $dddd$=$pppp$.detachReservation=function f(){
 	let wl=this._windowLayer; if(wl) wl.destructor();
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
+$pppp$.terminate=function(){
+	const t=$gameScreen.tone() , satur=(255-t[3])/256;
+	const c=d.ge("GameCanvas") , css=c&&c.style;
+	if(css) css.filter=t[3]>0?"saturate("+ satur +")":"";
+};
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - boot
@@ -2104,7 +2120,7 @@ $dddd$=$pppp$.create=function f(){
 		{ let tmp,w;
 			w=this._itemWindowHead;
 			tmp=w.standardFontSize();
-			w.fontSize=w.contents.fontSize=(tmp>>1)+(tmp>>2);
+			w.setFontsize((tmp>>1)+(tmp>>2));
 			w.height=w.fittingHeight(1);
 		}
 		iwh.width=iw.width=rw-slw.width;
@@ -2130,7 +2146,7 @@ $dddd$=$pppp$.create=function f(){
 		w.setFontsize((tmp>>1)+(tmp>>3));
 		{
 			const oh=w.height;
-			w.height=w.fittingHeight(3-!($gamePlayer&&$gamePlayer._showFullEquipInfo));
+			w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
 			const dh=w.height-oh;
 			this._statusWindow.y+=dh;
 			this._statusWindow.height-=dh;
@@ -2346,6 +2362,8 @@ $pppp$._edt=function f(){
 		$dataSystem.title1Name+="?color="+encodeURIComponent("[[4,"+burnLv+",0],["+burnLv+",44,0],[0,0,1]]");
 		$dataSystem.currencyUnit="B幣";
 	}break;
+	default:
+		useDefault=true;
 	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
 		$dataSystem. title1Name = "Fountain";
 		$dataSystem. gameTitle  = "做一堆遊戲都用同一份檔案，好省";
@@ -2354,8 +2372,6 @@ $pppp$._edt=function f(){
 		$dataSystem. titleBgm={name: "03_Lonely_Departure", pan: 0, pitch: 119, volume: 50};
 		$dataSystem.currencyUnit="D幣";
 	}break;
-	default:
-		useDefault=true;
 	case "0x780D88ACF70DF7B68290F99F4E4544C267562B3E8FCFD1D75DAC6842942575CF":{
 		$dataSystem. title1Name = "Volcano";
 		$dataSystem. gameTitle  = "拉起封鎖線";
@@ -2498,7 +2514,7 @@ $pppp$.addCustomCommands=function(){
 	const cw=this._commandWindow;
 	if(debug&&debug.isdebug()) cw.setHandler('customTitleCmd',  this.customTitleCommand.bind(this));
 	cw.setHandler('CLOSEGAME', ()=>{SceneManager.pause();d.body.rf(0);});
-	cw.setHandler('loadOnlineSave',   ()=>{SceneManager.push(Scene_LoadOnline );});
+//	cw.setHandler('loadOnlineSave',   ()=>{SceneManager.push(Scene_LoadOnline );});
 	cw.setHandler('loadLocalSave',    ()=>{SceneManager.push(Scene_LoadLocal  );});
 	cw.setHandler('saveLocal',        SceneManager._savelocal );
 	cw.setHandler('usrSwitch_global', SceneManager._usrswitch );
@@ -2614,7 +2630,7 @@ $dddd$=$pppp$.addCustomCommands=function f(){
 	cmdw.setHandler('usrSwitch',  SceneManager._usrswitch  );
 	cmdw.setHandler('feedback',   SceneManager._feedback   );
 	cmdw.setHandler('saveLocal',  SceneManager._savelocal  );
-	cmdw.setHandler('saveOnline', SceneManager._saveonline );
+//	cmdw.setHandler('saveOnline', SceneManager._saveonline );
 };
 $dddd$.setCancel=(w,f)=>{w.setHandler('cancel');return w;};
 // - menu: V_I_M
@@ -3122,7 +3138,7 @@ $dddd$=$pppp$.create=function f(){
 	tmp=w.standardFontSize();
 	w.setFontsize((tmp>>1)+(tmp>>3));
 	tmp=w.height;
-	w.height=w.fittingHeight(3-!($gamePlayer&&$gamePlayer._showFullEquipInfo));
+	w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
 	// extend up(-y) following windows
 	tmp-=w.height;
 	w=this._goldWindow;
@@ -3669,6 +3685,8 @@ $pppp$.setZaWarudo=function(val){
 		delete this._zaWarudo_waits;
 	}
 };
+$pppp$.tileWidth_half=()=>24;
+$pppp$.tileHeight_half=()=>24;
 $pppp$.deltaX=function(x1, x2){
 	let result=x1-x2,w;
 	if(this.isLoopHorizontal() && (w=this.width())<(Math.abs(result)<<1)){
@@ -5647,12 +5665,12 @@ $pppp$.scrolledY_th=function() {
 };
 $pppp$.isNearTheScreen = function() {
 	const gw = Graphics.width , gh = Graphics.height;
-	const px = this.scrolledX_tw() + ($gameMap.tileWidth()>>1) - (gw>>1);
-	const py = this.scrolledY_th() + ($gameMap.tileHeight()>>1) - (gh>>1);
+	const px = this.scrolledX_tw() + ($gameMap.tileWidth_half ()) - (gw>>1);
+	const py = this.scrolledY_th() + ($gameMap.tileHeight_half()) - (gh>>1);
 	return px >= -gw && px <= gw && py >= -gh && py <= gh;
 };
 $pppp$.screenX=function() {
-	return this.scrolledX_tw()+($gameMap.tileWidth()>>1);
+	return this.scrolledX_tw()+($gameMap.tileWidth_half());
 };
 $pppp$.screenY=function() {
 	return (this._sy|0)+this.scrolledY_th()+$gameMap.tileHeight()-this.shiftY()-this.jumpHeight();
@@ -6202,7 +6220,8 @@ $aaaa$.addEnum("ROUTE_PLAY_PITCH",$dddd$.tbl,function(params){
 	AudioManager.playPitch_bgs(params[0]);
 	//AudioManager.playBgs({name:"hz440",volume:200,pitch:Math.pow(2,params[0]/12)*100});
 });
-gc.EMPTY_ROUTE={list:[{code:0},],repeat:false,skippable:false,wait:false,};
+const er=gc.EMPTY_ROUTE={list:[{code:0},],repeat:false,skippable:false,wait:false,};
+$pppp$.setEmptyMoveRoute=function(){ this.setMoveRoute(er); };
 } //
 $dddd$=$pppp$.playSheet=function f(arr){
 	if(!arr||!arr.length) return;
@@ -6845,10 +6864,10 @@ $pppp$.updateScroll_t=function(lastScrolledX_tw, lastScrolledY_th) {
 	}
 };
 $pppp$.centerX_tw = function() {
-	return Graphics.width-$gameMap.tileWidth() >> 1;
+	return Graphics.width- $gameMap.tileWidth () >>1;
 };
 $pppp$.centerY_th=function(){
-	return Graphics.height-$gameMap.tileHeight() >> 1;
+	return Graphics.height-$gameMap.tileHeight() >>1;
 };
 
 $rrrr$=$pppp$.gatherFollowers;
@@ -8532,8 +8551,11 @@ $pppp$._addToCoordTbl_1=function(tbl){
 };
 $rrrr$=$pppp$.isCollidedWithEvents;
 $dddd$=$pppp$.isCollidedWithEvents=function f(posx,posy){
-	let rtv=f.ori.call(this,posx,posy),id=this._eventId.toId();
-	if(rtv&&this.getData().meta.passSelf) rtv=$dataMap.coordTblNt[$gameMap.xy2idx(posx,posy)].some(evt=>evt._eventId.toId()!==id);
+	let rtv=f.ori.call(this,posx,posy);
+	if(rtv&&this.getData().meta.passSelf){
+		const id=this._eventId.toId();
+		rtv=$dataMap.coordTblNt[$gameMap.xy2idx(posx,posy)].some(evt=>evt._eventId.toId()!==id);
+	}
 	return rtv;
 }; $dddd$.ori=$rrrr$;
 $pppp$._deleteOldDataMember=function(){
@@ -8728,6 +8750,8 @@ $dddd$=$pppp$.update=function f(){
 			let dmgimg;
 			if(this._dmg && (dmgimg=a.getData().dmgimg)){
 				if(this._dirfx_bak===undefined) this._dirfx_bak=this._dirfx;
+				this._ref_chrIdx=a._characterIndex;
+				this._ref_chrName=a._characterName;
 				this._characterName  =dmgimg[0];
 				this._characterIndex =dmgimg[1];
 				this._direction=(dmgimg[2]+1)<<1;
@@ -9094,9 +9118,15 @@ $dddd$=$pppp$.setFace=function f(idx){
 		let s=this.getSprite();
 		if(s&&s._isBigCharacter) $gameMessage.setFaceImage(this._genFaceData(s),"data");
 		else{
-			if(idx===undefined) idx=this._characterIndex;
-			let ce=this._getColorEdt();
-			$gameMessage.setFaceImage(this._characterName+(ce?"?color="+encodeURIComponent(ce):""),idx);
+			const ce=this._getColorEdt();
+			if(this._dmg){
+				if(idx===undefined) idx=this._ref_chrIdx;
+				const n=this._ref_chrName;
+				if(n) $gameMessage.setFaceImage(n+(ce?"?color="+encodeURIComponent(ce):""),idx);
+			}else{
+				if(idx===undefined) idx=this._characterIndex;
+				$gameMessage.setFaceImage(this._characterName+(ce?"?color="+encodeURIComponent(ce):""),idx);
+			}
 		}
 	}
 };
@@ -11552,16 +11582,6 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - selectable
 $aaaa$=Window_Selectable;
 $pppp$=$aaaa$.prototype;
-Object.defineProperties($aaaa$.prototype,{
-	fontSize:{
-		get:function(){return this._fontSize;},
-		set:function(rhs){
-			this._fontSize=rhs;
-			this._lineHeight=(rhs>>2)+(rhs!==0)+rhs;
-			return rhs;
-		},
-	configurable:true},
-});
 $pppp$.lineHeight=function(){
 	return this.fontSize&&this._lineHeight||((Utils.isMobileDevice()*6)+36);
 };
@@ -12540,7 +12560,7 @@ $pppp$.addCustomCommands=function(){
 	this.addCommand(_global_conf.sep,'sep',false);
 	this.addCommand($dataCustom.saveLocal,         'saveLocal');
 	this.addCommand($dataCustom.fromLocalSave,     'loadLocalSave');
-	this.addCommand($dataCustom.fromOnlineSave,    'loadOnlineSave');
+//	this.addCommand($dataCustom.fromOnlineSave,    'loadOnlineSave');
 	this.addCommand(_global_conf.sep,'sep',false);
 	this.addCommand($dataCustom.feedback,          'feedback');
 	//this.addCommand(TextManager.testObjKey+":D",   'customTitleCmd'); // reserve this line for deleting 'TextManager.testObjKey' in the '.json' file
@@ -12565,7 +12585,7 @@ $dddd$=$pppp$.addSaveCommand=function f(){ // overwrite for efficiency
 		let enabled = this.isSaveEnabled();
 		this.addCommand(TextManager.save, 'save', enabled);
 		this.addCommand($dataCustom.saveLocal, 'saveLocal', enabled);
-		this.addCommand($dataCustom.saveOnline, 'saveOnline', enabled);
+	//	this.addCommand($dataCustom.saveOnline, 'saveOnline', enabled);
 	}
 }; $dddd$.ori=$rrrr$;
 $pppp$.addOnceCommand=function(){

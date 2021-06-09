@@ -183,7 +183,7 @@ Object.defineProperties(Tilemap.prototype,{
 		let fc_2=Number(rhs)^0;
 		if(0<fc_2){
 			this._fc_2=fc_2;
-			this._fc_2_msk=(1<<(fc_2+2))-1;
+			this._fc_2_msk=(1<<(fc_2+4))-1;
 		}
 		return rhs;
 	},configurable:false},
@@ -199,8 +199,10 @@ $dddd$=$pppp$.setData=function f(w,h,d){
 $rrrr$=$pppp$.update;
 $dddd$=$pppp$.update=function f(){ // forEach is slowwwwwwwwww
 	if(_global_conf.noAutotile) this.animationFrame=0^0;
-	else this.animationFrame = ~~(++this.animationCount>>this._fc_2); // always >=0
-	this.animationCount&=this._fc_2_msk;
+	else{
+		++this.animationCount;
+		this.animationFrame = ~~((this.animationCount&=this._fc_2_msk)>>this._fc_2); // always >=0
+	}
 	f.updateChildren.call(this);
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
 }; $dddd$.ori=$rrrr$;

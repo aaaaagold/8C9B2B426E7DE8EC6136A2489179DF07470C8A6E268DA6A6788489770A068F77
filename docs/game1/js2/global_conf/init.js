@@ -176,6 +176,12 @@ const debug=function f(){
 			obj[key].ori=r;
 			func_set(obj,key,true);
 		};
+		debug.testspeed=(f,r)=>{
+			const t0=performance.now();
+			for(let x=~~r;x-->0;) f();
+			const t1=performance.now();
+			return t1-t0;
+		};
 		if(arguments.length===0) return;
 	}
 	let stacksize=parseInt(geturlargs("debugsize")||64);
@@ -225,6 +231,52 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	w.HTMLElement.prototype.rm=function(){
 		if(this.parentNode) this.parentNode.removeChild(this);
 		return this;
+	};
+	w.HTMLCanvasElement.prototype.mirror_h=function(){
+		// return another canvas
+		let rtv=d.ce('canvas');
+		rtv.width=this.width;
+		rtv.height=this.height;
+		let ctx=rtv.getContext('2d');
+		ctx.scale(-1,1);
+		ctx.translate(-rtv.width,0);
+		ctx.drawImage(this,0,0);
+		return rtv;
+	};
+	w.HTMLCanvasElement.prototype.mirror_v=function(){
+		// return another canvas
+		let rtv=d.ce('canvas');
+		rtv.width=this.width;
+		rtv.height=this.height;
+		let ctx=rtv.getContext('2d');
+		ctx.scale(1,-1);
+		ctx.translate(0,-rtv.height);
+		ctx.drawImage(this,0,0);
+		return rtv;
+	};
+	w.HTMLCanvasElement.prototype.concat_h=function(rhs,shx,shy){
+		// this||rhs ; return another canvas
+		shx=shx||0;
+		shy=shy||0;
+		let rtv=d.ce('canvas');
+		rtv.width=this.width+rhs.width;
+		rtv.height=Math.max(this.height,rhs.height);
+		let ctx=rtv.getContext('2d');
+		ctx.drawImage(this,0,0,this.width,this.height);
+		ctx.drawImage(rhs,this.width+shx,shy,rhs.width,rhs.height);
+		return rtv;
+	};
+	w.HTMLCanvasElement.prototype.concat_v=function(rhs,shx,shy){
+		// this//rhs ; return another canvas
+		shx=shx||0;
+		shy=shy||0;
+		let rtv=d.ce('canvas');
+		rtv.width=Math.max(this.width,rhs.width);
+		rtv.height=this.height+rhs.height;
+		let ctx=rtv.getContext('2d');
+		ctx.drawImage(this,0,0,this.width,this.height);
+		ctx.drawImage(rhs,shx,this.height+shy,rhs.width,rhs.height);
+		return rtv;
 	};
 	w.HTMLCanvasElement.prototype.ptcp=function(x,y,w,h,resize){
 		// partial copy ; return another canvas

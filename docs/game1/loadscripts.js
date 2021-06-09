@@ -37,7 +37,7 @@ if(!jss)jss=[
 	":obj_t",
 	":obj_t2",
 	":strt",
-	":chainWithGAS",
+//	":chainWithGAS",
 //	"js/main.js",
 ];
 
@@ -95,7 +95,7 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		if(sha256&&sha256(location.hash)=== "0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
 		if(!f.wait_blk){
 			f.wait_blk=ce('div');
-			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候")) ));
+			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候 10 ~ 50 秒")) ));
 			f.wait_list={};
 			for(let x=0;x!==jss.length;++x){
 				let div=f.wait_list[jss[x]]=ac(sa(ce('div'),"class","msg"),tn(jss[x]));

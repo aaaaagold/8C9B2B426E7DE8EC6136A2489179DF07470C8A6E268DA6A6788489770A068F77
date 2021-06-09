@@ -92,7 +92,7 @@ objs.addExtModuleViaUrl=(url,forced,callback_onloaded)=>{
 	scr.onload=()=>{
 		scr.onload=null;
 		objs._mods.add(url);
-		if(f && f.contructor===Function) f();
+		if(f && f.constructor===Function) f();
 	};
 	if(objs.addScriptViaSrc) objs.addScriptViaSrc(scr,url);
 	else d.body.ac(scr.sa('src',url));

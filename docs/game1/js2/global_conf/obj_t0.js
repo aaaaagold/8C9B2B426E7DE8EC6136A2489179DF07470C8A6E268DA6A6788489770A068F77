@@ -1277,17 +1277,19 @@ $dddd$=$aaaa$.prototype.initialize=function f(w,h){
 	this._loadListeners=new Queue();
 	this.fontFace=_global_conf.useFont;
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.load;
-$dddd$=$aaaa$.load=function f(url,key,type){
+$aaaa$.load=function f(url,key,type){
 	if(url==="data:,") return ImageManager.loadEmptyBitmap();
-	//let rtv=f.ori.call(this,url);
+	//let sharp=url.indexOf("#");
 	let idx=url.indexOf("?"),args;
+	//if(sharp===-1) sharp=url.length;
+	//else if(sharp<idx) idx=-1;
 	if(idx!==-1){
-		let arr=url.slice(idx+1).split("&");
+		const arr=url.slice(idx+1).split("&");
+		//const arr=url.slice(idx+1,sharp).split("&");
 		args={};
 		for(let x=0;x!==arr.length;++x){
-			let s=arr[x]; if(s.length===0) continue;
-			let tmp=s.split('=');
+			const s=arr[x]; if(s.length===0) continue;
+			const tmp=s.split('=');
 			args[decodeURIComponent(tmp[0])]=tmp[1]===undefined?true:decodeURIComponent(tmp[1]);
 		}
 	}
@@ -1304,7 +1306,7 @@ $dddd$=$aaaa$.load=function f(url,key,type){
 	
 	rtv._cacheKey=key;
 	return rtv;
-}; $dddd$.ori=$rrrr$;
+};
 Object.defineProperty(Bitmap.prototype, 'paintOpacity',{
 	get: function(){ return this._paintOpacity; },
 	set: function(value){
@@ -1521,18 +1523,17 @@ $aaaa$.prototype._createCanvas=function(width, height){
 	let min=Graphics.isWebGL()>>0; // !! using >>> cause lag
 //	// must >=1 else shadertilemap crash
 //	let min=1; // much slower than 0 when canvas mode
-	this.__canvas.width = width>>0||min;
-	this.__canvas.height = height>>0||min;
 	if(this._image){
-		let w = this._image.width>>0||min;
-		let h = this._image.height>>0||min;
-		this.__canvas.width = w;
-		this.__canvas.height = h;
+		this.__canvas.width = this._image.width>>0||min;
+		this.__canvas.height = this._image.height>>0||min;
 		
 		min&=this._editAccordingToArgs();
 		this._createBaseTexture(this._canvas); // 'this._canvas': img->canvas
 		
 		this.__context.drawImage(this._image, 0, 0);
+	}else{
+		this.__canvas.width = width>>0||min;
+		this.__canvas.height = height>>0||min;
 	}
 	this._setDirty();
 };
@@ -1595,7 +1596,7 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		this._loader = ResourceHandler.createLoader('img',url, this._requestImage.bind(this), this._onError.bind(this));
 	}
 	
-		this._image = new Image();
+		//this._image = new Image();
 		this._url = url;
 	if(!Decrypter.checkImgIgnore(url) && Decrypter.hasEncryptedImages) {
 		this._loadingState = 'decrypting';
@@ -1684,18 +1685,15 @@ $rrrr$=$dddd$=$aaaa$=undef;
 $aaaa$=ToneSprite;
 $dddd$=$aaaa$.prototype._renderCanvas = function f(renderer) { // rewrite: wtf the original one draws 3 times when negtive color values only
 	if (this.visible) {
-		let ctx = renderer.context;
-		let width = Graphics.width;
-		let height = Graphics.height;
+		const ctx = renderer.context , width = Graphics.width , height = Graphics.height;
 		ctx.save();
 		{
-			let t = this.worldTransform;
-			let r = renderer.resolution;
+			const t = this.worldTransform , r = renderer.resolution;
 			ctx.setTransform(t.a, t.b, t.c, t.d, t.tx * r, t.ty * r);
 		}
-		if (Graphics._canUseSaturationBlend && 0<this._gray) {
+		if(Graphics._canUseSaturationBlend && 0<this._gray){
 			ctx.globalCompositeOperation = f.saturation;
-			ctx.globalAlpha = this._gray / 255;
+			ctx.globalAlpha = (this._gray+1) / 256;
 			ctx.fillStyle = f.black;
 			ctx.fillRect(0, 0, width, height);
 			ctx.globalAlpha = 1;
@@ -1746,6 +1744,7 @@ $dddd$=$aaaa$.prototype._renderCanvas = function f(renderer) { // rewrite: wtf t
 };
 $dddd$.black='#000000';
 $dddd$.difference='difference';
+$dddd$.gc=undefined;
 $dddd$.lighter='lighter';
 $dddd$.multiply='multiply';
 $dddd$.saturation='saturation';

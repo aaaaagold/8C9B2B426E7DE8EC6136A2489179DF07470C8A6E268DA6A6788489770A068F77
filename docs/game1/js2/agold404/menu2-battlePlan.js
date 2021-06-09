@@ -611,6 +611,10 @@ $aaaa$.prototype.subwindLoc_list=function(){
 };
 $aaaa$.prototype.addSubwindow_list=function(x,y,width,height,displayActorCnt){
 	const help=new Window_Help(2);
+	{ const sz=help.standardFontSize();
+	help.setFontsize((sz>>1)+(sz>>3));
+	help.height=help.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
+	}
 	help.width=width;
 	help.y=y+height-help.height;
 	this.addChild(help);

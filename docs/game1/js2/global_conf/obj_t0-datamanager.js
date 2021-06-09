@@ -76,6 +76,7 @@ $dddd$.set=function f(name,txt ,changesCallback,changesKArgs){
 	DataManager.onLoad(window[name]);
 	switch(res){
 	case 'evtds': {
+		DataManager.evtd_faceImg(window[name]);
 		DataManager.evtd_addTxt(window[name]);
 		DataManager.evtd_addRef(window[name]);
 	}break;
@@ -259,6 +260,29 @@ $aaaa$.resetPseudoTile=()=>{
 		}
 	}
 };
+$aaaa$.evtd_faceImg=function(evtds){
+	let faceSet=new Set(),chrSet=new Set();
+	for(let x=0,arr=evtds;x!==arr.length;++x){
+		let evt=arr[x]; if(!evt) continue;
+		for(let p=0,arr=evt.pages;p!==arr.length;++p){
+			let img=arr[p].image;
+			let cname=img.characterName;
+			// face
+			if(img.tileId===0&&cname!==''&&
+				!ImageManager.isObjectCharacter(cname)&&
+				!ImageManager.isBigCharacter(cname)&&
+				cname.slice(-6)!=="Damage"&&
+				cname.slice(0,6)!=="Damage"
+			){
+				faceSet.add(cname);
+				img.hasFaceImg=true;
+			}
+			// body
+			if(img.tileId===0&&cname!=='') chrSet.add(img.characterName);
+		}
+	}
+	return [faceSet,chrSet];
+};
 $dddd$=$aaaa$.evtd_addRef=function f(evtds){
 	for(let x=0,evtd;x!==evtds.length;++x){
 		if(!(evtd=evtds[x]) || !evtd.meta.refActor) continue;
@@ -354,28 +378,11 @@ $dddd$=$aaaa$.loadMapData = function f(mapId) {
 		// texts
 		this.evtd_addTxt($dataMap.events);
 		// preload
-if(!$dataMap.meta.disablePreload){
+{
 		// - preload face&&body image according to events' character image
-		let faceSet=new Set(),chrSet=new Set(),imgs=[];
-		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){
-			let evt=arr[x]; if(!evt) continue;
-			for(let p=0,arr=evt.pages;p!==arr.length;++p){
-				let img=arr[p].image;
-				let cname=img.characterName;
-				// face
-				if(img.tileId===0&&cname!==''&&
-					!ImageManager.isObjectCharacter(cname)&&
-					!ImageManager.isBigCharacter(cname)&&
-					cname.slice(-6)!=="Damage"&&
-					cname.slice(0,6)!=="Damage"
-				){
-					faceSet.add(cname);
-					img.hasFaceImg=true;
-				}
-				// body
-				if(img.tileId===0&&cname!=='') chrSet.add(img.characterName);
-			}
-		}
+		let res=this.evtd_faceImg($dataMap.events);
+if(!$dataMap.meta.disablePreload){
+		let faceSet=res[0],chrSet=res[1],imgs=[];
 		faceSet.forEach(x=>imgs.push(["face",x]));
 		chrSet.forEach(x=>imgs.push(["chr",x]));
 		// - preload bgm,bgs,se
@@ -394,8 +401,15 @@ if(!$dataMap.meta.disablePreload){
 				} }
 			}
 		}
+		// - meta
+		{ let p=$dataMap.meta.preload; if(p){
+			p=JSON.parse(p);
+			if(p.img) p.img.forEach(x=>imgs.push(x));
+			if(p.audio) p.audio.forEach(x=>audios.push(x));
+		} }
 		// - actually request media
 		SceneManager.preloadMedia.load({img:imgs,audio:audios});
+}
 }
 		// pre-cal
 		// - evtd attrs.
