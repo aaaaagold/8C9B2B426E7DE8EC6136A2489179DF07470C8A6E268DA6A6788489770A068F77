@@ -1252,6 +1252,17 @@ $aaaa$.eraseLoadingError=function(){
 		this.startLoading();
 	}
 };
+$dddd$=$aaaa$._switchPauseBtn=function f(){
+	const btn=f.tbl[1];
+	if(!btn){
+		d.body.ac(f.tbl[1]=d.ce('button').ac(
+			d.ce('div').at("pause")
+		).sa('style',"position:absolute;right:0px;margin:11px;z-index:1022;"));
+		f.tbl[1].onclick=f.tbl[0];
+	}else if(btn.ga('class')==="none") btn.sa('class','');
+	else btn.sa('class',"none");
+};
+$dddd$.tbl=[()=>SceneManager.pause(),undefined];
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Bitmap

@@ -1188,6 +1188,7 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 		}],
 		[" - 目前是否使用WebGL","Graphics.isWebGL()?'yes':'no';;func",0],
 		["顯示(或關閉)在左上角的FPS(或延遲)資訊",";;func;call",1,()=>{ Graphics._switchFPSMeter(); }],
+		["顯示(或關閉)在右上角的暫停按鈕",";;func;call",1,()=>{ Graphics._switchPauseBtn(); }],
 		[_global_conf.sep,";;func",0],
 		[$dataCustom.clearMapDataCache,";;func;call",1,()=>{
 			let f=m=>{

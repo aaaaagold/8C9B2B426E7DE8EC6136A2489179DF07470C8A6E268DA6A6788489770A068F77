@@ -8015,6 +8015,7 @@ this.refresh=none;
 		if(!(this._plyr>=0)) this._plyr=-1;
 	}
 	// interact
+	this._nu=(meta.noUpdate)?1:0;
 	this._strtByAny=!!meta.strtByAny;
 	// moving
 	if(meta.stopCount){
@@ -8205,6 +8206,10 @@ Object.defineProperties($aaaa$.prototype,{
 		get:function(){ this._pz; },
 		set:function(rhs){ return this._pz=rhs; },
 	configurable:false},
+	_noUpdate:{
+		get:function(){ return this._nu; },
+		set:function(rhs){ return this._nu=rhs; },
+	configurable:false},
 	_color:{
 		get:function(){ return this._clr; },
 		set:function(rhs){
@@ -8350,7 +8355,7 @@ $pppp$.updateParallel=function(){
 	}
 };
 $pppp$.canUpdate=function(){
-	return !$gameMap.zaWarudo()||this.preventZaWarudo();
+	return !this._noUpdate && (!$gameMap.zaWarudo()||this.preventZaWarudo());
 };
 $pppp$.preventZaWarudo=function(){
 	return this._preventZaWarudo; // ||this._trigger===1; // player touch
