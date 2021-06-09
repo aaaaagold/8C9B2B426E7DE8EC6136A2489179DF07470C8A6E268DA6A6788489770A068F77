@@ -11,6 +11,41 @@ String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
 Number.prototype.padZero=function(n){ return (this+'').padStart(n,'0'); };
 Math.randomInt=max=>~~(Math.random()*max);
+LZString.compressToBase64=input=>{
+	if(!input) return "";
+	let n,r,i,s,o,u,a, f=0 , t="";
+	const e = LZString.compress(input);
+	for(const ende=e.length<<1;f<ende;){
+		if(f&1){
+			n = e.charCodeAt((f-1)>>1) & 255;
+			const f2=(f+1)>>1;
+			if(f2 < e.length){
+				const c=e.charCodeAt(f2);
+				r = c >> 8;
+				i = c & 255;
+			}else r=i=NaN;
+		}else{
+			let f2=f>>1;
+			const c=e.charCodeAt(f2);
+			n = c >> 8;
+			r = c & 255;
+			if(++f2 < e.length) i=e.charCodeAt(f2)>>8;
+			else i=NaN;
+		}
+		f += 3;
+		s = n >> 2;
+		o = (n & 3) << 4 | r >> 4;
+		u = (r & 15) << 2 | i >> 6;
+		if(isNaN(r)) u=a=64;
+		else if(isNaN(i)) a=64;
+		else a=i&63;
+		t+=LZString._keyStr.charAt(s);
+		t+=LZString._keyStr.charAt(o);
+		t+=LZString._keyStr.charAt(u);
+		t+=LZString._keyStr.charAt(a);
+	}
+	return t;
+};
 LZString._decompress_calL=(m,shMax)=>{
 	let rtv=0^0;
 	shMax^=0;
@@ -317,6 +352,9 @@ $aaaa$.prototype.drawIcon=function(iconIndex, x, y){
 		this.contents.blt(bitmap, sx, sy, pw, ph, x, y);
 	}else this.contents.clearRect(x,y,pw,ph);
 };
+$aaaa$.prototype.loadFace=function(fn){
+	return ImageManager.loadFace(fn);
+};
 $rrrr$=$aaaa$.prototype.drawFace;
 $dddd$=$aaaa$.prototype.drawFace=function f(fn, fi, x, y, w, h){
 	x|=0; y|=0;
@@ -325,7 +363,7 @@ $dddd$=$aaaa$.prototype.drawFace=function f(fn, fi, x, y, w, h){
 	let bitmap,sx,sy,sw,sh,dx,dy,dw,dh;
 	if(fi>=0){
 		const pw = Window_Base._faceWidth , ph = Window_Base._faceHeight;
-		bitmap=ImageManager.loadFace(fn);
+		bitmap=this.loadFace(fn);
 		if(w<pw){ sw=w; dx=x; }
 		else{ sw=pw; dx=x+((w-pw)>>1); }
 		if(h<ph){ sh=h; dy=y; }
@@ -1140,7 +1178,9 @@ $aaaa$._makeErrorHtml=(name, message)=>d.ce("div").sa("style","background-color:
 ).ac(d.ce("br"));
 $dddd$=$aaaa$.printError=function f(name, message){
 	this._errorShowed=true;
-	let ep=this._errorPrinter;
+	const div999=d.ge('div999');
+	if(div999) div999.sa('class','none');
+	const ep=this._errorPrinter;
 	if(ep){
 		let btn=d.ce('button').at('Restart the game');
 		btn.onclick=f.restart;
@@ -1178,6 +1218,8 @@ $dddd$.restart=function f(){
 	}
 	sm.resume();
 	TouchInput.clear();
+	const div999=d.ge('div999');
+	if(div999) div999.sa('class','');
 };
 $dddd$=$aaaa$.printLoadingError=function f(type,url){
 	//console.log("Graphics.printLoadingError");
@@ -1906,6 +1948,24 @@ $rrrr$=$dddd$=$aaaa$=undef;
 
 // - StorageManager
 $aaaa$=StorageManager;
+$aaaa$.backup=function(savefileId){
+	if(this.exists(savefileId)){
+		if(this.isLocalMode()){
+			const fs = require('fs');
+			const dirPath = this.localFileDirectoryPath();
+			const filePath = this.localFilePath(savefileId);
+			//this.loadFromLocalFile(savefileId);
+			const data = fs.existsSync(filePath) ? fs.readFileSync(filePath, { encoding: 'utf8' }) : "";
+			if(!fs.existsSync(dirPath)) fs.mkdirSync(dirPath);
+			fs.writeFileSync(filePath+".bak", data);
+		}else{
+			const key = this.webStorageKey(savefileId);
+			//this.loadFromWebStorage(savefileId);
+			const item = localStorage.getItem(key);
+			localStorage.setItem(key+"bak", item);
+		}
+	}
+};
 $aaaa$.webStorageKey=function(savefileId){
 	if(savefileId < 0){
 		return 'RPG Config';

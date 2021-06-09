@@ -937,7 +937,14 @@ $dddd$=$pppp$.update=function f(){
 		this.y = ref.y - ref.height;
 	}
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$pppp$=$aaaa$=undef;
+// - Sprite_Picture
+$aaaa$=Sprite_Picture;
+$pppp$=$aaaa$.prototype;
+$rrrr$=$pppp$.loadBitmap;
+$dddd$=$pppp$.loadBitmap=function f(){
+	if(_global_conf.isDataURI(this._pictureName)) this.bitmap=ImageManager.loadNormalBitmap(this._pictureName);
+	else f.ori.call(this);
+}; $dddd$.ori=$rrrr$;
 // - Sprite_Timer
 $aaaa$=Sprite_Timer;
 $pppp$=$aaaa$.prototype;
@@ -1176,10 +1183,13 @@ $aaaa$.loadEnemy=function(filename,hue,args){
 $aaaa$.loadCharacter=function(filename, hue, args){ // re-write: add args: 'args': edit img
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
 };
-$aaaa$.loadSvActor=function f(filename,hue,args){ // re-write: add args: 'args': edit img
+$aaaa$.loadFace=function(filename, hue, args){
+	return this.loadBitmap('img/faces/', filename, hue, true, args);
+};
+$aaaa$.loadSvActor=function(filename,hue,args){
 	return this.loadBitmap('img/sv_actors/', filename, hue, false, args);
 };
-$aaaa$.loadSvEnemy=function f(filename,hue,args){ // re-write: add args: 'args': edit img
+$aaaa$.loadSvEnemy=function(filename,hue,args){
 	return this.loadBitmap('img/sv_enemies/', filename, hue, true, args);
 };
 $aaaa$.loadTileset=function f(filename,hue,args){
@@ -1209,39 +1219,60 @@ $aaaa$._genPath=(folder,filename,args)=>{
 };
 $dddd$=$aaaa$._genType=function f(folder,filename,args){
 	let rtv={};
+	rtv._patternType=f.tbl[folder]|0;
 	if(folder===f.tilesets) rtv._isTile=true;
 	else if(ImageManager.isBigCharacter(filename)) rtv._isBigChr=true;
 	return rtv;
 };
+$dddd$.tbl={
+	"img/animations/":192,	//
+//	"img/battlebacks1/":0,
+//	"img/battlebacks2/":0,
+	"img/characters/":12,	//
+//	"img/enemies/":0,
+	"img/faces/":8, 	//
+//	"img/parallaxes/":0,
+//	"img/pictures/":0,
+	"img/sv_actors/":54,	//
+//	"img/sv_enemies/":0,
+//	"img/system/":0,
+	"img/tilesets/":48,	//
+//	"img/titles1/":0,
+//	"img/titles2/":0,
+};
 $dddd$.tilesets="img/tilesets/";
 $aaaa$._putPatternSize=(bm,img)=>{
 	if(bm._scaleChanged) return;
-	if(bm._isTile){
-		bm._pw=48;//Game_Map.prototype.tileWidth ();
-		bm._ph=48;//Game_Map.prototype.tileHeight();
-	}else{
-		const width  =(img?img:bm).width;
-		const height =(img?img:bm).height;
-		const m=bm._url && bm._url.match(/img\/sv_(actors|enemies)\//);
-		if(m){
-			switch(m[1][0]){
-			case 'a':
-				bm._pw=width/9;
-				bm._ph=height/6;
-			break;
-			case 'e':
-				bm._pw=width;
-				bm._ph=height;
-			break;
-			}
-		}else{
-			bm._pw=width/3;
-			bm._ph=height>>2;
-			if(!bm._isBigChr){
-				bm._pw>>=2;
-				bm._ph>>=1;
-			}
+	const width  =(img?img:bm).width;
+	const height =(img?img:bm).height;
+	switch(bm._patternType){
+	case 0:{
+		bm._pw=width;
+		bm._ph=height;
+	}break;
+	case   8: { // face
+		bm._pw=width>>2;
+		bm._ph=height>>1;
+	}break;
+	case  12: { // chr
+		bm._pw=width/3;
+		bm._ph=height>>2;
+		if(!bm._isBigChr){
+			bm._pw>>=2;
+			bm._ph>>=1;
 		}
+	}break;
+	case  48: { // tile
+		bm._pw=Game_Map.prototype.tileWidth ();
+		bm._ph=Game_Map.prototype.tileHeight();
+	}break;
+	case  54: { // sv-a
+		bm._pw=width/9;
+		bm._ph=height/6;
+	}break;
+	case 192: { // ani
+		bm._ph=bm._pw=192;
+	}break;
 	}
 };
 $aaaa$.loadBitmap=function(folder, filename, hue, smooth, args){ // re-write: add args: 'args': edit img
@@ -1273,10 +1304,14 @@ $dddd$.rh=bm=>{ let hue=bm._hue; delete bm._hue; bm.rotateHue(hue); };
 $aaaa$.clear=function(){
 	this._imageCache.clear();
 };
-$aaaa$.reserveNormalBitmap = function(path, hue, reservationId , type){
-	let bitmap = this.loadNormalBitmap(path, hue , type);
-	this._imageCache.reserve(this._generateCacheKey(path, hue), bitmap, reservationId);
-	return bitmap;
+$aaaa$.reserveFace=function(filename, hue, reservationId, args){
+	return this.reserveBitmap('img/faces/', filename, hue, true, reservationId, args);
+};
+$aaaa$.reserveCharacter=function(filename, hue, reservationId, args){
+	return this.reserveBitmap('img/characters/', filename, hue, false, reservationId, args);
+};
+$aaaa$.reserveSvActor=function(filename, hue, reservationId, args) {
+	return this.reserveBitmap('img/sv_actors/', filename, hue, false, reservationId, args);
 };
 $aaaa$.reserveBitmap=function(folder, filename, hue, smooth, reservationId , args) {
 	if(filename){
@@ -1286,6 +1321,11 @@ $aaaa$.reserveBitmap=function(folder, filename, hue, smooth, reservationId , arg
 		bitmap.smooth = smooth;
 		return bitmap;
 	}else return this.loadEmptyBitmap();
+};
+$aaaa$.reserveNormalBitmap = function(path, hue, reservationId , type){
+	let bitmap = this.loadNormalBitmap(path, hue , type);
+	this._imageCache.reserve(this._generateCacheKey(path, hue), bitmap, reservationId);
+	return bitmap;
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
@@ -1698,6 +1738,11 @@ $pppp$.create=function(){
 	DataManager.loadDatabase();
 	ConfigManager.load();
 	this.loadSystemWindowImage();
+	if(debug.isdepress()){
+		Graphics.hideFps();
+		Graphics._switchFPSMeter();
+		Graphics._switchFPSMeter();
+	}
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
@@ -2337,8 +2382,14 @@ $dddd$.burnLv=function(pannel){
 	}
 };
 $dddd$.chr=function(pannel){
-	if(!$gameSystem._usr._noLeaderHp) pannel.hpl=pannel.add($gameParty,(pt)=>pt.leader().hp,{head:($gameParty.allMembers().length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
-	if(!$gameSystem._usr._noLeaderMp) pannel.mpl=pannel.add($gameParty,(pt)=>pt.leader().mp,{head:($gameParty.allMembers().length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
+	if(!$gameSystem._usr._noLeaderHp) pannel.hpl=pannel.add($gameParty,(pt)=>{
+		const L=pt.leader();
+		return L?L.hp:"N/A";
+	},{head:($gameParty.allMembers().length>1?"隊長":"")+"HP ",updateItvl:40,align:'left'});
+	if(!$gameSystem._usr._noLeaderMp) pannel.mpl=pannel.add($gameParty,(pt)=>{
+		const L=pt.leader();
+		return L?L.mp:"N/A";
+	},{head:($gameParty.allMembers().length>1?"隊長":"")+"MP ",updateItvl:40,align:'left'});
 };
 $dddd$.speedup=function(pannel){
 	if($gamePlayer.speedup) pannel.add($gamePlayer,'speedup',{head:"疾風Lv",align:'center'});
@@ -2476,6 +2527,8 @@ $dddd$=$pppp$.onMapLoaded=function f(){
 			delete $gameParty.mch().randmaze; // clear before maze generation
 			f.genRandMaze();
 		}
+		// workers
+		if($gameParty) $gameParty.members().forEach(x=>rpgskills.list.rfl_summonClones_fromActorWorkers(x));
 	}
 	if(!$gameTemp.clearedWhenNewMap) $gameTemp.initClearedWhenNewMap(); // for load game
 	
@@ -5440,6 +5493,9 @@ $dddd$=$pppp$.initialize=function f(){
 }; $dddd$.ori=$rrrr$;
 Object.defineProperties($aaaa$.prototype,{
 	// simply shorten
+	_moveFrequency:{ get:function(){ return this._mvfreq; },set:function(rhs){
+		return this._mvfreq=rhs;
+	},configurable:false},
 	_moveSpeed:{ get:function(){ return this._mvsp; },set:function(rhs){
 		return this._mvsp=rhs;
 	},configurable:false},
@@ -5479,11 +5535,11 @@ Object.defineProperties($aaaa$.prototype,{
 	// appearance
 	_characterIndex:{ get:function(){return this._chrIdx;},set:function(rhs){
 		if(this._chrIdx!==rhs) this.imgModded=true;
-		this._chrIdx=rhs;
+		return this._chrIdx=rhs;
 	},configurable:false},
 	_characterName:{ get:function(){return this._chrName;},set:function(rhs){
 		if(this._chrName!==rhs) this.imgModded=true;
-		this._chrName=rhs;
+		return this._chrName=rhs;
 	},configurable:false},
 	_tileId:{ get:function(){return this._tid;},set:function(rhs){
 		if(this._tid!==rhs) this.imgModded=true;
@@ -5813,15 +5869,21 @@ $pppp$.moveTowardCharacter=function(chr){
 	}
 };
 $pppp$.moveToChr=$pppp$.moveTowardCharacter;
-$pppp$.moveToChr_bfs=function(chr){
+$pppp$.moveToChr_bfs=function(chr,mvRndIfNotFound){
 	let dir=this.findDirectionTo(chr.x,chr.y);
 	if(dir) this.moveDiagonally_d8(dir);
-	else this.moveToChr(chr);
+	else{
+		if(mvRndIfNotFound) this.moveRandom();
+		else this.moveToChr(chr);
+	}
 };
-$dddd$=$pppp$.moveToChrs_bfs=function f(chrs,fullSearch){
+$dddd$=$pppp$.moveToChrs_bfs=function f(chrs,fullSearch,mvRndIfNotFound){
 	let dir=this.findDirTo(chrs.map(f.map),undefined,{fullSearch:fullSearch});
 	if(dir) this.moveDiagonally_d8(dir);
-	else if(chrs.length) this.moveToChr(chrs[~~(Math.random()*chrs.length)]);
+	else if(chrs.length){
+		if(mvRndIfNotFound) this.moveRandom();
+		else this.moveToChr(chrs[~~(Math.random()*chrs.length)]);
+	}
 };
 $dddd$.map=chr=>[chr.x,chr.y];
 if(0)$dddd$.map=chrs=>{
@@ -6079,7 +6141,7 @@ $pppp$.mvRefChr=function(chr){ this._x=chr._x; this._y=chr._y; };
 $pppp$.mvAbs=function(x,y){ this._x=x; this._y=y; };
 $pppp$.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
 $pppp$.moveRandom = function() {
-	let d=(Math.randomInt(4)+1)<<1;
+	const d=((Math.random()*4)<<1)+2;
 	if(this.canPass(this.x,this.y,d)) this.moveStraight(d);
 };
 // - chr: sprite
@@ -6667,18 +6729,21 @@ $dddd$=$pppp$.checkEventTriggerThere=function f(){
 //$pppp$.checkEventTriggerThere=$rrrr$; // currently no needed
 $rrrr$=$pppp$.reserveTransfer;
 $dddd$=$pppp$.reserveTransfer=function f(){
-	debug.log('Game_Player.prototype.reserveTransfer');
+	//debug.log('Game_Player.prototype.reserveTransfer');
 	$gameMap.setZaWarudo(0); // clear waits
 	f.ori.apply(this,arguments); // it just do preparation for new map
-	debug.log('',$gameMap&&$gameMap._mapId,this._newMapId);
+	//debug.log('',$gameMap&&$gameMap._mapId,this._newMapId);
+	
 	if($gameMap._mapId===0||this._newMapId===$gameMap._mapId) return;
-	let mc=$gameParty.mch();
+	
+	const mc=$gameParty.mch();
 	// rand maze (current map, not new map)
 	delete mc.randmaze;
 	// dynamic evt
 	$gameParty.saveDynamicEvents(1);
 	// save 'meta.recordLoc' s
 	$gameMap.save_recordLoc();
+	
 }; $dddd$.ori=$rrrr$;
 $pppp$.adjDecRate=function(what,rate,useMax){
 	// what: HP,MP,TP
@@ -8007,16 +8072,21 @@ this.refresh=none;
 		let tmp=Number(meta.animationCount);
 		if(0<tmp) this._animationCount=tmp; // is light src if > 0
 	}
+	this._asPlayer=0; // as player
 	// style
 	this._dmg=(meta.damaged)?1:0;
 	this._plyr=-1;
 	if(meta.player){
 		this._plyr=(meta.player===true)?0:Number(meta.player);
 		if(!(this._plyr>=0)) this._plyr=-1;
+		else this._asPlayer=1;
 	}
 	// interact
-	this._nu=(meta.noUpdate)?1:0;
 	this._strtByAny=!!meta.strtByAny;
+	this._nu=(meta.noUpdate)?1:0;
+	this._ps=(meta.passSelf)?1:0;
+	this._itrpQ=0;
+	this._itrp2=0;
 	// moving
 	if(meta.stopCount){
 		let tmp=Number(meta.stopCount);
@@ -8027,6 +8097,8 @@ this.refresh=none;
 		this.longDistDetection=meta.longDistDetection===true?true:Number(meta.longDistDetection);
 	}
 	this._preventZaWarudo=evtd.note==="init"||evtd.note==="achievement"||meta.preventZaWarudo||meta.init||meta.achievement||meta.block||meta.txt;
+	// as
+	this._aa=undefined;
 	
 	let x=this._x,y=this._y; // will be used later
 	
@@ -8110,8 +8182,9 @@ $pppp$._addToCoordTbl_1=function(tbl){
 };
 $rrrr$=$pppp$.isCollidedWithEvents;
 $dddd$=$pppp$.isCollidedWithEvents=function f(posx,posy){
+	if(this._asPlayer) return Game_Player.prototype.isCollidedWithEvents.call(this,posx,posy);
 	let rtv=f.ori.call(this,posx,posy);
-	if(rtv&&this.getData().meta.passSelf){
+	if(rtv&&this._passSelf){
 		const id=this._eventId.toId();
 		rtv=$dataMap.coordTblNt[$gameMap.xy2idx(posx,posy)].some(evt=>evt._eventId.toId()!==id);
 	}
@@ -8193,9 +8266,6 @@ Object.defineProperties($aaaa$.prototype,{
 			}
 		return rhs;
 	},configurable:false},
-	longDistDetection:{ get:function(){ return this._lld; },set:function(rhs){
-		return this._lld=rhs;
-	},configurable:false},
 	strtByAny_skips:{
 		get:function(){ return this._strtByAny_skips||(
 			this._strtByAny_skips=new Set(JSON.parse(this.getData().meta.strtByAny_skips||'[]'))
@@ -8205,10 +8275,6 @@ Object.defineProperties($aaaa$.prototype,{
 	_preventZaWarudo:{
 		get:function(){ this._pz; },
 		set:function(rhs){ return this._pz=rhs; },
-	configurable:false},
-	_noUpdate:{
-		get:function(){ return this._nu; },
-		set:function(rhs){ return this._nu=rhs; },
 	configurable:false},
 	_color:{
 		get:function(){ return this._clr; },
@@ -8238,6 +8304,27 @@ Object.defineProperties($aaaa$.prototype,{
 	_originalDirection:{ get:function(){ return this._odir||2; },set:function(rhs){
 		return this._odir=rhs;
 	},configurable:false},
+	// simply shorten (custom members)
+	longDistDetection:{
+		get:function(){ return this._lld; },
+		set:function(rhs){ return this._lld=rhs; },
+	configurable:false},
+	_noUpdate:{
+		get:function(){ return this._nu; },
+		set:function(rhs){ return this._nu=rhs; },
+	configurable:false},
+	_passSelf:{
+		get:function(){ return this._ps; },
+		set:function(rhs){ return this._ps=rhs; },
+	configurable:false},
+	_asPlayer:{
+		get:function(){ return this._asp; },
+		set:function(rhs){ return this._asp=rhs; },
+	configurable:false},
+	_actorAvatar:{
+		get:function(){ return this._aa; },
+		set:function(rhs){ return this._aa=rhs; },
+	configurable:false},
 });
 $pppp$.queuePush=function(qidx,data){ qidx^=0;
 	if(!this._queues[qidx]) this._queues[qidx]=new Queue();
@@ -8776,6 +8863,20 @@ $pppp$.updateSelfMovement=function(forced){
 $pppp$.getText=function(){
 	const data=this.getData();
 	return data&&data.txts[this._pageIndex];
+};
+$pppp$.setActorAvatar=function(actorId_or_actor,opt){
+	if(!actorId_or_actor) return;
+	const a=actorId_or_actor.constructor===Game_Actor?actorId_or_actor:$gameActors.actor(actorId_or_actor);
+	if(!a) return;
+	const color=opt.color||a._getColorEdt();
+	const scale=opt.scale||a._getScaleEdt();
+	
+	this._tileId=0;
+	this._characterName  =a._characterName;
+	this._characterIndex =a._characterIndex;
+	this._color=color;
+	this._scale=scale;
+	this._actorAvatar=a._actorId;
 };
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef; // END Game_Event
 
@@ -10449,6 +10550,10 @@ $pppp$.getPlanObjName=function(idx){
 	}
 	return rtv;
 };
+$pppp$.getWorkerEvt=function(){
+	const w=this._meta.worker;
+	return w && $gameMap._mapId===w[0] && $gameMap._events[w[1]];
+};
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - actors
@@ -11722,7 +11827,6 @@ $pppp$._drawFaceFromData=function(data){
 	c.clearRect(data[5]||data[1],data[6]||data[2],data[7]||data[3],data[8]||data[4]);
 	c.blt.apply(c,data);
 };
-$rrrr$=$pppp$.loadMessageFace;
 $dddd$=$pppp$.loadMessageFace=function f(){
 	//debug.log('Window_Message.prototype.loadMessageFace');
 	this.faceRef=undefined;
@@ -11730,8 +11834,13 @@ $dddd$=$pppp$.loadMessageFace=function f(){
 		// all data provided, draw!
 		let data=$gameMessage.faceName();
 		this._drawFaceFromData(data);
-	}else return f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
+	}else this._faceBitmap=ImageManager.reserveFace($gameMessage.faceName(), 0, this._imageReservationId, f.tbl);
+};
+$rrrr$=$dddd$.tbl={reflect_h:true};
+$dddd$=$pppp$.loadFace=function f(fn){
+	return ImageManager.loadFace(fn,undefined,f.tbl);
+};
+$dddd$.tbl=$rrrr$;
 $rrrr$=$pppp$.drawMessageFace;
 $dddd$=$pppp$.drawMessageFace=function f(){
 	if($gameMessage.faceIndex()==="data") return; // ensurance

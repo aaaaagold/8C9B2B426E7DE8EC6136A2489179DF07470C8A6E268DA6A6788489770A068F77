@@ -230,6 +230,66 @@ list.ko_lab_checkBalls=(self,argv)=>{
 	return rtv;
 };
 
+const rfl_mv2evts_fortask_filter=(evt,taskid)=>{
+	if(!evt) return;
+	const m=evt.getData().meta.fortask;
+	return !taskid?m:m===taskid;
+};
+const rfl_mv2evts_fortask_map=x=>[x.x,x.y];
+const rfl_mv2evts_fortask_sort=(a,b)=>a.y===b.y?a.x===b.x?a._eventId>b.eventId:a.x>b.x:a.y>b.y;
+list.rfl_mv2evts_fortask_bfs=(self,argv)=>{
+	const p=argv[2]===undefined?0.25:argv[2];
+	if(Math.random()<p) return self.moveRandom();
+	const taskid=argv[0];
+	const part=argv[1]>1?getPrime(1<<(argv[1]&3)):argv[1]+1;
+	if(!$dataMap.fortask) $dataMap.fortask={};
+	let arr=$dataMap.fortask[taskid]; if(!arr || arr.fc!==Graphics.frameCount){
+		arr=$dataMap.fortask[taskid]=$gameMap._events.filter(x=>rfl_mv2evts_fortask_filter(x,taskid)).sort(rfl_mv2evts_fortask_sort);
+		arr.fc=Graphics.frameCount;
+	}
+	const tmp=(1<part && part<arr.length)&&arr.filter((evt,i)=>$gameMap.isValid(evt.x,evt.y) && i%part===0);
+	if(tmp && tmp.length) arr=tmp;
+	else if( !arr.some((evt,i)=>$gameMap.isValid(evt.x,evt.y)) ) arr=0;
+	if(1>=part && !arr.length) $dataMap.fortask[taskid].length=0;
+	const dir = arr && arr.length && self.findDirTo(arr.map(rfl_mv2evts_fortask_map));
+	if(dir) self.moveDiagonally_d8(dir);
+	else if(Math.random()<0.5) self.moveRandom();
+	else self.moveToChr_bfs($gamePlayer);
+};
+list.rfl_moveAnt=(self,argv)=>{
+	const taskid=argv[0];
+	const w=$dataMap.width,h=$dataMap.height,ox=self.x,oy=self.y;
+	let tbl=$dataMap.rfl_moveAnt;
+	if(!tbl){ tbl=$dataMap.rfl_moveAnt=[]; tbl.length=w*h; for(let x=0;x!==tbl.length;++x) tbl[x]=0; }
+	++tbl[oy+w+ox];
+	let arr=[],x,y,v=(~0)>>>1;
+	
+	if(self.canPass(ox,oy,6)){
+		x=ox+1; y=oy; if(x===w) x=0;
+		if(v>tbl[y*w+x]){ v=tbl[y*w+x]; arr.length=0; }
+		arr.push(6);
+	}
+	if(self.canPass(ox,oy,4)){
+		x=ox-1; y=oy; if(x<0) x+=w;
+		if(v>tbl[y*w+x]){ v=tbl[y*w+x]; arr.length=0; }
+		arr.push(4);
+	}
+	if(self.canPass(ox,oy,2)){
+		x=ox; y=oy+1; if(y===h) y=0;
+		if(v>tbl[y*w+x]){ v=tbl[y*w+x]; arr.length=0; }
+		arr.push(2);
+	}
+	if(self.canPass(ox,oy,8)){
+		x=ox; y=oy-1; if(y<0) y+=h;
+		if(v>tbl[y*w+x]){ v=tbl[y*w+x]; arr.length=0; }
+		arr.push(8);
+	}
+	
+	if(arr.length) self.moveDiagonally_d8(arr.rnd());
+	else self.moveRandom();
+};
+list.rfl_mv2evts_fortask=list.rfl_mv2evts_fortask_bfs;
+
 list.addClone=(self,argv)=>{ // id , use template name , not copy equips , 
 	if(!argv) return;
 	let actor=$gameParty.addActor(argv[0],true);

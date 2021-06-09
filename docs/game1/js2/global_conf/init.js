@@ -234,10 +234,10 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	};
 	w.HTMLCanvasElement.prototype.mirror_h=function(){
 		// return another canvas
-		let rtv=d.ce('canvas');
+		const rtv=d.ce('canvas');
 		rtv.width=this.width;
 		rtv.height=this.height;
-		let ctx=rtv.getContext('2d');
+		const ctx=rtv.getContext('2d');
 		ctx.scale(-1,1);
 		ctx.translate(-rtv.width,0);
 		ctx.drawImage(this,0,0);
@@ -245,10 +245,10 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	};
 	w.HTMLCanvasElement.prototype.mirror_v=function(){
 		// return another canvas
-		let rtv=d.ce('canvas');
+		const rtv=d.ce('canvas');
 		rtv.width=this.width;
 		rtv.height=this.height;
-		let ctx=rtv.getContext('2d');
+		const ctx=rtv.getContext('2d');
 		ctx.scale(1,-1);
 		ctx.translate(0,-rtv.height);
 		ctx.drawImage(this,0,0);
@@ -258,10 +258,10 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		// this||rhs ; return another canvas
 		shx=shx||0;
 		shy=shy||0;
-		let rtv=d.ce('canvas');
+		const rtv=d.ce('canvas');
 		rtv.width=this.width+rhs.width;
 		rtv.height=Math.max(this.height,rhs.height);
-		let ctx=rtv.getContext('2d');
+		const ctx=rtv.getContext('2d');
 		ctx.drawImage(this,0,0,this.width,this.height);
 		ctx.drawImage(rhs,this.width+shx,shy,rhs.width,rhs.height);
 		return rtv;
@@ -270,17 +270,17 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		// this//rhs ; return another canvas
 		shx=shx||0;
 		shy=shy||0;
-		let rtv=d.ce('canvas');
+		const rtv=d.ce('canvas');
 		rtv.width=Math.max(this.width,rhs.width);
 		rtv.height=this.height+rhs.height;
-		let ctx=rtv.getContext('2d');
+		const ctx=rtv.getContext('2d');
 		ctx.drawImage(this,0,0,this.width,this.height);
 		ctx.drawImage(rhs,shx,this.height+shy,rhs.width,rhs.height);
 		return rtv;
 	};
 	w.HTMLCanvasElement.prototype.ptcp=function(x,y,w,h,resize){
 		// partial copy ; return another canvas
-		let rtv=d.ce('canvas');
+		const rtv=d.ce('canvas');
 		let targetW=w,targetH=h;
 		if(resize){
 			if(resize.w) targetW=resize.w;
@@ -289,13 +289,21 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 		rtv.width =targetW;
 		rtv.height=targetH;
 		
-		let ctx=rtv.getContext('2d');
+		const ctx=rtv.getContext('2d');
 		ctx.drawImage(
 			this,
 			x,y,w,h,
 			0,0,targetW,targetH
 		);
 		return rtv;
+	};
+	w.HTMLCanvasElement.prototype.scale=function(r){
+		// return another canvas
+		if(isNaN(r)) r=1;
+		const src=r<0?this.mirror_h().mirror_v():this;
+		if(r<0) r=-r;
+		const w=this.width , h=this.height;
+		return src.ptcp(0,0,this.width,this.height,{w:w*r||1,h:h*r||1});
 	};
 	w.HTMLImageElement.prototype.ptcp=w.HTMLCanvasElement.prototype.ptcp;
 	w.HTMLImageElement.prototype.setLoadSrcWithTimeout=function f(src,ms){
@@ -1880,8 +1888,24 @@ let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 		];
+	const primes=[2,3,5,];
+	w.getPrime=nth=>{
+		if(nth<primes.length) return primes[nth];
+		for(let n=primes.back+2;nth>=primes.length;n+=2){
+			let isPrime=1;
+			for(let x=0;x!==primes.length;++x){ const p=primes[x];
+				if(n%p===0){
+					isPrime=0;
+					break;
+				}
+				if(p*p>=n) break;
+			}
+			if(isPrime) primes.push(n);
+		}
+		return primes[nth];
+	};
 	
-	// v failed
+	// ver. failed
 	let rnd01_init="",rnd01_it=-1;
 	w.rnd01=function f(cmd,kargs){
 		if(!f.inited){

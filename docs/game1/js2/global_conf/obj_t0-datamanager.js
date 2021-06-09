@@ -439,6 +439,7 @@ if(!$dataMap.meta.disablePreload){
 		// - - pre-cal. tile
 		this.resetData3d();
 		this.resetHasA1();
+		// ====
 		// extended map data (including events)
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
@@ -474,6 +475,7 @@ if(!$dataMap.meta.disablePreload){
 				evt.x=evt.y=-1; // loop map will x,y mod w,h
 			});
 		}
+		// ====
 		// $gameParty
 		if($gameParty){
 			// init $gameParty.mapChanges
