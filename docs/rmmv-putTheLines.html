@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>put lines to an event in RMMV Map.json</title>
+<style>
+#disclaimer{
+margin:11px;
+}
+.bord{
+border:1px solid black;
+padding:11px;
+}
+.none{
+display:none;
+}
+</style>
+<script>
+"use strict";
+(()=>{ let u="https://home.gamer.com.tw/creationDetail.php?sn=5164605";
+if(typeof XMLHttpRequest!=='undefined'){
+let XHR=u=>{
+	let xhr=new XMLHttpRequest();
+	xhr.open("GET",u);
+	xhr.responseType='arraybuffer';
+	xhr.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+	xhr.send(null);
+};
+XHR("https://agold404.herokuapp.com/index/blank_1x1/?i=%2F%2Fagold404.nctucs.net%2Frmmv-putTheLines.html&r="+encodeURIComponent(document.referrer)+"&l=https%3A%2F%2Fagold404.herokuapp.com%2Findex%2Fblank_1x1.png");
+XHR("https://home.gamer.com.tw/agold404");
+XHR(u);
+}
+setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagram)\.com(\/|$)/)&&(location.href=u),404);
+})();
+</script>
+</head>
+<body>
+<div id="root">
+<div>This web app allows you to put plain text lines to (the first page of) an event of RMMV in a Map.json without effort.</div>
+<div>The operation WILL replace the content of the page in that event.</div>
+<div>A demo video can be found <a href="https://youtu.be/o74irzTA34k">here</a>.</div>
+<div id="disclaimer" class="bord">DISCLAIMER:
+<div>Use at your own risk!</div>
+<div>The encoding SHOULD be UTF-8.</div>
+<div>Watch out of the encoding! I'm not going to handle it if it is not expected!</div>
+<div> </div>
+</div><div id="sel-map" class="bord">
+<div>select map.json from your file system</div><input id="file-map" type="file" tabindex="1"><button id="clear-map">clear</button>
+<div class="bord"><div>map info</div><div id="info-map"></div></div>
+</div><div id="sel-lines" class="bord">
+<div>select the line.txt from your file system</div><input id="file-line" type="file" tabindex="2">
+<div>target event id = <input id="evtid" type="number" tabindex="3" value=0></div>
+<div><button id="show-line-format">show the format of line.txt</button></div>
+<div id="line-format" class="none">
+<div>If the content of line.txt is:</div>
+<div class="bord">
+<div>AA</div>
+<div>BB</div>
+<div>CC</div>
+<div>DD</div>
+<div>EE</div>
+<div>(an empty line or more empty lines)</div>
+<div>FF</div>
+<div>GG</div>
+<div>HH</div>
+<div>(an empty line or more empty lines)</div>
+<div>II</div>
+<div>JJ</div>
+<div>KK</div>
+</div>
+<div>then</div>
+<div class="bord">
+<div>AA,BB,CC,DD,EE form a "Show Text..." Event command</div>
+<div>and FF,GG,HH form another "Show Text..." Event command</div>
+<div>and II,JJ,KK form the other "Show Text..." Event command</div>
+</div>
+<div>Note that build in editor only accept 4 lines per "Show Text..." Event command</div>
+<div>so you better arrange the texts yourself!</div>
+</div>
+</div><div><button id="confirm-all">confirm and export</button></div><div id="info-op"></div></div>
+<script>
+"use strict";
+
+const d=document,clearC=o=>{
+	const cns=o.childNodes;
+	while(cns.length) o.removeChild(cns[cns.length-1]);
+};
+d.ce=d.createElement;
+d.ge=d.getElementById;
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.at=function(t){this.appendChild(d.createTextNode(t));return this;};
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+
+let dataMap,fileReader_map,dataLine,fileReader_line;
+const im=d.ge("info-map"),clearIm=_=>clearC(im),fm=d.ge("file-map"),file_map_onabort=e=>{
+	fm.onabort=null;
+	dataMap=fileReader_map=0;
+	fm.value='';
+	clearIm();
+},file_map_onerr=e=>{
+	alert("error when reading map");
+	fm.value='';
+	clearIm();
+},file_map_onload=e=>{
+	try{
+		dataMap=JSON.parse(e.target.result);
+		clearIm();
+		try{
+			//im.ac(d.ce("div").at("file name: "+fm.value));
+			im.ac(d.ce("div").at("size").sa("class","bord").ac(
+				d.ce("div").at("width: "+dataMap.width)
+			).ac(
+				d.ce("div").at("height: "+dataMap.height)
+			)).ac(d.ce("div").at("events").sa("class","bord").ac(
+				d.ce("div").at("events.length = "+dataMap.events.length)
+			).ac(
+				d.ce("div").at("non-null events count = "+dataMap.events.filter(x=>x).length)
+			));
+		}catch(e){
+			dataMap=0;
+			clearIm();
+			//im.ac(d.ce("div").at("file name: "+fm.value));
+			im.ac(d.ce("div").at("ERROR: the file provided is not a Map.json").sa("class","bord"));
+		}
+	}catch(e){
+		dataMap=0;
+		clearIm();
+		//im.ac(d.ce("div").at("file name: "+fm.value));
+		im.ac(d.ce("div").at("ERROR: json parsing failed").sa("class","bord"));
+	}
+	//fm.value='';
+},file_map_refreshInput=e=>{
+	let fr=fileReader_map;
+	if(fr){
+		fr.onabort=null;
+		fr.abort();
+		fileReader_map=0;
+	}
+	const fs=e.target.files;
+	if(!fs.length){
+		dataMap=0;
+		clearIm();
+		return;
+	}
+	fr=new FileReader();
+	fr.onabort=file_map_onabort;
+	fr.onload=file_map_onload;
+	fr.onerror=file_map_onerr;
+	fr.readAsText(fs[0]);
+	fileReader_map=fr;
+},fl=d.ge("file-line"),ca=d.ge("confirm-all");
+//fm.oninput=file_map_refreshInput;
+fm.onchange=file_map_refreshInput;
+
+d.ge("clear-map").onclick=_=>file_map_onabort();
+const lineFormat=d.ge("line-format");
+d.ge("show-line-format").onclick=_=>lineFormat.sa("class",lineFormat.getAttribute("class")==="none"?"bord":"none");
+
+const io=d.ge("info-op"),clearIo=_=>clearC(io),evtid=d.ge("evtid");
+d.ge("confirm-all").onclick=_=>{
+	clearIo();
+	let err=0;
+	if(!dataMap){ err=1; io.ac(d.ce('div').at("error: no proper Map.json specified")); }
+	if(!fl.files.length){ err=1; io.ac(d.ce('div').at("error: no line.txt specified")); }
+	const id=Number(evtid.value);
+	if(isNaN(id)){ err=1; io.ac(d.ce('div').at("error: Event ID is not a number")); }
+	if(!dataMap.events[id]){ err=1; io.ac(d.ce('div').at("error: no such event of the Event ID ("+id+") in Map.json")); }
+	if(err) return;
+	io.ac(d.ce('div').at("operating..."));
+	
+	const newDataMap=JSON.parse(JSON.stringify(dataMap));
+	const list=newDataMap.events[id].pages[0].list;
+	
+	const fr=new FileReader();
+	fr.onload=e=>{ try{
+		const sep=/\n\n+/;
+		const txt=e.target.result.replace(/\r/g,'').split(sep);
+		list.length=0;
+		for(let x=0;x!==txt.length;++x){
+			const t=txt[x].split('\n');
+			list.push({code:101,indent:0,parameters:["",0,0,2],});
+			for(let z=0;z!==t.length;++z) list.push({code:401,indent:0,parameters:[t[z]],});
+		}
+		list.push({code:0,indent:0,parameters:[]});
+		const data="data:application/json;charset=UTF-8,"+encodeURIComponent(JSON.stringify(newDataMap));
+		console.log(data);
+		io.ac(d.ce('div').at("operation done"));
+		io.ac(d.ce('div').at("click link below if the download does not start automatically."));
+		const a=d.ce('a').sa('href',data).sa("download","Map000.json").at("download");
+		io.ac(d.ce('div').ac(a));
+		a.click();
+	}catch(e){
+		io.ac(d.ce('div').at("operation failed"));
+	} };
+	fr.onerror=_=>{
+		io.ac(d.ce('div').at("operation failed: read line.txt"));
+	};
+	fr.readAsText(fl.files[0]);
+};
+
+</script>
+</body>
+</html>
