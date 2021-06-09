@@ -11,6 +11,107 @@ String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
 Number.prototype.padZero=function(n){ return (this+'').padStart(n,'0'); };
 Math.randomInt=max=>~~(Math.random()*max);
+{ let t, n, r = {}, i = {}, s = "", o = "", u = "", a = 2, f = 3, l = 2, c = "", h = 0, p = 0, d, v = LZString._f;
+const r_hasnt_o=()=>{
+	if(Object.prototype.hasOwnProperty.call(i, u)){
+		if(u.charCodeAt(0) < 256){
+			for(t=l;t--;){
+				h<<=1;
+				if(p === 15){
+					p = 0;
+					c += v(h);
+					h = 0
+				}else ++p;
+			}
+			n = u.charCodeAt(0);
+			for(t=8;t--;){
+				h = h << 1 | n & 1;
+				if(p === 15){
+					p = 0;
+					c += v(h);
+					h = 0;
+				}else ++p;
+				n>>=1;
+			}
+		}else{
+			n = 1;
+			for(t=l;t--;){
+				h = h << 1 | n;
+				if(p === 15){
+					p = 0;
+					c += v(h);
+					h = 0;
+				}else ++p;
+				n = 0;
+			}
+			n = u.charCodeAt(0);
+			for(t=16;t--;){
+				h = h << 1 | n & 1;
+				if(p === 15){
+					p = 0;
+					c += v(h);
+					h = 0;
+				}else ++p;
+				n>>=1;
+			}
+		}
+		//if(!--a) a=(l<31)?1<<l++:Math.pow(2, l++);
+		if(!--a) a=1<<l++;
+		delete i[u];
+	}else{
+		n = r[u];
+		for(t=l;t--;){
+			h = h << 1 | n & 1;
+			if(p === 15){
+				p = 0;
+				c += v(h);
+				h = 0;
+			}else ++p;
+			n>>=1;
+		}
+	}
+	//if(!--a) a=(l<31)?1<<l++:Math.pow(2, l++);
+	if(!--a) a=1<<l++;
+};
+LZString.compress=input=>{
+	if(!input) return "";
+	const e=input;
+	r = {}, i = {}, s = "", o = "", u = "", a = 2, f = 3, l = 2, c = "", h = 0, p = 0, v = LZString._f;
+	for(d=0;d!==e.length;++d){
+		s = e[d];
+		if(!Object.prototype.hasOwnProperty.call(r, s)){
+			r[s] = f++;
+			i[s] = true;
+		}
+		o = u + s;
+		if(Object.prototype.hasOwnProperty.call(r, o)) u = o;
+		else{
+			r_hasnt_o();
+			r[o] = f++;
+			u = String(s);
+		}
+	}
+	if(u) r_hasnt_o();
+	n = 2;
+	for(t=l;t--;){
+		h = h << 1 | n & 1;
+		if(p === 15){
+			p = 0;
+			c += v(h);
+			h = 0;
+		}else ++p;
+		n>>=1;
+	}
+	while(true){
+		h<<=1;
+		if(p === 15){
+			c += v(h);
+			break;
+		}else ++p;
+	}
+	return c;
+};
+}
 LZString.compressToBase64=input=>{
 	if(!input) return "";
 	let n,r,i,s,o,u,a, f=0 , t="";
@@ -1101,14 +1202,59 @@ $aaaa$.playVideo=function(src) {
 	this._videoLoader = ResourceHandler.createLoader('video',null, this._playVideo.bind(this, src), this._onVideoError.bind(this));
 	this._playVideo(src);
 };
-$aaaa$.render=function(stage){
+$aaaa$.blurBorder=function f(stage){
+	// light weight: 1/4 width , 1/4 height. and that's the limit
+	const c=this._canvas;//,ctx=c.getContext('2d');
+	const w=c.width>>2,h=c.height>>2;
+	let crnw=w>>3,crnh=h>>3;
+	const crn=Math.min(crnw,crnh);
+	crnw=crnh=crn;
+	
+	let gc2=f.gc2||d.ge('gc2');
+	if(!gc2){
+		d.body.ac(gc2=f.gc2=d.ce('canvas').sa('id','gc2').sa('style',c.ga('style')));
+		gc2.width=w;
+		gc2.height=h;
+		gc2.style.filter="blur("+((crn>>1)-1)+"px)";
+	}
+	if(gc2.style.width!==c.style.width) gc2.style.width=c.style.width;
+	if(gc2.style.height!==c.style.height) gc2.style.height=c.style.height;
+	
+	if(!f.template) f.template=d.ce('canvas');
+	const t=f.template;
+	if(t.width!==w||t.height!==h){
+		if(t.width!==w)   gc2.width=t.width=w;
+		if(t.height!==h) gc2.height=t.height=h;
+		gc2.style.filter="blur("+((crn>>1)-1)+"px)";
+		const ctx=t.getContext('2d');
+		ctx.fillStyle="#000000";
+		ctx.fillRect( 0 , 0 , w-crnw , crnh );
+		ctx.fillRect( w-crnw , 0 , crnw , h-crnh );
+		ctx.fillRect( crnw , h-crnh , w-crnw , crnh );
+		ctx.fillRect( 0 , crnh , crnw , h-crnh );
+	}
+	if(stage.isBlurBorder()){
+		if(gc2.style.display==="none") gc2.style.display="";
+		const ctx2=gc2.getContext('2d');
+		ctx2.globalCompositeOperation="source-over";
+		ctx2.drawImage(f.template,0,0);
+		ctx2.globalCompositeOperation="source-atop";
+		ctx2.drawImage(c,0,0,w,h);
+	}else gc2.style.display="none";
+};
+$aaaa$.render=function f(stage){
 	if(0<this._skipCount) this._skipCount^=0;
 	else this._skipCount&=0;
 	if(this._skipCount === 0){
-		let t0 = Date.now();
+		const t0 = Date.now();
 		if(stage){
 			this._renderer.render(stage);
 			if (this._renderer.gl && this._renderer.gl.flush) this._renderer.gl.flush();
+			this.blurBorder(stage);
+// test
+if(0){
+}
+// END test
 		}
 		this._skipCount = Math.min((Date.now()-t0)>>4, this._maxSkip);
 		this._rendered = true;
@@ -1737,9 +1883,14 @@ $rrrr$=$dddd$=$aaaa$=undef;
 // - ToneSprite
 $aaaa$=ToneSprite;
 $dddd$=$aaaa$.prototype._renderCanvas = function f(renderer) { // rewrite: wtf the original one draws 3 times when negtive color values only
+	// lazy update , suppose effects are uniformly applied to each pixel
 	if (this.visible) {
-		const ctx = renderer.context , width = Graphics.width , height = Graphics.height;
+		const ctx = renderer.context , width = ctx.canvas.width , height = ctx.canvas.height;
 		ctx.save();
+// test
+if(0){
+}
+// END test
 		{
 			const t = this.worldTransform , r = renderer.resolution;
 			ctx.setTransform(t.a, t.b, t.c, t.d, t.tx * r, t.ty * r);

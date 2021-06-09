@@ -273,7 +273,7 @@ list.rfl_mv2evts_fortask_bfs=(self,argv)=>{
 	const part=argv[1]>1?getPrime(1<<(argv[1]&3)):argv[1]+1;
 	if(!$dataMap.fortask) $dataMap.fortask={};
 	let arr=$dataMap.fortask[taskid]; if(!arr || arr.fc!==Graphics.frameCount){
-		arr=$dataMap.fortask[taskid]=$gameMap._events.filter(x=>rfl_mv2evts_fortask_filter(x,taskid)).sort(rfl_mv2evts_fortask_sort);
+		arr=$dataMap.fortask[taskid]=$gameMap._events.filter( evt => $gameMap.isValid(evt.x,evt.y) && rfl_mv2evts_fortask_filter(evt,taskid) ).sort(rfl_mv2evts_fortask_sort);
 		arr.fc=Graphics.frameCount;
 	}
 	const tmp=(1<part && part<arr.length)&&arr.filter((evt,i)=>$gameMap.isValid(evt.x,evt.y) && i%part===0);

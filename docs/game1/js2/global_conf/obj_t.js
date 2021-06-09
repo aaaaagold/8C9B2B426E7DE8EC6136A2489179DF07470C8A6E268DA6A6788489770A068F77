@@ -1131,22 +1131,22 @@ $aaaa$.readVolume=function(config,name){
 	else return value<100?value<0?0:value:100;
 };
 $aaaa$.ConfigOptionsWithSystem=[
-	["_noGainMsg",$aaaa$.readFlag],
+	["_noGainMsg",$aaaa$.readFlag,1],
 	["_noGainHint",$aaaa$.readFlag],
 	["_noGainSound",$aaaa$.readFlag],
 	["_noLeaderHp",$aaaa$.readFlag],
 	["_noLeaderMp",$aaaa$.readFlag],
 	["_flwingMsg",$aaaa$.readFlag],
-	["_lvUpMsg",$aaaa$.readFlag],
-	["_lvUpHint",$aaaa$.readFlag],
+	["_lvUpMsg",$aaaa$.readFlag,1],
+	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
 ];
 $aaaa$.ConfigOptions=$aaaa$.ConfigOptionsWithSystem.concat([
-	["alwaysDash",$aaaa$.readFlag,true],
-	["commandRemember",$aaaa$.readFlag],
+	["alwaysDash",$aaaa$.readFlag,1],
+	["commandRemember",$aaaa$.readFlag,1],
 	["bgmVolume",$aaaa$.readVolume],
 	["bgsVolume",$aaaa$.readVolume],
 	["meVolume",$aaaa$.readVolume],
@@ -1724,6 +1724,7 @@ $pppp$.terminate=function(){
 	const c=d.ge("GameCanvas") , css=c&&c.style;
 	if(css) css.filter=t[3]>0?"saturate("+ satur +")":"";
 };
+$pppp$.isBlurBorder=()=>false;
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - boot
@@ -3859,9 +3860,10 @@ $dddd$=$pppp$.isChair=function f(x,y){
 $dddd$.tbl=[];
 $rrrr$=$pppp$.displayName;
 $dddd$=$pppp$.displayName=function f(){
-	debug.log('Game_Map.prototype.displayName');
-	let pt=$gameParty && $gameParty.mapChanges,id=$gameMap._mapId;
-	return pt && pt[id] && pt[id].name || f.ori.call(this);
+	//debug.log('Game_Map.prototype.displayName');
+	const pt=$gameParty && $gameParty.mapChanges,id=$gameMap._mapId;
+	const evalName = $dataMap.evalName===undefined ? ($dataMap.evalName=objs._getObj($dataMap.meta.evalName)) : $dataMap.evalName ;
+	return pt && pt[id] && pt[id].name && evalName || f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$pppp$.data;
 $dddd$=$pppp$.data=function f(idx){
@@ -6340,6 +6342,10 @@ $dddd$=$pppp$.initialize=function f(){
 	this.maxSavefiles=DataManager.maxSavefiles();
 	this._rndid=Date.now()+''+Math.random();
 	if(this.canDiag===undefined) this.canDiag=true;
+}; $dddd$.ori=$rrrr$;
+$rrrr$=$pppp$.isTransparent;
+$dddd$=$pppp$.isTransparent=function f(){
+	return f.ori.call(this) || $dataMap && $dataMap.meta.hidePlayer;
 }; $dddd$.ori=$rrrr$;
 $pppp$.maxFollowers=function(){
 	return _global_conf["default maxFollowers"]||4040;
