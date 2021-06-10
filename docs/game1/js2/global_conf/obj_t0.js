@@ -2199,8 +2199,8 @@ Object.defineProperties($dddd$.prototype,{
 });
 $aaaa$.prototype.onAfterLoad=function(){ // overwrite. wtf you forgot "pos"
 	Graphics.frameCount = this._framesOnSave;
-	AudioManager.playBgm(this._bgmOnSave,this._bgmOnSave.pos);
-	AudioManager.playBgs(this._bgsOnSave,this._bgsOnSave.pos);
+	if(this._bgmOnSave) AudioManager.playBgm(this._bgmOnSave,this._bgmOnSave.pos); else AudioManager.fadeOutBgm(1);
+	if(this._bgsOnSave) AudioManager.playBgs(this._bgsOnSave,this._bgsOnSave.pos); else AudioManager.fadeOutBgs(1);
 };
 $aaaa$.prototype.playtimeText=function(){
 	let fc=Graphics.frameCount; if(fc>872654640) fc=872654640;
