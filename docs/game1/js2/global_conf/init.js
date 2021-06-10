@@ -189,6 +189,12 @@ const debug=function f(){
 	console.log.apply(console.log,arguments);
 	f.stack.push(arguments);
 };debug();debug.clear();
+const hook=(p,k,f)=>{
+	const r=p[k];
+	p[k]=f;
+	f.ori=r;
+	return f;
+};
 
 let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
 	let undef=undefined,d=w.document||{},$rrrr$,$dddd$;
