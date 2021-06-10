@@ -1,5 +1,5 @@
 //=============================================================================
-// rpg_managers.js v1.6.1
+// rpg_managers.js 1.6.1
 //=============================================================================
 
 if(!window.objs) window.objs={};
@@ -733,13 +733,8 @@ ImageManager.reserveEnemy = function(filename, hue, reservationId) {
     return this.reserveBitmap('img/enemies/', filename, hue, true, reservationId);
 };
 
-ImageManager.reserveCharacter = function(filename, hue, reservationId) {
-    return this.reserveBitmap('img/characters/', filename, hue, false, reservationId);
-};
-
-ImageManager.reserveFace = function(filename, hue, reservationId) {
-    return this.reserveBitmap('img/faces/', filename, hue, true, reservationId);
-};
+ImageManager.reserveCharacter;
+ImageManager.reserveFace;
 
 ImageManager.reserveParallax = function(filename, hue, reservationId) {
     return this.reserveBitmap('img/parallaxes/', filename, hue, true, reservationId);
@@ -749,9 +744,7 @@ ImageManager.reservePicture = function(filename, hue, reservationId) {
     return this.reserveBitmap('img/pictures/', filename, hue, true, reservationId);
 };
 
-ImageManager.reserveSvActor = function(filename, hue, reservationId) {
-    return this.reserveBitmap('img/sv_actors/', filename, hue, false, reservationId);
-};
+ImageManager.reserveSvActor;
 
 ImageManager.reserveSvEnemy = function(filename, hue, reservationId) {
     return this.reserveBitmap('img/sv_enemies/', filename, hue, true, reservationId);
@@ -774,13 +767,7 @@ ImageManager.reserveTitle2 = function(filename, hue, reservationId) {
 };
 
 ImageManager.reserveBitmap;
-
-ImageManager.reserveNormalBitmap = function(path, hue, reservationId){
-    var bitmap = this.loadNormalBitmap(path, hue);
-    this._imageCache.reserve(this._generateCacheKey(path, hue), bitmap, reservationId);
-
-    return bitmap;
-};
+ImageManager.reserveNormalBitmap;
 
 ImageManager.releaseReservation = function(reservationId){
     this._imageCache.releaseReservation(reservationId);
@@ -2285,16 +2272,7 @@ BattleManager.invokeMagicReflection = function(subject, target) {
     this._logWindow.displayActionResults(target, subject);
 };
 
-BattleManager.applySubstitute = function(target) {
-    if (this.checkSubstitute(target)) {
-        var substitute = target.friendsUnit().substituteBattler();
-        if (substitute && target !== substitute) {
-            this._logWindow.displaySubstitute(substitute, target);
-            return substitute;
-        }
-    }
-    return target;
-};
+BattleManager.applySubstitute;
 
 BattleManager.checkSubstitute = function(target) {
     return target.isDying() && !this._action.isCertainHit();

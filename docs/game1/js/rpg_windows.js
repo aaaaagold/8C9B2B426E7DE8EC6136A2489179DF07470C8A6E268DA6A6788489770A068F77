@@ -2075,10 +2075,6 @@ Window_Options.prototype.booleanStatusText = function(value) {
     return value ? 'ON' : 'OFF';
 };
 
-Window_Options.prototype.volumeStatusText = function(value) {
-    return value + '%';
-};
-
 Window_Options.prototype.cursorRight = function(wrap) {
     var index = this.index();
     var symbol = this.commandSymbol(index);
@@ -3641,10 +3637,6 @@ Window_Message.prototype.newPage = function(textState) {
     textState.y = 0;
     textState.left = this.newLineX();
     textState.height = this.calcTextHeight(textState, false);
-};
-
-Window_Message.prototype.loadMessageFace = function() {
-    this._faceBitmap = ImageManager.reserveFace($gameMessage.faceName(), 0, this._imageReservationId);
 };
 
 Window_Message.prototype.drawMessageFace = function() {
