@@ -1849,15 +1849,7 @@ Scene_Shop.prototype.endNumberInput = function() {
     }
 };
 
-Scene_Shop.prototype.maxBuy = function() {
-    var max = $gameParty.maxItems(this._item) - $gameParty.numItems(this._item);
-    var price = this.buyingPrice();
-    if (price > 0) {
-        return Math.min(max, Math.floor(this.money() / price));
-    } else {
-        return max;
-    }
-};
+Scene_Shop.prototype.maxBuy;
 
 Scene_Shop.prototype.maxSell = function() {
     return $gameParty.numItems(this._item);

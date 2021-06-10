@@ -1852,10 +1852,7 @@ Spriteset_Base.prototype.updateWebGLToneChanger = function() {
     this._toneFilter.adjustSaturation(-tone[3]);
 };
 
-Spriteset_Base.prototype.updateCanvasToneChanger = function() {
-    var tone = this._tone;
-    this._toneSprite.setTone(tone[0], tone[1], tone[2], tone[3]);
-};
+Spriteset_Base.prototype.updateCanvasToneChanger;
 
 Spriteset_Base.prototype.updatePosition = function() {
     var screen = $gameScreen;

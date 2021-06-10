@@ -2075,10 +2075,6 @@ Window_Options.prototype.booleanStatusText = function(value) {
     return value ? 'ON' : 'OFF';
 };
 
-Window_Options.prototype.volumeStatusText = function(value) {
-    return value + '%';
-};
-
 Window_Options.prototype.cursorRight = function(wrap) {
     var index = this.index();
     var symbol = this.commandSymbol(index);
@@ -3643,10 +3639,6 @@ Window_Message.prototype.newPage = function(textState) {
     textState.height = this.calcTextHeight(textState, false);
 };
 
-Window_Message.prototype.loadMessageFace = function() {
-    this._faceBitmap = ImageManager.reserveFace($gameMessage.faceName(), 0, this._imageReservationId);
-};
-
 Window_Message.prototype.drawMessageFace = function() {
     this.drawFace($gameMessage.faceName(), $gameMessage.faceIndex(), 0, 0);
     ImageManager.releaseReservation(this._imageReservationId);
@@ -4088,17 +4080,7 @@ Window_BattleLog.prototype.showEnemyAttackAnimation = function(subject, targets)
     SoundManager.playEnemyAttack();
 };
 
-Window_BattleLog.prototype.showNormalAnimation = function(targets, animationId, mirror) {
-    var animation = $dataAnimations[animationId];
-    if (animation) {
-        var delay = this.animationBaseDelay();
-        var nextDelay = this.animationNextDelay();
-        targets.forEach(function(target) {
-            target.startAnimation(animationId, mirror, delay);
-            delay += nextDelay;
-        });
-    }
-};
+Window_BattleLog.prototype.showNormalAnimation;
 
 Window_BattleLog.prototype.animationBaseDelay = function() {
     return 8;

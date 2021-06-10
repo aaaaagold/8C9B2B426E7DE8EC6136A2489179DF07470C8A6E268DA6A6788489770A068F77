@@ -1242,14 +1242,6 @@ Game_Action.prototype.evaluateWithTarget = function(target) {
     }
 };
 
-Game_Action.prototype.testApply = function(target) {
-    return (this.isForDeadFriend() === target.isDead() &&
-            ($gameParty.inBattle() || this.isForOpponent() ||
-            (this.isHpRecover() && target.hp < target.mhp) ||
-            (this.isMpRecover() && target.mp < target.mmp) ||
-            (this.hasItemAnyValidEffects(target))));
-};
-
 Game_Action.prototype.hasItemAnyValidEffects = function(target) {
     return this.item().effects.some(function(effect) {
         return this.testItemEffect(target, effect);
@@ -2557,10 +2549,6 @@ Game_Actor.prototype.characterIndex = function() {
     return this._characterIndex;
 };
 
-Game_Actor.prototype.faceIndex = function() {
-    return this._faceIndex;
-};
-
 Game_Actor.prototype.battlerName = function() {
     return this._battlerName;
 };
@@ -3487,10 +3475,6 @@ Game_Party.prototype.numItems = function(item) {
     return container ? container[item.id] || 0 : 0;
 };
 
-Game_Party.prototype.hasMaxItems = function(item) {
-    return this.numItems(item) >= this.maxItems(item);
-};
-
 Game_Party.prototype.discardMembersEquip = function(item, amount) {
     var n = amount;
     this.members().forEach(function(actor) {
@@ -3535,18 +3519,6 @@ Game_Party.prototype.lastItem = function() {
 
 Game_Party.prototype.setLastItem = function(item) {
     this._lastItem.setObject(item);
-};
-
-Game_Party.prototype.charactersForSavefile = function() {
-    return this.battleMembers().map(function(actor) {
-        return [actor.characterName(), actor.characterIndex()];
-    });
-};
-
-Game_Party.prototype.facesForSavefile = function() {
-    return this.battleMembers().map(function(actor) {
-        return [actor.faceName(), actor.faceIndex()];
-    });
 };
 
 Game_Party.prototype.partyAbility = function(abilityId) {
@@ -4439,10 +4411,6 @@ Game_CharacterBase.prototype.isNormalPriority = function() {
     return this._priorityType === 1;
 };
 
-Game_CharacterBase.prototype.setPriorityType = function(priorityType) {
-    this._priorityType = priorityType;
-};
-
 Game_CharacterBase.prototype.isMoving = function() {
     return this._realX !== this._x || this._realY !== this._y;
 };
@@ -4832,10 +4800,6 @@ Game_CharacterBase.prototype.setDirectionFix = function(directionFix) {
 
 Game_CharacterBase.prototype.isThrough = function() {
     return this._through;
-};
-
-Game_CharacterBase.prototype.setThrough = function(through) {
-    this._through = through;
 };
 
 Game_CharacterBase.prototype.isTransparent = function() {
@@ -5774,12 +5738,6 @@ Game_Follower.prototype.initialize = function(memberIndex) {
     this.setThrough(true);
 };
 
-Game_Follower.prototype.refresh = function() {
-    var characterName = this.isVisible() ? this.actor().characterName() : '';
-    var characterIndex = this.isVisible() ? this.actor().characterIndex() : 0;
-    this.setImage(characterName, characterIndex);
-};
-
 Game_Follower.prototype.isVisible = function() {
     return this.actor() && $gamePlayer.followers().isVisible();
 };
@@ -6163,14 +6121,6 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y) {
 
 Game_Event.prototype.isCollidedWithPlayerCharacters = function(x, y) {
     return this.isNormalPriority() && $gamePlayer.isCollided(x, y);
-};
-
-Game_Event.prototype.lock = function() {
-    if (!this._locked) {
-        this._prelockDirection = this.direction();
-        this.turnTowardPlayer();
-        this._locked = true;
-    }
 };
 
 Game_Event.prototype.unlock = function() {
@@ -6572,16 +6522,12 @@ Game_Interpreter.prototype.checkFreeze = function() {
     }
 };
 
-Game_Interpreter.prototype.terminate = function() {
+Game_Interpreter.prototype.terminate=function(){
     this._list = null;
     this._comments = '';
 };
 
-Game_Interpreter.prototype.skipBranch = function() {
-    while (this._list[this._index + 1].indent > this._indent) {
-        this._index++;
-    }
-};
+Game_Interpreter.prototype.skipBranch;
 
 Game_Interpreter.prototype.currentCommand = function() {
     return this._list[this._index];
@@ -6791,32 +6737,9 @@ Game_Interpreter.prototype.command112 = function() {
 };
 
 // Repeat Above
-Game_Interpreter.prototype.command413 = function() {
-    do {
-        this._index--;
-    } while (this.currentCommand().indent !== this._indent);
-    return true;
-};
-
+Game_Interpreter.prototype.command413;
 // Break Loop
-Game_Interpreter.prototype.command113 = function() {
-    var depth = 0;
-    while (this._index < this._list.length - 1) {
-        this._index++;
-        var command = this.currentCommand();
-
-        if (command.code === 112)
-            depth++;
-
-        if (command.code === 413) {
-            if (depth > 0)
-                depth--;
-            else
-                break;
-        }
-    }
-    return true;
-};
+Game_Interpreter.prototype.command113;
 
 // Exit Event Processing
 Game_Interpreter.prototype.command115 = function() {
@@ -6845,32 +6768,8 @@ Game_Interpreter.prototype.command118 = function() {
 };
 
 // Jump to Label
-Game_Interpreter.prototype.command119 = function() {
-    var labelName = this._params[0];
-    for (var i = 0; i < this._list.length; i++) {
-        var command = this._list[i];
-        if (command.code === 118 && command.parameters[0] === labelName) {
-            this.jumpTo(i);
-            return;
-        }
-    }
-    return true;
-};
-
-Game_Interpreter.prototype.jumpTo = function(index) {
-    var lastIndex = this._index;
-    var startIndex = Math.min(index, lastIndex);
-    var endIndex = Math.max(index, lastIndex);
-    var indent = this._indent;
-    for (var i = startIndex; i <= endIndex; i++) {
-        var newIndent = this._list[i].indent;
-        if (newIndent !== indent) {
-            this._branch[indent] = null;
-            indent = newIndent;
-        }
-    }
-    this._index = index;
-};
+Game_Interpreter.prototype.command119;
+Game_Interpreter.prototype.jumpTo;
 
 // Control Switches
 Game_Interpreter.prototype.command121 = function() {
