@@ -3403,6 +3403,7 @@ const load=js=>addScript(dir+js);
 load( "menu2-store.js" );
 load( "menu2-battlePlan.js" );
 load( "menu2-chat.js" );
+load( "menu2-save.js" );
 
 })();
 

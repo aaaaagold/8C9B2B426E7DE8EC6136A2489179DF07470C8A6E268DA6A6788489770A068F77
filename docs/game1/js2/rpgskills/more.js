@@ -6,7 +6,15 @@ list.followingSwitch=action=>{
 };
 list.followingDiscard=(action,filter)=>{
 	const subject=action.subject();
-	SceneManager._scene.itemTargetActors().forEach(actor=>actor&&(!filter||filter(actor,subject))&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+	{ const sc=SceneManager._scene; if(sc && sc.constructor===Scene_Skill){
+		return sc.itemTargetActors().forEach(actor=>actor&&(!filter||filter(actor,subject))&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+	} }
+	const aid=$gameParty._acs[action._targetIndex];
+	const a=$gameActors.actor(aid);
+	if( a && (!filter||filter(a,subject)) ){
+		$gameActors.destroy(aid);
+		$gameParty.removeActor(aid,action._targetIndex);
+	}
 };
 
 const newRoadblock_argv=[13,true,true];

@@ -77,11 +77,9 @@ $aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 		return tileIdAsBase|bitmsk;
 	}break;
 	case 1:{ // 16..31
-		tileIdAsBase+=16; // (%48) don't use "|"
 		let bitAt=4,bitmsk=0,tmpx,tmpy;
 		while( bitAt && (bitmsk_end&(1<<--bitAt))===0 )
 			;
-		tileIdAsBase|=bitAt<<2;
 		switch(bitAt){
 		case 0: // 左岸
 			bitmsk<<=1;
@@ -120,11 +118,12 @@ $aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 			bitmsk|=validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd;
 		break;
 		}
+		tileIdAsBase|=bitAt<<2;
 		tileIdAsBase|=bitmsk;
+		tileIdAsBase+=16; // (%48) don't use "|"
 	}break;
 	default:{ // 32..47
-		tileIdAsBase+=32; // (%48) don't use "|"
-		let offset=0;
+		let offset=0,tmpx,tmpy;
 		switch(bitmsk_end){
 		case 0x0:
 		case 0x1:
@@ -133,18 +132,24 @@ $aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 		case 0x8: break;
 		case 0x3: { // 左上
 			offset=2;
+			tmpx=rx(dstx+1); tmpy=ry(dsty+1);
+			offset|=(validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd);
 		}break;
 		case 0x5: { // 左右
 			offset=0;
 		}break;
 		case 0x6: { // 上右
 			offset=4;
+			tmpx=rx(dstx-1); tmpy=ry(dsty+1);
+			offset|=(validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd);
 		}break;
 		case 0x7: { // 左上右
 			offset=10;
 		}break;
 		case 0x9: { // 左下
 			offset=8;
+			tmpx=rx(dstx+1); tmpy=ry(dsty-1);
+			offset|=(validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd);
 		}break;
 		case 0xA: { // 上下
 			offset=1;
@@ -153,10 +158,12 @@ $aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 			offset=11;
 		}break;
 		case 0xC: { // 右下
-			offset=10;
+			offset=6;
+			tmpx=rx(dstx-1); tmpy=ry(dsty-1);
+			offset|=(validX(tmpx)&&validY(tmpy) ? toBase(getTile(tmpx,tmpy,lv))!==tileIdAsBase : borderIsNotEnd);
 		}break;
 		case 0xD: { // 左右下
-			offset=6;
+			offset=12;
 		}break;
 		case 0xE: { // 上右下
 			offset=13;
@@ -166,6 +173,7 @@ $aaaa$._getProperAutoile=(mapd,dstx,dsty,lv,tileIdAsBase,borderIsNotEnd)=>{
 		}break;
 		}
 		tileIdAsBase|=offset;
+		tileIdAsBase+=32; // (%48) don't use "|"
 	}break;
 	}
 	return tileIdAsBase;

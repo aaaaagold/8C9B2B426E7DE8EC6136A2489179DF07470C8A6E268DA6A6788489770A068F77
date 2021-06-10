@@ -13,6 +13,7 @@ $aaaa$._apps=()=>{SceneManager.push(Scene_Apps);};
 $aaaa$._usrswitch=()=>{SceneManager.push(Scene_UserSwitch);};
 $aaaa$._feedback=()=>{SceneManager.push(Scene_Feedback);};
 $aaaa$._savelocal=()=>{SceneManager.push(Scene_SaveLocal);};
+$aaaa$._saveopts=()=>{SceneManager.push(Scene_SaveOpts);};
 $aaaa$._saveonline=()=>{SceneManager.push(Scene_SaveOnline);};
 $rrrr$=$aaaa$.catchException;
 $dddd$=$aaaa$.catchException=function f(e){

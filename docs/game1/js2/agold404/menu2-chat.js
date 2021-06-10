@@ -72,10 +72,12 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 		inputNewName.in.focus();
 	};
 	const bye=()=>{
+		d.ge('div999').style.display="";
 		theTop.parentNode.removeChild(theTop);
 		fb.dconn();
 		if(this._window){
 			this.popScene();
+			SceneManager._resuming=false;
 			SceneManager.resume();
 		}
 	};
@@ -166,8 +168,10 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	if(this && this._window){
 		this._window.alpha=0;
 		if(this.addWindow) this.addWindow(this._window);
+		SceneManager.stop();
+		SceneManager._resuming=true;
+		d.ge('div999').style.display="none";
 	}
-	SceneManager.stop();
 	typing.focus();
 };
 $dddd$=$rrrr$=$aaaa$=undef; // END Scene_ChatOnline

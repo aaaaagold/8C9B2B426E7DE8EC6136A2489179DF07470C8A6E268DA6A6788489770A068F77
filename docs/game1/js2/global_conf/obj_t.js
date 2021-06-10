@@ -21,7 +21,14 @@ $dddd$=Input.clear=function f(keyOnly){
 	else this.kstat=[];
 	return f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-Input._onKeyDown=function(event) {
+Input._skip=0;
+Input.skip=function(n){
+	if(n>0) this._skip+=n;
+	return this._skip;
+};
+Input.doSkip=function(){ if(this._skip){ --this._skip; return true; } };
+Input._onKeyDown=function(event){
+	if(this.doSkip()) return;
 	this.kstat[event.keyCode]=true;
 	if(!document.activeElement.useDefault&&this._shouldPreventDefault(event.keyCode)){
 		event.preventDefault();
@@ -2216,7 +2223,8 @@ $pppp$.addCustomCommands=function(){
 	cw.setHandler('CLOSEGAME', ()=>{SceneManager.pause();d.body.rf(0);});
 //	cw.setHandler('loadOnlineSave',   ()=>{SceneManager.push(Scene_LoadOnline );});
 	cw.setHandler('loadLocalSave',    ()=>{SceneManager.push(Scene_LoadLocal  );});
-	cw.setHandler('saveLocal',        SceneManager._savelocal );
+//	cw.setHandler('saveLocal',        SceneManager._savelocal );
+	cw.setHandler('saveOpts',         SceneManager._saveopts  );
 	cw.setHandler('usrSwitch_global', SceneManager._usrswitch );
 	cw.setHandler('feedback',         SceneManager._feedback  );
 };
@@ -2292,7 +2300,7 @@ $pppp$.createCommandWindow=function(){
 	cmdw.setHandler('status',	this.commandPersonal.bind(this));
 	cmdw.setHandler('formation',	this.commandFormation.bind(this));
 	cmdw.setHandler('options',	this.commandOptions.bind(this));
-	cmdw.setHandler('save', 	this.commandSave.bind(this));
+	cmdw.setHandler('save', 	this.commandSave);
 	cmdw.setHandler('gameEnd',	this.commandGameEnd.bind(this));
 	cmdw.setHandler('cancel',	this.popScene.bind(this));
 	if(this.addCustomCommands) this.addCustomCommands();
@@ -2329,7 +2337,8 @@ $dddd$=$pppp$.addCustomCommands=function f(){
 		//cmdw.setHandler('achievement', ()=>{SceneManager.push(Scene_Achievement);} );
 	cmdw.setHandler('usrSwitch',  SceneManager._usrswitch  );
 	cmdw.setHandler('feedback',   SceneManager._feedback   );
-	cmdw.setHandler('saveLocal',  SceneManager._savelocal  );
+//	cmdw.setHandler('saveLocal',  SceneManager._savelocal  );
+	cmdw.setHandler('saveOpts',   SceneManager._saveopts   );
 //	cmdw.setHandler('saveOnline', SceneManager._saveonline );
 };
 $dddd$.setCancel=(w,f)=>{w.setHandler('cancel');return w;};
@@ -7903,7 +7912,7 @@ $pppp$.refresh=function(){
 			((dead=a.isDeathStateAffected())!==this._tmp._lastActorDead)
 		)){
 			this._tmp._lastActor=a;
-			if(!dead && this._tmp._lastActorDead!==dead) this._direction=this._dir2;
+			if(!dead && this._tmp._lastActorDead!==dead && this._dir2) this._direction=this._dir2;
 			this._tmp._lastActorDead=dead;
 			let dmgimg;
 			if(dead && (dmgimg=a.getData().dmgimg)){
@@ -9369,9 +9378,10 @@ $pppp$.itemTargetCandidates = function() {
 $rrrr$=$pppp$.testApply;
 $dddd$=$pppp$.testApply=function f(target){
 	if(!target) return false;
-	const meta=this.item().meta;
-	const filter=meta.filter;
-	if(filter) return objs._getObj(filter)(target,this.subject());
+	const item=this.item();
+	const meta=item.meta;
+	const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
+	if(filter) return filter(target,this.subject());
 	return (
 		( this.isForAllFriend() || this.isForDeadFriend() === target.isDead() ) &&
 		(
@@ -12399,6 +12409,15 @@ $dddd$=$pppp$.drawItem=function f(idx){
 	Window_MenuActor.prototype.drawItemBackground.call(this,idx);
 	f.ori.call(this,idx);
 }; $dddd$.ori=$rrrr$;
+$pppp$.isCurrentItemEnabled=function(){
+	if(this._mode!=='s'){ const act=BattleManager.inputtingAction();
+	if(act){ const item=act.item(); if(item){
+		const filter=item.filter||(item.filter=(item.meta.filter=item.meta.filter)&&objs._getObj(item.meta.filter));
+		if(filter) return filter(this.actor(),act.subject());
+	} }
+	} // swap party actors mode
+	return true;
+};
 $pppp$.initialize=function(x,y){
 	Window_BattleStatus.prototype.initialize.call(this);
 	this._mode=undefined;
@@ -12422,7 +12441,8 @@ $pppp$.makeCommandList = function() {
 $pppp$.addCustomCommands=function(){
 	this.addCommand($dataCustom.usrSwitch,         'usrSwitch_global');
 	this.addCommand(_global_conf.sep,'sep',false);
-	this.addCommand($dataCustom.saveLocal,         'saveLocal');
+//	this.addCommand($dataCustom.saveLocal,         'saveLocal');
+	this.addCommand($dataCustom.optSave.name,      'saveOpts');
 	this.addCommand($dataCustom.fromLocalSave,     'loadLocalSave');
 //	this.addCommand($dataCustom.fromOnlineSave,    'loadOnlineSave');
 	this.addCommand(_global_conf.sep,'sep',false);
@@ -12448,8 +12468,9 @@ $dddd$=$pppp$.addSaveCommand=function f(){ // overwrite for efficiency
 	if ($dataSystem.menuCommands[5]) {
 		let enabled = this.isSaveEnabled();
 		this.addCommand(TextManager.save, 'save', enabled);
-		this.addCommand($dataCustom.saveLocal, 'saveLocal', enabled);
-	//	this.addCommand($dataCustom.saveOnline, 'saveOnline', enabled);
+	//	this.addCommand($dataCustom.saveLocal,    'saveLocal', enabled);
+		this.addCommand($dataCustom.optSave.name, 'saveOpts',  enabled);
+	//	this.addCommand($dataCustom.saveOnline,   'saveOnline', enabled);
 	}
 }; $dddd$.ori=$rrrr$;
 $pppp$.addOnceCommand=function(){
@@ -13176,9 +13197,10 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // - savefilelist
 $aaaa$=Window_SavefileList;
 $pppp$=$aaaa$.prototype;
-$pppp$.drawGameTitle = function(info, x, y, width) {
-	if (info.title) {
-		this.drawText(DataManager.titleAddName(info), x, y, width);
+$pppp$.drawGameTitle=function(info, x, y, width){
+	if(info.title){
+		if(info.label) this.drawText(DataManager.titleAddName(info)+' - '+info.label, x, y, width);
+		else this.drawText(DataManager.titleAddName(info), x, y, width);
 	}
 };
 $pppp$.drawPartyCharacters = function(info, x, y) {
