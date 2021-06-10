@@ -36,35 +36,6 @@ Number.prototype.mod = function(n) {
     return ((this % n) + n) % n;
 };
 
-/**
- * Replaces %1, %2 and so on in the string to the arguments.
- *
- * @method String.prototype.format
- * @param {Any} ...args The objects to format
- * @return {String} A formatted string
- */
-String.prototype.format = function() {
-    var args = arguments;
-    return this.replace(/%([0-9]+)/g, function(s, n) {
-        return args[Number(n) - 1];
-    });
-};
-
-/**
- * Makes a number string with leading zeros.
- *
- * @method String.prototype.padZero
- * @param {Number} length The length of the output string
- * @return {String} A string with leading zeros
- */
-String.prototype.padZero = function(length){
-    var s = this;
-    while (s.length < length) {
-        s = '0' + s;
-    }
-    return s;
-};
-
 Object.defineProperties(Array.prototype, {
     /**
      * Checks whether the two arrays are same.
@@ -3745,67 +3716,7 @@ Sprite.prototype._createTinter = function(w, h) {
     this._tintTexture.scaleMode = this._bitmap.baseTexture.scaleMode;
 };
 
-/**
- * @method _executeTint
- * @param {Number} x
- * @param {Number} y
- * @param {Number} w
- * @param {Number} h
- * @private
- */
-Sprite.prototype._executeTint = function(x, y, w, h) {
-    var context = this._context;
-    var tone = this._colorTone;
-    var color = this._blendColor;
-
-    context.globalCompositeOperation = 'copy';
-    context.drawImage(this._bitmap.canvas, x, y, w, h, 0, 0, w, h);
-
-    if (Graphics.canUseSaturationBlend()) {
-        var gray = Math.max(0, tone[3]);
-        context.globalCompositeOperation = 'saturation';
-        context.fillStyle = 'rgba(255,255,255,' + gray / 255 + ')';
-        context.fillRect(0, 0, w, h);
-    }
-
-    var r1 = Math.max(0, tone[0]);
-    var g1 = Math.max(0, tone[1]);
-    var b1 = Math.max(0, tone[2]);
-    context.globalCompositeOperation = 'lighter';
-    context.fillStyle = Utils.rgbToCssColor(r1, g1, b1);
-    context.fillRect(0, 0, w, h);
-
-    if (Graphics.canUseDifferenceBlend()) {
-        context.globalCompositeOperation = 'difference';
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, w, h);
-
-        var r2 = Math.max(0, -tone[0]);
-        var g2 = Math.max(0, -tone[1]);
-        var b2 = Math.max(0, -tone[2]);
-        context.globalCompositeOperation = 'lighter';
-        context.fillStyle = Utils.rgbToCssColor(r2, g2, b2);
-        context.fillRect(0, 0, w, h);
-
-        context.globalCompositeOperation = 'difference';
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, w, h);
-    }
-
-    var r3 = Math.max(0, color[0]);
-    var g3 = Math.max(0, color[1]);
-    var b3 = Math.max(0, color[2]);
-    var a3 = Math.max(0, color[3]);
-    context.globalCompositeOperation = 'source-atop';
-    context.fillStyle = Utils.rgbToCssColor(r3, g3, b3);
-    context.globalAlpha = a3 / 255;
-    context.fillRect(0, 0, w, h);
-
-    context.globalCompositeOperation = 'destination-in';
-    context.globalAlpha = 1;
-    context.drawImage(this._bitmap.canvas, x, y, w, h, 0, 0, w, h);
-};
-
+Sprite.prototype._executeTint;
 Sprite.prototype._renderCanvas_PIXI = PIXI.Sprite.prototype._renderCanvas;
 Sprite.prototype._renderWebGL_PIXI = PIXI.Sprite.prototype._renderWebGL;
 
