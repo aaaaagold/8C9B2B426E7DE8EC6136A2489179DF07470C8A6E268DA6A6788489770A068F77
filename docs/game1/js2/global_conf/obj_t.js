@@ -2920,6 +2920,11 @@ $dddd$=$pppp$.doSell=function f(n){
 	$gameTemp._scShop_balance-=$gameParty._gold;
 	$gameTemp._scShop_sellSth=true;
 }; $dddd$.ori=$rrrr$;
+$pppp$.maxBuy=function(){
+	const max=$gameParty.maxItems(this._item)-$gameParty.unionCnt(this._item);
+	const price=this.buyingPrice();
+	return price>0 ? Math.min(~~(this.money() / price),max) : max;
+};
 $pppp$.terminate=function(){ // originally empty
 	$gameTemp._scShop_negBalance=$gameTemp._scShop_balance<0;
 };
@@ -7205,18 +7210,46 @@ $dddd$=$pppp$.facesForSavefile=function f(){
 	return this.battleMembers().slice(0,23).map(f.forEach);
 };
 $dddd$.forEach=actor=>[actor.faceName(), actor.faceIndex()];
-$pppp$.maxItems=function f(item){
-	return item&&item.maxStack>=0?item.maxStack:(_global_conf["default maxItems"]||404);
+$pppp$.maxItems=function f(o){
+	return o&&o.maxStack>=0?o.maxStack:(_global_conf["default maxItems"]||404);
 };
-$pppp$.numItems_i=function(id){ // 'i' for 'item'
-	let rtv=this._items[id]^0;
-	// preserve for future treated-as-same items
-	return rtv;
+$pppp$.hasMaxItems=function(o){
+	return this.unionCnt(o) >= this.maxItems(o);
 };
 $pppp$.numItems=function(item,container){ // item in $dataItems / $dataWeapons / $dataArmors
 	container=container||this.itemContainer(item);
 	return (container && container[item.id])|0;
 };
+$pppp$.numItems_a=function(id){
+	const rtv=this._armors[id]^0;
+	return rtv;
+};
+$pppp$.numItems_i=function(id){
+	const rtv=this._items[id]^0;
+	return rtv;
+};
+$pppp$.numItems_w=function(id){
+	const rtv=this._weapons[id]^0;
+	return rtv;
+};
+$dddd$=$pppp$.unionCnt=function f(o){
+	const u=f.key;
+	if(o.meta && Object.hasOwnProperty.call(o.meta,u)){
+		if(!Object.hasOwnProperty.call(o,u)) o[u]=JSON.parse(o.meta[u]);
+		let cnt=0;
+		for(let x=0,arr=o[u],c;x!==arr.length;++x){
+			switch(arr[x][0]){
+			default: c=undefined; break;
+			case 'a': c=$dataArmors; break;
+			case 'i': c=$dataItems; break;
+			case 'w': c=$dataWeapons; break;
+			}
+			if(c) cnt+=this.numItems(c[arr[x][1]]);
+		}
+		return cnt;
+	}else return this.numItems(o);
+};
+$dddd$.key='unionCnt';
 $pppp$.arrangeMaxDayItems=function(){ // TODO(?)
 	const tmp=[];
 	for(let x=0,arr=$dataItems.maxDayItems,ptitem=$gameParty._items;x!==arr.length;++x){
