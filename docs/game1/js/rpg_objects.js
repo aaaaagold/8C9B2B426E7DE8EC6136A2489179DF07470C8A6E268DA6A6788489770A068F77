@@ -1086,16 +1086,6 @@ Game_Action.prototype.clear = function() {
     this._targetIndex = -1;
 };
 
-Game_Action.prototype.setSubject = function(subject) {
-    if (subject.isActor()) {
-        this._subjectActorId = subject.actorId();
-        this._subjectEnemyIndex = -1;
-    } else {
-        this._subjectEnemyIndex = subject.index();
-        this._subjectActorId = 0;
-    }
-};
-
 Game_Action.prototype.friendsUnit = function() {
     return this.subject().friendsUnit();
 };
@@ -1172,10 +1162,6 @@ Game_Action.prototype.isMagical = function() {
     return this.item().hitType === Game_Action.HITTYPE_MAGICAL;
 };
 
-Game_Action.prototype.isAttack = function() {
-    return this.item() === $dataSkills[this.subject().attackSkillId()];
-};
-
 Game_Action.prototype.isMagicSkill = function() {
     if (this.isSkill()) {
         return $dataSystem.magicSkills.contains(this.item().stypeId);
@@ -1242,14 +1228,6 @@ Game_Action.prototype.evaluateWithTarget = function(target) {
     }
 };
 
-Game_Action.prototype.testApply = function(target) {
-    return (this.isForDeadFriend() === target.isDead() &&
-            ($gameParty.inBattle() || this.isForOpponent() ||
-            (this.isHpRecover() && target.hp < target.mhp) ||
-            (this.isMpRecover() && target.mp < target.mmp) ||
-            (this.hasItemAnyValidEffects(target))));
-};
-
 Game_Action.prototype.hasItemAnyValidEffects = function(target) {
     return this.item().effects.some(function(effect) {
         return this.testItemEffect(target, effect);
@@ -1270,28 +1248,6 @@ Game_Action.prototype.itemMrf = function(target) {
     } else {
         return 0;
     }
-};
-
-Game_Action.prototype.itemHit = function(target) {
-    if (this.isPhysical()) {
-        return this.item().successRate * 0.01 * this.subject().hit;
-    } else {
-        return this.item().successRate * 0.01;
-    }
-};
-
-Game_Action.prototype.itemEva = function(target) {
-    if (this.isPhysical()) {
-        return target.eva;
-    } else if (this.isMagical()) {
-        return target.mev;
-    } else {
-        return 0;
-    }
-};
-
-Game_Action.prototype.itemCri = function(target) {
-    return this.item().damage.critical ? this.subject().cri * (1 - target.cev) : 0;
 };
 
 Game_Action.prototype.calcElementRate = function(target) {
@@ -1344,26 +1300,6 @@ Game_Action.prototype.executeMpDamage = function(target, value) {
     }
     target.gainMp(-value);
     this.gainDrainedMp(value);
-};
-
-Game_Action.prototype.gainDrainedHp = function(value) {
-    if (this.isDrain()) {
-       var gainTarget = this.subject();
-       if (this._reflectionTarget !== undefined) {
-            gainTarget = this._reflectionTarget;
-        }
-       gainTarget.gainHp(value);
-    }
-};
-
-Game_Action.prototype.gainDrainedMp = function(value) {
-    if (this.isDrain()) {
-       var gainTarget = this.subject();
-       if (this._reflectionTarget !== undefined) {
-           gainTarget = this._reflectionTarget;
-       }
-       gainTarget.gainMp(value);
-    }
 };
 
 Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
@@ -1695,18 +1631,9 @@ Game_BattlerBase.prototype.resetStateCounts = function(stateId) {
     this._stateTurns[stateId] = state.minTurns + Math.randomInt(variance);
 };
 
-Game_BattlerBase.prototype.isStateExpired = function(stateId) {
-    return this._stateTurns[stateId] === 0;
-};
-
 Game_BattlerBase.prototype.clearBuffs = function() {
     this._buffs = [0,0,0,0,0,0,0,0];
     this._buffTurns = [0,0,0,0,0,0,0,0];
-};
-
-Game_BattlerBase.prototype.eraseBuff = function(paramId) {
-    this._buffs[paramId] = 0;
-    this._buffTurns[paramId] = 0;
 };
 
 Game_BattlerBase.prototype.buffLength = function() {
@@ -1729,41 +1656,9 @@ Game_BattlerBase.prototype.isBuffOrDebuffAffected = function(paramId) {
     return this._buffs[paramId] !== 0;
 };
 
-Game_BattlerBase.prototype.isMaxBuffAffected = function(paramId) {
-    return this._buffs[paramId] === 2;
-};
-
-Game_BattlerBase.prototype.isMaxDebuffAffected = function(paramId) {
-    return this._buffs[paramId] === -2;
-};
-
-Game_BattlerBase.prototype.increaseBuff = function(paramId) {
-    if (!this.isMaxBuffAffected(paramId)) {
-        this._buffs[paramId]++;
-    }
-};
-
-Game_BattlerBase.prototype.decreaseBuff = function(paramId) {
-    if (!this.isMaxDebuffAffected(paramId)) {
-        this._buffs[paramId]--;
-    }
-};
-
 Game_BattlerBase.prototype.overwriteBuffTurns = function(paramId, turns) {
     if (this._buffTurns[paramId] < turns) {
         this._buffTurns[paramId] = turns;
-    }
-};
-
-Game_BattlerBase.prototype.isBuffExpired = function(paramId) {
-    return this._buffTurns[paramId] === 0;
-};
-
-Game_BattlerBase.prototype.updateBuffTurns = function() {
-    for (var i = 0; i < this._buffTurns.length; i++) {
-        if (this._buffTurns[i] > 0) {
-            this._buffTurns[i]--;
-        }
     }
 };
 
@@ -1776,16 +1671,6 @@ Game_BattlerBase.prototype.die = function() {
 Game_BattlerBase.prototype.revive = function() {
     if (this._hp === 0) {
         this._hp = 1;
-    }
-};
-
-Game_BattlerBase.prototype.buffIconIndex = function(buffLevel, paramId) {
-    if (buffLevel > 0) {
-        return Game_BattlerBase.ICON_BUFF_START + (buffLevel - 1) * 8 + paramId;
-    } else if (buffLevel < 0) {
-        return Game_BattlerBase.ICON_DEBUFF_START + (-buffLevel - 1) * 8 + paramId;
-    } else {
-        return 0;
     }
 };
 
@@ -1908,12 +1793,6 @@ Game_BattlerBase.prototype.addParam = function(paramId, value) {
 
 Game_BattlerBase.prototype.maxTp = function() {
     return 100;
-};
-
-Game_BattlerBase.prototype.recoverAll = function() {
-    this.clearStates();
-    this._hp = this.mhp;
-    this._mp = this.mmp;
 };
 
 Game_BattlerBase.prototype.hpRate = function() {
@@ -2168,15 +2047,6 @@ Game_Battler.prototype.clearResult = function() {
     this._result.clear();
 };
 
-Game_Battler.prototype.refresh = function() {
-    Game_BattlerBase.prototype.refresh.call(this);
-    if (this.hp === 0) {
-        this.addState(this.deathStateId());
-    } else {
-        this.removeState(this.deathStateId());
-    }
-};
-
 Game_Battler.prototype.addState = function(stateId) {
     if (this.isStateAddable(stateId)) {
         if (!this.isStateAffected(stateId)) {
@@ -2265,20 +2135,6 @@ Game_Battler.prototype.removeBattleStates = function() {
             this.removeState(state.id);
         }
     }, this);
-};
-
-Game_Battler.prototype.removeAllBuffs = function() {
-    for (var i = 0; i < this.buffLength(); i++) {
-        this.removeBuff(i);
-    }
-};
-
-Game_Battler.prototype.removeBuffsAuto = function() {
-    for (var i = 0; i < this.buffLength(); i++) {
-        if (this.isBuffExpired(i)) {
-            this.removeBuff(i);
-        }
-    }
 };
 
 Game_Battler.prototype.removeStatesByDamage = function() {
@@ -2398,16 +2254,6 @@ Game_Battler.prototype.onAllActionsEnd = function() {
     this.clearResult();
     this.removeStatesAuto(1);
     this.removeBuffsAuto();
-};
-
-Game_Battler.prototype.onTurnEnd = function() {
-    this.clearResult();
-    this.regenerateAll();
-    if (!BattleManager.isForcedTurn()) {
-        this.updateStateTurns();
-        this.updateBuffTurns();
-    }
-    this.removeStatesAuto(2);
 };
 
 Game_Battler.prototype.onBattleEnd = function() {
@@ -2557,10 +2403,6 @@ Game_Actor.prototype.characterIndex = function() {
     return this._characterIndex;
 };
 
-Game_Actor.prototype.faceIndex = function() {
-    return this._faceIndex;
-};
-
 Game_Actor.prototype.battlerName = function() {
     return this._battlerName;
 };
@@ -2707,10 +2549,6 @@ Game_Actor.prototype.usableSkills = function() {
 
 Game_Actor.prototype.hasNoWeapons = function() {
     return this.weapons().length === 0;
-};
-
-Game_Actor.prototype.bareHandsElementId = function() {
-    return 1;
 };
 
 Game_Actor.prototype.paramBase = function(paramId) {
@@ -3487,10 +3325,6 @@ Game_Party.prototype.numItems = function(item) {
     return container ? container[item.id] || 0 : 0;
 };
 
-Game_Party.prototype.hasMaxItems = function(item) {
-    return this.numItems(item) >= this.maxItems(item);
-};
-
 Game_Party.prototype.discardMembersEquip = function(item, amount) {
     var n = amount;
     this.members().forEach(function(actor) {
@@ -3535,18 +3369,6 @@ Game_Party.prototype.lastItem = function() {
 
 Game_Party.prototype.setLastItem = function(item) {
     this._lastItem.setObject(item);
-};
-
-Game_Party.prototype.charactersForSavefile = function() {
-    return this.battleMembers().map(function(actor) {
-        return [actor.characterName(), actor.characterIndex()];
-    });
-};
-
-Game_Party.prototype.facesForSavefile = function() {
-    return this.battleMembers().map(function(actor) {
-        return [actor.faceName(), actor.faceIndex()];
-    });
 };
 
 Game_Party.prototype.partyAbility = function(abilityId) {
@@ -4439,10 +4261,6 @@ Game_CharacterBase.prototype.isNormalPriority = function() {
     return this._priorityType === 1;
 };
 
-Game_CharacterBase.prototype.setPriorityType = function(priorityType) {
-    this._priorityType = priorityType;
-};
-
 Game_CharacterBase.prototype.isMoving = function() {
     return this._realX !== this._x || this._realY !== this._y;
 };
@@ -4832,10 +4650,6 @@ Game_CharacterBase.prototype.setDirectionFix = function(directionFix) {
 
 Game_CharacterBase.prototype.isThrough = function() {
     return this._through;
-};
-
-Game_CharacterBase.prototype.setThrough = function(through) {
-    this._through = through;
 };
 
 Game_CharacterBase.prototype.isTransparent = function() {
@@ -5774,12 +5588,6 @@ Game_Follower.prototype.initialize = function(memberIndex) {
     this.setThrough(true);
 };
 
-Game_Follower.prototype.refresh = function() {
-    var characterName = this.isVisible() ? this.actor().characterName() : '';
-    var characterIndex = this.isVisible() ? this.actor().characterIndex() : 0;
-    this.setImage(characterName, characterIndex);
-};
-
 Game_Follower.prototype.isVisible = function() {
     return this.actor() && $gamePlayer.followers().isVisible();
 };
@@ -6163,14 +5971,6 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y) {
 
 Game_Event.prototype.isCollidedWithPlayerCharacters = function(x, y) {
     return this.isNormalPriority() && $gamePlayer.isCollided(x, y);
-};
-
-Game_Event.prototype.lock = function() {
-    if (!this._locked) {
-        this._prelockDirection = this.direction();
-        this.turnTowardPlayer();
-        this._locked = true;
-    }
 };
 
 Game_Event.prototype.unlock = function() {
@@ -6572,16 +6372,12 @@ Game_Interpreter.prototype.checkFreeze = function() {
     }
 };
 
-Game_Interpreter.prototype.terminate = function() {
+Game_Interpreter.prototype.terminate = function(){
     this._list = null;
     this._comments = '';
 };
 
-Game_Interpreter.prototype.skipBranch = function() {
-    while (this._list[this._index + 1].indent > this._indent) {
-        this._index++;
-    }
-};
+Game_Interpreter.prototype.skipBranch;
 
 Game_Interpreter.prototype.currentCommand = function() {
     return this._list[this._index];
@@ -6791,32 +6587,9 @@ Game_Interpreter.prototype.command112 = function() {
 };
 
 // Repeat Above
-Game_Interpreter.prototype.command413 = function() {
-    do {
-        this._index--;
-    } while (this.currentCommand().indent !== this._indent);
-    return true;
-};
-
+Game_Interpreter.prototype.command413;
 // Break Loop
-Game_Interpreter.prototype.command113 = function() {
-    var depth = 0;
-    while (this._index < this._list.length - 1) {
-        this._index++;
-        var command = this.currentCommand();
-
-        if (command.code === 112)
-            depth++;
-
-        if (command.code === 413) {
-            if (depth > 0)
-                depth--;
-            else
-                break;
-        }
-    }
-    return true;
-};
+Game_Interpreter.prototype.command113;
 
 // Exit Event Processing
 Game_Interpreter.prototype.command115 = function() {
@@ -6845,32 +6618,8 @@ Game_Interpreter.prototype.command118 = function() {
 };
 
 // Jump to Label
-Game_Interpreter.prototype.command119 = function() {
-    var labelName = this._params[0];
-    for (var i = 0; i < this._list.length; i++) {
-        var command = this._list[i];
-        if (command.code === 118 && command.parameters[0] === labelName) {
-            this.jumpTo(i);
-            return;
-        }
-    }
-    return true;
-};
-
-Game_Interpreter.prototype.jumpTo = function(index) {
-    var lastIndex = this._index;
-    var startIndex = Math.min(index, lastIndex);
-    var endIndex = Math.max(index, lastIndex);
-    var indent = this._indent;
-    for (var i = startIndex; i <= endIndex; i++) {
-        var newIndent = this._list[i].indent;
-        if (newIndent !== indent) {
-            this._branch[indent] = null;
-            indent = newIndent;
-        }
-    }
-    this._index = index;
-};
+Game_Interpreter.prototype.command119;
+Game_Interpreter.prototype.jumpTo;
 
 // Control Switches
 Game_Interpreter.prototype.command121 = function() {
