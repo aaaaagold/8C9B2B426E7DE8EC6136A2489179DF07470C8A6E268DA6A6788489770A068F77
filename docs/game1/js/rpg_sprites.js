@@ -1174,19 +1174,7 @@ Sprite_Damage.prototype.initialize = function() {
     this._damageBitmap = ImageManager.loadSystem('Damage');
 };
 
-Sprite_Damage.prototype.setup = function(target) {
-    var result = target.result();
-    if (result.missed || result.evaded) {
-        this.createMiss();
-    } else if (result.hpAffected) {
-        this.createDigits(0, result.hpDamage);
-    } else if (target.isAlive() && result.mpDamage !== 0) {
-        this.createDigits(2, result.mpDamage);
-    }
-    if (result.critical) {
-        this.setupCriticalEffect();
-    }
-};
+Sprite_Damage.prototype.setup;
 
 Sprite_Damage.prototype.setupCriticalEffect = function() {
     this._flashColor = [255, 0, 0, 160];
@@ -1209,30 +1197,8 @@ Sprite_Damage.prototype.createMiss = function() {
     sprite.dy = 0;
 };
 
-Sprite_Damage.prototype.createDigits = function(baseRow, value) {
-    var string = Math.abs(value).toString();
-    var row = baseRow + (value < 0 ? 1 : 0);
-    var w = this.digitWidth();
-    var h = this.digitHeight();
-    for (var i = 0; i < string.length; i++) {
-        var sprite = this.createChildSprite();
-        var n = Number(string[i]);
-        sprite.setFrame(n * w, row * h, w, h);
-        sprite.x = (i - (string.length - 1) / 2) * w;
-        sprite.dy = -i;
-    }
-};
-
-Sprite_Damage.prototype.createChildSprite = function() {
-    var sprite = new Sprite();
-    sprite.bitmap = this._damageBitmap;
-    sprite.anchor.x = 0.5;
-    sprite.anchor.y = 1;
-    sprite.y = -40;
-    sprite.ry = sprite.y;
-    this.addChild(sprite);
-    return sprite;
-};
+Sprite_Damage.prototype.createDigits;
+Sprite_Damage.prototype.createChildSprite;
 
 Sprite_Damage.prototype.update = function() {
     Sprite.prototype.update.call(this);
@@ -1264,11 +1230,7 @@ Sprite_Damage.prototype.updateFlash = function() {
     }
 };
 
-Sprite_Damage.prototype.updateOpacity = function() {
-    if (this._duration < 10) {
-        this.opacity = 255 * this._duration / 10;
-    }
-};
+Sprite_Damage.prototype.updateOpacity;
 
 Sprite_Damage.prototype.isPlaying = function() {
     return this._duration > 0;
@@ -1323,22 +1285,7 @@ Sprite_StateIcon.prototype.animationWait = function() {
     return 40;
 };
 
-Sprite_StateIcon.prototype.updateIcon = function() {
-    var icons = [];
-    if (this._battler && this._battler.isAlive()) {
-        icons = this._battler.allIcons();
-    }
-    if (icons.length > 0) {
-        this._animationIndex++;
-        if (this._animationIndex >= icons.length) {
-            this._animationIndex = 0;
-        }
-        this._iconIndex = icons[this._animationIndex];
-    } else {
-        this._animationIndex = 0;
-        this._iconIndex = 0;
-    }
-};
+Sprite_StateIcon.prototype.updateIcon;
 
 Sprite_StateIcon.prototype.updateFrame = function() {
     var pw = Sprite_StateIcon._iconWidth;
@@ -1852,10 +1799,7 @@ Spriteset_Base.prototype.updateWebGLToneChanger = function() {
     this._toneFilter.adjustSaturation(-tone[3]);
 };
 
-Spriteset_Base.prototype.updateCanvasToneChanger = function() {
-    var tone = this._tone;
-    this._toneSprite.setTone(tone[0], tone[1], tone[2], tone[3]);
-};
+Spriteset_Base.prototype.updateCanvasToneChanger;
 
 Spriteset_Base.prototype.updatePosition = function() {
     var screen = $gameScreen;

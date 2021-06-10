@@ -1055,16 +1055,7 @@ Scene_ItemBase.prototype.isItemEffectsValid = function() {
     }, this);
 };
 
-Scene_ItemBase.prototype.applyItem = function() {
-    var action = new Game_Action(this.user());
-    action.setItemObject(this.item());
-    this.itemTargetActors().forEach(function(target) {
-        for (var i = 0; i < action.numRepeats(); i++) {
-            action.apply(target);
-        }
-    }, this);
-    action.applyGlobal();
-};
+Scene_ItemBase.prototype.applyItem;
 
 Scene_ItemBase.prototype.checkCommonEvent = function() {
     if ($gameTemp.isCommonEventReserved()) {
@@ -1849,15 +1840,7 @@ Scene_Shop.prototype.endNumberInput = function() {
     }
 };
 
-Scene_Shop.prototype.maxBuy = function() {
-    var max = $gameParty.maxItems(this._item) - $gameParty.numItems(this._item);
-    var price = this.buyingPrice();
-    if (price > 0) {
-        return Math.min(max, Math.floor(this.money() / price));
-    } else {
-        return max;
-    }
-};
+Scene_Shop.prototype.maxBuy;
 
 Scene_Shop.prototype.maxSell = function() {
     return $gameParty.numItems(this._item);
@@ -2164,11 +2147,7 @@ Scene_Battle.prototype.createActorCommandWindow = function() {
     this.addWindow(this._actorCommandWindow);
 };
 
-Scene_Battle.prototype.createHelpWindow = function() {
-    this._helpWindow = new Window_Help();
-    this._helpWindow.visible = false;
-    this.addWindow(this._helpWindow);
-};
+Scene_Battle.prototype.createHelpWindow;
 
 Scene_Battle.prototype.createSkillWindow = function() {
     var wy = this._helpWindow.y + this._helpWindow.height;
@@ -2305,13 +2284,7 @@ Scene_Battle.prototype.onActorCancel = function() {
     }
 };
 
-Scene_Battle.prototype.selectEnemySelection = function() {
-    this._enemyWindow.refresh();
-    this._enemyWindow.show();
-    this._enemyWindow.select(0);
-    this._enemyWindow.activate();
-};
-
+Scene_Battle.prototype.selectEnemySelection;
 Scene_Battle.prototype.onEnemyOk;
 
 Scene_Battle.prototype.onEnemyCancel = function() {
