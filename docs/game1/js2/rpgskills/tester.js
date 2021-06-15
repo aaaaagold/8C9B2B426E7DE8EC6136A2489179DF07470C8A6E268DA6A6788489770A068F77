@@ -189,5 +189,21 @@ list.systemCall_logMgr=action=>{
 	SceneManager.addWindowB(w);
 };
 
+list.exportVars=()=>{
+	window.$gameTemp=$gameTemp;
+	window.$gameSystem=$gameSystem;
+	window.$gameScreen=$gameScreen;
+	window.$gameTimer=$gameTimer;
+	window.$gameMessage=$gameMessage;
+	window.$gameSwitches=$gameSwitches;
+	window.$gameVariables=$gameVariables;
+	window.$gameSelfSwitches=$gameSelfSwitches;
+	window.$gameActors=$gameActors;
+	window.$gameParty=$gameParty;
+	window.$gameTroop=$gameTroop;
+	window.$gameMap=$gameMap;
+	window.$gamePlayer=$gamePlayer;
+	$gameMessage.popup("已匯出變數",true);
+};
 
 })();
