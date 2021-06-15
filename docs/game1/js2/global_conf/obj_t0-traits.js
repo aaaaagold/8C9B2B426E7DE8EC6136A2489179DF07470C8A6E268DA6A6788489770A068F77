@@ -303,6 +303,14 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeForAllFriends);
 	f.doForEach($dataSkills,f.makeForAllFriends);
 	
+	// extend description
+	f.doForEach($dataItems,f.extendDescription);
+	f.doForEach($dataSkills,f.extendDescription);
+	
+	// extend repeats
+	f.doForEach($dataItems,f.extendRepeats);
+	f.doForEach($dataSkills,f.extendRepeats);
+	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -328,6 +336,22 @@ $dddd$=$pppp$.arrangeData=function f(){
 	});
 };
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
+$dddd$.extendDescription=dataobj=>{
+	const ie=$dataCustom.itemEffect;
+	let ext='';
+	['tpGain',].forEach(k=>{ if(k && k[0]!=="_" && dataobj[k]){
+		ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
+	} });
+	if(ext){
+		let tmp=dataobj.description.match(/\n/g); tmp=tmp&&tmp.length;
+		while(++tmp<3) dataobj.description+='\n';
+		dataobj.description+=ext;
+	}
+};
+$dddd$.extendRepeats=dataobj=>{
+	const n=Number(dataobj.meta.repeat_mul);
+	if(!isNaN(n)) dataobj.repeats *= n;
+};
 $dddd$.makeForAllFriends=dataobj=>dataobj.meta.forAllFriends&&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriends);
 $dddd$.makeMaxStack=dataobj=>{
 	const m=Number(dataobj.meta.maxStack);

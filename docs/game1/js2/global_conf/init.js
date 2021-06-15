@@ -196,7 +196,7 @@ const hook=(p,k,f)=>{
 	return f;
 };
 
-let $aaaa$,$pppp$,$dddd$,$rrrr$,$tttt$,setShorthand = (w)=>{
+let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)=>{
 	let undef=undefined,d=w.document||{},$rrrr$,$dddd$;
 	w.isNone=(a)=>a===undef||a===null;
 	w.sum=(a,b)=>{return a+b};
