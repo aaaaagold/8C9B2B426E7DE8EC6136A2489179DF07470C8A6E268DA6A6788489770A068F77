@@ -550,15 +550,17 @@ $d$.forEach=c=>c.update();
 $pppp$.setupDamagePopup = function() {
 	if(this._battler.isDamagePopupRequested()){
 		if(this._battler.isSpriteVisible()){
-			let sprite = new Sprite_Damage();
-			sprite.x = this.x + this.damageOffsetX();
-			sprite.y = this.y + this.damageOffsetY(); 
-			if(this._damages.length && this._damages.back.y>=64) sprite.y=this._damages.back.y-23;
 			const res=this._battler.popActResQ();
-			if(res) this._battler._result=res;
-			sprite.setup(this._battler);
-			this._damages.push(sprite);
-			this.parent.addChild(sprite);
+			if(res){
+				this._battler._result=res;
+				let sprite = new Sprite_Damage();
+				sprite.x = this.x + this.damageOffsetX();
+				sprite.y = this.y + this.damageOffsetY(); 
+				if(this._damages.length && this._damages.back.y>=64) sprite.y=this._damages.back.y-23;
+				sprite.setup(this._battler);
+				this._damages.push(sprite);
+				this.parent.addChild(sprite);
+			}
 		}
 		this._battler.clearDamagePopup();
 		this._battler.clearResult();
@@ -774,19 +776,20 @@ $pppp$.updateStateSprite=function(){
 		}
 	}
 };
-$d$=$pppp$.updateHpMpSprite=function f(){
+$d$=$pppp$.updateHpMpSprite=function f(forced){
 	
-	const sp=this._hpMpSprite;
-	const bm=sp.bitmap;
+	const scale=this.scale,sp=this._hpMpSprite;
+	const sx=scale.x,sy=scale.y,bm=sp.bitmap;
 	const wl=SceneManager._scene._windowLayer;
 	if(wl){
 		const obj=this._enemy;
-		if( this._lastHp===obj.hp && this._lastMp===obj.mp ) return;
+		if( !forced && this._lastHp===obj.hp && this._lastMp===obj.mp ) return;
 		this._lastHp=obj.hp; this._lastMp=obj.mp;
 		const mhp=obj.mhp , mmp=obj.mmp;
 		
 		const lh=20;
-		const w=wl.children[0],width=this._frame.width,height=(lh<<1)|1;
+		{ const s=sp.scale; s.x=1/sx; s.y=1/sy; }
+		const w=wl.children[0],width=this._frame.width*scale.x,height=(lh<<1)|1;
 		const recreated=bm._reCreateTextureIfNeeded(width,height);
 		const bmw=bm.width;
 		const hpWidth=~~(bmw*obj.hp/mhp);
@@ -809,10 +812,14 @@ $d$=$pppp$.updateHpMpSprite=function f(){
 	
 	const frm=this._frame,acr=this._anchor;
 	sp.x=-frm.width*acr.x;
-	sp.y=-frm.height*acr.y-sp.height;
-	sp.y-=this._stateIconSprite.height;
+	sp.y=-frm.height*acr.y-sp.height/sy;
+	sp.y-=this._stateIconSprite.height/sy;
 	const y=sp.getGlobalPosition().y;
-	if(y<0) sp.y-=y; // does scale matter?
+	if(y<0) sp.y-=y/sy;
+	else{
+		const my=Graphics.height-sp.height;
+		if(y>my) sp.y=my/sy;
+	}
 };
 $d$.tbl=["rgba()"];
 $pppp$=$aaaa$=undef;
@@ -906,10 +913,36 @@ $pppp$=$aaaa$=undef;
 // - Sprite_Damage
 $aaaa$=Sprite_Damage;
 $pppp$=$aaaa$.prototype;
+$pppp$.setup=function(target){
+	const res = target.result();
+	if(res.missed || res.evaded) this.createMiss();
+	else{
+		const ha=!!res.hpAffected;
+		if(target.isAlive() && res.mpDamage !== 0) this.createDigits(2, res.mpDamage,-ha,-ha*0.5);
+		if(ha) this.createDigits(0, res.hpDamage);
+	}
+	if (res.critical) {
+		this.setupCriticalEffect();
+	}
+};
 $k$='createDigits';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(b,v){
-	f.ori.call(this,b,v);
+$d$=$pppp$[$k$]=function f(colorCh,v,shax,shay){
+	if(isNaN(shax)) shax=0;
+	if(isNaN(shay)) shay=0;
+	const w = this.digitWidth() , h = this.digitHeight();
+	const s = Math.abs(v).toString();
+	const rh=(colorCh+(v<0))*h;
+	for (let i=0,iw=-(((s.length-1)*w)>>1); i!==s.length;++i){
+		const sprite = this.createChildSprite();
+		const n = Number(s[i]);
+		sprite.setFrame(n * w, rh, w, h);
+		//sprite.x = (i - (s.length - 1) / 2) * w;
+		sprite.x = iw; iw+=w;
+		sprite.dy = -i;
+		const a=sprite.anchor;
+		a.x+=shax; a.y+=shay;
+	}
 	this.__value=v;
 }; $d$.ori=$r$;
 $pppp$=$aaaa$=undef;
@@ -1666,7 +1699,7 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
 	s.setLastTarget(t);
-	if(q){
+	if(q&&s!==t){ // already add actRes when subject is in the one of targets
 		const res=s._result;
 		if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0) q.push(res.copy());
 	}
@@ -1853,6 +1886,7 @@ $d$=$pppp$.create=function f(){
 	     cmd
 	     equip
 */
+	// do stuff
 	{
 		const iw=this._itemWindow,stw=this._statusWindow;
 		iw.height=stw.height+=iw.height;
@@ -1888,7 +1922,7 @@ $d$=$pppp$.create=function f(){
 	{ let tmp,w;
 		w=this._statusWindow;
 		tmp=w.standardFontSize();
-		w.setFontsize((tmp>>1)+(tmp>>4)); // 28//32 < 1 -> 0
+		w.setFontsize((tmp>>1)+(tmp>>3)); // 28//32 < 1 -> 0
 		
 		w=this._helpWindow;
 		tmp=w.standardFontSize();
@@ -1924,6 +1958,13 @@ $d$=$pppp$.create=function f(){
 		slw._commandWindow = iw._commandWindow =  cw;
 		slw.   _itemWindow =    cw._itemWindow =  iw;
 		 cw.   _slotWindow =    iw._slotWindow = slw;
+	}
+	// adj arrows 
+	{
+		const stw=this._statusWindow;
+		stw.adjLrArrows=true;
+		stw._refreshArrows();
+		stw.adjLrArrows=false;
 	}
 	// refreshes
 	{
@@ -9386,28 +9427,70 @@ $pppp$.repeatTargets=function(targets){ // reverse order
 	}else for(let szi=targets.length;j-->0;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
 	return repeatedTargets;
 };
-$pppp$.makeTargets = function() {
-	let targets;
-	if(!this._forcing && this.subject().isConfused()) targets = [this.confusionTarget()];
-	else switch(this.item().scope){
+$pppp$.makeTargets=function(dontTestConfused,toWrongTarget){
+	let targets,s=this.item().scope;
+	if(!dontTestConfused && !this._forcing && s!==1 && this.subject().isConfused()) targets = [this.confusionTarget()];
+	else switch(s){
 	case 1:
 	case 2:
 	case 3:
 	case 4:
 	case 5:
 	case 6: // this.isForOpponent
-		targets = this.targetsForOpponents();
+		targets = toWrongTarget ? this.targetsForFriends() : this.targetsForOpponents();
 	break;
 	case 7:
 	case 8:
 	case 9:
 	case 10:
 	case 11:
-	case 12: // this.isForFriend
-		targets = this.targetsForFriends();
-	break;
+	case 12: { // this.isForFriend
+		const s=this.subject();
+		targets = toWrongTarget ? this.targetsForOpponents() : this.targetsForFriends();
+	}break;
+	case 13: { // forBattler:alive
+		const s=this.subject();
+		const o=this.opponentsUnit().aliveMembers();
+		const f=this.friendsUnit().aliveMembers().filter(x=>x!==s);
+		const i=s.isAlive();
+		if(i && this.item().subjectFirst) targets=[s].concat(o).concat(f);
+		else{
+			targets=o.concat(f);
+			if(i) targets.push(s);
+		}
+	}break;
+	case 14: { // forBattler:dead
+		const s=this.subject();
+		const o=this.opponentsUnit().deadMembers();
+		const f=this.friendsUnit().deadMembers().filter(x=>x!==s);
+		const i=s.isDead();
+		if(i && this.item().subjectFirst) targets=[s].concat(o).concat(f);
+		else{
+			targets=o.concat(f);
+			if(i) targets.push(s);
+		}
+	}break;
+	case 15: { // forBattler:all
+		const s=this.subject();
+		const o=this.opponentsUnit().members();
+		const f=this.friendsUnit().members().filter(x=>x!==s);
+		if(this.item().subjectFirst) targets=[s].concat(o).concat(f);
+		else{
+			targets=o.concat(f);
+			targets.push(s);
+		}
+	}break;
 	}
 	return this.repeatTargets(targets||[]);
+};
+$pppp$.confusionTarget=function(){
+	switch (this.subject().confusionLevel()) {
+	// case 1: return this.opponentsUnit().randomTarget(); // remain same , but not user input
+	case 2: // opposite with chance 1/2
+		return this.makeTargets(true,Math.random()<0.5);
+	default: // 3: attack ally ; 4: cannot move
+		return this.makeTargets(true,true);
+	}
 };
 $pppp$.targetsForOpponents=function(){ // scope: [1..6]
 	const unit = this.opponentsUnit();
@@ -9434,6 +9517,47 @@ $pppp$.targetsForFriends=function(){ // scope: [7..12]
 	case 10: return unit.deadMembers(); // this.isForDeadFriend (all)
 	case 11: return [this.subject()]; // this.isForUser
 	case 12: return unit.members(); // this.isForAllFriends
+	}
+	return [];
+};
+$pppp$.targetsForBattler=function(){ // scope: [13..15]
+	const s=this.subject(),t=x=>s!==x;
+	const ou=this.opponentsUnit();
+	const fu=this.friendsUnit();
+	switch(this.item().scope){
+	case 13: { // alive
+		const o=ou.aliveMembers();
+		const f=fu.aliveMembers().filter(t);
+		const i=s.isAlive();
+		if(i && this.item().subjectFirst) return [s].concat(o).concat(f);
+		else{
+			const rtv=o.concat(f);
+			if(i) rtv.push(s);
+			return rtv;
+		}
+	}break;
+	case 14: { // dead
+		const o=ou.deadMembers();
+		const f=fu.deadMembers().filter(t);
+		const i=s.isDead();
+		if(i && this.item().subjectFirst) return [s].concat(o).concat(f);
+		else{
+			const rtv=o.concat(f);
+			if(i) rtv.push(s);
+			return rtv;
+		}
+	}break;
+	case 15: { // all
+		const s=this.subject();
+		const o=ou.members();
+		const f=fu.members().filter(t);
+		if(this.item().subjectFirst) return [s].concat(o).concat(f);
+		else{
+			const rtv=o.concat(f);
+			rtv.push(s);
+			return rtv;
+		}
+	}break;
 	}
 	return [];
 };
@@ -11192,6 +11316,7 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(x,y,w,h){
 	f.ori.call(this,x,y,w,h);
+	this.adjLrArrows=undefined;
 	this._iconloop=undefined;
 }; $d$.ori=$r$;
 $r$=$pppp$.update;
@@ -12330,7 +12455,7 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action){
 		this.push('-actResStrt');
 		if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
-		this.push('popupDamage', target);
+		if(subject!==target) this.push('popupDamage', target);
 		this.push('popupDamage', subject);
 		this.displayDamage(target);
 		this.displayAffectedStatus(target);
@@ -12704,12 +12829,15 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(x,y){
 	f.ori.call(this,x,y);
+	this._page=0;
+	this._rows=28;
+	
 	if($gameParty.members().length>1){
 		this.downArrowVisible = this.upArrowVisible = true;
-		const y=(this.lineHeight()>>1)+this.standardFontSize()*0.375+this.textPadding();
-		this._downArrowSprite.y = this._upArrowSprite.y = y;
-		this._downArrowSprite.x = this.width-( this._upArrowSprite.x = this.padding );
+		//const y=(this.lineHeight()>>1)+this.standardFontSize()*0.375+this.textPadding();
 	}
+	this.rightArrowVisible = this.leftArrowVisible = true;
+	
 	this._itemOld=this._itemNew=undefined;
 }; $d$.ori=$r$;
 $r$=$pppp$.update;
@@ -12718,19 +12846,19 @@ $d$=$pppp$.update=function f(){
 	if(this._commandWindow.active) this._arrowsFloating();
 }; $d$.ori=$r$;
 $pppp$.drawAllVal=function(x,oy){
-	const h=this.lineHeight()-4,txtpad=this.textPadding(),sz=$dataSystem.terms.params.length;
+	const h=this.lineHeight()-((this.fontSize>>2)+1),txtpad=this.textPadding(),strt=this._page*this._rows-2,sz=Math.min(strt+this._rows,$dataSystem.terms.params.length);
 	const x1=x+txtpad,x2=x+140,x3=x+189,x4=x+222,vals=[];
 	oy-=h;
 	
-	for(let i=-2,y=oy;i!==sz;++i) this.drawParamName(x1, y+=h, i);
+	for(let i=strt,y=oy;i<sz;++i) this.drawParamName(x1, y+=h, i);
 	
-	if(this._actor){ this.resetTextColor(); for(let i=-2,y=oy;i!==sz;++i){
+	if(this._actor){ this.resetTextColor(); for(let i=strt,y=oy;i<sz;++i){
 		this.drawText(vals[i]=this._actor.param(i), x2, y+=h, 48, 'right');
 	} }
 	
 	// → 
 	this.changeTextColor(this.systemColor());
-	for(let i=-2,y=oy;i!==sz;++i) this.drawText('\u2192', x3, y+=h, 32, 'center');
+	for(let i=strt,y=oy;i<sz;++i) this.drawText('\u2192', x3, y+=h, 32, 'center');
 	
 	const item=this._itemNew;
 	if(item!==undefined && this._actor){
@@ -12738,7 +12866,7 @@ $pppp$.drawAllVal=function(x,oy){
 		// queried above, must have cache
 		this._actor._equips_editCache_del(ori);
 		this._actor._equips_editCache_add(item);
-		for(let i=-2,y=oy,sz=$dataSystem.terms.params.length;i!==sz;++i){
+		for(let i=strt,y=oy;i<sz;++i){
 			const val=this._actor.param(i);
 			this.changeTextColor(this.paramchangeTextColor(val-vals[i]));
 			this.drawText(val, x4, y+=h, 48, 'right');
@@ -12746,6 +12874,9 @@ $pppp$.drawAllVal=function(x,oy){
 		this._actor._equips_editCache_del(item);
 		this._actor._equips_editCache_add(ori);
 	}
+};
+$pppp$.pageTotal=function(){
+	return Math.ceil(($dataSystem.terms.params.length+2)/this._rows);
 };
 $pppp$.refresh_do=function(){
 	if(this.clearContents() && this._actor){
@@ -12767,10 +12898,18 @@ $pppp$.refresh_do=function(){
 			this.resetTextColor();
 			this.drawText(tmp,x2,y,w,'right');
 			}
+			
+			this.changeTextColor(this.systemColor());
+			{ const pgy=this.contentsHeight()-h+(h>>3);
+			this.drawText("page",x1-(h>>3),pgy,w,'left');
+			this.resetTextColor();
+			this.drawText((this._page+1)+' / '+this.pageTotal(),x2,pgy,w,'right');
+			}
 		}
 		//for(let i=-2,sz=$dataSystem.terms.params.length;i!==sz;++i) this.drawItem(0, y+=h, i);
 		this.drawAllVal(0,y+=h);
 	}
+	
 };
 $pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
@@ -12781,10 +12920,25 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Window_EquipCommand;
 $pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true,true);
+$pppp$.cursorLeft=function(){
+	const w=this._statusWindow;
+	if(w){
+		if(w._page>0){ --w._page; SoundManager.playCursor(); }
+		w.refresh(); // so that players can refresh themselves
+	}
+};
+$pppp$.cursorRight=function(){
+	const w=this._statusWindow;
+	if(w){
+		if(++w._page===w.pageTotal()) --w._page; else SoundManager.playCursor();
+		w.refresh(); // so that players can refresh themselves
+	}
+};
 $pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
 $pppp$.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
 $pppp$.onTouch=function(triggered){
-	this.touchUpDnArrowsPgUpDn(triggered,this._statusWindow);
+	this.touchUpDnArrowsPgUpDn(triggered,this._statusWindow) ||
+		this.touchLfRhArrowsLfRh(triggered,this._statusWindow) ;
 	return this._onTouch_iw(triggered,this._slotWindow);
 };
 $pppp$.maxCols=()=>1;

@@ -303,6 +303,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeForAllFriends);
 	f.doForEach($dataSkills,f.makeForAllFriends);
 	
+	// forBattler:[alive|dead|all]
+	f.doForEach($dataItems,f.makeForAllBattler);
+	f.doForEach($dataSkills,f.makeForAllBattler);
+	
 	// extend description
 	f.doForEach($dataItems,f.extendDescription);
 	f.doForEach($dataSkills,f.extendDescription);
@@ -352,6 +356,14 @@ $dddd$.extendRepeats=dataobj=>{
 	const n=Number(dataobj.meta.repeat_mul);
 	if(!isNaN(n)) dataobj.repeats *= n;
 };
+{ const tbl={
+	alive:Game_Action.TARGET_ENUM_forAliveBattler,
+	dead:Game_Action.TARGET_ENUM_forDeadBattler,
+	all:Game_Action.TARGET_ENUM_forAllBattler,
+}; $dddd$.makeForAllBattler=dataobj=>{
+	const n=tbl[dataobj.meta.forBattler];
+	if(n) dataobj.scope=n;
+}; }
 $dddd$.makeForAllFriends=dataobj=>dataobj.meta.forAllFriends&&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriends);
 $dddd$.makeMaxStack=dataobj=>{
 	const m=Number(dataobj.meta.maxStack);

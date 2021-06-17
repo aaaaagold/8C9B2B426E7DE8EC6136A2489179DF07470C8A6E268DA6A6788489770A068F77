@@ -585,10 +585,33 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 	};
 	w.Set.prototype.union=function(set2){
 		let base,add;
-		if(this.size<set2.size){ add=this; base=new Set(set2); }
-		else{ add=set2; base=new Set(this); }
+		if(this.size<set2.size){ add=this; base=set2; }
+		else{ add=set2; base=this; }
 		const rtv=new Set(base);
 		add.forEach(x=>rtv.add(x));
+		return rtv;
+	};
+	w.Set.prototype.union_inplace=function(set2){
+		let base,add;
+		if(this.size<set2.size){ add=this; base=set2; }
+		else{ add=set2; base=this; }
+		const rtv=base;
+		add.forEach(x=>rtv.add(x));
+		return rtv;
+	};
+	w.Set.prototype.union_inplaceThis=function(set2){
+		const rtv=this;
+		set2.forEach(x=>rtv.add(x));
+		return rtv;
+	};
+	w.Set.prototype.minus=function(set2){
+		const rtv=new Set(this);
+		set2.forEach(x=>rtv.delete(x));
+		return rtv;
+	};
+	w.Set.prototype.minus_inplace=function(set2){
+		const rtv=this;
+		set2.forEach(x=>rtv.delete(x));
 		return rtv;
 	};
 	

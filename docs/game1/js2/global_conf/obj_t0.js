@@ -324,15 +324,23 @@ $rrrr$=$aaaa$.prototype._refreshArrows;
 $dddd$=$aaaa$.prototype._refreshArrows=function f(){
 	f.ori.call(this);
 	if(!this._leftArrowSprite){
-		let ua=this._upArrowSprite,la,ra;
+		let la,ra,uaf;
 		this.addChild(la=this._leftArrowSprite=new Sprite());
 		this.addChild(ra=this._rightArrowSprite=new Sprite());
+		{ const ua=this._upArrowSprite;
 		ra.bitmap=la.bitmap=ua.bitmap;
+		uaf=ua._frame;
+		}
 		ra.anchor.y=ra.anchor.x=la.anchor.y=la.anchor.x=0.5;
-		let uaf=ua._frame;
-		let sx=uaf.x-uaf.height,sy=uaf.y,p=uaf.width,q=uaf.height;
+		const sx=uaf.x-uaf.height,sy=uaf.y,p=uaf.width,q=uaf.height;
 		la.setFrame(sx,sy+q,q,p);
 		ra.setFrame(sx+p+q,sy+q,q,p);
+	}
+	if(this.adjLrArrows && (this.leftArrowVisible||this.rightArrowVisible)){
+		const la=this._leftArrowSprite,ra=this._rightArrowSprite;
+		const p=ra._frame.width,y=this.height>>1;
+		la.move(p,y);
+		ra.move(this.width-p,y);
 	}
 }; $dddd$.ori=$rrrr$;
 $rrrr$=$aaaa$.prototype._updateArrows;
@@ -344,15 +352,11 @@ $dddd$=$aaaa$.prototype._updateArrows=function f(){
 $dddd$=$aaaa$.prototype._arrowsFloating=function f(){
 	if(this.upArrowVisible | this.leftArrowVisible){
 		this.ctr_arrows^=0; ++this.ctr_arrows;
-		let s=Math.sin(this.ctr_arrows*f.rad1)/2;
-		if(this.upArrowVisible){
-			this.  _upArrowSprite.anchor._y=0.5-s;
-			this._downArrowSprite.anchor._y=0.5+s;
-		}
-		if(this.leftArrowVisible){
-			this. _leftArrowSprite.anchor._y=0.5-s;
-			this._rightArrowSprite.anchor._y=0.5+s;
-		}
+		const s=Math.sin(this.ctr_arrows*f.rad1)/2,s0=0.5-s,s1=0.5+s;
+		this.   _upArrowSprite.anchor._y=s0;
+		this. _downArrowSprite.anchor._y=s1;
+		this. _leftArrowSprite.anchor._x=s0;
+		this._rightArrowSprite.anchor._x=s1;
 	}
 };
 $dddd$.rad1=PI_64;
@@ -429,8 +433,23 @@ $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 		const uar=new Rectangle(uap.x-(uaw>>1),uap.y-uah,uaw,uah<<1);
 		const dar=new Rectangle(dap.x-(daw>>1),dap.y-dah,daw,dah<<1);
 		const x=TouchInput.x,y=TouchInput.y;
-		if(uar.contains(x,y)) this.isHandled('pageup')&&this.processPageup();
-		else if(dar.contains(x,y)) this.isHandled('pagedown')&&this.processPagedown();
+		if(uar.contains(x,y)){ this.isHandled('pageup')&&this.processPageup(); return true; }
+		else if(dar.contains(x,y)){ this.isHandled('pagedown')&&this.processPagedown(); return true; }
+	}
+};
+$aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
+	if(triggered && (targetWindow.leftArrowVisible||targetWindow.rightArrowVisible)){
+		const la=targetWindow. _leftArrowSprite;
+		const ra=targetWindow._rightArrowSprite;
+		const lah=la.height,law=la.width;
+		const rah=ra.height,raw=ra.width;
+		const lap=la.getGlobalPosition();
+		const rap=ra.getGlobalPosition();
+		const lar=new Rectangle(lap.x-law,lap.y-(lah>>1),law<<1,lah);
+		const rar=new Rectangle(rap.x-raw,rap.y-(rah>>1),raw<<1,rah);
+		const x=TouchInput.x,y=TouchInput.y;
+		if(lar.contains(x,y)){ this.cursorLeft(); return true; }
+		else if(rar.contains(x,y)){ this.cursorRight(); return true; }
 	}
 };
 $dddd$=$aaaa$.prototype.textColor=function f(n){
@@ -2240,6 +2259,9 @@ $aaaa$.prototype.maxPictures=()=>3;
 $aaaa$=Game_Action;
 $aaaa$.TARGET_ENUM_MAX=12;
 $aaaa$.TARGET_ENUM_forAllFriends=12; // item,skill: meta.forAllFriends
+$aaaa$.TARGET_ENUM_forAliveBattler=++$aaaa$.TARGET_ENUM_MAX; // 13
+$aaaa$.TARGET_ENUM_forDeadBattler=++$aaaa$.TARGET_ENUM_MAX; // 14
+$aaaa$.TARGET_ENUM_forAllBattler=++$aaaa$.TARGET_ENUM_MAX; // 15
 $dddd$=$aaaa$.prototype.isForOpponent=function f(){
 	return this.checkItemScope(f.tbl);
 };
@@ -2248,10 +2270,20 @@ $dddd$=$aaaa$.prototype.isForAllFriend=function f(){
 	return this.item().scope===f.tbl;
 };
 $dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriends;
+$dddd$=$aaaa$.prototype.isForBattler=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([
+	$aaaa$.TARGET_ENUM_forAliveBattler, 
+	$aaaa$.TARGET_ENUM_forDeadBattler, 
+	$aaaa$.TARGET_ENUM_forAllBattler, 
+]);
 $dddd$=$aaaa$.prototype.isForFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([7, 8, 9, 10, 11, $aaaa$.TARGET_ENUM_forAllFriends]);
+$dddd$.tbl=new Set([7, 8, 9, 10, 11,
+	$aaaa$.TARGET_ENUM_forAllFriends, 
+]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
 $dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
@@ -2271,7 +2303,9 @@ $dddd$.tbl=new Set([3, 4, 5, 6]);
 $dddd$=$aaaa$.prototype.isForAll=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([2, 8, 10, $aaaa$.TARGET_ENUM_forAllFriends]);
+$dddd$.tbl=new Set([2, 8, 10, 
+	$aaaa$.TARGET_ENUM_forAllFriends, 
+]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
 $dddd$=$aaaa$.prototype.isHpEffect=function f(){
 	return this.checkDamageType(f.tbl);
 };
@@ -2303,10 +2337,19 @@ $dddd$.tbl=new Set([4]);
 
 // - unit
 $aaaa$=Game_Unit;
+$aaaa$.isAlive=m=>m.isAlive();
+$dddd$=$aaaa$.prototype.aliveMembers=function f(){
+    return this.members().filter(f.forEach);
+};
+$dddd$.forEach=$aaaa$.isAlive;
+$dddd$=$aaaa$.prototype.deadMembers=function f(){
+    return this.members().filter(f.forEach);
+};
+$dddd$.forEach=m=>m.isDead();
 $dddd$=$aaaa$.prototype.isAllDead=function f(){
 	return !this.members().some(f.some);
 };
-$dddd$.some=b=>b.isAlive();
+$dddd$.some=$aaaa$.isAlive;
 $aaaa$.prototype.alwaysSubstitute=function(){
 	const members = this.members();
 	for(let i=0;i!==members.length;++i)
