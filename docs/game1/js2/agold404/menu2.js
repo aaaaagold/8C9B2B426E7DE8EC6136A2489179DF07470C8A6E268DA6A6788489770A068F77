@@ -1464,10 +1464,6 @@ window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_Command.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$);
-$aaaa$.prototype.destructor = function(){
-	debug.log('Window_CustomMenu_main.prototype.destructor');
-	for(let x=0,arr=this._windows;x!==arr.length;++x) if(arr[x].parent) this.removeChild(arr[x]);
-};
 $aaaa$.prototype.makeCommandList=none;
 $aaaa$.prototype.processOk=none;
 $rrrr$=$aaaa$.prototype.initialize;
@@ -2669,7 +2665,7 @@ window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$,true);
-$aaaa$.prototype.destructor=none;
+//$aaaa$.prototype.destructor=none;
 $aaaa$.prototype.initialize_content=function(txt,kargs){
 	kargs=kargs||{};
 };

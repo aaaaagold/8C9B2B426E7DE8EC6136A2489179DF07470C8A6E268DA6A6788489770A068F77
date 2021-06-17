@@ -81,11 +81,23 @@ $dddd$=$aaaa$.updateMain2=function f(){
 	}
 }; $dddd$.ori=$rrrr$;
 $dddd$.refreshSpriteChr=x=>x.bitmap&&x.bitmap._args&&x._refresh&&x._refresh();
-$aaaa$.changeScene = function(forced) {
+/* test destruct
+flatChild=obj=>{
+	const rtv=obj.children.map(x=>flatChild(x)).flat();
+	if(rtv){ rtv.push(obj); return rtv; }
+	else return [obj];
+};
+window.s=new Set(flatChild(SceneManager._scene));
+// @line:1: PIXI.Container.prototype.destructor:
+//  window.s&&window.s.delete(this)&&0
+*/
+$aaaa$.changeScene=function(forced){
 	if (forced||this.isSceneChanging() && !this.isCurrentSceneBusy()) {
-		if (this._scene) {
+		if(this._scene){
+			//const c=this._scene.children.slice(); // TODO: used when a scene delete child in 'terminate'
 			this._scene.terminate();
 			this._scene.detachReservation();
+			//if(c&&c.length) for(let x=0;x!==c.length;++x) if(c[x].destructor) c[x].destructor();
 			this._scene.destructor();
 			this._previousClass = this._scene.constructor;
 		}

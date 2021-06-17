@@ -228,7 +228,7 @@ $dddd$=$aaaa$.prototype.destructor=function f(){ // TODO
 	for(let x=r.length;x--;) this.removeChildAt(x); // also done by destroy, remove first for efficiency
 	for(let x=0;x!==r.length;++x) if(r[x].destructor) r[x].destructor();
 	//$gameTemp.clearCache(this); // not $game* objs
-	const bitmap=this.bitmap;
+	//const bitmap=this.bitmap;
 	this.destroy( f.tbl ); // del children , sprites' textures
 };
 $dddd$.tbl={chilren:true,texture:true};
@@ -322,6 +322,7 @@ $aaaa$.prototype._updatePauseSign = function() {
 $aaaa$=Window_Base;
 $rrrr$=$aaaa$.prototype._refreshArrows;
 $dddd$=$aaaa$.prototype._refreshArrows=function f(){
+	if(this._noRefreshArrows) return;
 	f.ori.call(this);
 	if(!this._leftArrowSprite){
 		let la,ra,uaf;
@@ -353,10 +354,10 @@ $dddd$=$aaaa$.prototype._arrowsFloating=function f(){
 	if(this.upArrowVisible | this.leftArrowVisible){
 		this.ctr_arrows^=0; ++this.ctr_arrows;
 		const s=Math.sin(this.ctr_arrows*f.rad1)/2,s0=0.5-s,s1=0.5+s;
-		this.   _upArrowSprite.anchor._y=s0;
-		this. _downArrowSprite.anchor._y=s1;
-		this. _leftArrowSprite.anchor._x=s0;
-		this._rightArrowSprite.anchor._x=s1;
+		this.   _upArrowSprite.anchor.y=s0;
+		this. _downArrowSprite.anchor.y=s1;
+		this. _leftArrowSprite.anchor.x=s0;
+		this._rightArrowSprite.anchor.x=s1;
 	}
 };
 $dddd$.rad1=PI_64;
@@ -448,8 +449,8 @@ $aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
 		const lar=new Rectangle(lap.x-law,lap.y-(lah>>1),law<<1,lah);
 		const rar=new Rectangle(rap.x-raw,rap.y-(rah>>1),raw<<1,rah);
 		const x=TouchInput.x,y=TouchInput.y;
-		if(lar.contains(x,y)){ this.cursorLeft(); return true; }
-		else if(rar.contains(x,y)){ this.cursorRight(); return true; }
+		if(lar.contains(x,y)){ this.cursorLeft(true); return true; }
+		else if(rar.contains(x,y)){ this.cursorRight(true); return true; }
 	}
 };
 $dddd$=$aaaa$.prototype.textColor=function f(n){
