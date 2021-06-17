@@ -46,28 +46,27 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.hrg);
 		arr.push(texts.mrg);
 		arr.push(texts.trg);
-		isMul[arr.length]=true;
-		arr.push(texts.tgr);
-		isMul[arr.length]=true;
-		arr.push(texts.grd);
-		isMul[arr.length]=true;
-		arr.push(texts.rec);
-		isMul[arr.length]=true;
-		arr.push(texts.pha);
-		isMul[arr.length]=true;
-		arr.push(texts.mcr);
-		isMul[arr.length]=true;
-		arr.push(texts.tcr);
-		isMul[arr.length]=true;
-		arr.push(texts.pdr);
-		isMul[arr.length]=true;
-		arr.push(texts.mdr);
+		isMul[arr.length]=true; arr.push(texts.tgr);
+		isMul[arr.length]=true; arr.push(texts.grd);
+		isMul[arr.length]=true; arr.push(texts.rec);
+		isMul[arr.length]=true; arr.push(texts.pha);
+		isMul[arr.length]=true; arr.push(texts.mcr);
+		isMul[arr.length]=true; arr.push(texts.tcr);
+		isMul[arr.length]=true; arr.push(texts.pdr);
+		isMul[arr.length]=true; arr.push(texts.mdr);
+		arr.push(texts.tbe);
+		isMul[arr.length]=true; arr.push(texts.akr);
+		isMul[arr.length]=true; arr.push(texts.rhp);
+		isMul[arr.length]=true; arr.push(texts.rmp);
+		isMul[arr.length]=true; arr.push(texts.rap);
+		isMul[arr.length]=true; arr.push(texts.rdp);
+		isMul[arr.length]=true; arr.push(texts.ram);
+		isMul[arr.length]=true; arr.push(texts.rdm);
+		isMul[arr.length]=true; arr.push(texts.rag);
+		isMul[arr.length]=true; arr.push(texts.rlu);
 		arr.push(texts.pdv);
 		arr.push(texts.mdv);
 		arr.push(texts.mps);
-		isMul[arr.length]=true;
-		arr.push(texts.akr);
-		arr.push(texts.tbe);
 	}
 	
 	// custom traits // Game_BattlerBase.TRAITS_CUSTOM

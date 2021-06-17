@@ -5038,19 +5038,23 @@ $pppp$.param=function(paramId){
 	break;
 	case 3:
 		switch(paramId){
-		case 26: return this.decreaseDamageP();
-		case 27: return this.decreaseDamageM();
+		case 26: return this.TPRegenAtBattleEnd(); // page2
+		case 27: return this.attackTimesMul().toFixed(3);
 		}
 		return this.sparam(paramId-18).toExponential(2);
 	break;
 	case 4:
 		switch(paramId){
-		case 28: return this.MPSubstituteRate().toFixed(3);
-		case 29: return this.attackTimesMul  ().toFixed(3);
-		case 30: return this.TPRegenAtBattleEnd();
+		case 36: return this.decreaseDamageP();
+		case 37: return this.decreaseDamageM();
+		}
+		return this.paramRate(paramId-28);
+	break;
+	case 5:
+		switch(paramId){
+		case 38: return this.MPSubstituteRate().toFixed(3);
 		}
 		return this.param();
-	break;
 	}
 	
 	let value = this.paramBase(paramId) + this.paramPlus(paramId);
