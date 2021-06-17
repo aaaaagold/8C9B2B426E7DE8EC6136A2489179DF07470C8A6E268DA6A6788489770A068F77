@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.XYZW" ;
+const ver = "4.2.6.8.9.6.XYZWV" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
@@ -95,14 +95,14 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 },onloadProc=function f(){
 	if(f.idx===0){
 		if(sha256&&sha256(location.hash)=== "0x6D7157918916B70CB30E6840E97B8E5BFB0D5CED06E9016CD0F1AE50FD475DD5") objs.testing|=1;
-		if(!f.wait_blk){
-			f.wait_blk=ce('div');
-			ac(d.body,ac(f.wait_blk, ac(sa(ce('div'),"class","msg"),tn("讀取中請耐心等候 10 ~ 50 秒")) ));
-			f.wait_list={};
-			for(let x=0;x!==jss.length;++x){
-				let div=f.wait_list[jss[x]]=ac(sa(ce('div'),"class","msg"),tn(jss[x]));
-				ac(f.wait_blk,div);
-			}
+		if(!f.wait_blk){ f.wait_blk=ce('div'); let msg,cnt=0,u;
+			ac(d.body,ac(ac(f.wait_blk, ac( sa(ce('div'),"class","msg") , tn("讀取中請耐心等候 10 ~ 50 秒") ) ),msg=sa(ce('div'),"class","msg")));
+			const itvl=setInterval(u=()=>{
+				const arr=msg.childNodes; while(arr.length) rc(msg,arr[arr.length-1]);
+				if(f.idx===jss.length){ ac(msg,tn("資料已接收完畢，正在處理......")); return clearInterval(itvl); }
+				ac(msg,tn( "已經過 "+ cnt +" 秒"+(cnt>=50?"，你可以考慮關掉了":"") )); ++cnt;
+			},1e3); u();
+			f.wait_list={}; for(let x=0;x!==jss.length;++x){ let div=f.wait_list[jss[x]]=ac(sa(ce('div'),"class","msg"),tn(jss[x])); ac(f.wait_blk,div); }
 		}
 	}else for(let x=f._lastIdx;x!==f.idx;++x){ let div=f.wait_list[jss[x]]; rc(div.parentNode,div); }
 	if(!isDev_){
@@ -174,12 +174,9 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		};
 		const O_O=()=>{ z=undefined;
 			if(localStorage.getItem('forceCanvas')===null && Utils.isMobileDevice()) localStorage.setItem("forceCanvas",1);
-			//if(localStorage.getItem('forceCanvas')===null) localStorage.setItem("forceCanvas",1);
 			Graphics._forceCanvas=localStorage.getItem("forceCanvas")==='1';
-			if(!SceneManager._scene){
-				SceneManager.run(Scene_Boot);
-				if(objs.isDev){ window._SceneManager=window.SceneManager; window._DataManager=window.DataManager; }
-				if(!isDev_) window.DataManager = window.SceneManager = undefined;
+			if(!SceneManager._scene){ if(objs.isDev){ window._SceneManager=window.SceneManager; window._DataManager=window.DataManager; }
+				SceneManager.run(Scene_Boot); if(!isDev_) window.DataManager = window.SceneManager = undefined;
 			}
 		};
 		a.o=()=>{ if(--z===0) O_O(); };
