@@ -4699,16 +4699,14 @@ $pppp$.command119=function(){ // goto
 	return true; // cmd exec-ed, '._index' will inc.
 };
 $d$=$pppp$.jmp=function f(idx){
-	if(this._segtree_indent){ // supposed not jmp to [456]XX , so '._indent' will be properly overwritten
-		let L=idx,R=this._index;
-		if(R<L){ const tmp=L; L=R; R=tmp; }
-		++R;
-		const tbl=this._segtree_indent;
-		if(!tbl.max.query) f.tbl.forEach(f.forEach,tbl); // === .min
-		const M=tbl.max.query(L,R),m=tbl.min.query(L,R);
-		for(let x=m;x<=M;++x) this._branch[x]=null;
-		this._index=idx;
-	}else return this.jumpTo(idx);
+	// supposed not jmp to [456]XX , so '._indent' will be properly overwritten
+	let L=idx,R=this._index;
+	if(R<L){ const tmp=L; L=R; R=tmp; }
+	++R;
+	const tbl=this._segtree_indent; if(!tbl.max.query) f.tbl.forEach(f.forEach,tbl); // === .min
+	const M=tbl.max.query(L,R),m=tbl.min.query(L,R);
+	for(let x=m;x<=M;++x) this._branch[x]=null;
+	this._index=idx;
 };
 $d$.forEach=function(k){ (this[k]=Object.toType(this[k],SegmentTree))._op=Math[k]; };
 $d$.tbl=['max','min',];
@@ -9691,6 +9689,7 @@ $r$=$pppp$.testApply;
 $d$=$pppp$.testApply=function f(target){
 	if(!target) return false;
 	const item=this.item();
+	if(!item) return false;
 	const meta=item.meta;
 	const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
 	if(filter) return filter(target,this.subject());
@@ -9738,27 +9737,47 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
+$pppp$.getSelfItemObj=function(obj){
+	const l=(obj||this.item()).meta.self;
+	if(l){ const s=l.split(','); switch(s[0]){
+	case 'i': return $dataItems  [s[1]];
+	case 's': return $dataSkills [s[1]];
+	} return; }
+	return false;
+};
+$pppp$.canForSelf=obj=>!!obj;
 $d$=$pppp$.apply=function f(target){
-	const result = target.result();
-	this.subject().clearResult();
+	const result = target.result() , subject = this.subject();
+	let tmp=this; if(subject===target){
+		const slf=this.getSelfItemObj();
+		if(slf!==false){
+			if(!this.canForSelf(slf)){
+				subject.clearResult();
+				result.clear();
+				return;
+			}
+			tmp=new Game_Action(subject);
+			tmp.setItemObject(slf);
+		}
+	}
+	const act=tmp;
+	subject.clearResult();
 	result.clear();
-	result.used = this.testApply(target);
-	result.physical = this.isPhysical();
-	result.drain = this.isDrain();
-	if( result.missed = (result.used && Math.random() >= this.itemHit(target)) ) return f.toQ(result,target); // if(result.isHit())
-	if( result.evaded = (!result.missed && Math.random() < this.itemEva(target)) ) return f.toQ(result,target); // if(result.isHit())
+	result.used = act.testApply(target);
+	result.physical = act.isPhysical();
+	result.drain = act.isDrain();
+	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ) return f.toQ(result,target); // if(result.isHit())
+	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ) return f.toQ(result,target); // if(result.isHit())
 	// if(result.isHit())
 	{
-		const item=this.item();
+		const item=act.item();
 		if(item.damage.type>0){
-			result.critical = (Math.random() < this.itemCri(target));
-			const value = this.makeDamageValue(target, result.critical);
-			this.executeDamage(target, value);
+			result.critical = (Math.random() < act.itemCri(target));
+			const value = act.makeDamageValue(target, result.critical);
+			act.executeDamage(target, value);
 		}
-		item.effects.forEach(function(effect) {
-			this.applyItemEffect(target, effect);
-		}, this);
-		this.applyItemUserEffect(target);
+		item.effects.forEach(eff=>act.applyItemEffect(target, eff));
+		act.applyItemUserEffect(target);
 	}
 	
 	f.toQ(result,target);
@@ -12494,6 +12513,36 @@ $pppp$.popBaseLine=function(){
 	if(this._lines.length>baseLine) this._lines.length=baseLine;
 };
 // Window_BattleLog.prototype.popupDamage
+$k$='showAnimation';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(subject, targets, animationId, item){
+	const p=Game_Action.prototype;
+	const item2=p.getSelfItemObj(item);
+	if(item2!==false){
+		this._aniSubject=subject;
+		this._aniSelfAniId = p.canForSelf(item2) ? item2.animationId : undefined;
+	}else this._aniSubject=undefined;
+	f.ori.call(this, subject, targets, animationId);
+}; $d$.ori=$r$;
+$d$=$pppp$.showNormalAnimation=function f(targets, animationId, mirror) {
+	if($dataAnimations[animationId]){
+		let delay = this.animationBaseDelay();
+		let nextDelay = this.animationNextDelay();
+		targets.forEach(target=>{
+			if(this._aniSubject===target){
+				if(this._aniSelfAniId<0){
+					if(target.isActor()){ let aniId;
+						f.tbl.forEach(k=>{ aniId=target[k](); if($dataAnimations[aniId]) target.startAnimation( aniId , mirror , delay ); });
+					}else{ }
+				}else{
+					if($dataAnimations[this._aniSelfAniId]) target.startAnimation( this._aniSelfAniId , mirror, delay);
+				}
+			}else target.startAnimation( animationId , mirror , delay);
+			delay += nextDelay;
+		});
+	}
+};
+$d$.tbl=[1,2].map(v=>'attackAnimationId'+v);
 $pppp$.animationNextDelay=()=>2; // ori:12
 $pppp$.clearLine=function(index){
 	const rect = this.itemRectForText(index);
@@ -12568,7 +12617,7 @@ $pppp$.startAction=function(subject, action, targets){
 	this.push('performAction', subject, action);
 	{
 		const arr=[]; new Set(targets).forEach(x=>arr.push(x));
-		if(!this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, arr.reverse(), item.animationId);
+		if(!this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, arr.reverse(), item.animationId, item);
 	}
 	this.displayAction(subject, item);
 };
