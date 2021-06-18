@@ -4399,20 +4399,71 @@ Object.defineProperty($pppp$,'_character',{
 		return rhs;
 	},
 });
+$pppp$.makeLabelTbl=function(){
+	const arr=this._list,tbl=this._labelTbl={},indents=[],rl=this._rightLe||(this._rightLe=[]),lo=this._loop||(this._loop=[]);
+	if(arr){ // reversed order
+		const xs=arr.length,rr=[],lastLo=[],lbs=[]; // rightRepeat , lastLoop , lastBreak
+		for(let x=xs,c,i;x--;){ c=arr[x];
+			// skip tbl: skip@x: find nearest next i which arr[i].indent<=arr[x].indent
+			rl[x]=xs;
+			for(i=x+1;i!==arr.length;i=rl[i]){
+				if(c.indent>=arr[i].indent){
+					rl[x]=i;
+					break;
+				}
+			}
+			
+			indents.push(c.indent);
+			switch(c.code){
+			default: break;
+			case 112: // loop
+				if(rr[c.indent]>=0){ const t=rr[c.indent]; lo[t]=x;
+					if(lbs.length) for(let lb=lbs.pop();lb.length;) lo[lb.pop()]=t;
+					rr[c.indent]=-1;
+				}
+			break;
+			case 113: // loop - break
+				lbs.back.push(x);
+			break;
+			case 413: // loop - repeat above
+				rr[c.indent]=x;
+				lbs.push([]);
+			break;
+			case 118: // label
+				tbl[c.parameters[0]]=x;
+			break;
+			}
+		}
+	}
+	if(indents.length){ indents.reverse();
+		const t=this._segtree_indent={};
+		t.max=new SegmentTree(Math.max,   -1,indents,true);
+		t.min=new SegmentTree(Math.min,1<<21,indents,true);
+	}else this._segtree_indent=undefined;
+};
 $r$=$pppp$.setup;
 $d$=$pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
+	this.makeLabelTbl();
 	this._strtMeta=strtMeta;
 }; $d$.ori=$r$;
 $r$=$pppp$.clear;
 $d$=$pppp$.clear=function f(){
 	// flow: '.terminate' , '.clear'
 	this._strtMeta=undefined;
+	this._segtree_indent=undefined;
+	if(this._rightLe) this._rightLe.length=0;
+	else this._rightLe=[];
+	if(this._loop) this._loop.length=0;
+	else this._loop=[];
 	return f.ori.call(this);
 }; $d$.ori=$r$;
 $pppp$.getStrtMeta=function(key){
 	const meta=this._strtMeta;
 	return meta&&meta[key];
+};
+$pppp$.skipBranch=function f(){
+	this._index = this._list.length===this._rightLe[this._index] ? this._list.length : this._rightLe[this._index]-1 ; // cmd exec-ed will inc. '._index'
 };
 $d$=$pppp$.command101=function f(){
 	if(!$gameMessage.isBusy()){
@@ -4634,6 +4685,33 @@ $d$.script=function(j){
 		return obj;
 	}
 };
+$pppp$.command413=function(){ // loop-repeat
+	this._index=this._loop[this._index];
+	return true;
+};
+$pppp$.command113=function(){ // loop-break
+	this._index=this._loop[this._index];
+	return true;
+};
+$pppp$.command119=function(){ // goto
+	const newIdx=this._labelTbl && this._labelTbl[this._params[0]];
+	if(newIdx>=0) this.jmp(newIdx|0);
+	return true; // cmd exec-ed, '._index' will inc.
+};
+$d$=$pppp$.jmp=function f(idx){
+	if(this._segtree_indent){ // supposed not jmp to [456]XX , so '._indent' will be properly overwritten
+		let L=idx,R=this._index;
+		if(R<L){ const tmp=L; L=R; R=tmp; }
+		++R;
+		const tbl=this._segtree_indent;
+		if(!tbl.max.query) f.tbl.forEach(f.forEach,tbl); // === .min
+		const M=tbl.max.query(L,R),m=tbl.min.query(L,R);
+		for(let x=m;x<=M;++x) this._branch[x]=null;
+		this._index=idx;
+	}else return this.jumpTo(idx);
+};
+$d$.forEach=function(k){ (this[k]=Object.toType(this[k],SegmentTree))._op=Math[k]; };
+$d$.tbl=['max','min',];
 $d$=$pppp$.command122=function f(){ // ctrl var
 	let value = 0;
 	switch (this._params[3]) { // Operand
@@ -5434,6 +5512,7 @@ $pppp$.performActionStart = function(action) {
 	}
 };
 $pppp$.performAction=none; // ori:empty
+$pppp$._updateFlr=none;
 $pppp$=$aaaa$=undef;
 
 // - chrB
