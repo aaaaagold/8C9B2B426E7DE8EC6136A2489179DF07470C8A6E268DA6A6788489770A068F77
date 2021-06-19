@@ -1,5 +1,8 @@
 ﻿"use strict";
-(()=>{ let list=rpgskills.list,filter=rpgskills.filter;
+
+if(!window.objs) window.objs={};
+
+(()=>{ let list=objs.rpgskills.list,filter=objs.rpgskills.filter;
 
 const rfl_summonClones_isValidScene_cSet=new Set();
 const rfl_summonClones_isValidScene=c=>{

@@ -1,6 +1,8 @@
 "use strict";
 
-const rpgevts=window.rpgevts={func:{},list:{},achievement:{},auto:{},item:{},shop:{},interact:{}};
+if(!window.objs) window.objs={};
+
+const rpgevts=objs.rpgevts=window.rpgevts={func:{},list:{},achievement:{},auto:{},item:{},shop:{},interact:{}};
 
 (()=>{ // strt
 let arr=[1];

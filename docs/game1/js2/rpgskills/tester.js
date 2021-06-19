@@ -1,5 +1,8 @@
 ﻿"use strict";
-(()=>{ let list=rpgskills.list,filter=rpgskills.filter;
+
+if(!window.objs) window.objs={};
+
+(()=>{ const list=objs.rpgskills.list,filter=objs.rpgskills.filter;
 
 const toScenes=new Set(),backToMap=()=>{
 	if(toScenes.size===0){

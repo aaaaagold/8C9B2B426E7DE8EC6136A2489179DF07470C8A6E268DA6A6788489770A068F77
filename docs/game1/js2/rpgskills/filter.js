@@ -1,5 +1,8 @@
 ﻿"use strict";
-(()=>{ let list=rpgskills.filter;
+
+if(!window.objs) window.objs={};
+
+(()=>{ let list=objs.rpgskills.filter;
 
 list.isRoadblock=actor=>{
 	if(!actor) return false;

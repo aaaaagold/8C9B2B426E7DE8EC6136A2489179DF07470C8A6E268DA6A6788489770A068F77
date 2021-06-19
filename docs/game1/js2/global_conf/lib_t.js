@@ -25,6 +25,7 @@ const addScript=window.addScript=(src)=>{
 };
 
 if(typeof isGame!=='undefined'){
+	window.rpgskills=objs.rpgskills={};
 	addScript("js2/rpgevents/main.js");
 	addScript("js2/rpgquests/main.js");
 	addScript("js2/rpgskills/main.js");

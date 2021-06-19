@@ -1,4 +1,7 @@
 ﻿"use strict";
-(()=>{ let list=rpgskills.list;
+
+if(!window.objs) window.objs={};
+
+(()=>{ let list=objs.rpgskills.list;
 
 })();

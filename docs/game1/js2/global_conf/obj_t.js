@@ -2591,8 +2591,8 @@ $d$=$pppp$[$k$]=function f(){
 $k$='onMapLoaded';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(){
-	debug.log('Scene_Map.prototype.onMapLoaded');
-	debug.log('!$dataMap',!$dataMap);
+	//debug.log('Scene_Map.prototype.onMapLoaded');
+	//debug.log('!$dataMap',!$dataMap);
 	Sprite._counter&=0; // reset Sprite.spriteId counter // sprites will be in 'SceneManager._scene._spriteset._tilemap.children'
 	// '$dataMap' is updated ; '$gameMap' will be updated after 'f.ori' if by '$gamePlayer.reserveTransfer'
 	if($gameScreen){
@@ -2633,7 +2633,7 @@ $d$=$pppp$[$k$]=function f(){
 			evtd.pages.push(newpage);
 		}
 	}
-	debug.log('',lastMapId,'->',$gameMap._mapId);
+	//debug.log('',lastMapId,'->',$gameMap._mapId);
 		// from '$gamePlayer.reserveTransfer': different
 		// from New Game: 0 -> init_map_id
 		// from Continue: same
@@ -5273,9 +5273,12 @@ $d$.tbl={};
 $pppp$.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
-$pppp$.canUse=function f(dataItem){
+$d$=$pppp$.canUse=function f(dataItem){
 	if(!dataItem) return false;
 	const meta=dataItem.meta;
+	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(meta.cond));
+	if(cond && !cond()) return false;
+	}
 	// when use an item via press 'ok' without release, 'meta' has chance to become 'undefined'
 	if(SceneManager._scene.constructor===Scene_Item && meta && (meta.code||meta.func) && $gameParty.hasItem(dataItem)) return true;
 	switch(dataItem.itemType){
@@ -5289,6 +5292,10 @@ $pppp$.canUse=function f(dataItem){
 	}
 	return false;
 };
+$d$.tbl=[
+['rpgskills',],
+[], // placeholder
+];
 $pppp$.canEquip=function(dataItem){
 	if(!dataItem) return false;
 	switch(dataItem.itemType){
@@ -9686,6 +9693,7 @@ $d$=$pppp$.testApply=function f(target){
 	if(!item) return false;
 	const meta=item.meta;
 	const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
+	//const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&eval('objs.'+meta.filter));
 	if(filter) return filter(target,this.subject());
 	return (
 		( this.isForAllFriend() || this.isForDeadFriend() === target.isDead() ) &&
@@ -9955,6 +9963,7 @@ $d$=$pppp$[$k$]=function f(){
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
 	//if(meta&&meta.func) objs._getObj.call(none,meta.func.replace(/\(|\)/g,''))(this);
 	const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && objs._getObj.call(none,meta.func.replace(/\(|\)/g,'')) );
+	//const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && eval('objs.'+meta.func.replace(/\(|\)/g,'')) );
 	if(func) func(this);
 	//if(meta&&meta.code) objs._doFlow.call(this,meta.code);
 	const code=dataItem.code||( dataItem.code=meta&&(meta.code=meta.code) && objs._doFlow.call(this,meta.code) );
@@ -12823,6 +12832,7 @@ $pppp$.isCurrentItemEnabled=function(){
 	if(this._mode!=='s'){ const act=BattleManager.inputtingAction();
 	if(act){ const item=act.item(); if(item){
 		const filter=item.filter||(item.filter=(item.meta.filter=item.meta.filter)&&objs._getObj(item.meta.filter));
+		//const filter=item.filter||(item.filter=(item.meta.filter=item.meta.filter)&&eval('objs.'+item.meta.filter));
 		if(filter) return filter(this.actor(),act.subject());
 	} }
 	} // swap party actors mode

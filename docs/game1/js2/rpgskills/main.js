@@ -1,14 +1,10 @@
 ﻿"use strict";
 
-const rpgskills=window.rpgskills={func:{},list:{},filter:{},handleRank:{
-	easy:[0,5,5], // rankMin, rankMax, levelUp needed count
-	normal:[6,10],
-	hard:[11,30],
-	crazy:[31,50],
-	extreme:[51,inf],
-}};
+if(!window.objs) window.objs={};
 
 (()=>{ // strt
+const rpgskills=window.rpgskills=objs.rpgskills={func:{},list:{},filter:{}};
+
 let arr=[1];
 const add=(src)=>{
 	let itvl=setInterval(()=>{

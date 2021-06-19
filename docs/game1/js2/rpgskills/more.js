@@ -1,5 +1,8 @@
 ﻿"use strict";
-(()=>{ let list=rpgskills.list,filter=rpgskills.filter;
+
+if(!window.objs) window.objs={};
+
+(()=>{ const list=objs.rpgskills.list,filter=objs.rpgskills.filter;
 
 list.followingSwitch=action=>{
 	$gamePlayer._followers._following^=1;
