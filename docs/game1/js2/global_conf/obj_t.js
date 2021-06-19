@@ -11690,8 +11690,8 @@ $d$.f_name=function(){
 $d$.re_party=/\x1bP\[(\d+)\]/gi;
 $d$.f_party=function(){ return this.partyMemberName(parseInt(arguments[1])); };
 $pppp$.processNormalCharacter = function(textState) {
-	let c = textState.text[textState.index++];
-	let w = this.textWidth(c);
+	const c = textState.text[textState.index++];
+	const w = this.textWidth(c);
 	if(!this.inaline && this.constructor===Window_Message && textState.x + w > this.contentsWidth()){
 		--textState.index;
 		this.processNewLine(textState);
@@ -11701,7 +11701,7 @@ $pppp$.processNormalCharacter = function(textState) {
 		//this.newPage(textState);
 		return;
 	} // auto new page only when: this.constructor===Window_Message
-	this.contents.drawText(c, textState.x, textState.y, w, textState.height);
+	if(this.contentsWidth()>textState.x&&textState.x+w>0) this.contents.drawText(c, textState.x, textState.y, w, textState.height);
 	textState.x += w;
 	if(!(textState.maxX>=textState.x)) textState.maxX=textState.x;
 };

@@ -1868,6 +1868,8 @@ $aaaa$.prototype.numVisibleRows=function(){
 };
 $aaaa$.prototype.subWindows=function f(){return f._dummy_arr;};
 $dddd$=$aaaa$.prototype.createSubWindows=function f(){
+	this._maxTextWidth=0;
+	this._scrollMax=0;
 	// close btn
 	const rtv=this._btn_close=Scene_NoteApp.prototype.makeLeaveBtn.call(this,"CLOSE");
 	const h=rtv.height;
@@ -1896,6 +1898,10 @@ $aaaa$.prototype.startMessage=function(){
 	this._canScrolly=this._lineCnt-this.numVisibleRows();
 	this._canScrolly*=this._canScrolly>0;
 	this._canScrolly*=this.lineHeight();
+	//this._maxTextWidth=0;
+	this.rightArrowVisible=true;
+	this.adjLrArrows=true;
+	this._refreshArrows();
 	this.updateBackground();
 	this.open();
 };
@@ -1903,22 +1909,30 @@ $aaaa$.prototype.terminateMessage=function(){
 	this._canStart=false;
 	this.close();
 };
-$aaaa$.prototype.redrawtxt=function(){
+$d$=$aaaa$.prototype.redrawtxt=function f(){
 	this.contents.clear();
 	const sy=this.scrolly|0,lh=this.lineHeight(),my=this.numVisibleRows()*lh,arr=this._txt;
 	const nd=arr.length.toString().length+2; // ". ".length===2
+	const sx=this.textWidth(" ".repeat(nd));
+	this.leftArrowVisible=this.scrollx>0;
 	this.upArrowVisible=sy>0;
 	this.downArrowVisible=false;
+	const headers=[],mx=sx-this.scrollx; //,len=1+~~((this.contentsWidth()-mx)*nd/sx);
 	for(let x=~~(sy/lh),y=x*lh-sy;x<arr.length;++x){
 		const header=(x+1)+". ";
 		this._newLineWarning=false;
-		this.drawTextEx(" ".repeat(nd-header.length)+header+arr[x],0,y);
+		const dx=this.drawTextEx(arr[x],mx,y);
+		//if(this._maxTextWidth<dx) this._maxTextWidth=dx;
+		headers.push(header,y);
 		if((y+=lh)>my){
 			this.downArrowVisible=true;
 			break;
 		}
 	}
+	this.contents.fillRect(0,0,sx,my,f.tbl);
+	for(let i=0;i!==headers.length;i+=2) this.drawText(" ".repeat(nd-headers[i].length)+headers[i] ,0,headers[i|1]);
 };
+$d$.tbl='rgba(0,0,0,0.5)';
 $aaaa$.prototype.update=function(){
 	if(this.isClosed() && !this.isOpening()) return;
 	Window_Base.prototype.update.call(this);
@@ -1927,12 +1941,22 @@ $aaaa$.prototype.update=function(){
 		this.scrolly=0;
 		this.redrawtxt();
 	}
-	const lastScrolly=this.scrolly;
+	const lastScrollx=this.scrollx,lastScrolly=this.scrolly;
+	if(TouchInput.wheelX){
+		this.scrollx+=TouchInput.wheelX;
+	}
 	if(TouchInput.wheelY){
-		this.scrolly=this.scrolly+TouchInput.wheelY;
+		this.scrolly+=TouchInput.wheelY;
 	}
 	{
-		const lh=this.lineHeight(),nvh=this.numVisibleRows()*lh,up="up",dn="down",pgup="pageup",pgdn="pagedown",home="home",ende="end";
+		const shift=Input.isTriggered('shift'),r=shift*9+1;
+		const ww=64*r,lf='left',rt='right',lh=this.lineHeight()*r,nvh=this.numVisibleRows()*lh*r,up="up",dn="down",pgup="pageup",pgdn="pagedown",home="home",ende="end";
+		if(Input.isTriggered(lf) || Input.isRepeated(lf)){
+			this.scrollx -= ww;
+		}
+		if(Input.isTriggered(rt) || Input.isRepeated(rt)){
+			this.scrollx += ww;
+		}
 		if(Input.isTriggered(up) || Input.isRepeated(up)){
 			this.scrolly -= lh;
 		}
@@ -1952,8 +1976,9 @@ $aaaa$.prototype.update=function(){
 			this.scrolly = this._canScrolly;
 		}
 	}
+	if(this.scrollx<0) this.scrollx=0;
 	this.scrolly=this.scrolly.clamp(0,this._canScrolly);
-	if(this.scrolly!==lastScrolly){
+	if(this.scrollx!==lastScrollx||this.scrolly!==lastScrolly){
 		SoundManager.playCursor();
 		this.redrawtxt();
 	}
@@ -2753,7 +2778,6 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 	if(this._itvl!==undefined) clearInterval(this._itvl);
 	return f.ori.apply(this,arguments);
 }; $dddd$.ori=$rrrr$;
-//$aaaa$.prototype.destructor=function(){ if(this._itvl) clearInterval(this._itvl); };
 $aaaa$.prototype.processHandling=none;
 $aaaa$.prototype.processTouch=none;
 $aaaa$.prototype.processKey=none;
