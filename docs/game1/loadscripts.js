@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.XYZWV" ;
+const ver = "4.2.6.8.9.6.XYZWVU" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
@@ -8,7 +8,7 @@ if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48
 //isDev=false;//test:non-dev
 (()=>{
 const w=window,d=document,sha256=w.sha256,ac=(p,c)=>{p.appendChild(c);return p},ce=t=>d.createElement(t),rc=(p,c)=>{p.removeChild(c);return p},sa=(e,a,v)=>{e.setAttribute(a,v);return e},tn=txt=>d.createTextNode(txt);
-const objs=w.objs||{},isDev_=isDev&&!(sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269");
+const lstr=localStorage,objs=w.objs||{},isDev_=isDev&&!(sha256&&sha256(location.hash)=== "0xF8ABEFA1EBC7FD327D52245A7CA9F67B8FF5EA152B1A455038D16A98880D9269");
 if(isDev)if(isDev_)w.objs=objs;else w._objs=objs;
 if(!jss)jss=[
 	"test.js",
@@ -173,8 +173,8 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 			d.body.ac(scr);
 		};
 		const O_O=()=>{ z=undefined;
-			if(localStorage.getItem('forceCanvas')===null && Utils.isMobileDevice()) localStorage.setItem("forceCanvas",1);
-			Graphics._forceCanvas=localStorage.getItem("forceCanvas")==='1';
+			if(lstr.getItem('forceCanvas')===null && Utils.isMobileDevice()) lstr.setItem("forceCanvas",1);
+			Graphics._forceCanvas=lstr.getItem("forceCanvas")==='1';
 			if(!SceneManager._scene){ if(objs.isDev){ window._SceneManager=window.SceneManager; window._DataManager=window.DataManager; }
 				SceneManager.run(Scene_Boot); if(!isDev_) window.DataManager = window.SceneManager = undefined;
 			}
@@ -201,11 +201,11 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		while(x!==jss.length && jss[x][0]===":") if(onloadProc.isBody(jss[x])===isBody) files+="&file="+encodeURIComponent(jss[x++]); else break;
 		if(isDev_) console.log(files);
 		const idxcnt=x-idx,k=Date.now()+''+Math.random();
-		{ const lastVer=localStorage.getItem(confPrefix+'v'+idxcnt+src); if(verStr!==lastVer){
-			localStorage.removeItem(confPrefix+'s'+idxcnt+src);
-			localStorage.removeItem(confPrefix+'k'+idxcnt+src);
+		{ const lastVer=lstr.getItem(confPrefix+'v'+idxcnt+src); if(verStr!==lastVer){
+			lstr.removeItem(confPrefix+'s'+idxcnt+src);
+			lstr.removeItem(confPrefix+'k'+idxcnt+src);
 		} }
-		{ const c=localStorage.getItem(confPrefix+'s'+idxcnt+src) , k=localStorage.getItem(confPrefix+'k'+idxcnt+src); if(c&&k){
+		{ const c=lstr.getItem(confPrefix+'s'+idxcnt+src) , k=lstr.getItem(confPrefix+'k'+idxcnt+src); if(c&&k){
 			putck(f,idx,idxcnt,src,c,k); continue;
 		} }
 		const u=gas+"?game=燒毀"+files+"&";
@@ -213,10 +213,10 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		XHR(u+Date.now(),respTxt=>{
 			if(isDev_){ console.log(files,k); console.log(respTxt); }
 			const kkkkkk=kkk+kk+k;
-			localStorage.setItem(confPrefix+'s'+idxcnt+src,respTxt);
-			localStorage.setItem(confPrefix+'k'+idxcnt+src,kkkkkk);
+			lstr.setItem(confPrefix+'s'+idxcnt+src,respTxt);
+			lstr.setItem(confPrefix+'k'+idxcnt+src,kkkkkk);
 			putck(f,idx,idxcnt,src,respTxt,kkkkkk,()=>{
-				localStorage.setItem(confPrefix+'v'+idxcnt+src,verStr); // last
+				lstr.setItem(confPrefix+'v'+idxcnt+src,verStr); // last
 			});
 		},function(){
 			if(--cnt===0) return f.giveupMsg();
@@ -258,7 +258,7 @@ onloadProc.onerr=function f(){ this.onerror=null;
 	this._errCnt^=0; if(++this._errCnt===4){
 		return onloadProc.giveupMsg();
 	}
-	setTimeout(()=>{this.onerror=f; this.src=src;},404);
+	setTimeout(()=>{this.onerror=f; this.src=src+(src.lastIndexOf("?")>=0?"&":"?")+"err";},404);
 };
 onloadProc.putScript=(scr,txt)=>{
 	ac(d.body, ac(scr,tn(txt)) ); if(!objs.isDev) rc(d.body,scr);
