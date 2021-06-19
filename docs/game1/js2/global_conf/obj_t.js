@@ -9934,10 +9934,10 @@ $pppp$.itemEffectAddNormalState=function(target, effect){
 $k$='applyGlobal';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(){
-	debug.log('Game_Action.prototype.applyGlobal');
-	let dataItem=this.item();
+	//debug.log('Game_Action.prototype.applyGlobal');
+	const dataItem=this.item();
 	if(dataItem.effects) dataItem.effects.forEach(ef=>ef.code===Game_Action.EFFECT_COMMON_EVENT&&$gameTemp.reserveCommonEvent(ef.dataId)); // f.ori.call(this);
-	let item=this._item,id=item._itemId.toId(),meta=dataItem.meta;
+	const item=this._item,id=item._itemId.toId(),meta=dataItem.meta;
 	switch(item._dataClass){
 		default: break;
 		case 'armor': {
@@ -9957,7 +9957,7 @@ $d$=$pppp$[$k$]=function f(){
 	const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && objs._getObj.call(none,meta.func.replace(/\(|\)/g,'')) );
 	if(func) func(this);
 	//if(meta&&meta.code) objs._doFlow.call(this,meta.code);
-	const code=dataItem.code||( dataItem.func=meta&&(meta.func=meta.func) && objs._doFlow.call(this,meta.code) );
+	const code=dataItem.code||( dataItem.code=meta&&(meta.code=meta.code) && objs._doFlow.call(this,meta.code) );
 	if(code) code(this);
 	}
 }; $d$.ori=$r$;
