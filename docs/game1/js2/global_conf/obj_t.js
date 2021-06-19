@@ -1861,17 +1861,7 @@ $pppp$=$aaaa$=undef; // END Scene_Item
 // - Scene_Skill
 $aaaa$=Scene_Skill;
 $pppp$=$aaaa$.prototype;
-$k$='createHelpWindow';
-$r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
-	f.ori.call(this);
-	const w=this._helpWindow;
-	f.fontSize=0;
-	const fsz=w.standardFontSize();
-	w.setFontsize((fsz>>1) + (fsz>>3));
-	w.fittingHeight(3);
-}; $d$.ori=$r$;
-$pppp$=$aaaa$=undef; // END Scene_Item
+$pppp$=$aaaa$=undef; // END Scene_Skill
 
 // - Scene_Equip
 $aaaa$=Scene_Equip;
@@ -1932,8 +1922,8 @@ $d$=$pppp$.create=function f(){
 		w.setFontsize((tmp>>1)+(tmp>>3)); // 28//32 < 1 -> 0
 		
 		w=this._helpWindow;
-		tmp=w.standardFontSize();
-		w.setFontsize((tmp>>1)+(tmp>>3));
+//		tmp=w.standardFontSize();
+//		w.setFontsize((tmp>>1)+(tmp>>3));
 		{
 			const oh=w.height;
 			w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
@@ -3097,6 +3087,10 @@ $d$=$pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._actorCommandWindow.setHandler('spaceout',   this.commandSpaceout.bind(this));
 }; $d$.ori=$r$;
+$pppp$.createHelpWindow=function(){
+	Scene_MenuBase.prototype.createHelpWindow.call(this);
+	this._helpWindow.visible=false;
+};
 $pppp$.commandSwap=function(){
 	const w=this._swapActorWindow;
 	w._mode='s';
@@ -9789,6 +9783,7 @@ $d$.toQ=(res,trgt)=>{
 };
 $pppp$.makeDamageValue=function(target,isCri){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
+	// calc. value based on target's ele. def. and what item's elements are
 	let value = baseValue * this.calcElementRate(target) , decDmg=0;
 	switch(item.hitType){
 	default:

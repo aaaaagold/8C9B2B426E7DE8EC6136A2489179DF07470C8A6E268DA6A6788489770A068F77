@@ -571,7 +571,7 @@ $dddd$.debugPack=notDev=>{
 	for(let x=0,arr=returns;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e3);
 	let placing=[94,96,106,107,108,109,110,111,112,];
 	for(let x=0,arr=placing;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
-	let consume=[23,103,129,160,166,170,185];
+	let consume=[23,103,129,160,166,170,185,191,];
 	for(let x=0,arr=consume;x!==arr.length;++x) pt.gainItem(itds[arr[x]],1e4);
 	
 	for(let i=5;i!==125;++i) if(i!==17&&i!==31) pt.gainItem(armds[i],1e3);

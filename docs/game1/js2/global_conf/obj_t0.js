@@ -2165,6 +2165,15 @@ TextManager.custom=(id)=>$dataCustom[id]||'';
 
 // - Scene_MenuBase
 $aaaa$=Scene_MenuBase;
+$rrrr$=$aaaa$.prototype.createHelpWindow;
+$dddd$=$aaaa$.prototype.createHelpWindow=function f(){
+	f.ori.call(this);
+	const w=this._helpWindow;
+	w.fontSize=0;
+	const fsz=w.standardFontSize();
+	w.setFontsize((fsz>>1) + (fsz>>3));
+	w.height=w.fittingHeight(3);
+}; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.nextActor=function(){
 	const rtv=$gameParty.makeMenuActorNext();
 	this.updateActor();

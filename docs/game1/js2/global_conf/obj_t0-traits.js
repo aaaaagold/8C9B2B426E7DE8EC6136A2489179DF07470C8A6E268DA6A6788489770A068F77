@@ -306,13 +306,13 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeForAllBattler);
 	f.doForEach($dataSkills,f.makeForAllBattler);
 	
-	// extend description
-	f.doForEach($dataItems,f.extendDescription);
-	f.doForEach($dataSkills,f.extendDescription);
-	
 	// extend repeats
 	f.doForEach($dataItems,f.extendRepeats);
 	f.doForEach($dataSkills,f.extendRepeats);
+	
+	// extend description
+	f.doForEach($dataItems,f.extendDescription);
+	f.doForEach($dataSkills,f.extendDescription);
 	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
@@ -341,10 +341,44 @@ $dddd$=$pppp$.arrangeData=function f(){
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
 $dddd$.extendDescription=dataobj=>{
 	const ie=$dataCustom.itemEffect;
-	let ext='';
-	['tpGain',].forEach(k=>{ if(k && k[0]!=="_" && dataobj[k]){
-		ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
+	const infos=[],tmpkeys=[];
+	let k,ext='';
+	k='repeats';	if(dataobj.scope) infos.push(k);
+	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
+	k='scope';	if(dataobj[k]!==0) infos.push(k);
+	if(dataobj.scope && dataobj.damage.type){
+		const dmg=dataobj.damage;
+		k='dmgEle';	tmpkeys.push(k);	dataobj[k]=dmg.elementId;	infos.push(k);
+		k='dmgType';	tmpkeys.push(k);	dataobj[k]=dmg.type;	infos.push(k);
+		k='dmgCrit';	tmpkeys.push(k);	dataobj[k]=dmg.critical|0;	infos.push(k);
+		k='dmgFormula';	tmpkeys.push(k);	dataobj[k]=dmg.formula;	infos.push(k);
+	}
+	infos.forEach(k=>{ if(k && k[0]!=="_"){ if(!ie[k]) return;
+		if(k==='dmgEle'){ const eid=dmg.elementId;
+			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid])+']';
+		}else if(ie[k].constructor!==String) ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]]+']';
+		else ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
 	} });
+	if(ext){
+		let tmp=dataobj.description.match(/\n/g); tmp=tmp&&tmp.length;
+		while(++tmp<3) dataobj.description+='\n';
+		dataobj.description+=ext;
+	}
+	while(tmpkeys.length) delete dataobj[tmpkeys.pop()];
+	return;
+	k='repeats'; if(dataobj[k]!==1) infos.push(k);
+	['repeats','tpGain','scope',].forEach(k=>{ if(k && k[0]!=="_" && dataobj[k]){ if(!ie[k]) return;
+		if(ie[k].constructor!==String) ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]]+']';
+		else ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
+	} });
+	const dmg=dataobj.damage; if(dataobj.scope && dmg && dmg.type>0){
+		{ const eid=dmg.elementId;
+		ext+='['+ie.element_txt+(eid>0?$dataSystem.elements[eid]:ie.elementSpecial[-eid])+']';
+		}
+		ext+='['+ie.dmgType_txt+ie.dmgType[dmg.type]+']';
+		ext+='['+ie.crit_txt+ie.crit[dmg.critical|0]+']';
+		ext+='['+ie.formula.replace(ie._placeholder,dmg.formula)+']';
+	}
 	if(ext){
 		let tmp=dataobj.description.match(/\n/g); tmp=tmp&&tmp.length;
 		while(++tmp<3) dataobj.description+='\n';

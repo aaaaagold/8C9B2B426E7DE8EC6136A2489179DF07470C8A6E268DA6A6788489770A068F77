@@ -68,7 +68,10 @@ const clearInputs=()=>{
 	Input.update();
 	TouchInput.update();
 },clear=e=>{
-	e&&e.preventDefault();
+	if(e){
+		//e.stopImmediatePropagation(); // though it's better, e is changed when calling 'click()' from keydown
+		e.preventDefault();
+	}
 	clearInputs();
 	Input.skip(skip);
 };
