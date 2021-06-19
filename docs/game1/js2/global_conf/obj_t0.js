@@ -528,6 +528,7 @@ $aaaa$.prototype.cursorShown=function(){
 	const cr=this._cursorRect;
 	return cr && cr.width && cr.height;
 };
+$aaaa$.prototype.subWindows=none;
 $rrrr$=$dddd$=$aaaa$=undef;
 // - Texture
 $aaaa$=PIXI.Texture;
@@ -2290,9 +2291,9 @@ $dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
 };
 $dddd$.tbl=new Set([9, 10]);
 $dddd$=$aaaa$.prototype.isForUser=function f(){
-	return this.checkItemScope(f.tbl);
+	return this.item().scope===f.tbl;
 };
-$dddd$.tbl=new Set([11]);
+$dddd$.tbl=11;
 $dddd$=$aaaa$.prototype.isForOne=function f(){
 	return this.checkItemScope(f.tbl);
 };

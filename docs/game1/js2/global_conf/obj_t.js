@@ -11478,6 +11478,12 @@ $d$.forEach=function(info,index){
 		this.drawLoopIcon(index);
 	}
 };
+$d$=$pppp$.clearLoopIcon=function f(){
+	const ws=this.subWindows();
+	if(ws) ws.forEach(f.forEach);
+	f.forEach(this);
+};
+$d$.forEach=w=>w._iconloop && (w._iconloop.length=0);
 $d$=$pppp$.drawLoopIcon=function f(idx){
 	if(this._iconloop && this._iconloop.length){
 		if(idx===undefined) this._iconloop.forEach(f.forEach,this);
@@ -11713,7 +11719,7 @@ $pppp$.processNewLine=function(textState) {
 	textState.height = this.calcTextHeight(textState, false);
 };
 $pppp$.processNewPage=function(textState){
-	if(this._iconloop) this._iconloop.length=0;
+	this.clearLoopIcon();
 	++textState.index;
 };
 $d$=$pppp$.obtainEscapeCode=function f(textState){
@@ -12261,7 +12267,7 @@ $d$=$pppp$[$k$]=function f(){
 }; $d$.ori=$r$;
 $r$=$pppp$.newPage;
 $d$=$pppp$.newPage=function f(txtstat){
-	if(this._iconloop) this._iconloop.length=0;
+	this.clearLoopIcon();
 	f.ori.call(this,txtstat);
 }; $d$.ori=$r$;
 $r$=$pppp$.update;
