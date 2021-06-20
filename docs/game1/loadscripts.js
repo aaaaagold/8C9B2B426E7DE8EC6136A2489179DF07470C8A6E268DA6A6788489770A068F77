@@ -58,10 +58,11 @@ let waits=[],waits_i=0,kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,istxt,met
 	xhr.open(method||"GET",url);
 	xhr.send(data);
 	return;
-},vars=[
+},delList=[
 "SceneManager",
 "DataManager",
-
+"rpgskills",
+],vars=delList.concat([
 "$gameTemp",
 "$gameSystem",
 "$gameScreen",
@@ -77,8 +78,8 @@ let waits=[],waits_i=0,kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,istxt,met
 "$gameMap",
 
 "$gamePlayer",
-];
-objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice();
+]);
+objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice(); objs._consts=[]; objs._consts_strArg=[]; objs.addVar=(k,v)=>{ objs._consts_strArg.push(k); objs._consts.push(v); };
 objs.testing=0; objs.isDev=isDev;
 const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=>{
 	const wait={}; wait.src=src; wait.cnt=idxcnt; wait.cb=wcb;
@@ -126,7 +127,7 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		
 		// refresh vars
 		if(!objs.addScriptViaSrc){
-			let rv=()=>objs._vars_objArg=objs._vars.map(x=>window[x]);
+			let rv=()=>objs._vars_objArg=objs._vars.map(x=>w[x]);
 			a=dm.createGameObjects; z=dm.createGameObjects=function f(){ f.ori.call(this); rv(); }; z.ori=a;
 			a=dm.extractSaveContents; z=dm.extractSaveContents=function f(contents){ f.ori.call(this,contents); rv(); }; z.ori=a;
 		}else{
@@ -175,8 +176,8 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		const O_O=()=>{ z=undefined;
 			if(lstr.getItem('forceCanvas')===null && Utils.isMobileDevice()) lstr.setItem("forceCanvas",1);
 			Graphics._forceCanvas=lstr.getItem("forceCanvas")==='1';
-			if(!SceneManager._scene){ if(objs.isDev){ window._SceneManager=window.SceneManager; window._DataManager=window.DataManager; }
-				SceneManager.run(Scene_Boot); if(!isDev_) window.DataManager = window.SceneManager = undefined;
+			if(!SceneManager._scene){ if(objs.isDev){ delList.forEach(x=>w["_"+x]=w[x]); }
+				SceneManager.run(Scene_Boot); if(!isDev_) delList.forEach(x=>w[x]=undefined);
 			}
 		};
 		a.o=()=>{ if(--z===0) O_O(); };
@@ -239,8 +240,7 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 			scr.src=src;
 			ac(d.body,scr);
 		}else{
-			if(window.SceneManager) objs.SceneManager=SceneManager;
-			if(window.DataManager) objs.DataManager=DataManager;
+			delList.forEach(x=>w[x]&&(objs[x]=eval(x)));
 			if(waits[idx]) onloadProc.addScriptViaWait(waits[idx]);
 		}
 	}
@@ -274,7 +274,7 @@ onloadProc.addRefreshVars=(txt,src)=>{
 	rtv+="if(!objs._refreshVars) objs._refreshVars={};\n";
 	rtv+="objs._refreshVars['"+encodeURI(src)+"']=()=>{"+us;
 	for(let x=0;x!==vars.length;++x) rtv+=vars[x]+"=objs."+vars[x]+"; if(window."+vars[x]+"!==undefined) window."+vars[x]+"="+vars[x]+";\n";
-	//rtv+="objs._vars_objArg=objs._vars.map(x=>window[x]||objs[x]);\n";
+	//rtv+="objs._vars_objArg=objs._vars.map(x=>w[x]||objs[x]);\n";
 	rtv+="objs._vars_objArg=objs._vars.map(x=>objs[x]);\n";
 	rtv+="};\n";
 	rtv+="})";
@@ -282,12 +282,12 @@ onloadProc.addRefreshVars=(txt,src)=>{
 };
 onloadProc.putScript_isBody=(scr,oriSrc,plain)=>{
 	let rndkey=encodeURI(oriSrc)+'/'+Math.random()+'/'+Date.now();
-	window[rndkey]=objs;
+	w[rndkey]=objs;
 	let txt=onloadProc.addRefreshVars(plain,oriSrc);
 	txt+="(window[\""+rndkey+"\"]);";
 	onloadProc.putScript(scr,txt);
-	if(isDev_) window[oriSrc]=scr;
-	if(!objs.isDev) delete window[rndkey];
+	if(isDev_) w[oriSrc]=scr;
+	if(!objs.isDev) delete w[rndkey];
 };
 onloadProc.isBody=src=>true
 	&& src.slice(0,8)!=="js/libs/"
