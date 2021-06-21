@@ -9114,6 +9114,7 @@ $d$=$pppp$.list=function f(){
 					cmt+=olist[c].parameters[0];
 				}else break;
 			}
+			const indent=curr.indent;
 			let tmp={note:cmt};
 			DataManager.extractMetadata(tmp);
 			tmp=tmp.meta;
@@ -9127,17 +9128,17 @@ $d$=$pppp$.list=function f(){
 					if(!isT_y) scrolly*=$gameMap.tileHeight ();
 					// 355 script ; 112 loop ; 111 if script ; 113 break ; 0 empty ; end ; 355 script : scrollToT_gradually ; 230 wait 1 ; 0 empty ; 413 repeat above ; set switch 
 					let emptyArr=[];
-					rtv.push({code:355,indent:2,parameters:["this._wait_scrollTo_done=false;"]}); // script
-					rtv.push({code:112,indent:2,parameters:emptyArr}); // loop
-					rtv.push({code:111,indent:3,parameters:[12,"this._wait_scrollTo_done"]}); // if-script
-					rtv.push({code:113,indent:4,parameters:emptyArr}); // break
-					rtv.push({code:0,indent:4,parameters:emptyArr}); // empty
-					rtv.push({code:412,indent:3,parameters:emptyArr}); // end-if
-					rtv.push({code:355,indent:3,parameters:["this._wait_scrollTo_done=$gameMap.scrollToT_gradually("+scrollx+","+scrolly+")"]}); // script
-					rtv.push({code:230,indent:3,parameters:[1]}); // wait
-					rtv.push({code:0,indent:3,parameters:emptyArr}); // empty
-					rtv.push({code:413,indent:2,parameters:emptyArr}); // repeat above
-					rtv.push({code:355,indent:2,parameters:["delete this._wait_scrollTo_done;"]}); // script
+					rtv.push({code:355,indent:indent,parameters:["this._wait_scrollTo_done=false;"]}); // script
+					rtv.push({code:112,indent:indent,parameters:emptyArr}); // loop
+					rtv.push({code:111,indent:indent+1,parameters:[12,"this._wait_scrollTo_done"]}); // if-script
+					rtv.push({code:113,indent:indent+2,parameters:emptyArr}); // break
+					//rtv.push({code:0,indent:indent+2,parameters:emptyArr}); // empty
+					rtv.push({code:412,indent:indent+1,parameters:emptyArr}); // end-if
+					rtv.push({code:355,indent:indent+1,parameters:["this._wait_scrollTo_done=$gameMap.scrollToT_gradually("+scrollx+","+scrolly+")"]}); // script
+					rtv.push({code:230,indent:indent+1,parameters:[1]}); // wait
+					//rtv.push({code:0,indent:indent+1,parameters:emptyArr}); // empty
+					rtv.push({code:413,indent:indent,parameters:emptyArr}); // repeat above
+					rtv.push({code:355,indent:indent,parameters:["delete this._wait_scrollTo_done;"]}); // script
 				} }break;
 			} }
 			if(tmp.cond!==undefined){
@@ -13797,8 +13798,6 @@ $pppp$.currentEquippedItem = function(actor, etypeId){
 $pppp$=$aaaa$=undef;
 
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-
-
 
 $rrrr$=$r$=$dddd$=$d$=$kkkk$=$k$=$pppp$=$aaaa$=$tttt$=$t$=undef; // t
 // --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 

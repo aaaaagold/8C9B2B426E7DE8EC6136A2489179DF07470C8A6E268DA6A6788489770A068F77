@@ -98,3 +98,8 @@ objs.addExtModuleViaUrl=(url,forced,callback_onloaded)=>{
 	else d.body.ac(scr.sa('src',url));
 };
 objs.addExtModuleViaTxt=objs._doFlow;
+
+// --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+
+$rrrr$=$r$=$dddd$=$d$=$kkkk$=$k$=$pppp$=$aaaa$=$tttt$=$t$=undef; // t
+// --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
