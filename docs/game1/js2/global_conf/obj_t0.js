@@ -1298,7 +1298,7 @@ $dddd$=$aaaa$._updateAllElements=function f(){
 	// custom divs
 	let target=this._canvas;
 	if(target){
-		let style=target.style,attrs=["width","height"];
+		let style=target.style,attrs=["left","top","width","height"];
 		let arr=_global_conf["newDiv"].divs;
 		for(let x=0;x!==arr.length;++x){
 			let s=arr[x].style;
@@ -1320,23 +1320,22 @@ $aaaa$._updateRealScale = function() {
 		this._realScale = this._scale;
 	}
 };
-$aaaa$._centerElement=function(element){
+$aaaa$._centerElement=function(ele){
 	//debug.log('Graphics._centerElement');
-	let maxW=this._width*this._realScale; // sth like "111.11px"
-	let maxH=this._height*this._realScale;
-	let w=element.width*this._realScale;
-	let h=element.height*this._realScale;
-	let w2=(maxW-element.width)/2;
-	let h2=(maxH-element.height)/2;
-	element.style.position = 'absolute';
-	element.style.margin = 'auto';
-	element.style.top = h2+'px';
-	element.style.left = w2+'px';
-	element.style.right = w2+'px';
-	element.style.bottom = h2+'px';
-	element.style.width = w+'px';
-	element.style.height = h+'px';
-	return element;
+	const p=d.body===ele?undefined:ele.parentNode;
+	const maxW=this._width*this._realScale , maxH=this._height*this._realScale ; // sth like "111.11px"
+	const w=ele.width*this._realScale , h=ele.height*this._realScale ;
+	const w2=(maxW-(p?p.clientWidth:w))/2 , h2=(maxH-(p?p.cilentHeight:h))/2 ;
+	const css=ele.style;
+	css.position = 'absolute';
+	css.margin = 'auto';
+	css.top = h2+'px';
+	css.left = w2+'px';
+	css.right = w2+'px';
+	css.bottom = h2+'px';
+	css.width = w+'px';
+	css.height = h+'px';
+	return ele;
 };
 $aaaa$._makeErrorHtml=(name, message)=>d.ce("div").sa("style","background-color:rgba(0,0,0,0.5);").ac(
 	d.ce("font").sa("color","yellow").ac(
@@ -2408,7 +2407,11 @@ $aaaa$.prototype._updateContents=none;
 $rrrr$=$dddd$=$aaaa$=undef;
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
-
+if(objs.isDev){
+objs.debug=()=>{
+	objs._doFlow.call(null,"debugger");
+};
+}
 
 $rrrr$=$dddd$=$aaaa$=undef;
 // --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
