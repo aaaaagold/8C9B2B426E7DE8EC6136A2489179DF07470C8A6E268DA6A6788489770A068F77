@@ -5277,8 +5277,7 @@ $pppp$.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
 $d$=$pppp$.canUse=function f(dataItem){
-	if(!dataItem) return false;
-	const meta=dataItem.meta;
+	const meta=dataItem && dataItem.meta; if(!meta) return false;
 	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(meta.cond));
 	if(cond && !cond()) return false;
 	}
@@ -9744,11 +9743,13 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
 };
 } // Game_Action.prototype.testItemEffect.tbl
 $pppp$.getSelfItemObj=function(obj){
-	const l=(obj||this.item()).meta.self;
-	if(l){ const s=l.split(','); switch(s[0]){
-	case 'i': return $dataItems  [s[1]];
-	case 's': return $dataSkills [s[1]];
-	} return; }
+	const item=arguments.length?obj:this.item();
+	if(item){ const l=item.meta.self;
+		if(l){ const s=l.split(','); switch(s[0]){
+		case 'i': return $dataItems  [s[1]];
+		case 's': return $dataSkills [s[1]];
+		} return; }
+	}
 	return false;
 };
 $pppp$.canForSelf=obj=>!!obj;
