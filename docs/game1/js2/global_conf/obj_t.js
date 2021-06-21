@@ -1852,6 +1852,9 @@ $pppp$=$aaaa$=undef;
 // Scene_Item
 $aaaa$=Scene_Item;
 $pppp$=$aaaa$.prototype;
+$pppp$.createHelpWindow=function(){
+	this.addWindow( this._helpWindow = new Window_Help(3) );
+};
 $pppp$.onCategoryOk=function(){
 	this._itemWindow.selectLast();
 	this._itemWindow.activate();
@@ -12780,12 +12783,54 @@ $pppp$.maxCols=function(){
 $aaaa$=Window_Help;
 $pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true);
-$pppp$.refresh_do=function(){
-	if(this._lastText===this._text) return;
+$k$='initialize';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(ln){
+	f.ori.call(this,ln);
+	this._forceRefresh=false;
+	this.resetStrtLoc();
+	this._lastText='';
+}; $d$.ori=$r$;
+$pppp$.resetStrtLoc=function(){
+	this._txtx=0;
+	this._strtx=this.textPadding();
+	this._txtfc2=this._txtfc=Graphics.frameCount;
+};
+$r$=$pppp$.update;
+$d$=$pppp$.update=function f(){
+	f.ori.call(this);
+	{ const wait=120,pad=this.textPadding(),endx=this.contentsWidth()-pad,fc=Graphics.frameCount;
+		const dfc=this._txtfc+wait-fc;
+		if(dfc<0 && this._txtx-this._strtx>endx){
+			if(this._txtx>endx){
+				this._txtfc2=fc;
+				this._strtx=pad+dfc;
+				this._forceRefresh=true;
+				this.refresh();
+			}else{
+				if(this._txtfc2+wait-fc<0){
+					this._txtfc=fc;
+					this._strtx=pad;
+					this._forceRefresh=true;
+					this.refresh();
+				}
+			}
+		}
+	}
+}; $d$.ori=$r$;
+$pppp$.redrawtxt=function(){
 	if(this.contents){
 		this.createContents();
-		this.drawTextEx(this._lastText=this._text, this.textPadding(), 0);
+		const res={};
+		this.drawTextEx(this._lastText=this._text,this._strtx,0,undefined,undefined,res);
+		if(res.stat) this._txtx=res.stat.maxX||0;
 	}
+};
+$pppp$.refresh_do=function(){
+	if(!this._forceRefresh && this._lastText===this._text) return;
+	if(this._lastText!==this._text) this.resetStrtLoc();
+	this._forceRefresh=false;
+	this.redrawtxt();
 };
 $pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
