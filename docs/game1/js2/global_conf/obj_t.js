@@ -1695,11 +1695,13 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 $d$.tmp=new Set();
 $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
 	let realTarget=t;
-	if(Math.random()<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
-	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(realTarget=s,t);
+	{ const rnd=Math.random();
+	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
+	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
+	}
 	s.setLastTarget(t);
-	if(q&&s!==t){ // already add actRes when subject is in the one of targets
+	if(q&&s!==realTarget){ // already add actRes when subject is in the one of targets
 		const res=s._result;
 		if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0) q.push(res.copy());
 	}
@@ -1712,8 +1714,16 @@ $aaaa$.invokeNormalAction=function(subject, target){
 	this._logWindow.displayActionResults(subject, realTarget, this._action);
 	return realTarget;
 };
-$aaaa$.invokeCounterAttack = function(subject, target){
-	const action = new Game_Action(target);
+$r$=$aaaa$.invokeReflection=function(subject, target) {
+	this._action._reflectionTarget = target;
+	this._logWindow.displayReflection(target);
+	this._action.apply(subject);
+	this._logWindow.displayActionResults(target, subject, this._action);
+};
+$aaaa$.invokeMagicReflection=$r$;
+$aaaa$.invokePhysicReflection=$r$;
+$aaaa$.invokeCounterAttack=function(subject, target){
+	const action=new Game_Action(target);
 	action.setAttack();
 	action.apply(subject);
 	this._logWindow.displayCounter(target);
@@ -1750,7 +1760,10 @@ $d$=$aaaa$.endBattle=function f(res){
 		// btlr name don't accept escape methods
 		txts.push(arr[x].name().replace(f.re,"\\\\") + $dataCustom.leaveTheParty);
 	} }
-	while(txts.length) $gameMessage.add(txts.pop());
+	if(txts.length){
+		while(txts.length) $gameMessage.add(txts.pop(),1);
+		$gameMessage.add("\\MINOR\\-"+$dataCustom.someLeaveTheParty);
+	}
 	// too early to delete cache, however, need to remove them from party
 	delList.forEach(f.forEach,this);
 }; $d$.ori=$r$;
@@ -5277,8 +5290,7 @@ $pppp$.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
 $d$=$pppp$.canUse=function f(dataItem){
-	if(!dataItem) return false;
-	const meta=dataItem.meta;
+	const meta=dataItem && dataItem.meta; if(!meta) return false;
 	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(meta.cond));
 	if(cond && !cond()) return false;
 	}
@@ -5357,8 +5369,8 @@ $pppp$.reserveActResQ=function(){
 	return q;
 };
 $pppp$.pushActResQ=function(actResRef){
-	let q=this.reserveActResQ();
-	if(q) q.push(actResRef.copy());
+	const q=this.reserveActResQ();
+	if(q){ q.push(actResRef.copy()); }
 };
 $pppp$.popActResQ=function(){
 	const q=this.reserveActResQ();
@@ -9743,12 +9755,20 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
+$pppp$.itemArf=function(target){
+	return target.reflectARate();
+};
+$pppp$.itemPrf=function(target){
+	return (this.isPhysical()) ? target.reflectPRate() : 0 ;
+};
 $pppp$.getSelfItemObj=function(obj){
-	const l=(obj||this.item()).meta.self;
-	if(l){ const s=l.split(','); switch(s[0]){
-	case 'i': return $dataItems  [s[1]];
-	case 's': return $dataSkills [s[1]];
-	} return; }
+	const item=arguments.length?obj:this.item();
+	if(item){ const l=item.meta.self;
+		if(l){ const s=l.split(','); switch(s[0]){
+		case 'i': return $dataItems  [s[1]];
+		case 's': return $dataSkills [s[1]];
+		} return; }
+	}
 	return false;
 };
 $pppp$.canForSelf=obj=>!!obj;
@@ -13183,12 +13203,16 @@ $pppp$=$aaaa$=undef;
 // - Window_EquipSlot
 $aaaa$=Window_EquipSlot;
 $pppp$=$aaaa$.prototype;
-{ $tttt$=Window_ItemCategory.prototype;
-$pppp$.processTouch                = $tttt$.processTouch;
-$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+{ $t$=Window_ItemCategory.prototype;
+$k$='processTouch';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame_ws';
+$pppp$[$k$]=$t$[$k$];
 }
 $pppp$.onTouch=function(triggered){
+	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
 	const args=[];
 	if(this._itemWindow) args.push(this._itemWindow);
 	if(this._commandWindow) args.push(this._commandWindow);
@@ -13348,12 +13372,16 @@ $pppp$=$aaaa$=undef;
 // - Window_EquipItem
 $aaaa$=Window_EquipItem;
 $pppp$=$aaaa$.prototype;
-{ $tttt$=Window_ItemCategory.prototype;
-$pppp$.processTouch                = $tttt$.processTouch;
-$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+{ $t$=Window_ItemCategory.prototype;
+$k$='processTouch';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame_ws';
+$pppp$[$k$]=$t$[$k$];
 }
 $pppp$.onTouch=function(triggered){
+	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
 	const args=[];
 	if(this._slotWindow) args.push(this._slotWindow);
 	if(this._commandWindow) args.push(this._commandWindow);

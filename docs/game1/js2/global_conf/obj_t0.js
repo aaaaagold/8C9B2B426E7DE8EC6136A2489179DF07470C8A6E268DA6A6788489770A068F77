@@ -424,7 +424,7 @@ $aaaa$.prototype.stpGaugeColor2=function(){
 	return '#c040f0';
 };
 $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
-	if(triggered && targetWindow.upArrowVisible){
+	if(triggered && (targetWindow.upArrowVisible||targetWindow.downArrowVisible)){
 		const ua=targetWindow.  _upArrowSprite;
 		const da=targetWindow._downArrowSprite;
 		const uah=ua.height,uaw=ua.width;
@@ -434,8 +434,8 @@ $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 		const uar=new Rectangle(uap.x-(uaw>>1),uap.y-uah,uaw,uah<<1);
 		const dar=new Rectangle(dap.x-(daw>>1),dap.y-dah,daw,dah<<1);
 		const x=TouchInput.x,y=TouchInput.y;
-		if(uar.contains(x,y)){ this.isHandled('pageup')&&this.processPageup(); return true; }
-		else if(dar.contains(x,y)){ this.isHandled('pagedown')&&this.processPagedown(); return true; }
+		if(uar.contains(x,y)){ this.processPageup(); return true; }
+		else if(dar.contains(x,y)){ this.processPagedown(); return true; }
 	}
 };
 $aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){

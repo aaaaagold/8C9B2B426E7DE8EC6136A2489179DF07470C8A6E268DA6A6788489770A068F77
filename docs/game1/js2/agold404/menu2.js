@@ -8,16 +8,16 @@ function Scene_CustomMenu2(){
 }
 $aaaa$=Scene_CustomMenu2;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.updateActor=none;
-$aaaa$.prototype.createOptionsWindow=none;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create = function f() {
+$pppp$=$aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.updateActor=none;
+$pppp$.createOptionsWindow=none;
+$r$=$pppp$.create;
+$d$=$pppp$.create = function f() {
 	f.ori.call(this);
 	this.createOptionsWindow();
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.logSel=function(w){
+}; $d$.ori=$r$;
+$pppp$.logSel=function(w){
 	let t=$gamePlayer;
 	if(!t) t=ConfigManager;
 	if(!t.menuHistory) t.menuHistory={};
@@ -30,10 +30,10 @@ $aaaa$.prototype.logSel=function(w){
 		mh[key]=w._lastSelItem;
 	}
 };
-$dddd$=[-1,0]; $dddd$.length=1000000; for(let x=$dddd$.length;--x;) $dddd$[x]=x.toString().length;
-$aaaa$.prototype.log10Floor=$dddd$; 
-$aaaa$.prototype.toLocalISO=function(tTick){ return new Date(tTick).toLocalISO().replace(/[ ]+$/,''); };
-$aaaa$.prototype.mapStep=function(){
+$d$=[-1,0]; $d$.length=1000000; for(let x=$d$.length;--x;) $d$[x]=x.toString().length;
+$pppp$.log10Floor=$d$; 
+$pppp$.toLocalISO=function(tTick){ return new Date(tTick).toLocalISO().replace(/[ ]+$/,''); };
+$pppp$.mapStep=function(){
 	if(1) return {
 		x:"0:"+($gameMap.w-1)+":1"+($gameMap.isLoopHorizontal()?":rot":""),
 		y:"0:"+($gameMap.h-1)+":1"+($gameMap.isLoopVertical  ()?":rot":"")
@@ -43,7 +43,7 @@ $aaaa$.prototype.mapStep=function(){
 		y:"0:"+($gameMap.h-1)+":1"
 	};
 };
-$dddd$=$aaaa$.prototype.showTileExample=function f(){
+$d$=$pppp$.showTileExample=function f(){
 	let ctx=f.showDOM(),tileset=$dataTilesets[$gameMap._tilesetId];
 	if(!tileset) return;
 	let names=tileset.tilesetNames;
@@ -127,7 +127,7 @@ $dddd$=$aaaa$.prototype.showTileExample=function f(){
 		});
 	}
 };
-$dddd$.showDOM=()=>{
+$d$.showDOM=()=>{
 	let blk=d.ge("tileblk"); if(!blk){
 		let closebtn=d.ce('div').at("close");
 		closebtn.onclick=function(){this.parentNode.style.display="none";};
@@ -138,8 +138,8 @@ $dddd$.showDOM=()=>{
 	let canvas=blk.childNodes[1]; canvas.width=$gameMap.tileWidth(); canvas.height=$gameMap.tileHeight();
 	return canvas.getContext('2d');
 };
-$aaaa$.prototype.deleteOn0=function(obj,key){if(obj[key]===0) delete obj[key];};
-$aaaa$.prototype.loadFileById=function(id,noSound){
+$pppp$.deleteOn0=function(obj,key){if(obj[key]===0) delete obj[key];};
+$pppp$.loadFileById=function(id,noSound){
 	if(DataManager.loadGame(id)){
 		if(!noSound) SoundManager.playLoad();
 		SceneManager._scene.fadeOutAll();
@@ -149,7 +149,7 @@ $aaaa$.prototype.loadFileById=function(id,noSound){
 	}else if(!noSound) SoundManager.playBuzzer();
 };
 let Scene_CustomMenu=$aaaa$;
-$dddd$=$rrrr$=$aaaa$=undef;
+$d$=$r$=$aaaa$=undef;
 
 // - Scene_Black
 
@@ -158,25 +158,25 @@ function Scene_Black(){
 }
 $aaaa$=Scene_Black;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.create;
+$d$=$pppp$.create=function f(){
 	f.ori.call(this);
 	this.setBackgroundOpacity(0);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){
+}; $d$.ori=$r$;
+$r$=$pppp$.start;
+$d$=$pppp$.start=function f(){
 	f.ori.call(this);
 	let tmp=window['/tmp/'],ls=tmp._laterScenes;
 	if(ls && ls.length){
 		let sc=ls.pop();  ls.pop();
 		SceneManager.goto(sc);
 	}
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 if(!window['/tmp/']) window['/tmp/']={};
 if(!window['/tmp/']._laterScenes) window['/tmp/']._laterScenes=[];
-$dddd$=$rrrr$=$aaaa$=undef;
+$d$=$r$=$aaaa$=undef;
 
 // - Scene_OnlineLoadFail
 
@@ -185,10 +185,10 @@ function Scene_OnlineLoadFail(){
 }
 $aaaa$=Scene_OnlineLoadFail;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_Black.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_Black.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.create;
+$d$=$pppp$.create=function f(){
 	f.ori.call(this);
 	this.addChild(new Window_CustomMenu_main(0,0,[
 		["讀取失敗",";;func;call",1,()=>{
@@ -203,8 +203,8 @@ $dddd$=$aaaa$.prototype.create=function f(){
 			else SceneManager.goto(Scene_Map);
 		}],
 	]));
-}; $dddd$.ori=$rrrr$;
-$dddd$=$rrrr$=$aaaa$=undef;
+}; $d$.ori=$r$;
+$d$=$r$=$aaaa$=undef;
 
 // - Scene_DebugMenu2
 
@@ -213,10 +213,10 @@ function Scene_DebugMenu2(){
 }
 $aaaa$=Scene_DebugMenu2;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
 
-$dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
+$d$=$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_DebugMenu2.prototype.createOptionsWindow');
 	let lg10f=this.log10Floor;
 	let loct=this.toLocalISO;
@@ -541,7 +541,7 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
 };
-$dddd$.debugPack=notDev=>{
+$d$.debugPack=notDev=>{
 	let dev=!notDev;
 	if(dev){
 		$gameTemp.gainMsgConfigs_mute();
@@ -582,7 +582,7 @@ $dddd$.debugPack=notDev=>{
 	let ss=[12,43,44,];
 	for(let x=0,arr=ss,L=$gameParty.leader();x!==arr.length;++x) L.learnSkill(arr[x]);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_DebugMenu2
+$d$=$r$=$aaaa$=undef; // END Scene_DebugMenu2
 
 // - Scene_LoadLocal
 
@@ -591,9 +591,9 @@ function Scene_LoadLocal(){
 }
 $aaaa$=Scene_LoadLocal;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.loadLocalFile=(_window)=>{
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.loadLocalFile=(_window)=>{
 	let w=_window,self=this;
 	if(!this.htmlele){
 		let htmlele=d.ce("input").sa("type","file");
@@ -664,7 +664,7 @@ $aaaa$.prototype.loadLocalFile=(_window)=>{
 	}
 	this.htmlele.click();
 };
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_LoadLocal.prototype.createOptionsWindow');
 	let self=this;
 	let list=[
@@ -683,7 +683,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	});
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_LoadLocal
+$d$=$r$=$aaaa$=undef; // END Scene_LoadLocal
 
 // - Scene_LoadOnline
 
@@ -692,9 +692,9 @@ function Scene_LoadOnline(){
 }
 $aaaa$=Scene_LoadOnline;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_LoadOnline.prototype.createOptionsWindow');
 	this._window = new Window_CustomMenu_main(0,0,[
 		["輸入檔案id讀取紀錄"+(window.gasPropagate===undefined?" (未完成載入google apps script)":""),"window['/tmp/'];fileId;text;輸入檔案id",window.gasPropagate!==undefined,{
@@ -709,7 +709,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_LoadOnline
+$d$=$r$=$aaaa$=undef; // END Scene_LoadOnline
 
 // - Scene_LotteryList
 function Scene_LotteryList(){
@@ -717,9 +717,9 @@ function Scene_LotteryList(){
 }
 $aaaa$=Scene_LotteryList;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_LotteryList.prototype.createOptionsWindow');
 	let list=[],lList=rpgevts.item&&rpgevts.item.lotteryList;
 	let idx={
@@ -748,7 +748,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.statusWidth=()=>{return 240;};
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_LotteryList
+$d$=$r$=$aaaa$=undef; // END Scene_LotteryList
 
 // - Scene_Apps
 
@@ -757,9 +757,9 @@ function Scene_Apps(){
 }
 $aaaa$=Scene_Apps;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_Apps.prototype.createOptionsWindow');
 	let list=[];
 	
@@ -781,7 +781,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.statusWidth=()=>{return 240;};
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Apps
+$d$=$r$=$aaaa$=undef; // END Scene_Apps
 
 // - Scene_NoteApp
 
@@ -790,9 +790,9 @@ function Scene_NoteApp(){
 }
 $aaaa$=Scene_NoteApp;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$dddd$=$aaaa$.prototype.makeLeaveBtn=function f(txt){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$d$=$pppp$.makeLeaveBtn=function f(txt){
 	const c=Window_Selectable;
 	let rtv=new c(0,0,Graphics.width , c.prototype.fittingHeight(1) );
 	rtv._scene=this;
@@ -805,7 +805,7 @@ $dddd$=$aaaa$.prototype.makeLeaveBtn=function f(txt){
 	//rtv.main=this._window;
 	return rtv;
 };
-$dddd$.onTouch=function(triggered){
+$d$.onTouch=function(triggered){
 	let lastIndex = this.index();
 	let x = this.canvasToLocalX(TouchInput.x);
 	let y = this.canvasToLocalY(TouchInput.y);
@@ -818,8 +818,8 @@ $dddd$.onTouch=function(triggered){
 		}else debug.warn("no ref");
 	}
 };
-$dddd$.one=()=>1;
-$dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
+$d$.one=()=>1;
+$d$=$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_NoteApp.prototype.createOptionsWindow');
 	const self=this;
 	let list=[];
@@ -938,7 +938,7 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 	//this._window.statusWidth=()=>{return 512;};
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_NoteApp
+$d$=$r$=$aaaa$=undef; // END Scene_NoteApp
 
 // - Scene_Quest
 
@@ -947,9 +947,9 @@ function Scene_Quest(){
 }
 $aaaa$=Scene_Quest;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_Quest.prototype.createOptionsWindow');
 	let wt=window['/tmp/'];
 	let rnkMin=wt.rnkMin,rnkMax=wt.rnkMax,rnkNan=wt.rnkNan;
@@ -960,7 +960,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.statusWidth=()=>{return 240;};
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Quest
+$d$=$r$=$aaaa$=undef; // END Scene_Quest
 
 // - Scene_Achievement
 
@@ -969,9 +969,9 @@ function Scene_Achievement(){
 }
 $aaaa$=Scene_Achievement;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function(){
 	let list=[];
 	if($gameParty._achievement){ list.push(["已獲得的成就：",";;func",0]); for(let nl2="\n\n",nl4=nl2+nl2,x=0,arr=$gameParty._achievement;x!==arr.length;++x){
 		if(!arr[x]) continue;
@@ -991,7 +991,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 	this._list.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._list);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Achievement
+$d$=$r$=$aaaa$=undef; // END Scene_Achievement
 
 // - Scene_LocLog
 
@@ -1000,9 +1000,9 @@ function Scene_LocLog(){
 }
 $aaaa$=Scene_LocLog;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function(){
 	let list=[
 		["記錄地點",";save;func;call",1,()=>{
 			$gameParty.logLoc_save(); // create $gameParty._locLog
@@ -1056,7 +1056,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 	this.addWindow(this._list);
 	this.logSel(this._list);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_LocLog
+$d$=$r$=$aaaa$=undef; // END Scene_LocLog
 
 // - Scene_ChangeGame
 
@@ -1065,9 +1065,9 @@ function Scene_ChangeGame(){
 }
 $aaaa$=Scene_ChangeGame;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function(){
 	let list=[
 		["目前可將遊戲變更為下列遊戲",";;func",0],
 	];
@@ -1108,7 +1108,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 	this.addWindow(this._list);
 	this.logSel(this._list);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_ChangeGame
+$d$=$r$=$aaaa$=undef; // END Scene_ChangeGame
 
 
 // - Scene_OnlineSaves
@@ -1118,9 +1118,9 @@ function Scene_OnlineSaves(){
 }
 $aaaa$=Scene_OnlineSaves;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function(){
 	debug.log('Scene_OnlineSaves.prototype.createOptionsWindow');
 	let toClipBoard=s=>{
 		let txt;
@@ -1147,7 +1147,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_OnlineSaves
+$d$=$r$=$aaaa$=undef; // END Scene_OnlineSaves
 
 // - Scene_UserSwitch
 
@@ -1156,9 +1156,9 @@ function Scene_UserSwitch(){
 }
 $aaaa$=Scene_UserSwitch;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$d$=$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_UserSwitch.prototype.createOptionsWindow');
 	// 目前不是使用WebGL
 	if(!f.list){ f.p_flw=[$dataCustom.flwingMsg,"_global_conf;flwingMsg"]; f.p=[
@@ -1216,8 +1216,8 @@ $dddd$=$aaaa$.prototype.createOptionsWindow=function f(){
 	});
 	this.addWindow(this._window);
 };
-$dddd$.mainKargs={statusWidth:()=>360};
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_UserSwitch
+$d$.mainKargs={statusWidth:()=>360};
+$d$=$r$=$aaaa$=undef; // END Scene_UserSwitch
 
 // - Scene_SaveLocal
 
@@ -1226,16 +1226,16 @@ function Scene_SaveLocal(){
 }
 $aaaa$=Scene_SaveLocal;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.downloadSave=(compressedBase64Data)=>{
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.downloadSave=(compressedBase64Data)=>{
 	let url="data:application/octet-stream;base64,"+compressedBase64Data,fname="save-"+Date.now();
 	let htmlele=d.ce("a").sa("target","_blank").sa("href",url);
 	htmlele.download=fname;
 	htmlele.click();
 	$gameMessage.popup("下載中...",1);
 };
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_SaveLocal.prototype.createOptionsWindow');
 	let lg10f=this.log10Floor;
 	let loct=this.toLocalISO;
@@ -1286,7 +1286,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_SaveLocal
+$d$=$r$=$aaaa$=undef; // END Scene_SaveLocal
 
 // - Scene_SaveOnline
 
@@ -1295,9 +1295,9 @@ function Scene_SaveOnline(){
 }
 $aaaa$=Scene_SaveOnline;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_SaveOnline.prototype.createOptionsWindow');
 	if(!f.toClipBoard) f.toClipBoard=s=>{
 		let txt;
@@ -1351,7 +1351,7 @@ $aaaa$.prototype.createOptionsWindow=function f(){
 	this._window.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._window);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_SaveOnline
+$d$=$r$=$aaaa$=undef; // END Scene_SaveOnline
 
 // - Scene_Feedback
 function Scene_Feedback(){
@@ -1359,9 +1359,9 @@ function Scene_Feedback(){
 }
 $aaaa$=Scene_Feedback;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.createOptionsWindow=function(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.createOptionsWindow=function(){
 	const link_googleForm="https://docs.google.com/forms/d/e/1FAIpQLSdpwBjZEGg7K0fqFpMWjh3yObUpjQluFmZ2YS-OLu0TvoZkaQ/viewform";
 	let list=[
 		[$dataCustom.copyTitle,";;func;call",1,()=>{copyToClipboard(DataManager.getTitle());}],
@@ -1383,7 +1383,7 @@ $aaaa$.prototype.createOptionsWindow=function(){
 	this._list.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(this._list);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Feedback
+$d$=$r$=$aaaa$=undef; // END Scene_Feedback
 
 // - Window_TextOnly
 
@@ -1392,16 +1392,16 @@ function Window_TextOnly(){
 }
 $aaaa$=Window_TextOnly;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_DummyWithText.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.standardPadding=()=>0;
-$aaaa$.prototype.contentsWidth  = function(){ return this.width;  };
-$aaaa$.prototype.contentsHeight = function(){ return this.height; };
-$aaaa$.prototype.updateTransform = function(){
+$pppp$=$aaaa$.prototype = Object.create(Window_DummyWithText.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.standardPadding=()=>0;
+$pppp$.contentsWidth  = function(){ return this.width;  };
+$pppp$.contentsHeight = function(){ return this.height; };
+$pppp$.updateTransform = function(){
 	this._updateContents();
 	PIXI.Container.prototype.updateTransform.call(this);
 };
-$aaaa$.prototype._createAllParts = function(){
+$pppp$._createAllParts = function(){
 	this._windowSpriteContainer = new PIXI.Container();
 	this._windowBackSprite = new Sprite();
 	this._windowContentsSprite = new Sprite();
@@ -1410,11 +1410,11 @@ $aaaa$.prototype._createAllParts = function(){
 	this._windowSpriteContainer.addChild(this._windowBackSprite);
 	this.addChild(this._windowContentsSprite);
 };
-$aaaa$.prototype._refreshAllParts = function(){
+$pppp$._refreshAllParts = function(){
 	this._refreshBack();
 	this._refreshContents();
 };
-$aaaa$.prototype._updateContents = function() {
+$pppp$._updateContents = function() {
 	const w = this._width , h = this._height;
 	if(w > 0 && h > 0){
 		this._windowContentsSprite.setFrame(this.origin.x, this.origin.y, w, h);
@@ -1423,7 +1423,7 @@ $aaaa$.prototype._updateContents = function() {
 		this._windowContentsSprite.visible = false;
 	}
 };
-$aaaa$.prototype.initialize=function(x,y,width,height){
+$pppp$.initialize=function(x,y,width,height){
 	Window.prototype.initialize.call(this);
 	this._windowSpriteContainer.visible=false;
 	this.loadWindowskin();
@@ -1435,14 +1435,14 @@ $aaaa$.prototype.initialize=function(x,y,width,height){
 	this._closing = false;
 	this._dimmerSprite = null;
 };
-$aaaa$.prototype.update=function(){
+$pppp$.update=function(){
 	Window.prototype.update.call(this);
 	this._animationCount&=0x3fffffff;
 	this.updateOpen();
 	this.updateClose();
 	this.updateBackgroundDimmer();
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_TextOnly
+$d$=$r$=$aaaa$=undef; // END Window_TextOnly
 
 // - Window_DebugMenu2
 
@@ -1461,13 +1461,13 @@ function Window_CustomMenu_main(){
 }
 $aaaa$=Window_CustomMenu_main;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Command.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Window_Command.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$);
-$aaaa$.prototype.makeCommandList=none;
-$aaaa$.prototype.processOk=none;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(x,y,commandLayers,kargs) {
+$pppp$.makeCommandList=none;
+$pppp$.processOk=none;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(x,y,commandLayers,kargs) {
 	// source of commandLayers should not be edited
 	this._selItem=[-1];
 	this._lastSelItem={};
@@ -1481,10 +1481,10 @@ $dddd$=$aaaa$.prototype.initialize = function f(x,y,commandLayers,kargs) {
 	this.addChild(this._windows[0]);
 	//this._windows[0].selFirstEnabled(); // in child.initialize
 	debug(this);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 
-$aaaa$.prototype.reservedWidthL=64;
-$aaaa$.prototype.updatePlacement = function() { // preserved for windows
+$pppp$.reservedWidthL=64;
+$pppp$.updatePlacement = function() { // preserved for windows
 	// calc starting top-left xy
 	if(this.nocenter) return;
 	if(!this.nocenterx) this.x = (Graphics.boxWidth - this.width) / 2;
@@ -1493,7 +1493,7 @@ $aaaa$.prototype.updatePlacement = function() { // preserved for windows
 	if(this.fshy) this.y+=this.fshy; // final shift y
 };
 
-$aaaa$.prototype.addWindow=function(kargs,w){
+$pppp$.addWindow=function(kargs,w){
 	debug.log('Window_CustomMenu_main.prototype.addWindow');
 	debug.log(kargs);
 	let last=this._windows.back;
@@ -1510,14 +1510,14 @@ $aaaa$.prototype.addWindow=function(kargs,w){
 	this.addChild(w);
 	this._windows.push(w);
 };
-if(0&&0)$aaaa$.prototype.newWindow_genNextFunc=function(cmd){
+if(0&&0)$pppp$.newWindow_genNextFunc=function(cmd){
 	return function(){
 		debug.log('generate function',cmd);
 		let kargs={cmdL:cmd[3]};
 		this.parent.addWindow(kargs);
 	};
 };
-$aaaa$.prototype.newWindow=function(commandLayers,x,y,kargs){
+$pppp$.newWindow=function(commandLayers,x,y,kargs){
 	debug.log('Window_CustomMenu_main.prototype.newWindow');
 	debug.log(arguments);
 	let self=this;
@@ -1537,8 +1537,8 @@ $aaaa$.prototype.newWindow=function(commandLayers,x,y,kargs){
 	return rtv;
 };
 
-$rrrr$=$aaaa$.prototype.processCancel;
-$dddd$=$aaaa$.prototype.processCancel=function f(noSound){
+$r$=$pppp$.processCancel;
+$d$=$pppp$.processCancel=function f(noSound){
 	//debug.log('Window_CustomMenu_main.prototype.processCancel');
 	let arr=this._windows;
 	if(1>=arr.length){
@@ -1558,22 +1558,22 @@ $dddd$=$aaaa$.prototype.processCancel=function f(noSound){
 		if(!noSound) SoundManager.playCancel();
 	}
 	return;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.selItem=function(idx,symbol){ // exe by child
+}; $d$.ori=$r$;
+$pppp$.selItem=function(idx,symbol){ // exe by child
 	let arr=this._selItem;
 	arr.pop();
 	let key=JSON.stringify(arr);
 	arr.push(symbol===undefined?idx:symbol);
 	this._lastSelItem[key]=idx;
 };
-$aaaa$.prototype.lastSelItem=function(){
+$pppp$.lastSelItem=function(){
 	let arr=this._selItem;
 	let tmp=arr.pop();
 	let rtv=this._lastSelItem[JSON.stringify(arr)];
 	arr.push(tmp);
 	return rtv;
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomMenu_main
+$d$=$r$=$aaaa$=undef; // END Window_CustomMenu_main
 
 
 
@@ -1591,10 +1591,10 @@ function Window_CustomMenu_child() {
 }
 $aaaa$=Window_CustomMenu_child;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Command.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(parent,customOptions,x,y,kargs) {
+$pppp$=$aaaa$.prototype = Object.create(Window_Command.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(parent,customOptions,x,y,kargs) {
 	debug(this);
 	this._storage=[];
 	this._parent=parent;
@@ -1607,29 +1607,29 @@ $dddd$=$aaaa$.prototype.initialize = function f(parent,customOptions,x,y,kargs) 
 	//this.updatePlacement(); // no auto centrarized
 	if(lastSelItem===undefined) this.selFirstEnabled();
 	else this.select(lastSelItem);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 
-$aaaa$.prototype.statusWidth = function() {
+$pppp$.statusWidth = function() {
 	// |option                   | (current)status |
 	// |(squeezed if too long)   | <-- statusWidth |
 	let p=this._parent;
 	if(p.statusWidth) return p.statusWidth.constructor===Function?p.statusWidth():p.statusWidth;
     return 264;
 };
-$aaaa$.prototype.windowWidth = function() { return this._width||Graphics.boxWidth; };
-$aaaa$.prototype.windowHeight = function() { return this._height||this.fittingHeight(Math.min(this.numVisibleRows(), 15)); };
-$rrrr$=$aaaa$.prototype.select;
-$dddd$=$aaaa$.prototype.select=function f(x){ x=x.clamp(-1,this._list.length-1);
+$pppp$.windowWidth = function() { return this._width||Graphics.boxWidth; };
+$pppp$.windowHeight = function() { return this._height||this.fittingHeight(Math.min(this.numVisibleRows(), 15)); };
+$r$=$pppp$.select;
+$d$=$pppp$.select=function f(x){ x=x.clamp(-1,this._list.length-1);
 	let key=x===-1?-1:this._list[x].symbol;
 	this._parent.selItem(x,key); return f.ori.call(this,x);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.selFirstEnabled=function(){
+}; $d$.ori=$r$;
+$pppp$.selFirstEnabled=function(){
 	debug.log('.selFirstEnabled');
 	this.deselect();
 	for(let x=0,arr=this._list;x!==arr.length;++x)
 		if(arr[x].enabled){ this.select(x); return; }
 };
-$aaaa$.prototype.redrawDiffs=function(){
+$pppp$.redrawDiffs=function(){
 	let redrawList=[];
 	for(let index=0,arr=this._storage;index!==arr.length;++index)
 		if(arr[index].lastTxt!==this.statusInfo(index).txt||this._list[index].name!==arr[index].lastCmdname)
@@ -1637,7 +1637,7 @@ $aaaa$.prototype.redrawDiffs=function(){
 	for(let x=0,arr=redrawList;x!==arr.length;++x)
 		this.redrawItem(arr[x]);
 };
-$aaaa$.prototype.drawItem = function(index) {
+$pppp$.drawItem = function(index) {
 	debug.log(this.constructor.name,'prototype.drawItem');
     var rect = this.itemRectForText(index);
     var statusWidth = this.statusWidth();
@@ -1651,20 +1651,20 @@ $aaaa$.prototype.drawItem = function(index) {
 	debug.log('','statusWidth',statusWidth,'func',this.statusWidth);
 };
 
-$aaaa$.prototype.processOk = function() {
+$pppp$.processOk = function() {
 	debug.log('Window_CustomMenu_child.prototype.processOk');
 	if(this._index<0) return;
 	this.changeValEntry("ok");
 };
-$aaaa$.prototype.cursorRight =function(wrap) { debug.log('Window_CustomMenu_child.prototype.curR');this.changeValEntry("curR"); return; };
-$aaaa$.prototype.cursorLeft  =function(wrap) { debug.log('Window_CustomMenu_child.prototype.curL');this.changeValEntry("curL"); return; };
-$rrrr$=$aaaa$.prototype.processHandling;
-$dddd$=$aaaa$.prototype.processHandling=function f(){
+$pppp$.cursorRight =function(wrap) { debug.log('Window_CustomMenu_child.prototype.curR');this.changeValEntry("curR"); return; };
+$pppp$.cursorLeft  =function(wrap) { debug.log('Window_CustomMenu_child.prototype.curL');this.changeValEntry("curL"); return; };
+$r$=$pppp$.processHandling;
+$d$=$pppp$.processHandling=function f(){
 	if(this.everyTick) this.everyTick();
 	f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 
-$aaaa$.prototype.parseStorageInfo=function(symbol){
+$pppp$.parseStorageInfo=function(symbol){
 	// symbol = obj;key;type(default=bool);type_detail
 	let m=symbol.match(/^([^;]*);([^;]*)(;([^;]*)(;(.+))?)?/);
 	if(m!==null){
@@ -1678,13 +1678,13 @@ $aaaa$.prototype.parseStorageInfo=function(symbol){
 	}
 	return {obj:ConfigManager,key:symbol,type:"bool"};
 };
-$aaaa$.prototype.getStorageInfo=function(index){
+$pppp$.getStorageInfo=function(index){
 	if(this._storage[index]) return this._storage[index];
 	if(this._storage.length<this._list.length) this._storage.length=this._list.length;
 	return this._storage[index]=this.parseStorageInfo(this.commandSymbol(index));
 };
-$aaaa$.prototype.booleanStatusText = function(value) { return value ? 'ON' : 'OFF'; };
-$aaaa$.prototype.statusInfo=function(index) {
+$pppp$.booleanStatusText = function(value) { return value ? 'ON' : 'OFF'; };
+$pppp$.statusInfo=function(index) {
 	let storage=this.getStorageInfo(index);
 	let val=storage.obj&&storage.obj[storage.key],txt="";
 	switch(storage.type)
@@ -1718,7 +1718,7 @@ $aaaa$.prototype.statusInfo=function(index) {
 	storage.txt=txt;
 	return storage;
 };
-$aaaa$.prototype.genNextFunc=function(storage){
+$pppp$.genNextFunc=function(storage){
 	debug.log('Window_CustomMenu_child.prototype.genNextFunc');
 	debug.log(storage,this[storage.key]);
 	switch(storage.tdetail){
@@ -1734,8 +1734,8 @@ $aaaa$.prototype.genNextFunc=function(storage){
 		}break;
 	}
 };
-$rrrr$=$aaaa$.prototype.addCommand;
-$dddd$=$aaaa$.prototype.addCommand=function f(cmd){
+$r$=$pppp$.addCommand;
+$d$=$pppp$.addCommand=function f(cmd){
 	// called double per cmd at total
 	//debug.log('Window_CustomMenu_child.prototype.addCommand'); // debug
 	//debug.log(this._list.length); debugger;
@@ -1762,8 +1762,8 @@ $dddd$=$aaaa$.prototype.addCommand=function f(cmd){
 		for(let ss=this._storage,x=0;x!==ss.length;++x) this.getStorageInfo(x);
 	}
 	else this._cmdcnt=this._list.length;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.removeCommand=function(index){ // type(index):int
+}; $d$.ori=$r$;
+$pppp$.removeCommand=function(index){ // type(index):int
 	if(index<0 || index>=this._list.length) return 1;
 	let S=this._storage,L=this._list;
 	for(let x=index,last=L.length-1;x!==last;++x){
@@ -1773,7 +1773,7 @@ $aaaa$.prototype.removeCommand=function(index){ // type(index):int
 	L.pop();
 	S.pop();
 };
-$aaaa$.prototype.removeCommandByTxt=function(txt){
+$pppp$.removeCommandByTxt=function(txt){
 	for(let arr=this._list,x=0,xs=arr.length;x!==xs;++x)
 		if(arr[x].txt===txt){
 			this.removeCommand(x);
@@ -1781,21 +1781,21 @@ $aaaa$.prototype.removeCommandByTxt=function(txt){
 		}
 	return 1;
 };
-$aaaa$.prototype.isNotEnabled_withSound=function(usrInput,idx){
+$pppp$.isNotEnabled_withSound=function(usrInput,idx){
 	let rtv=!this._list[idx||this._index].enabled;
 	if(rtv) SoundManager.playBuzzer();
 	else SoundManager[usrInput===2?"playOk":"playCursor"]();
 	return rtv;
 };
-$aaaa$.prototype.changeVal_text=function(storage,usrInput){
+$pppp$.changeVal_text=function(storage,usrInput){
 	this._parent.addWindow({},new Window_CustomTextInput(storage.obj,storage.key,storage.tdetail));
 };
-$aaaa$.prototype.changeVal_func=function(storage,usrInput){
+$pppp$.changeVal_func=function(storage,usrInput){
 	debug.log('Window_CustomWindow.prototype.changeVal_func');
 	debug(this);
 	this.genNextFunc(storage).call(this);
-};$aaaa$.prototype._none=none;
-$aaaa$.prototype.changeVal_real=function(storage,inc_0__dec_1=0){
+};$pppp$._none=none;
+$pppp$.changeVal_real=function(storage,inc_0__dec_1=0){
 	let val=storage.obj[storage.key]^0,td=storage.tdetail;
 	//debug.log(val,inc_0__dec_1,td.s,td.t,td.st);
 	if(inc_0__dec_1===2){ // no '&&!td.rot'
@@ -1819,14 +1819,14 @@ $aaaa$.prototype.changeVal_real=function(storage,inc_0__dec_1=0){
 	}
 	storage.obj[storage.key]=val;
 };
-$aaaa$.prototype.changeVal_bool=function(storage){
+$pppp$.changeVal_bool=function(storage){
 	if(storage.obj){
 		storage.obj[storage.key]^=1;
 		//debug.log('Window_CustomWindow.prototype.changeVal_bool',storage,$gamePlayer.canDiag);
 	}
 };
-$aaaa$.prototype.__changeValEntry_mapping={"ok":2,"curL":1,"curR":0,"__dummy":-1};
-$aaaa$.prototype.changeValEntry=function(usrInput){
+$pppp$.__changeValEntry_mapping={"ok":2,"curL":1,"curR":0,"__dummy":-1};
+$pppp$.changeValEntry=function(usrInput){
 	if(this._index===-1) return;
 	debug.log(usrInput);
 	usrInput=this.__changeValEntry_mapping[usrInput]||0;
@@ -1842,11 +1842,11 @@ $aaaa$.prototype.changeValEntry=function(usrInput){
 	}
 };
 
-$aaaa$.prototype.makeCommandList = function() {
+$pppp$.makeCommandList = function() {
 	if(this.addCustomOptions) this.addCustomOptions();
 	return;
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomMenu_child
+$d$=$r$=$aaaa$=undef; // END Window_CustomMenu_child
 
 
 
@@ -1857,17 +1857,17 @@ function Window_Message2(){
 }
 $aaaa$=Window_Message2;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Message.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.processNewLine=function(textState){
+$pppp$=$aaaa$.prototype = Object.create(Window_Message.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.processNewLine=function(textState){
 	++textState.index;
 	this._newLineWarning=true;
 };
-$aaaa$.prototype.numVisibleRows=function(){
+$pppp$.numVisibleRows=function(){
 	return (Graphics.boxHeight - (this._btn_close&&this._btn_close.height||0) - (this.standardPadding()<<1)) / this.lineHeight();
 };
-$aaaa$.prototype.subWindows=function f(){return f._dummy_arr;};
-$dddd$=$aaaa$.prototype.createSubWindows=function f(){
+$pppp$.subWindows=function f(){return f._dummy_arr;};
+$d$=$pppp$.createSubWindows=function f(){
 	this._maxTextWidth=0;
 	this._scrollMax=0;
 	// close btn
@@ -1880,15 +1880,39 @@ $dddd$=$aaaa$.prototype.createSubWindows=function f(){
 	this.addChild(rtv);
 	return rtv;
 };
-$dddd$.onTouch=function(){
+$d$.onTouch=function(){
 	this.close();
 	this.ref.terminateMessage();
 };
-$aaaa$.prototype.updatePlacement=none; // init: x=0;y=0;w=boxW;h=boxH;
-$aaaa$.prototype.canStart=function(){
+$pppp$.onTouch=function(triggered){
+	this.touchUpDnArrowsPgUpDn(triggered,this) ||
+		this.touchLfRhArrowsLfRh(triggered,this) ;
+};
+$pppp$.cursorLeft=function(){
+	this.scrollx -= this._ww;
+};
+$pppp$.cursorRight=function(){
+	this.scrollx += this._ww;
+};
+$pppp$.processPageup=function(){
+	this.scrolly -= this._nvh;
+};
+$pppp$.processPagedown=function(){
+	this.scrolly += this._nvh;
+};
+$t$=Window_ItemCategory.prototype;
+$k$='processTouch';
+$pppp$[$k$]=$t$[$k$];
+$k$='isOpenAndActive';
+$pppp$[$k$]=$t$[$k$];
+$k$='isTouchedInsideFrame';
+$pppp$[$k$]=$t$[$k$];
+$pppp$.isCancelEnabled=none;
+$pppp$.updatePlacement=none; // init: x=0;y=0;w=boxW;h=boxH;
+$pppp$.canStart=function(){
 	return this._canStart;
 };
-$aaaa$.prototype.startMessage=function(){
+$pppp$.startMessage=function(){
 	this._txt=$gameMessage._txt2.slice();
 	this._lineCnt=$gameMessage._txt2.length;
 	$gameMessage._txt2.length=0;
@@ -1905,11 +1929,11 @@ $aaaa$.prototype.startMessage=function(){
 	this.updateBackground();
 	this.open();
 };
-$aaaa$.prototype.terminateMessage=function(){
+$pppp$.terminateMessage=function(){
 	this._canStart=false;
 	this.close();
 };
-$d$=$aaaa$.prototype.redrawtxt=function f(){
+$d$=$pppp$.redrawtxt=function f(){
 	this.contents.clear();
 	const sy=this.scrolly|0,lh=this.lineHeight(),my=this.numVisibleRows()*lh,arr=this._txt;
 	const nd=arr.length.toString().length+2; // ". ".length===2
@@ -1933,29 +1957,34 @@ $d$=$aaaa$.prototype.redrawtxt=function f(){
 	for(let i=0;i!==headers.length;i+=2) this.drawText(" ".repeat(nd-headers[i].length)+headers[i] ,0,headers[i|1]);
 };
 $d$.tbl='rgba(0,0,0,0.5)';
-$aaaa$.prototype.update=function(){
+$pppp$.update=function(){
 	if(this.isClosed() && !this.isOpening()) return;
 	Window_Base.prototype.update.call(this);
 	if(this.isOpening() || this.isClosing()) return;
 	if(this.scrolly===undefined){ // first draw
+		this.scrollx=0;
 		this.scrolly=0;
 		this.redrawtxt();
 	}
 	const lastScrollx=this.scrollx,lastScrolly=this.scrolly;
+	
 	if(TouchInput.wheelX){
 		this.scrollx+=TouchInput.wheelX;
 	}
 	if(TouchInput.wheelY){
 		this.scrolly+=TouchInput.wheelY;
 	}
+	
 	{
 		const shift=Input.isTriggered('shift'),r=shift*9+1;
-		const ww=64*r,lf='left',rt='right',lh=this.lineHeight()*r,nvh=this.numVisibleRows()*lh*r,up="up",dn="down",pgup="pageup",pgdn="pagedown",home="home",ende="end";
+		const lf='left',rt='right',lh=this.lineHeight()*r,up="up",dn="down",pgup="pageup",pgdn="pagedown",home="home",ende="end";
+		this._nvh=this.numVisibleRows()*lh*r;
+		this._ww=r<<6;
 		if(Input.isTriggered(lf) || Input.isRepeated(lf)){
-			this.scrollx -= ww;
+			this.cursorLeft();
 		}
 		if(Input.isTriggered(rt) || Input.isRepeated(rt)){
-			this.scrollx += ww;
+			this.cursorRight();
 		}
 		if(Input.isTriggered(up) || Input.isRepeated(up)){
 			this.scrolly -= lh;
@@ -1964,10 +1993,10 @@ $aaaa$.prototype.update=function(){
 			this.scrolly += lh;
 		}
 		if(Input.isTriggered(pgup) || Input.isRepeated(pgup)){
-			this.scrolly -= nvh;
+			this.processPageup();
 		}
 		if(Input.isTriggered(pgdn) || Input.isRepeated(pgdn)){
-			this.scrolly += nvh;
+			this.processPagedown();
 		}
 		if(Input.isTriggered(home)){
 			this.scrolly = 0;
@@ -1976,6 +2005,9 @@ $aaaa$.prototype.update=function(){
 			this.scrolly = this._canScrolly;
 		}
 	}
+	
+	this.processTouch();
+	
 	if(this.scrollx<0) this.scrollx=0;
 	this.scrolly=this.scrolly.clamp(0,this._canScrolly);
 	if(this.scrollx!==lastScrollx||this.scrolly!==lastScrolly){
@@ -1985,7 +2017,7 @@ $aaaa$.prototype.update=function(){
 	// if(this.isTriggered()) this.terminateMessage();
 	if( Input.isRepeated('ok') || Input.isRepeated('cancel') ) this.terminateMessage();
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_Message2
+$d$=$r$=$aaaa$=undef; // END Window_Message2
 
 
 
@@ -1997,28 +2029,28 @@ function Window_CustomTextBase(){
 }
 $aaaa$=Window_CustomTextBase;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Selectable.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.destructor;
-$dddd$=$aaaa$.prototype.destructor=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Window_Selectable.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.destructor;
+$d$=$pppp$.destructor=function f(){
 	//debug.log('Window_CustomTextBase.prototype.destructor');
 	delete this._lastKeyStat;
 	if(!textWidthCache) this._textWidthCache.length=0;
 	f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
-//$aaaa$.prototype.update=none; // needed
-$aaaa$.prototype.updateArrows=none;
-$aaaa$.prototype.processHandling=none;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(x,y,w,h) {
+}; $d$.ori=$r$;
+//$pppp$.update=none; // needed
+$pppp$.updateArrows=none;
+$pppp$.processHandling=none;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(x,y,w,h) {
 	this._textWidthCache=textWidthCache||[]; this._textWidthCache.length=65536;
 	this._lastKeyStat={};
 	let rtv=f.ori.call(this,x,y,w,h);
 	this.active=true;
 	if(!textWidthCache.size) textWidthCache.size=this.contents.fontSize;
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.drawlinetext=function(text,line,align,startX){
+}; $d$.ori=$r$;
+$pppp$.drawlinetext=function(text,line,align,startX){
 	// line: 0-base ; align: 'left','center','right'
 	align=align||'left';
 	let strtx=startX||0,strty=line*this.lineHeight(),textw=this.textWidth(this.padTab?this.padTab(text):text);
@@ -2038,8 +2070,8 @@ $aaaa$.prototype.drawlinetext=function(text,line,align,startX){
 	this.drawText(text,strtx,strty,maxWidth);
 	return {x:strtx,y:strty,w:Math.min(textw,maxWidth),ow:textw};
 };
-$rrrr$=$aaaa$.prototype.textWidth;
-$dddd$=$aaaa$.prototype.textWidth=function f(txt,ende){
+$r$=$pppp$.textWidth;
+$d$=$pppp$.textWidth=function f(txt,ende){
 	// ende must be int>=0 or undefined
 	if(this.contents.fontSize!==this._textWidthCache.size) return f.ori.call(this,isNaN(ende)?txt:txt.slice(0,ende));
 	let rtv=0;
@@ -2049,30 +2081,30 @@ $dddd$=$aaaa$.prototype.textWidth=function f(txt,ende){
 		rtv+=this._textWidthCache[cc];
 	}
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.redrawtxt=function(){this.contents.clear();};
-$aaaa$.prototype.redrawDiffs=function(){
+}; $d$.ori=$r$;
+$pppp$.redrawtxt=function(){this.contents.clear();};
+$pppp$.redrawDiffs=function(){
 	// only 'ok' will update the value, and when this happens, 
 	// '_parent.processCancel' will be executed, 
 	// then 'child.redrawDiffs' being executed
 	//if(this._parent&&this._parent.redrawDiffs) this._parent.redrawDiffs();
 };
-$aaaa$.prototype.processKey=function(key){
+$pppp$.processKey=function(key){
 	let k=Input.isPressed(key);
 	let rtv=k&&!this._lastKeyStat[key]
 	this._lastKeyStat[key]=k;
 	return rtv;
 };
-$aaaa$.prototype.setScrollNum_processWheel=function(){
+$pppp$.setScrollNum_processWheel=function(){
 	let delta=(TouchInput.wheelY<0)-(TouchInput.wheelY>0);
 	return delta;
 };
-$aaaa$.prototype.setScrollNum=function(){
+$pppp$.setScrollNum=function(){
 	debug.log('Window_CustomTextBase.prototype.setScrollNum');
 	this.processWheel=this.setScrollNum_processWheel;
 	return;
 };
-$dddd$=$rrrr$=$aaaa$=undef;
+$d$=$r$=$aaaa$=undef;
 
 
 // - - Window_CustomTextBoard
@@ -2082,16 +2114,16 @@ function Window_CustomTextBoard(){
 }
 $aaaa$=Window_CustomTextBoard;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.destructor;
-$dddd$=$aaaa$.prototype.destructor=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.destructor;
+$d$=$pppp$.destructor=function f(){
 	//debug.log('Window_CustomTextBoard.prototype.destructor');
 	if(this._oribodykeydown!==undefined) d.body.onkeydown=this._oribodykeydown;
 	return f.ori.call(this);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(txtinfos,kargs) {
+}; $d$.ori=$r$;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(txtinfos,kargs) {
 	let self=this;
 	// txtinfos: [{txt:"msg",color:"rgba(,,,)",bgcolor:"rgba(,,,)" }, "\n",  {}...]
 	this.txtinfos=txtinfos; if(!this.txtinfos.length) this.txtinfos=[];
@@ -2150,20 +2182,20 @@ $dddd$=$aaaa$.prototype.initialize = function f(txtinfos,kargs) {
 	//let itvl=setInterval(()=>{if(this.parent===null)clearInterval(itvl);else this.redrawtxt();debug.log("am i alive?");},30); // there's scroll event, updating when scroll may cause efficiency decreased
 	if(debug.isdebug()) window['????']=this;
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.lineHeight=Window_Base.prototype.lineHeight;
-$aaaa$.prototype.standardFontSize=Window_Base.prototype.standardFontSize;
+}; $d$.ori=$r$;
+$pppp$.lineHeight=Window_Base.prototype.lineHeight;
+$pppp$.standardFontSize=Window_Base.prototype.standardFontSize;
 
-$aaaa$.prototype.processHandling=function(){
+$pppp$.processHandling=function(){
 	if (SceneManager._nextScene===null && this.isCancelEnabled() && this.isCancelTriggered()) this.processCancel();
 };
-$aaaa$.prototype.processWheel=function(){
+$pppp$.processWheel=function(){
 	if(!TouchInput.wheelY) return;
 	this.scrolly=(this.scrolly+TouchInput.wheelY).clamp(0,this._canScroll);
 	this.redrawtxt();
 };
 
-$aaaa$.prototype._redrawtxt_parseColor=function(txt,strt){
+$pppp$._redrawtxt_parseColor=function(txt,strt){
 	let rtv={txt:"",go:0};
 	if(txt[strt^=0]!=="_") return rtv;
 	if(strt+1<txt.length && txt[strt+1]==="_") rtv.go+=1;
@@ -2175,7 +2207,7 @@ $aaaa$.prototype._redrawtxt_parseColor=function(txt,strt){
 	}
 	return rtv;
 };
-$aaaa$.prototype.updateInfos=function(txtinfos,kargs){
+$pppp$.updateInfos=function(txtinfos,kargs){
 	// re-cal. this.contents 's size
 		// re-create this.contents
 	let old=[this.width,this.height];
@@ -2187,7 +2219,7 @@ $aaaa$.prototype.updateInfos=function(txtinfos,kargs){
 	this.redrawtxt(1); // will define 'this._canScroll'
 	this.redrawtxt();
 };
-$dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
+$d$=$pppp$.redrawtxt=function f(measuringHeight){
 	if(measuringHeight && this.noScroll) return this._canScroll=0;
 	this.contents.clear();
 	let pad=this.textPadding(),LH_ori=this.lineHeight(),LH_last=LH_ori,xe=this.contents.width-(pad<<1),ye=this.contents.height+this.scrolly;
@@ -2261,53 +2293,53 @@ $dddd$=$aaaa$.prototype.redrawtxt=function f(measuringHeight){
 	for(let i in font_ori) this.contents[i]=font_ori[i];
 	return curry-ye;
 };
-$dddd$.parseUTF8=function f(txt){return txt.replace(f.re,function(){return (arguments[1]||"")+(arguments[2]||"")+String.fromCharCode(arguments[3]);})};
-$dddd$.parseUTF8.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+$d$.parseUTF8=function f(txt){return txt.replace(f.re,function(){return (arguments[1]||"")+(arguments[2]||"")+String.fromCharCode(arguments[3]);})};
+$d$.parseUTF8.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_utf8.toString().slice(5,-2)+
 "",'g');
-$dddd$.parseCODE=function f(txt){return txt.replace(f.re,function(){
+$d$.parseCODE=function f(txt){return txt.replace(f.re,function(){
 	return (arguments[1]||"")+(arguments[2]||"")+eval(arguments[3]);
 })};
-$dddd$.parseCODE.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+$d$.parseCODE.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_code.toString().slice(5,-2)+
 "",'g');
-$dddd$.parsekeyword=function f(txt){
+$d$.parsekeyword=function f(txt){
 	return txt.replace(f.re,function(){
 		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.keyword.replace("$","$$")+"]"+
 			eval(arguments[3])
 		+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
 };
-$dddd$.parsekeyword.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+$d$.parsekeyword.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_keyword.toString().slice(5,-2)+
 "",'g');
-$dddd$.parseitem=function f(txt){
+$d$.parseitem=function f(txt){
 	return txt.replace(f.re,function(){
 		let item=$dataItems[Number(arguments[3])];
 		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.item.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
 };
-$dddd$.parseitem.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+$d$.parseitem.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_item.toString().slice(5,-2)+
 "",'g');
-$dddd$.parsequest=function f(txt){
+$d$.parsequest=function f(txt){
 	return txt.replace(f.re,function(){
 		let item=$dataItems[Number(arguments[3])];
 		return (arguments[1]||"")+(arguments[2]||"")+ "\\RGB["+$dataCustom.textcolor.quest.replace("$","$$")+"]"+(item&&item.name||"")+"\\RGB["+$dataCustom.textcolor.default+"]";
 	});
 };
-$dddd$.parsequest.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
+$d$.parsequest.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\"+
 	Window_Base.prototype.convertEscapeCharacters.re_quest.toString().slice(5,-2)+
 "",'g');
-$dddd$.toMyColor=function f(txt){ return txt.replace(f.re,"$1$2_$3"); };
-$dddd$.toMyColor.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\RGBA?("+
+$d$.toMyColor=function f(txt){ return txt.replace(f.re,"$1$2_$3"); };
+$d$.toMyColor.re=new RegExp("(^|[^\\\\\])(\\\\\\\\)*\\\\RGBA?("+
 	Window_Base.prototype.processEscapeCharacter.re.toString().slice(2,-1)+
 ")",'g');
 	// \RGB[#000000] -> _RGB[#000000]
 		// \\\\ in str -> \\ 
 		// RegExp get \\ -> match \ 
 		//   =>  \\\\ -> \ 
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomTextBoard
+$d$=$r$=$aaaa$=undef; // END Window_CustomTextBoard
 
 // - - Window_CustomTextInput
 
@@ -2316,11 +2348,11 @@ function Window_CustomTextInput(){
 }
 $aaaa$=Window_CustomTextInput;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$,true,true);
-$rrrr$=$aaaa$.prototype.destructor;
-$dddd$=$aaaa$.prototype.destructor=function f(){
+$r$=$pppp$.destructor;
+$d$=$pppp$.destructor=function f(){
 	// same as C++: do not call this function twice
 	debug.log('Window_CustomTextInput.prototype.destructor');
 	let t=this.node_input,dmy=this.node_dummy;
@@ -2334,9 +2366,9 @@ $dddd$=$aaaa$.prototype.destructor=function f(){
 	let rtv=f.ori.call(this);
 	$gameTemp._inputting=false;
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(dstObj,dstKey,txtdetail,kargs) {
+}; $d$.ori=$r$;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(dstObj,dstKey,txtdetail,kargs) {
 	let self=this;
 	// unify args
 	txtdetail=txtdetail||{}; // .title .apply .valid .final
@@ -2478,16 +2510,16 @@ $dddd$=$aaaa$.prototype.initialize = function f(dstObj,dstKey,txtdetail,kargs) {
 		this.node_input.sa("class","");
 		window['????']=this;
 	}
-}; $dddd$.ori=$rrrr$;
-$dddd$.tbl=[];
-for(let x='0'.charCodeAt(),xh='9'.charCodeAt();x<=xh;++x) $dddd$.tbl[x]=true;
-for(let x='A'.charCodeAt(),xh='Z'.charCodeAt();x<=xh;++x) $dddd$.tbl[x]=true;
-for(let x='a'.charCodeAt(),xh='z'.charCodeAt();x<=xh;++x) $dddd$.tbl[x]=true;
+}; $d$.ori=$r$;
+$d$.tbl=[];
+for(let x='0'.charCodeAt(),xh='9'.charCodeAt();x<=xh;++x) $d$.tbl[x]=true;
+for(let x='A'.charCodeAt(),xh='Z'.charCodeAt();x<=xh;++x) $d$.tbl[x]=true;
+for(let x='a'.charCodeAt(),xh='z'.charCodeAt();x<=xh;++x) $d$.tbl[x]=true;
 
-$aaaa$.prototype.isTyping=function(){
+$pppp$.isTyping=function(){
 	return this._choice===0;
 };
-$aaaa$.prototype.setScrollNum_processWheel=function(){
+$pppp$.setScrollNum_processWheel=function(){
 	let delta=(TouchInput.wheelY<0)-(TouchInput.wheelY>0);
 	if(delta===0) return;
 	let tmp=this._dstApply(this.node_input.value);
@@ -2502,18 +2534,18 @@ $aaaa$.prototype.setScrollNum_processWheel=function(){
 	this.node_input.value=tmp;
 	this.node_input.custom_setSelRange(tmp.length);
 };
-$aaaa$.prototype.setScrollNum=function(){
+$pppp$.setScrollNum=function(){
 	debug.log('setScrollNum');
 	this.processWheel=this.setScrollNum_processWheel;
 	return;
 };
 
-$aaaa$.prototype.drawcursor=function(){
+$pppp$.drawcursor=function(){
 	// item cursor
 	// draw @line according to this._choice
 	this.setCursorRect( 0, (this._choice+1)*this.lineHeight(), this.width, this.lineHeight() );
 };
-$aaaa$.prototype.redrawtxt=function(){
+$pppp$.redrawtxt=function(){
 	this.contents.clear();
 	
 	// title
@@ -2548,22 +2580,22 @@ $aaaa$.prototype.redrawtxt=function(){
 	//this.drawcursor();
 };
 
-$aaaa$.prototype.processKey=function(key){
+$pppp$.processKey=function(key){
 	let k=Input.isPressed(key);
 	let rtv=k&&!this._lastKeyStat[key]
 	this._lastKeyStat[key]=k;
 	return rtv;
 };
-$aaaa$.prototype.processTouchAtLine=function(x,y){
+$pppp$.processTouchAtLine=function(x,y){
 	let lineH=this.lineHeight(),pad=this.standardPadding();
 	let line=parseInt((y-(this.y+pad)+lineH)/lineH)-1;
 	debug.log(this.y,pad,y,lineH);
 	return (line>=0&&x>=pad&&x+pad<this.width)?line:-1;
 };
-$aaaa$.prototype.processTouchAtChoice=function(x,y){
+$pppp$.processTouchAtChoice=function(x,y){
 	return this.processTouchAtLine(x,y)-1;
 };
-$aaaa$.prototype.processTouch2I=function(){
+$pppp$.processTouch2I=function(){
 	let OAO=this.drawlinetext(this.node_input.value,-1);
 	let x=(TouchInput.x-OAO.x-this.standardPadding()-this.x)/(OAO.w/OAO.ow);
 	let i=0; for(let sw=0,s=this.node_input.value;i!==s.length;++i){
@@ -2573,7 +2605,7 @@ $aaaa$.prototype.processTouch2I=function(){
 	}
 	return i;
 };
-$aaaa$.prototype.processTouch=function(){
+$pppp$.processTouch=function(){
 	if(this.active===0) return;
 	if(TouchInput.isCancelled()) this.doCancel(1);
 	if(TouchInput.isMoved()){
@@ -2609,8 +2641,8 @@ $aaaa$.prototype.processTouch=function(){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.processHandling;
-$dddd$=$aaaa$.prototype.processHandling=function f(){
+$r$=$pppp$.processHandling;
+$d$=$pppp$.processHandling=function f(){
 	//debug.log('Window_CustomTextInput.prototype.processHandling');
 	if(this.active===0) return;
 	if(this.processKey('ok')) this.doChoice();
@@ -2618,8 +2650,8 @@ $dddd$=$aaaa$.prototype.processHandling=function f(){
 		if(this.isCancelTriggered()) this._choice=2; // parent handles the signal
 		f.ori.call(this); // Input.update();
 	}
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.doChoice=function(ch){
+}; $d$.ori=$r$;
+$pppp$.doChoice=function(ch){
 	//debug.log('Window_CustomTextInput.prototype.doChoice');
 	switch(ch===undefined?this._choice:ch){
 		case 0:
@@ -2635,7 +2667,7 @@ $aaaa$.prototype.doChoice=function(ch){
 		break;
 	}
 };
-$aaaa$.prototype.doOk=function(){
+$pppp$.doOk=function(){
 	debug.log('Window_CustomTextInput.prototype.doOk');
 	// input text ok: save back to 'this._dstObj[this._dstKey]'
 	let lastCh=this._choice_;
@@ -2658,13 +2690,13 @@ $aaaa$.prototype.doOk=function(){
 		this.processCancel(1);
 	}
 };
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$r$=$pppp$.update;
+$d$=$pppp$.update=function f(){
 	let closing=this.isClosing();
 	f.ori.call(this); // return undefined
 	if(closing && !this.isClosing()) this.processCancel(1);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.doCancel=function(noParent){
+}; $d$.ori=$r$;
+$pppp$.doCancel=function(noParent){
 	// input text cancel: don't save back to 'this._dstObj[this._dstKey]'
 	debug.log('Window_CustomTextInput.prototype.doCancel');
 		this._choice=2; // cancel
@@ -2676,7 +2708,7 @@ $aaaa$.prototype.doCancel=function(noParent){
 		if(!noParent){ this.parent.processCancel(); } // will call 'this.destructor'
 	}
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomTextInput
+$d$=$r$=$aaaa$=undef; // END Window_CustomTextInput
 
 // - - Window_CustomPopupMsg
 
@@ -2687,15 +2719,15 @@ function Window_CustomPopupMsg(){
 }
 $aaaa$=Window_CustomPopupMsg;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$,true);
-//$aaaa$.prototype.destructor=none;
-$aaaa$.prototype.initialize_content=function(txt,kargs){
+//$pppp$.destructor=none;
+$pppp$.initialize_content=function(txt,kargs){
 	kargs=kargs||{};
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(txt,kargs) {
 	kargs=kargs||{};
 	let w=kargs['width']              ||(Graphics.boxWidth>>1),h=kargs['height']             ||this.fittingHeight(1);
 	let x=kargs['x']===0?0:(kargs['x']|| Graphics.boxWidth-w ),y=kargs['y']===0?0:(kargs['y']||Graphics.boxHeight-h);
@@ -2715,9 +2747,9 @@ $dddd$=$aaaa$.prototype.initialize = function f(txt,kargs) {
 	this._lastUpdateTime=0;
 	//this.redrawtxt();
 	return rtv;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.update=function(){let p=this.parent; if(p&&p.constructor!==Window_CustomPopups) this._update(Date.now());};
-$aaaa$.prototype._update=function(t){
+}; $d$.ori=$r$;
+$pppp$.update=function(){let p=this.parent; if(p&&p.constructor!==Window_CustomPopups) this._update(Date.now());};
+$pppp$._update=function(t){
 	// called by 'Window_CustomPopups'
 	if(this.updateItvl==="no") return;
 	if(t-this._lastUpdateTime>=this.updateItvl){
@@ -2726,19 +2758,19 @@ $aaaa$.prototype._update=function(t){
 		this._lastUpdateTime+=this.updateItvl;
 	}
 };
-$aaaa$.prototype.bye=function(){
+$pppp$.bye=function(){
 	this.alpha=0;
 	//clearInterval(this._itvl);
 	if(this.parent) this.parent.removeChild(this);
 	return 0;
 };
-$aaaa$.prototype.byeIfBye=function(){
+$pppp$.byeIfBye=function(){
 	if(this.parent===null) return 0;
 	if(this.alpha<0.015625 || 0>=this.y+this.height || this.y>=Graphics.boxHeight){
 		return this.bye();
 	}
 };
-$aaaa$.prototype.redrawtxt=function(forced){
+$pppp$.redrawtxt=function(forced){
 	// rtv: 0:done_of_work, not going to do it again
 	//if(this.byeIfBye()===0) return 0; // handled by 'Window_CustomPopupMsgs'
 	if(--this.ctr<64) this.alpha*=0.875;
@@ -2759,7 +2791,7 @@ $aaaa$.prototype.redrawtxt=function(forced){
 		}break;
 	} this.contents.clear(); this.drawTextEx(this.txt,this.strt,0); }
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomPopupMsg
+$d$=$r$=$aaaa$=undef; // END Window_CustomPopupMsg
 
 // - - Window_CustomRealtimeMsg
 
@@ -2770,19 +2802,19 @@ function Window_CustomRealtimeMsg(){
 }
 $aaaa$=Window_CustomRealtimeMsg;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$,true,true);
-$rrrr$=$aaaa$.prototype.destructor;
-$dddd$=$aaaa$.prototype.destructor=function f(){
+$r$=$pppp$.destructor;
+$d$=$pppp$.destructor=function f(){
 	if(this._itvl!==undefined) clearInterval(this._itvl);
 	return f.ori.apply(this,arguments);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.processHandling=none;
-$aaaa$.prototype.processTouch=none;
-$aaaa$.prototype.processKey=none;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize = function f(srcObj,srcKey,kargs) {
+}; $d$.ori=$r$;
+$pppp$.processHandling=none;
+$pppp$.processTouch=none;
+$pppp$.processKey=none;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize = function f(srcObj,srcKey,kargs) {
 	kargs=kargs||{};
 	
 	this._obj=srcObj;
@@ -2799,11 +2831,11 @@ $dddd$=$aaaa$.prototype.initialize = function f(srcObj,srcKey,kargs) {
 	this._lastUpdateTime=Date.now();
 	this._lastVal_min=this;
 	//if(debug.isdebug()) window['????']=this;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.update=function(){
+}; $d$.ori=$r$;
+$pppp$.update=function(){
 	if(this.parent.constructor!==Window_CustomRealtimeMsgs) return this._update();
 };
-$dddd$=$aaaa$.prototype._update=function f(){
+$d$=$pppp$._update=function f(){
 	// called by 'Window_CustomRealtimeMsgs' which is 'this.parent'
 	if(this.updateItvl===f.no) return;
 	if(Date.now()-this._lastUpdateTime>=this.updateItvl){
@@ -2811,18 +2843,18 @@ $dddd$=$aaaa$.prototype._update=function f(){
 		this._lastUpdateTime+=this.updateItvl;
 	}
 };
-$dddd$.no="no";
-$dddd$=undef;
+$d$.no="no";
+$d$=undef;
 
-$aaaa$.prototype.check=function(last,curr){ return last===curr; };
-$aaaa$.prototype.getstr_min=function(){
+$pppp$.check=function(last,curr){ return last===curr; };
+$pppp$.getstr_min=function(){
 	return (this._key.constructor===Function)?this._key(this._obj):this._obj[this._key];
 };
-$aaaa$.prototype.getstr=function(val){
+$pppp$.getstr=function(val){
 	if(val===undefined) val=this.getstr_min()||"";
 	return (this.head||"")+val.toString()+(this.tail||"");
 };
-$aaaa$.prototype.redrawtxt=function(){
+$pppp$.redrawtxt=function(){
 	let txt_min=this.getstr_min();
 	if(this._lastVal_min===txt_min) return;
 	this._lastVal_min=txt_min;
@@ -2832,7 +2864,7 @@ $aaaa$.prototype.redrawtxt=function(){
 	let strtx=0,strty=0*this.lineHeight();
 	this.drawText(this._lastVal=this.getstr(this._lastVal_min),strtx,strty,this.contents.width,this._align);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsg
+$d$=$r$=$aaaa$=undef; // END Window_CustomRealtimeMsg
 
 // - - Window_CustomRealtimeMsgs
 
@@ -2843,11 +2875,11 @@ function Window_CustomRealtimeMsgs(){
 }
 $aaaa$=Window_CustomRealtimeMsgs;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Base.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype = Object.create(Window_Base.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$);
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(kargs){
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(kargs){
 	let self=this;
 	kargs=kargs||{};
 	
@@ -2858,9 +2890,9 @@ $dddd$=$aaaa$.prototype.initialize=function f(kargs){
 	this.x=this.y=this.w=0;
 	this._windows=[];
 	this.fontSize=kargs.fontSize;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.update=function(){ for(let x=0,arr=this._windows;x!==arr.length;++x) arr[x]._update(); };
-$dddd$=$aaaa$.prototype.add=function f(obj,key_or_getter,kargs){
+}; $d$.ori=$r$;
+$pppp$.update=function(){ for(let x=0,arr=this._windows;x!==arr.length;++x) arr[x]._update(); };
+$d$=$pppp$.add=function f(obj,key_or_getter,kargs){
 	kargs=kargs||{};
 	if(kargs.x===undefined) kargs.x=23;
 	kargs.updateItvl=kargs.updateItvl||f.no; 
@@ -2874,8 +2906,8 @@ $dddd$=$aaaa$.prototype.add=function f(obj,key_or_getter,kargs){
 	this.addChild(child);
 	return child;
 };
-$dddd$.no=Window_CustomRealtimeMsg.prototype._update.no;
-$aaaa$.prototype.del=function(c){
+$d$.no=Window_CustomRealtimeMsg.prototype._update.no;
+$pppp$.del=function(c){
 	let idx=this._windows.indexOf(c);
 	if(idx===-1) return;
 	let arr=this._windows;
@@ -2883,7 +2915,7 @@ $aaaa$.prototype.del=function(c){
 	arr.pop();
 	return this.removeChild(c);
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_CustomRealtimeMsgs
+$d$=$r$=$aaaa$=undef; // END Window_CustomRealtimeMsgs
 
 // - Scene_Note
 
@@ -2892,19 +2924,19 @@ function Scene_Note(){
 }
 $aaaa$=Scene_Note;
 if(typeof objs!=='undefined') objs[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.create;
-$dddd$=$aaaa$.prototype.create=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Scene_MenuBase.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.create;
+$d$=$pppp$.create=function f(){
 	f.ori.call(this);
 	let wl=new Window_CustomMenu_main(0,0,[]);
 	wl.addWindow(none,this._txtarea=new Window_CustomTextArea);
 	wl.setHandler('cancel', this.popScene.bind(this));
 	this.addWindow(wl);
 	//this.addChild(this._txtarea=new Window_CustomTextArea);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 
-$dddd$=$rrrr$=$aaaa$=undef; // END Scene_Note
+$d$=$r$=$aaaa$=undef; // END Scene_Note
 
 // - Window_CustomTextArea // TODO: non-compressed-width printing
 
@@ -2913,18 +2945,18 @@ function Window_CustomTextArea(){
 }
 $aaaa$=Window_CustomTextArea;
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$rrrr$=$aaaa$.prototype.destructor;
-$dddd$=$aaaa$.prototype.destructor=function f(){
+$pppp$=$aaaa$.prototype = Object.create(Window_CustomTextBase.prototype);
+$pppp$.constructor = $aaaa$;
+$r$=$pppp$.destructor;
+$d$=$pppp$.destructor=function f(){
 	[this.node_dummy,this.node_input,this.node_copy].forEach(c=>c.parentNode.removeChild(c));
 	f.ori.call(this);
 	d.body.onkeydown=this._oribodykeydown;
 	$gameTemp._inputting=false;
 	//Window_CustomTextInput.prototype.destructor.call(this);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(kargs){
+}; $d$.ori=$r$;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(kargs){
 	kargs=kargs||{};
 	const self=this;
 	
@@ -3118,14 +3150,14 @@ $dddd$=$aaaa$.prototype.initialize=function f(kargs){
 	//this.drawcursor();
 	this._lastInputTime=Date.now();
 	let itvl=setInterval(()=>{ if(self.parent===null) clearInterval(itvl); else if(Date.now()-self._lastInputTime<3e3||self.cursorBlinkState) self.redrawtxt(); },41);
-}; $dddd$.ori=$rrrr$;
-$dddd$.tbl=[];
-for(let x='0'.charCodeAt(),xh='9'.charCodeAt();x!==xh;++x) $dddd$.tbl[x]=true;
-for(let x='A'.charCodeAt(),xh='Z'.charCodeAt();x!==xh;++x) $dddd$.tbl[x]=true;
-for(let x='a'.charCodeAt(),xh='z'.charCodeAt();x!==xh;++x) $dddd$.tbl[x]=true;
+}; $d$.ori=$r$;
+$d$.tbl=[];
+for(let x='0'.charCodeAt(),xh='9'.charCodeAt();x!==xh;++x) $d$.tbl[x]=true;
+for(let x='A'.charCodeAt(),xh='Z'.charCodeAt();x!==xh;++x) $d$.tbl[x]=true;
+for(let x='a'.charCodeAt(),xh='z'.charCodeAt();x!==xh;++x) $d$.tbl[x]=true;
 
-$rrrr$=$aaaa$.prototype.update;
-$dddd$=$aaaa$.prototype.update=function f(){
+$r$=$pppp$.update;
+$d$=$pppp$.update=function f(){
 	//this.redrawtxt();
 	Window.prototype.update.call(this);
 	if(this.isOpenAndActive()){
@@ -3134,23 +3166,23 @@ $dddd$=$aaaa$.prototype.update=function f(){
 		this.processTouch();
 	}else this._touching = false;
 	this._stayCount++;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.isTyping=Window_CustomTextInput.prototype.isTyping;
-$aaaa$.prototype.getCurAt=function(){
+}; $d$.ori=$r$;
+$pppp$.isTyping=Window_CustomTextInput.prototype.isTyping;
+$pppp$.getCurAt=function(){
 	return this._textCursorAt_d === "backward" ? this._textCursorAt_s : this._textCursorAt_e;
 };
-$aaaa$.prototype.refreshVxo=function(txt){
+$pppp$.refreshVxo=function(txt){
 	// vxo
 	let ref=this;
 	let curAt = ref._textCursorAt_d === "backward" ? ref._textCursorAt_s : ref._textCursorAt_e ;
 	let nu=ref.toLineNum(curAt);
 	ref._vxo=ref.toViewLen(ref._lines[nu],curAt-ref._lineOffsets[nu]);
 };
-$aaaa$.prototype.drawcursor=function(){
+$pppp$.drawcursor=function(){
 	let tmp=this._lineNum-this._scrolledLine;
 	if(this._lastSkylineCursorY!==tmp) this.setCursorRect( 0, (this._lastSkylineCursorY=tmp)*this.lineHeight(), this.width, this.lineHeight() );
 };
-$aaaa$.prototype.padTab=function(text){ // tab -> spaces , align
+$pppp$.padTab=function(text){ // tab -> spaces , align
 	let rtv=''; for(let x=0,t=this._tabWidth,tr=t,xs=text.length;x!==xs;++x){
 		if(text[x]==='\t'){
 			++tr;
@@ -3163,13 +3195,13 @@ $aaaa$.prototype.padTab=function(text){ // tab -> spaces , align
 	}
 	return rtv;
 }
-$aaaa$.prototype.drawText=function(text, x, y, maxWidth, align){
+$pppp$.drawText=function(text, x, y, maxWidth, align){
 	return this.contents.drawText(this.padTab(text), x, y, maxWidth, this.lineHeight(), align);
 //	this.contents.drawText(
 //		text.replace(/\t/g,' '.repeat(this._tabWidth))
 //	, x, y, maxWidth, this.lineHeight(), align);
 };
-$aaaa$.prototype.textWidth=function f(txt,ende){ // TODO: aligned tab width
+$pppp$.textWidth=function f(txt,ende){ // TODO: aligned tab width
 	// ende must be int>=0 or undefined
 	if(this.contents.fontSize!==this._textWidthCache.size) return this.contents.measureTextWidth(ende!==undefined?txt.slice(0,ende):txt);
 	let rtv=0;
@@ -3184,7 +3216,7 @@ $aaaa$.prototype.textWidth=function f(txt,ende){ // TODO: aligned tab width
 	}
 	return rtv;
 };
-$aaaa$.prototype.redrawtxt_split=function(){
+$pppp$.redrawtxt_split=function(){
 	let arr=this.node_input.value.split("\n");
 	let padstr=arr.length+". ";
 	let padp=this._nuPad=this.textWidth(padstr),padn=padstr.length;
@@ -3202,10 +3234,10 @@ $aaaa$.prototype.redrawtxt_split=function(){
 	this._lines.length=
 	arr.length;
 };
-$aaaa$.prototype.toLineNum=function(pos){
+$pppp$.toLineNum=function(pos){
 	return this._lineOffsets.lower_bound(pos+1)-1;
 };
-$aaaa$.prototype.toViewLen=function(txt,ende){
+$pppp$.toViewLen=function(txt,ende){
 	ende=Number(ende);
 	if(isNaN(ende)||txt.length<ende) ende=txt.length;
 	if(!(this._tabWidth>=2)) return ende;
@@ -3223,7 +3255,7 @@ $aaaa$.prototype.toViewLen=function(txt,ende){
 	}
 	return rtv;
 };
-$aaaa$.prototype.fromViewLenAt=function(txt,viewlen){
+$pppp$.fromViewLenAt=function(txt,viewlen){
 	let rtv=0;
 	if(txt) for(let t=this._tabWidth,tr=t,ts=(t>>1)+(t&1);txt.length!==rtv&&viewlen>0;++rtv){
 		if(txt[rtv]==='\t'){
@@ -3241,7 +3273,7 @@ $aaaa$.prototype.fromViewLenAt=function(txt,viewlen){
 	}
 	return rtv;
 };
-$aaaa$.prototype.redrawtxt=function(){ // TODO: rect select
+$pppp$.redrawtxt=function(){ // TODO: rect select
 	//debug.log('Window_CustomTextArea.prototype.redrawtxt');
 	
 	// split by '\n'
@@ -3329,13 +3361,13 @@ $aaaa$.prototype.redrawtxt=function(){ // TODO: rect select
 	
 	{ let t=this.node_input.style; if(t.display!=='') t.display=''; }
 };
-$aaaa$.prototype.__custom_updateCursorInfo=function(e){ //  not use by 'this' but by 'this.node_input'
+$pppp$.__custom_updateCursorInfo=function(e){ //  not use by 'this' but by 'this.node_input'
 	this.ref._textCursorAt_s=e.target.selectionStart;
 	this.ref._textCursorAt_e=e.target.selectionEnd;
 	this.ref._textCursorAt_d=e.target.selectionDirection;
 	//debug.log('',this.ref._textCursorAt_s,this.ref._textCursorAt_e,this.ref._textCursorAt_d);
 };
-$aaaa$.prototype.__custom_setSelRange=function(curAt,posTail){
+$pppp$.__custom_setSelRange=function(curAt,posTail){
 	let low =curAt>=posTail?posTail:curAt;
 	let high=curAt>=posTail?curAt:posTail;
 	let dir =curAt<posTail?"backward":"";
@@ -3345,8 +3377,8 @@ $aaaa$.prototype.__custom_setSelRange=function(curAt,posTail){
 		this.ref._textCursorAt_d=dir
 	);
 };
-$aaaa$.prototype.doCancel=Window_CustomTextInput.prototype.doCancel;
-$aaaa$.prototype.localX2LinePos=function(localX,lineNum){ // 0-base
+$pppp$.doCancel=Window_CustomTextInput.prototype.doCancel;
+$pppp$.localX2LinePos=function(localX,lineNum){ // 0-base
 	const line=this._lines[lineNum];
 	if(!line) return 0;
 	localX-=this.standardPadding()+this.textPadding();
@@ -3359,25 +3391,25 @@ $aaaa$.prototype.localX2LinePos=function(localX,lineNum){ // 0-base
 	}
 	return i;
 };
-$aaaa$.prototype.localY2CurrLine=function(localY){ // 0-base
+$pppp$.localY2CurrLine=function(localY){ // 0-base
 	const h=this.lineHeight();
 	localY-=this.standardPadding();
 	return ((~~(localY/h))+this._scrolledLine).clamp(0,this._lineOffsets.length);
 };
-$aaaa$.prototype.localXy2Pos=function(x,y){
+$pppp$.localXy2Pos=function(x,y){
 	//if(objs.isDev) console.log(x,y);
 	const lineNum=this.localY2CurrLine(y);
 	return this._lineOffsets[lineNum] + this.localX2LinePos(x,lineNum) ;
 };
-$aaaa$.prototype.cursorTail=function(){
+$pppp$.cursorTail=function(){
 	return this._textCursorAt_d==="backward"?this._textCursorAt_e:this._textCursorAt_s;
 };
-$aaaa$.prototype.processTouch_touching=function(){
+$pppp$.processTouch_touching=function(){
 	const x = this.canvasToLocalX(TouchInput.x) , y = this.canvasToLocalY(TouchInput.y); 
 	if(this._lastTouchPos===undefined) this.node_input.custom_setSelRange(this.localXy2Pos(x,y),this.cursorTail());
 	else this.node_input.custom_setSelRange(this.localXy2Pos(x,y),this._lastTouchPos);
 };
-$aaaa$.prototype.processTouch=function(){
+$pppp$.processTouch=function(){
 	if(TouchInput.isMoved()){
 		if(TouchInput.isPressed()) this._lastInputTime=Date.now();
 		if(this._touchStarted) this.processTouch_touching();
@@ -3399,20 +3431,20 @@ $aaaa$.prototype.processTouch=function(){
 		this.redrawtxt();
 	} }
 };
-$aaaa$.prototype.scrollDown=function(){
+$pppp$.scrollDown=function(){
 	const al= ~~(this.contentsHeight()/this.lineHeight());
 	if(al+this._scrolledLine<this._lines.length){
 		++this._scrolledLine;
 		this.redrawtxt();
 	}
 };
-$aaaa$.prototype.scrollUp=function(){
+$pppp$.scrollUp=function(){
 	if(this._scrolledLine>0){
 		--this._scrolledLine;
 		this.redrawtxt();
 	}
 };
-$dddd$=$rrrr$=$aaaa$=undef; // END Window_NoteWrite
+$pppp$=$aaaa$=undef; // END Window_NoteWrite
 
 
 
@@ -3427,3 +3459,4 @@ load( "menu2-save.js" );
 
 })();
 
+$k$=$dddd$=$d$=$rrrr$=$r$=$pppp$=$aaaa$=$tttt$=$t$=undef;
