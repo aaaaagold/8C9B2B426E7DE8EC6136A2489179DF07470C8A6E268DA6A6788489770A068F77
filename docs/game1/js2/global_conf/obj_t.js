@@ -1695,11 +1695,14 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 $d$.tmp=new Set();
 $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
 	let realTarget=t;
-	if(Math.random()<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
-	else if(Math.random()<this._action.itemMrf(t)) this.invokeMagicReflection(realTarget=s,t);
+	{ const rnd=Math.random();
+	if(rnd<this._action.itemPrf(t)) this.invokeReflection(realTarget=s,t);
+	else if(rnd<this._action.itemMrf(t)) this.invokeReflection(realTarget=s,t);
+	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
+	}
 	s.setLastTarget(t);
-	if(q&&s!==t){ // already add actRes when subject is in the one of targets
+	if(q&&s!==realTarget){ // already add actRes when subject is in the one of targets
 		const res=s._result;
 		if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0) q.push(res.copy());
 	}
@@ -1712,7 +1715,15 @@ $aaaa$.invokeNormalAction=function(subject, target){
 	this._logWindow.displayActionResults(subject, realTarget, this._action);
 	return realTarget;
 };
-$aaaa$.invokeCounterAttack = function(subject, target){
+$r$=$aaaa$.invokeReflection=function(subject, target) {
+	this._action._reflectionTarget = target;
+	this._logWindow.displayReflection(target);
+	this._action.apply(subject);
+	this._logWindow.displayActionResults(target, subject, this._action);
+};
+$aaaa$.invokeMagicReflection=$r$;
+$aaaa$.invokePhysicReflection=$r$;
+$aaaa$.invokeCounterAttack=function(subject, target){
 	const action = new Game_Action(target);
 	action.setAttack();
 	action.apply(subject);
@@ -5356,8 +5367,8 @@ $pppp$.reserveActResQ=function(){
 	return q;
 };
 $pppp$.pushActResQ=function(actResRef){
-	let q=this.reserveActResQ();
-	if(q) q.push(actResRef.copy());
+	const q=this.reserveActResQ();
+	if(q){ q.push(actResRef.copy()); }
 };
 $pppp$.popActResQ=function(){
 	const q=this.reserveActResQ();
@@ -9742,6 +9753,9 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
+$pppp$.itemPrf=function(target){
+	return (this.isPhysical()) ? target.reflectPRate() : 0 ;
+};
 $pppp$.getSelfItemObj=function(obj){
 	const item=arguments.length?obj:this.item();
 	if(item){ const l=item.meta.self;
