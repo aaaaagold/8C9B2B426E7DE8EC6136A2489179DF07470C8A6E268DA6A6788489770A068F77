@@ -241,7 +241,9 @@
 	"cstp":"\\key'\"當前STP\"'",
 	"spaceout":"發呆",
 	"chrRepeatMaxMeet":"相同角色之數量已達上限",
-	"leaveTheParty":" leaves \\CODE'$gameParty.name()'",
+	"someLeaveTheParty":"一些隊員離開了隊伍",
+	"leaveTheParty":" 離開了 \\CODE'$gameParty.name()'",
+	"leaveTheParty_en":" leaves \\CODE'$gameParty.name()'",
 	"achievement":[
 		["name","method","comment","omit"],
 		["鳥人","從家裡窗戶跳出去\n(危險動作請勿在現實中模仿。如果你模仿了，那你也太蠢了吧)","我是一隻 小小小小鳥~"],
