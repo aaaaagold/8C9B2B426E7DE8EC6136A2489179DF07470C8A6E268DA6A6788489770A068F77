@@ -1696,8 +1696,7 @@ $d$.tmp=new Set();
 $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
 	let realTarget=t;
 	{ const rnd=Math.random();
-	if(rnd<this._action.itemPrf(t)) this.invokeReflection(realTarget=s,t);
-	else if(rnd<this._action.itemMrf(t)) this.invokeReflection(realTarget=s,t);
+	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
 	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
 	}
@@ -1724,7 +1723,7 @@ $r$=$aaaa$.invokeReflection=function(subject, target) {
 $aaaa$.invokeMagicReflection=$r$;
 $aaaa$.invokePhysicReflection=$r$;
 $aaaa$.invokeCounterAttack=function(subject, target){
-	const action = new Game_Action(target);
+	const action=new Game_Action(target);
 	action.setAttack();
 	action.apply(subject);
 	this._logWindow.displayCounter(target);
@@ -1761,7 +1760,10 @@ $d$=$aaaa$.endBattle=function f(res){
 		// btlr name don't accept escape methods
 		txts.push(arr[x].name().replace(f.re,"\\\\") + $dataCustom.leaveTheParty);
 	} }
-	while(txts.length) $gameMessage.add(txts.pop());
+	if(txts.length){
+		while(txts.length) $gameMessage.add(txts.pop(),1);
+		$gameMessage.add("\\MINOR\\-"+$dataCustom.someLeaveTheParty);
+	}
 	// too early to delete cache, however, need to remove them from party
 	delList.forEach(f.forEach,this);
 }; $d$.ori=$r$;
@@ -9753,6 +9755,9 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
         return target.isActor() && !target.isLearnedSkill(effect.dataId);
 };
 } // Game_Action.prototype.testItemEffect.tbl
+$pppp$.itemArf=function(target){
+	return target.reflectARate();
+};
 $pppp$.itemPrf=function(target){
 	return (this.isPhysical()) ? target.reflectPRate() : 0 ;
 };
@@ -13198,12 +13203,16 @@ $pppp$=$aaaa$=undef;
 // - Window_EquipSlot
 $aaaa$=Window_EquipSlot;
 $pppp$=$aaaa$.prototype;
-{ $tttt$=Window_ItemCategory.prototype;
-$pppp$.processTouch                = $tttt$.processTouch;
-$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+{ $t$=Window_ItemCategory.prototype;
+$k$='processTouch';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame_ws';
+$pppp$[$k$]=$t$[$k$];
 }
 $pppp$.onTouch=function(triggered){
+	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
 	const args=[];
 	if(this._itemWindow) args.push(this._itemWindow);
 	if(this._commandWindow) args.push(this._commandWindow);
@@ -13363,12 +13372,16 @@ $pppp$=$aaaa$=undef;
 // - Window_EquipItem
 $aaaa$=Window_EquipItem;
 $pppp$=$aaaa$.prototype;
-{ $tttt$=Window_ItemCategory.prototype;
-$pppp$.processTouch                = $tttt$.processTouch;
-$pppp$.processTouchOutsideFrame    = $tttt$.processTouchOutsideFrame;
-$pppp$.processTouchOutsideFrame_ws = $tttt$.processTouchOutsideFrame_ws;
+{ $t$=Window_ItemCategory.prototype;
+$k$='processTouch';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame';
+$pppp$[$k$]=$t$[$k$];
+$k$='processTouchOutsideFrame_ws';
+$pppp$[$k$]=$t$[$k$];
 }
 $pppp$.onTouch=function(triggered){
+	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
 	const args=[];
 	if(this._slotWindow) args.push(this._slotWindow);
 	if(this._commandWindow) args.push(this._commandWindow);

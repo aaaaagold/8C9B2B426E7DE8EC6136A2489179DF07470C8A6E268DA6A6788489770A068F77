@@ -79,6 +79,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		addEnum("DECDMG_M").
 		addEnum("MPSubstitute").
 		addEnum("TrgBattleEnd").
+		addEnum("REFLECT_A").
 		addEnum("REFLECT_P").
 		addEnum("__DUMMY") , d = x=>{ if(!x) return;
 		const meta=x.meta;
@@ -114,6 +115,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 				}break;
 				}
 			}
+		}
+		if(meta.rflA){ // +
+			const n=Number(meta.rflA)-0;
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.REFLECT_A,value:n});
 		}
 		if(meta.rflP){ // +
 			const n=Number(meta.rflP)-0;
@@ -498,6 +503,7 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("DECDMG_M").
 	addEnum("MPSubstitute").
 	addEnum("TrgBattleEnd").
+	addEnum("REFLECT_A").
 	addEnum("REFLECT_P").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
 $pppp$.isAbleToAutoRevive=function(){
@@ -505,6 +511,10 @@ $pppp$.isAbleToAutoRevive=function(){
 };
 $pppp$.isAlwaysSubstitute=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.MUST_SUBST) && this.canMove();
+};
+$pppp$.reflectARate=function(){
+	const code=gbb.TRAITS_CUSTOM,id=enums.REFLECT_A;
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_A);
 };
 $pppp$.reflectPRate=function(){
 	const code=gbb.TRAITS_CUSTOM,id=enums.REFLECT_P;
