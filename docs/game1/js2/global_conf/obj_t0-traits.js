@@ -539,7 +539,7 @@ $pppp$.reflectARate=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_A);
 };
 $pppp$.reflectPRate=function(){
-	return this.traitsSum(gbb.TRAITS_CUSTOM,id);
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_P);
 };
 $pppp$.noRecoverAll=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.NoRecoverAll);

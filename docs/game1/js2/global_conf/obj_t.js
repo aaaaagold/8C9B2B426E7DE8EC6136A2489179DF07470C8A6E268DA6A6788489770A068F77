@@ -1786,12 +1786,16 @@ $r$=$aaaa$.invokeReflection=function(subject, target) {
 };
 $aaaa$.invokeMagicReflection=$r$;
 $aaaa$.invokePhysicReflection=$r$;
-$aaaa$.invokeCounterAttack=function(subject, target){
-	const action=new Game_Action(target);
-	action.setAttack();
-	action.apply(subject);
-	this._logWindow.displayCounter(target);
-	this._logWindow.displayActionResults(target, subject, action);
+$aaaa$.invokeOtherAction=function(subject,target,dataobj,isDispCtrMsg){
+	if(!dataobj) return;
+	const action=new Game_Action(subject);
+	action.setItemObject(dataobj);
+	action.apply(target);
+	if(isDispCtrMsg) this._logWindow.displayCounter(target);
+	this._logWindow.displayActionResults(subject, target, action);
+};
+$aaaa$.invokeCounterAttack=function(oriS,oriT){
+	this.invokeOtherAction(oriT,oriS,$dataSkills[oriT.attackSkillId()],true);
 };
 $aaaa$.applySubstitute=function(target){
 	const unit=target.friendsUnit();
@@ -11593,7 +11597,7 @@ $d$.forEach.tbl={x:0,y:0};
 if(0)$pppp$.refresh=function(){
 	//SceneManager.addRefresh(this);
 };
-$pppp$.drawActorFace = function(actor, x, y, width, height) {
+$pppp$.drawActorFace=function(actor, x, y, width, height){
 	this.drawFace(actor.faceName(), actor.faceIndex(), x, y, width, height);
 	const iconw=Window_Base._iconHeight+1;
 	x+=Window_Base._faceWidth;
