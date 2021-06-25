@@ -81,6 +81,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		addEnum("TrgBattleEnd").
 		addEnum("REFLECT_A").
 		addEnum("REFLECT_P").
+		addEnum("NoRecoverAll").
 		addEnum("__DUMMY") , d = x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.escape){ // has, built-in code
@@ -91,8 +92,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.AUTOREVIVE,value:meta.revive});
 		}
 		if(meta.mustSubst){ // has
-			//x.traits.push({code:Game_BattlerBase.TRAIT_SPECIAL_FLAG.dataId:Game_BattlerBase.FLAG_ID_SUBSTITUTE,value:1});
 			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.MUST_SUBST,value:meta.mustSubst});
+		}
+		if(meta.noRecoverall){ // has
+			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.NoRecoverAll,value:meta.noRecoverall});
 		}
 		if(meta.atktimes_mul){ // *
 			const n=Number(meta.atktimes_mul);
@@ -505,20 +508,13 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("TrgBattleEnd").
 	addEnum("REFLECT_A").
 	addEnum("REFLECT_P").
+	addEnum("NoRecoverAll").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
 };
 $pppp$.isAlwaysSubstitute=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.MUST_SUBST) && this.canMove();
-};
-$pppp$.reflectARate=function(){
-	const code=gbb.TRAITS_CUSTOM,id=enums.REFLECT_A;
-	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_A);
-};
-$pppp$.reflectPRate=function(){
-	const code=gbb.TRAITS_CUSTOM,id=enums.REFLECT_P;
-	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_P);
 };
 $pppp$.attackTimesMul=function(){
 	return this.traitsPi(gbb.TRAITS_CUSTOM,enums.ATKTIMES_MUL);
@@ -538,6 +534,15 @@ $pppp$.MPSubstituteRate=function(){
 };
 $pppp$.TPRegenAtBattleEnd=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.TrgBattleEnd);
+};
+$pppp$.reflectARate=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_A);
+};
+$pppp$.reflectPRate=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,id);
+};
+$pppp$.noRecoverAll=function(){
+	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.NoRecoverAll);
 };
 }
 

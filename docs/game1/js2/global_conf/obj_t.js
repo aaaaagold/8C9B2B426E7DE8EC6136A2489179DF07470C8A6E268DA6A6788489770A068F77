@@ -947,6 +947,70 @@ $d$=$pppp$[$k$]=function f(colorCh,v,shax,shay){
 }; $d$.ori=$r$;
 $pppp$=$aaaa$=undef;
 
+// - Sprite_StateIcon
+$aaaa$=Sprite_StateIcon;
+$pppp$=$aaaa$.prototype;
+$k$='initMembers';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(){
+	f.ori.call(this);
+	this.createIconTurnSprite();
+}; $d$.ori=$r$;
+$d$=$pppp$.createIconTurnSprite=function f(){
+	if(this[f.tbl]) return;
+	const sp=this[f.tbl]=new Sprite();
+	this.addChild(sp);
+	const bm=sp.bitmap=new Bitmap;
+	bm.fontSize=16;
+	sp.alpha=0.875;
+	sp._lastIconTurn=undefined;
+};
+$t$=$d$.tbl='_iconTurnSprite';
+$d$=$pppp$.updateIconTurnSprite=function f(forced){
+	const sp=this[f.tbl]; if(!sp) return;
+	if(!forced && sp._lastIconTurn===this._iconTurn) return;
+	const it=sp._lastIconTurn=this._iconTurn;
+	const frm=this._frame;
+	const bm=sp.bitmap,width=frm.width,height=frm.height;
+	if(!bm._reCreateTextureIfNeeded(width,height)) bm.clear();
+	sp.anchor=this.anchor;
+	sp.setFrame(0,0,width,height);
+	if(it>=0) bm.drawText(it,1,height-20,width,20);
+};
+$d$.tbl=$t$;
+$pppp$.updateIcon=function f(){
+	const b=this._battler;
+	const stats=b.states_noSlice(); // [dataobj,...]
+	if(this._animationIndex<stats.length){ // state
+		const stat=stats[this._animationIndex++];
+		this._iconIndex=stat.iconIndex;
+		this._iconTurn=stat.autoRemovalTiming?b._stateTurns[stat.id]:undefined;
+	}else{ // buff
+		const arr=b._buffs;
+		let i=-1;
+		for(let cnt=stats.length,x=0;x!==arr.length;++x){
+			if(arr[x]){
+				if(this._animationIndex===cnt){
+					i=x; break;
+				}else ++cnt;
+			}
+		}
+		if(i<0){
+			this._animationIndex=0;
+			if(stats.length) f.call(this);
+			else{
+				this._iconIndex=0;
+				this._iconTurn=undefined;
+			}
+		}else{
+			this._iconIndex=b.buffIconIndex(arr[i],i);
+			this._iconTurn=b._buffTurns[i];
+		}
+	}
+	this.updateIconTurnSprite();
+};
+$pppp$=$aaaa$=undef;
+
 // - Sprite_Weapon
 $aaaa$=Sprite_Weapon;
 $pppp$=$aaaa$.prototype;
@@ -5227,6 +5291,7 @@ $d$.forEach=function(stateId){
 $k$='recoverAll';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(ignoreBuff){
+	if(this.noRecoverAll()) return;
 	if(ignoreBuff){
 		let arr=this._states.filter(f.forEach);
 		let steps={},turns={};
@@ -11541,6 +11606,34 @@ $pppp$.drawActorFace = function(actor, x, y, width, height) {
 		this.drawIcon($dataSkills[12].iconIndex,x,y);
 	}
 };
+$pppp$.drawActorIcons=function(actor, x, y, width){
+	width = width || 144;
+	const ty=y+2 , maxLen=~~(width / Window_Base._iconWidth) , stats=actor.states_noSlice() , fs=this.contents.fontSize ;
+	const fs2=(fs>>1)+(fs>>3)+(fs>>4);
+	let tx=x;
+	for(let i=0,sz=Math.min(maxLen,stats.length);i!==sz;++i){
+		const stat=stats[i]
+		this.drawIcon(stat.iconIndex, tx, ty);
+		if(stat.autoRemovalTiming){
+			this.setFontsize(fs2);
+			this.drawText(actor._stateTurns[stat.id],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),Window_Base._iconWidth);
+			this.setFontsize(fs);
+		}
+		tx+=Window_Base._iconWidth;
+	}
+	if(stats.length<maxLen){
+		const arr=actor._buffs;
+		for(let i=0,ti=stats.length;i!==arr.length && ti!==maxLen;++i){
+			if(arr[i]){
+				this.drawIcon(actor.buffIconIndex(arr[i],i), tx, ty);
+				this.drawText(actor._buffTurns[i],tx,ty,Window_Base._iconWidth);
+				tx+=Window_Base._iconWidth;
+				actor._buffTurns[i];
+				++ti;
+			}
+		}
+	}
+};
 $pppp$.drawActorStp=function(actor, x, y, width){
 	width = width || 186;
 	const color1 = this.stpGaugeColor1(),color2 = this.stpGaugeColor2();
@@ -11771,7 +11864,7 @@ $d$=$pppp$.processEscapeCharacter=function f(code, textState){
 		let res = f.re_iconloop.exec(textState.text.slice(textState.index));
 		if(!res) break;
 		textState.index += res[0].length;
-		res=JSON.parse(res[0]);
+		res=JSON.parse(res[1]+']');
 		if(!res.length) break;
 		if(res.length>1){
 			if(!this._iconloop) this._iconloop=[];
@@ -11809,7 +11902,7 @@ $d$=$pppp$.processEscapeCharacter=function f(code, textState){
 	}
 };
 $d$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
-$d$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*\])/;
+$d$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*),?\]/;
 $pppp$.calcTextHeight=function f(textState, all){
 	let textHeight = 0; // rtv
 	
