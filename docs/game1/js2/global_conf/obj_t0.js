@@ -2272,11 +2272,16 @@ $aaaa$.TARGET_ENUM_forAllFriends=12; // item,skill: meta.forAllFriends
 $aaaa$.TARGET_ENUM_forAliveBattler=++$aaaa$.TARGET_ENUM_MAX; // 13
 $aaaa$.TARGET_ENUM_forDeadBattler=++$aaaa$.TARGET_ENUM_MAX; // 14
 $aaaa$.TARGET_ENUM_forAllBattler=++$aaaa$.TARGET_ENUM_MAX; // 15
+$aaaa$.TARGET_ENUM_forAllFriend=++$aaaa$.TARGET_ENUM_MAX; // 16 // item,skill: meta.forAllFriends
 $dddd$=$aaaa$.prototype.isForOpponent=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([1, 2, 3, 4, 5, 6]);
 $dddd$=$aaaa$.prototype.isForAllFriend=function f(){
+	return this.item().scope===f.tbl;
+};
+$dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriend;
+$dddd$=$aaaa$.prototype.isForAllFriends=function f(){
 	return this.item().scope===f.tbl;
 };
 $dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriends;
@@ -2288,11 +2293,20 @@ $dddd$.tbl=new Set([
 	$aaaa$.TARGET_ENUM_forDeadBattler, 
 	$aaaa$.TARGET_ENUM_forAllBattler, 
 ]);
+$dddd$=$aaaa$.prototype.isDeadNotMatter=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([
+	$aaaa$.TARGET_ENUM_forAllFriends, 
+	$aaaa$.TARGET_ENUM_forAllBattler, 
+	$aaaa$.TARGET_ENUM_forAllFriend, 
+]);
 $dddd$=$aaaa$.prototype.isForFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([7, 8, 9, 10, 11,
 	$aaaa$.TARGET_ENUM_forAllFriends, 
+	$aaaa$.TARGET_ENUM_forAllFriend, 
 ]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
 $dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
 	return this.checkItemScope(f.tbl);
@@ -2305,7 +2319,9 @@ $dddd$.tbl=11;
 $dddd$=$aaaa$.prototype.isForOne=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([1, 3, 7, 9, 11]);
+$dddd$.tbl=new Set([1, 3, 7, 9, 11, 
+	$aaaa$.TARGET_ENUM_forAllFriend, 
+]);
 $dddd$=$aaaa$.prototype.isForRandom=function f(){
 	return this.checkItemScope(f.tbl);
 };
@@ -2314,8 +2330,13 @@ $dddd$=$aaaa$.prototype.isForAll=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([2, 8, 10, 
-	$aaaa$.TARGET_ENUM_forAllFriends, 
 ]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
+$dddd$=$aaaa$.prototype.needsSelection=function f(){
+	return this.checkItemScope(f.tbl);
+};
+$dddd$.tbl=new Set([1,7,9,
+	$aaaa$.TARGET_ENUM_forAllFriend,
+]);
 $dddd$=$aaaa$.prototype.isHpEffect=function f(){
 	return this.checkDamageType(f.tbl);
 };

@@ -63,4 +63,32 @@ list.newMyself_battle=action=>action._subjectActorId.toId()>0?list.newMyself_act
 list.newMyself_battle_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true,true):list.newMyself_enemy(action,true,true);
 list.newMyself_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,undefined,true):list.newMyself_enemy(action,undefined,true);
 
+list.deleteSummoned=(action,filter)=>{
+	const subject=action.subject();
+	{ const sc=SceneManager._scene; if(sc && sc.constructor===Scene_Skill){
+		return sc.itemTargetActors().forEach(actor=>actor&&(!filter||filter(actor,subject))&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+	} }
+	const aid=$gameParty._acs[action._targetIndex];
+	const a=$gameActors.actor(aid);
+	if( a && (!filter||filter(a,subject)) ){
+		$gameActors.destroy(aid);
+		$gameParty.removeActor(aid,action._targetIndex);
+	}
+};
+const newSummoned=(act,argv)=>{
+	const rtv=rpgevts.list.addClone(false,argv);
+	if(rtv){ const subject=act.subject();
+		rtv._hp=subject._level^0||1;
+		rtv._mp=rtv.mmp;
+		$gameMessage.popup("新增了1個\\key'$dataActors[" + argv[0] + "].name'",true);
+		return rtv;
+	}
+	SoundManager.playBuzzer();
+	$gameMessage.popup($dataCustom.chrRepeatMaxMeet,true);
+};
+const newSummoned_Skull_argv=[55,true,true];
+list.newSummoned_Skull=action=>newSummoned(action,newSummoned_Skull_argv);
+const newSummoned_Specter_argv=[56,true,true];
+list.newSummoned_Specter=action=>newSummoned(action,newSummoned_Specter_argv);
+
 })();
