@@ -616,6 +616,13 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 	};
 	
 	w.Map.prototype.contains=w.Map.prototype.has;
+	w.Map.prototype.equals=function(rhs,keyOnly){
+		if(!rhs||rhs.constructor!==this.constructor||this.size!==rhs.size) return false;
+		let rtv=true;
+		if(keyOnly) this.forEach((v,k)=>rtv=rtv&&rhs.has(k));
+		else this.forEach((v,k)=>rtv=rtv&&rhs.get(k)===v);
+		return rtv;
+	};
 	
 	w.Date.prototype.tostrUTC=function(){
 		let o=this,ms=""+this.getUTCMilliseconds();

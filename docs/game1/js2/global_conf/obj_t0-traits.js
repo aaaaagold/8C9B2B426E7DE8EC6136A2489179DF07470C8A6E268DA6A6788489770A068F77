@@ -232,7 +232,16 @@ $dddd$=$pppp$.arrangeData=function f(){
 	}
 	
 	// sorting order
-	{ const arr=$dataCustom.skillOrder.flat(),c2=arr.length.ceilPow2();
+	{ const arr=$dataCustom.stateOrder.filter(x=>x&&x.constructor===Array).flat(),c2=arr.length.ceilPow2();
+	f.doForEach($dataStates,x=>{ if(!x) return;
+		const meta=x.meta;
+		if(!meta) return x.ord=-1;
+		let ord=0;
+		// ...
+		x.ord=ord*c2;
+	});
+	arr.forEach((x,i)=>$dataStates[x]&&($dataStates[x].ord|=i)); }
+	{ const arr=$dataCustom.skillOrder.filter(x=>x&&x.constructor===Array).flat(),c2=arr.length.ceilPow2();
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
@@ -352,8 +361,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataSkills,f.extendRepeats);
 	
 	// extend description
-	f.doForEach($dataItems,f.extendDescription);
-	f.doForEach($dataSkills,f.extendDescription);
+	f.doForEach($dataItems,f.extendDescription_i);
+	f.doForEach($dataSkills,f.extendDescription_i);
+	f.doForEach($dataArmors,f.extendDescription_e);
+	f.doForEach($dataWeapons,f.extendDescription_e);
 	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
@@ -380,7 +391,19 @@ $dddd$=$pppp$.arrangeData=function f(){
 	});
 };
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
-$dddd$.extendDescription=dataobj=>{
+$dddd$.extendDescription_e=dataobj=>{
+	const arr=dataobj.params , txt=$dataSystem.terms.params;
+	let ext='';
+	for(let x=0;x!==8;++x){ if(arr[x]){
+		ext+='['+txt[x]+":"+arr[x]+']';
+	} }
+	if(ext){
+		let tmp=dataobj.description.match(/\n/g); tmp=tmp&&tmp.length;
+		while(++tmp<3) dataobj.description+='\n';
+		dataobj.description+=ext;
+	}
+};
+$dddd$.extendDescription_i=dataobj=>{
 	const ie=$dataCustom.itemEffect,dmg=dataobj.damage;
 	const infos=[],tmpkeys=[];
 	let k,ext='';
