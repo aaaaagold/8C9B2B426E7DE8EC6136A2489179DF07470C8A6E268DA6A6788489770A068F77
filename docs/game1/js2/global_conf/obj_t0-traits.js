@@ -67,6 +67,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.pdv);
 		arr.push(texts.mdv);
 		arr.push(texts.mps);
+		arr.push(texts.arhr);
+		arr.push(texts.arhv);
+		arr.push(texts.armr);
+		arr.push(texts.armv);
 	}
 	
 	// custom traits // Game_BattlerBase.TRAITS_CUSTOM
@@ -82,6 +86,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		addEnum("REFLECT_A").
 		addEnum("REFLECT_P").
 		addEnum("NoRecoverAll").
+		addEnum("HitRecHpR").
+		addEnum("HitRecHpV").
+		addEnum("HitRecMpR").
+		addEnum("HitRecMpV").
 		addEnum("__DUMMY") , d = x=>{ if(!x) return;
 		const meta=x.meta;
 		if(meta.escape){ // has, built-in code
@@ -126,6 +134,22 @@ $dddd$=$pppp$.arrangeData=function f(){
 		if(meta.rflP){ // +
 			const n=Number(meta.rflP)-0;
 			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.REFLECT_P,value:n});
+		}
+		if(meta.hitRecHpR){ // +
+			const n=Number(meta.hitRecHpR)-0;
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecHpR,value:n});
+		}
+		if(meta.hitRecHpV){ // +
+			const n=Number(meta.hitRecHpV)-0;
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecHpV,value:n});
+		}
+		if(meta.hitRecMpR){ // +
+			const n=Number(meta.hitRecMpR)-0;
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecMpR,value:n});
+		}
+		if(meta.hitRecMpV){ // +
+			const n=Number(meta.hitRecMpV)-0;
+			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecMpV,value:n});
 		}
 		if(meta.MPSubst){ // 1-*
 			let n=meta.MPSubst===true?0:(1-meta.MPSubst||1);
@@ -285,6 +309,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataStates,f.makeTraitsMap);
 	f.doForEach($dataWeapons,f.makeTraitsMap);
 	
+	// effect, func && code
+	f.doForEach($dataItems,f.makeEffectFuncCode);
+	f.doForEach($dataSkills,f.makeEffectFuncCode);
+	
 	// make def, spaceout much faster
 	if(!$dataSkills.speedUp){
 		$dataSkills.speedUp=true;
@@ -311,7 +339,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 	//f.doForEach($dataStates,f.makeUnionCnt); // TODO
 	f.doForEach($dataWeapons,f.makeUnionCnt);
 	
-	// forAllFriends
+	// forAllFriend / forAllFriends
 	f.doForEach($dataItems,f.makeForAllFriends);
 	f.doForEach($dataSkills,f.makeForAllFriends);
 	
@@ -353,20 +381,20 @@ $dddd$=$pppp$.arrangeData=function f(){
 };
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
 $dddd$.extendDescription=dataobj=>{
-	const ie=$dataCustom.itemEffect;
+	const ie=$dataCustom.itemEffect,dmg=dataobj.damage;
 	const infos=[],tmpkeys=[];
 	let k,ext='';
 	k='repeats';	if(dataobj.scope) infos.push(k);
 	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
 	k='scope';	if(dataobj[k]!==0) infos.push(k);
 	if(dataobj.scope && dataobj.damage.type){
-		const dmg=dataobj.damage;
+		k='hitType';	infos.push(k);
 		k='dmgEle';	tmpkeys.push(k);	dataobj[k]=dmg.elementId;	infos.push(k);
 		k='dmgType';	tmpkeys.push(k);	dataobj[k]=dmg.type;	infos.push(k);
 		k='dmgCrit';	tmpkeys.push(k);	dataobj[k]=dmg.critical|0;	infos.push(k);
 		k='dmgFormula';	tmpkeys.push(k);	dataobj[k]=dmg.formula;	infos.push(k);
 	}
-	infos.forEach(k=>{ if(k && k[0]!=="_"){ if(!ie[k]) return;
+	infos.forEach(k=>{ if(k && k[0]!=="_"){
 		if(k==='dmgEle'){ const eid=dmg.elementId;
 			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid])+']';
 		}else if(ie[k].constructor!==String) ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]]+']';
@@ -383,6 +411,17 @@ $dddd$.extendRepeats=dataobj=>{
 	const n=Number(dataobj.meta.repeat_mul);
 	if(!isNaN(n)) dataobj.repeats *= n;
 };
+{ const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
+$dddd$.makeEffectFuncCode=dataobj=>{
+	const effs=dataobj.effects;
+	const meta=dataobj.meta;
+	if(effs&&meta){
+		const a=Game_Action;
+		const func=meta[mF]; if(func) effs.push({code:a[kF],func:func});
+		const code=meta[mC]; if(code) effs.push({code:a[kC],func:code});
+	}
+};
+}
 { const tbl={
 	alive:Game_Action.TARGET_ENUM_forAliveBattler,
 	dead:Game_Action.TARGET_ENUM_forDeadBattler,
@@ -391,7 +430,10 @@ $dddd$.extendRepeats=dataobj=>{
 	const n=tbl[dataobj.meta.forBattler];
 	if(n) dataobj.scope=n;
 }; }
-$dddd$.makeForAllFriends=dataobj=>dataobj.meta.forAllFriends&&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriends);
+$dddd$.makeForAllFriends=dataobj=>{
+	dataobj.meta.forAllFriend &&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriend );
+	dataobj.meta.forAllFriends&&(dataobj.scope=Game_Action.TARGET_ENUM_forAllFriends);
+};
 $dddd$.makeMaxStack=dataobj=>{
 	const m=Number(dataobj.meta.maxStack);
 	dataobj.maxStack=m>=0?m:undefined;
@@ -509,6 +551,10 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("REFLECT_A").
 	addEnum("REFLECT_P").
 	addEnum("NoRecoverAll").
+	addEnum("HitRecHpR").
+	addEnum("HitRecHpV").
+	addEnum("HitRecMpR").
+	addEnum("HitRecMpV").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
@@ -543,6 +589,18 @@ $pppp$.reflectPRate=function(){
 };
 $pppp$.noRecoverAll=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.NoRecoverAll);
+};
+$pppp$.hitRecHpR=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecHpR);
+};
+$pppp$.hitRecHpV=function(){
+	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecHpV);
+};
+$pppp$.hitRecMpR=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecMpR);
+};
+$pppp$.hitRecMpV=function(){
+	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecMpV);
 };
 }
 
