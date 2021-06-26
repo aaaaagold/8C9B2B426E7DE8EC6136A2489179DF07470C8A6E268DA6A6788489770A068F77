@@ -42,7 +42,7 @@
 		"questMgr":"在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.questMgr'",
 		"noteAppMgr": "在\\key'$dataCustom.apps'中新增了\\key'$dataCustom.noteAppMgr'",
 		"_noteApp_canExec": "新增\\key'$dataCustom.apps'中\\key'$dataCustom.noteApp_exec'",
-		"":0
+		"":""
 	},
 	"opts_gainHint": "物品得失提示及升級提示設定",
 		"noGainMsg": "不在對話窗中顯示得到與失去物品或金錢",
@@ -94,9 +94,9 @@
 		"target":{
 			"e":"敵人",
 			"a":"隊友",
-			"":0
+			"":""
 		},
-		"":0
+		"":""
 	},
 	"optSave":{
 		"name":"調整存檔",
@@ -105,32 +105,33 @@
 		"dl_b64":"下載存檔 (Base64)",
 		"dl_bin":"下載存檔 (Binary)",
 		"delSave":"刪除存檔",
-		"":0
+		"":""
 	},
 	"feedback":"遊戲回饋或建議",
 	"copyTitle":"複製遊戲名稱",
 	"flwingMsgs":{
 		"yes":"隊友跟隨中",
 		"no":"隊友滯留中",
-		"":0
+		"":""
 	},
 	"useEscToExit": "使用ESC退出",
 	"useEscOrClickHereToExit": "使用ESC或按此以退出",
 	"toDust": "\\key'\"可燃物\"'化成灰了",
 	"textcolor":{
-		"use": "#AA77FF",
-		"gain": "#77AAFF",
-		"lose": "#FFAA77",
-		"skill": "#FFFFAA",
-		"item": "#FFFFAA",
-		"weapon": "#FFAAFF",
-		"armor": "#AAFFFF",
-		"code": "#AAAAAA",
-		"quest": "#77FFAA",
-		"finish": "#AAAAFF",
-		"achievement": "#77FF77",
-		"keyword": "#FFFF77",
-		"default": "#FFFFFF",
+		"actor":	"#7777FF",
+		"gain": 	"#77AAFF",
+		"achievement":	"#77FF77",
+		"quest":	"#77FFAA",
+		"use":  	"#AA77FF",
+		"code": 	"#AAAAAA",
+		"finish":	"#AAAAFF",
+		"armor":	"#AAFFFF",
+		"lose": 	"#FFAA77",
+		"weapon":	"#FFAAFF",
+		"item": 	"#FFFFAA",
+		"skill":	"#FFFFAA",
+		"keyword":	"#FFFF77",
+		"default":	"#FFFFFF",
 		"__dummy": 0
 	},
 	"currExp":"累積經驗值",
@@ -139,7 +140,7 @@
 	"canEqu":"可裝備者",
 	"itemEffect":{
 		"_placeholder":"%%",
-		"tpGain":"命中恢復TP:%%/擊",
+		"tpGain":"恢復TP:%%/擊",
 		"speed":"速度+:%%",
 		"repeats":"次數:%%",
 		"scope_txt":"對象:",
@@ -160,30 +161,38 @@
 			"全(未倒)",
 			"全(倒下)",
 			"全",
-			0
+			"1友",
+			""
+		],
+		"hitType_txt":"效果:",
+		"hitType":[
+			"特殊",
+			"物理",
+			"魔法",
+			""
 		],
 		"dmgEle_txt":"屬性:",
 		"dmgEleSpecial_comment":"反序,id為負",
 		"dmgEleSpecial":[
 			"無",
 			"依普攻",
-			0
+			""
 		],
-		"dmgType_txt":"作用:",
+		"dmgType_txt":"傷害:",
 		"dmgType":[
-			0,
+			"N/A",
 			"HP傷害",
 			"MP傷害",
 			"HP恢復",
 			"MP恢復",
 			"HP吸收",
 			"MP吸收",
-			0
+			""
 		],
 		"dmgCrit_txt":"爆擊:",
 		"dmgCrit":["否","是"],
 		"dmgFormula":"公式:%%",
-		"":0
+		"":""
 	},
 	"params":{
 		"exr":"經驗倍率",
@@ -202,10 +211,10 @@
 		"pha":"藥劑熟練度",
 		"mcr":"MP消耗率",
 		"tcr":"TP補充率",
-		"pdr":"受物理傷害倍率",
-		"mdr":"受魔法傷害倍率",
+		"pdr":"受物理效果傷害倍率",
+		"mdr":"受魔法效果傷害倍率",
 		"tbe":"戰後恢復TP值",
-		"akr":"物品以外效果次數倍率",
+		"akr":"物品以外套用目標次數倍率",
 		"rhp":"HP倍率",
 		"rmp":"MP倍率",
 		"rap":"攻擊力倍率",
@@ -214,19 +223,19 @@
 		"rdm":"魔法防禦力倍率",
 		"rag":"敏捷倍率",
 		"rlu":"幸運倍率",
-		"pdv":"最後物理傷害減少值",
-		"mdv":"最後魔法傷害減少值",
+		"pdv":"最後物理效果傷害減少值",
+		"mdv":"最後魔法效果傷害減少值",
 		"mps":"MP替代HP傷害比例",
-		"arhr":"攻擊恢復HP依傷害比例",
-		"arhv":"攻擊恢復HP固定值",
-		"armr":"攻擊恢復MP依傷害比例",
-		"armv":"攻擊恢復MP固定值",
-		"":0
+		"arhr":"攻擊時恢復HP(傷害比)",
+		"arhv":"攻擊時恢復HP(固定值)",
+		"armr":"攻擊時恢復MP(傷害比)",
+		"armv":"攻擊時恢復MP(固定值)",
+		"":""
 	},
 	"miniGames":{
 		"party":"團結力量大",
 		"tree":"焚木小遊戲",
-		"":0
+		"":""
 	},
 	"battle":{
 		"you":"你",
@@ -234,6 +243,11 @@
 		"allGuard":"全員防禦",
 		"allSpaceout":"全員發呆",
 		"viewLog":"檢視訊息紀錄",
+		"":""
+	},
+	"icon":{
+		"leaveAtBattleEnd":82,
+		"isClone":75,
 		"":0
 	},
 	"stp":"STP",
