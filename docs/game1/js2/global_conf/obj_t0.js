@@ -2110,13 +2110,12 @@ $aaaa$.prototype._setBitmap_args=function(){
 		if(data.anchory!==undefined) this.anchor.y=Number(data.anchory);
 		let tmp;
 		if(tmp=r._getColorEdt()){ rtv.color=tmp; hasSth=true; }
-		if(tmp=r._getScaleEdt()){
-			// rtv.scale=tmp; hasSth=true;
-			tmp=this.scale.x=this.scale.y=Number(tmp)||1;
-			if(this._txtSprite){
-				const s=this._txtSprite.scale;
-				s.x=s.y=1/tmp;
-			}
+		tmp=r._getScaleEdt();
+		// rtv.scale=tmp; hasSth=true;
+		tmp=this.scale.x=this.scale.y=Number(tmp)||1;
+		if(this._txtSprite){
+			const s=this._txtSprite.scale;
+			s.x=s.y=1/tmp;
 		}
 	}
 	return hasSth&&rtv;

@@ -979,14 +979,18 @@ $d$=$pppp$.createIconTurnSprite=function f(){
 $t$=$d$.tbl='_iconTurnSprite';
 $d$=$pppp$.updateIconTurnSprite=function f(forced){
 	const sp=this[f.tbl]; if(!sp) return;
-	if(!forced && sp._lastIconTurn===this._iconTurn) return;
+	if(!forced && sp._lastIconTurn===this._iconTurn && sp._lastIconStack===this._iconStack) return;
 	const it=sp._lastIconTurn=this._iconTurn;
+	const ik=sp._lastIconStack=this._iconStack;
 	const frm=this._frame;
 	const bm=sp.bitmap,width=frm.width,height=frm.height;
 	if(!bm._reCreateTextureIfNeeded(width,height)) bm.clear();
 	sp.anchor=this.anchor;
 	sp.setFrame(0,0,width,height);
-	if(it>=0) bm.drawText(it,1,height-20,width,20);
+	if(it>=0){
+		if(ik) bm.drawText('x'+ik,1,1,width,20,'right');
+		bm.drawText(it,1,height-20,width,20);
+	}
 };
 $d$.tbl=$t$;
 $pppp$.updateIcon=function f(){
@@ -995,6 +999,7 @@ $pppp$.updateIcon=function f(){
 	if(this._animationIndex<stats.length){ // state
 		const stat=stats[this._animationIndex++];
 		this._iconIndex=stat.iconIndex;
+		this._iconStack=0;
 		this._iconTurn=stat.autoRemovalTiming?b._stateTurns[stat.id]:undefined;
 	}else{ // buff
 		const arr=b._buffs;
@@ -1011,10 +1016,12 @@ $pppp$.updateIcon=function f(){
 			if(stats.length) f.call(this);
 			else{
 				this._iconIndex=0;
+				this._iconStack=0;
 				this._iconTurn=undefined;
 			}
 		}else{
 			this._iconIndex=b.buffIconIndex(arr[i],i);
+			this._iconStack=arr[i];
 			this._iconTurn=b._buffTurns[i];
 		}
 	}
@@ -4884,6 +4891,8 @@ Object.defineProperties($aaaa$.prototype, {
 	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
 });
 
+$pppp$.isMaxBuffAffected=none;
+$pppp$.isMaxDebuffAffected=none;
 $d$=$pppp$.updateStateTurns=function f(){
 	this._states.forEach(f.forEach, this._stateTurns);
 };
@@ -5023,6 +5032,14 @@ $pppp$.stateIcons=function(rtv){
 	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) icons.push(arr[x].iconIndex);
 	return icons;
 };
+$pppp$.buffIconIndex=function(buffLv, parId){
+	return buffLv?
+		(buffLv>0?
+			Game_BattlerBase.ICON_BUFF_START + ((buffLv>3)<<3) :
+			Game_BattlerBase.ICON_DEBUFF_START + ((-buffLv<3)<<3)
+		)+parId:
+		0;
+}
 $pppp$.buffIcons=function(rtv){
 	const icons=rtv||[] , arr=this._buffs;
 	for(let x=0;x!==arr.length;++x)
@@ -5232,7 +5249,8 @@ $pppp$.param=function(paramId){
 		case 36: return this.decreaseDamageP();
 		case 37: return this.decreaseDamageM();
 		}
-		return this.paramRate(paramId-28);
+		const id=paramId-28;
+		return this.paramRate(id)*this.paramBuffRate(id);
 	break;
 	case 5:
 		switch(paramId){
@@ -11664,7 +11682,7 @@ $pppp$.drawActorFace=function(actor, x, y, width, height){
 $pppp$.drawActorIcons=function(actor, x, y, width){
 	width = width || 144;
 	const ty=y+2 , maxLen=~~(width / Window_Base._iconWidth) , stats=actor.states_noSlice() , fs=this.contents.fontSize ;
-	const fs2=(fs>>1)+(fs>>3)+(fs>>4);
+	const fs2=(fs>>1)+(fs>>3)+(fs>>4),w_4=(Window_Base._iconWidth>>2),w_4_3=(Window_Base._iconWidth>>1)+(Window_Base._iconWidth>>2);
 	let tx=x;
 	for(let i=0,sz=Math.min(maxLen,stats.length);i!==sz;++i){
 		const stat=stats[i]
@@ -11681,9 +11699,11 @@ $pppp$.drawActorIcons=function(actor, x, y, width){
 		for(let i=0,ti=stats.length;i!==arr.length && ti!==maxLen;++i){
 			if(arr[i]){
 				this.drawIcon(actor.buffIconIndex(arr[i],i), tx, ty);
-				this.drawText(actor._buffTurns[i],tx,ty,Window_Base._iconWidth);
+				this.setFontsize(fs2);
+				this.drawText('x'+arr[i],tx+w_4,ty-2,w_4_3,'right');
+				this.drawText(actor._buffTurns[i],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),w_4_3);
+				this.setFontsize(fs);
 				tx+=Window_Base._iconWidth;
-				actor._buffTurns[i];
 				++ti;
 			}
 		}
