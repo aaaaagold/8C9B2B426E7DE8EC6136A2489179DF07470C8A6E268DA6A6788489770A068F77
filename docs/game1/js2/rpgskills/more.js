@@ -63,17 +63,20 @@ list.newMyself_battle=action=>action._subjectActorId.toId()>0?list.newMyself_act
 list.newMyself_battle_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true,true):list.newMyself_enemy(action,true,true);
 list.newMyself_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,undefined,true):list.newMyself_enemy(action,undefined,true);
 
-list.deleteSummoned=(action,filter)=>{
+list.deleteSummoned=(action,trgt)=>{
 	const subject=action.subject();
+	if(subject.friendsUnit()!==trgt.friendsUnit()) return;
 	{ const sc=SceneManager._scene; if(sc && sc.constructor===Scene_Skill){
-		return sc.itemTargetActors().forEach(actor=>actor&&(!filter||filter(actor,subject))&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+		return sc.itemTargetActors().forEach(actor=>actor&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
 	} }
-	const aid=$gameParty._acs[action._targetIndex];
-	const a=$gameActors.actor(aid);
-	if( a && (!filter||filter(a,subject)) ){
-		$gameActors.destroy(aid);
-		$gameParty.removeActor(aid,action._targetIndex);
-	}
+	if(trgt.constructor===Game_Actor){
+		const aid=trgt.actorId();
+		const a=$gameActors.actor(aid); if(a){
+			const m=$gameTemp._pt_battleMembers_actor2idx;
+			$gameParty.removeActor(aid,m&&m.get(a));
+			$gameActors.destroy(aid);
+		}
+	}else trgt.escape();
 };
 const newSummoned=(act,argv)=>{
 	const rtv=rpgevts.list.addClone(false,argv);
