@@ -2030,7 +2030,7 @@ $d$=$pppp$.create=function f(){
 //		w.setFontsize((tmp>>1)+(tmp>>3));
 		{
 			const oh=w.height;
-			w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
+			//w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
 			const dh=w.height-oh;
 			this._statusWindow.y+=dh;
 			this._statusWindow.height-=dh;
@@ -13347,13 +13347,7 @@ $pppp$.refresh_do=function(){
 $pppp$.refresh=function(){
 	SceneManager.addRefresh(this);
 };
-$pppp$=$aaaa$=undef;
-
-// - Window_EquipCommand
-$aaaa$=Window_EquipCommand;
-$pppp$=$aaaa$.prototype;
-makeDummyWindowProto($aaaa$,true,true);
-$pppp$.cursorLeft=function(trig){
+$pppp$._cursorLeft=function(trig){
 	const w=this._statusWindow;
 	if(w){
 		let ch=false;
@@ -13363,7 +13357,7 @@ $pppp$.cursorLeft=function(trig){
 		w.refresh(); // so that players can refresh themselves
 	}
 };
-$pppp$.cursorRight=function(trig){
+$pppp$._cursorRight=function(trig){
 	const w=this._statusWindow;
 	if(w){
 		let ch=false;
@@ -13374,6 +13368,18 @@ $pppp$.cursorRight=function(trig){
 		w.refresh(); // so that players can refresh themselves
 	}
 };
+$pppp$=$aaaa$=undef;
+
+// - Window_EquipCommand
+$aaaa$=Window_EquipCommand;
+$pppp$=$aaaa$.prototype;
+makeDummyWindowProto($aaaa$,true,true);
+{ $t$=Window_EquipStatus.prototype;
+$k$='cursorLeft';
+$pppp$[$k$]=$t$["_"+$k$];
+$k$='cursorRight';
+$pppp$[$k$]=$t$["_"+$k$];
+}
 $pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
 $pppp$.processTouchOutsideFrame=Window_ItemCategory.prototype.processTouchOutsideFrame;
 $pppp$.onTouch=function(triggered){
@@ -13394,6 +13400,12 @@ $k$='processTouchOutsideFrame';
 $pppp$[$k$]=$t$[$k$];
 $k$='processTouchOutsideFrame_ws';
 $pppp$[$k$]=$t$[$k$];
+}
+{ $t$=Window_EquipStatus.prototype;
+$k$='cursorLeft';
+$pppp$[$k$]=$t$["_"+$k$];
+$k$='cursorRight';
+$pppp$[$k$]=$t$["_"+$k$];
 }
 $pppp$.onTouch=function(triggered){
 	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
@@ -13564,6 +13576,12 @@ $pppp$[$k$]=$t$[$k$];
 $k$='processTouchOutsideFrame_ws';
 $pppp$[$k$]=$t$[$k$];
 }
+{ $t$=Window_EquipStatus.prototype;
+$k$='cursorLeft';
+$pppp$[$k$]=$t$["_"+$k$];
+$k$='cursorRight';
+$pppp$[$k$]=$t$["_"+$k$];
+}
 $pppp$.onTouch=function(triggered){
 	this.touchLfRhArrowsLfRh(triggered,this._statusWindow);
 	const args=[];
@@ -13611,31 +13629,34 @@ $d$=$pppp$.makeItemList=function f(){
 	if(this._data){
 		const arr=this._data;
 		if( arr.a===this._actor && arr.s===this._slotId ){
+			const gbb=Game_BattlerBase; const m=arr.a.traitSet(arr.s===1?gbb.TRAIT_EQUIP_WTYPE:gbb.TRAIT_EQUIP_ETYPE);
 			const oldItem=this.item(),newItem=this._newUnEquip; this._newUnEquip=null;
 			if(newItem===oldItem) return; // result unchaged
-			if(newItem && $gameParty.numItems(newItem)===1){
-				if(arr.length && arr.back===null){
-					arr.back=newItem;
-					if(oldItem && $gameParty.numItems(oldItem)===0){
-						const idx=arr.indexOf(oldItem);
-						if(idx!==-1) arr[idx]=arr.pop();
+			if(m.equals(arr.m)){
+				if(newItem && $gameParty.numItems(newItem)===1){
+					if(arr.length && arr.back===null){
+						arr.back=newItem;
+						if(oldItem && $gameParty.numItems(oldItem)===0){
+							const idx=arr.indexOf(oldItem);
+							if(idx!==-1) arr[idx]=arr.pop();
+						}
+						arr.sort(DataManager.sortCmp);
+						arr.push(null);
+					}else{
+						arr.push(newItem);
+						if(oldItem && $gameParty.numItems(oldItem)===0){
+							const idx=arr.indexOf(oldItem);
+							if(idx!==-1) arr[idx]=arr.pop();
+						}
+						arr.sort(DataManager.sortCmp);
 					}
-					arr.sort(DataManager.sortCmp);
-					arr.push(null);
 				}else{
-					arr.push(newItem);
-					if(oldItem && $gameParty.numItems(oldItem)===0){
-						const idx=arr.indexOf(oldItem);
-						if(idx!==-1) arr[idx]=arr.pop();
-					}
-					arr.sort(DataManager.sortCmp);
+					// same (actor,slot) and no new item
+					// usually only 1 #(obj) become 0
+					for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
 				}
-			}else{
-				// same (actor,slot) and no new item
-				// usually only 1 #(obj) become 0
-				for(let x=arr.length;x--;) if(arr[x] && !$gameParty.numItems(arr[x])) arr.splice(x,1);
-			}
-			return;
+				return;
+			}else arr.m=new Map(m);
 		}
 	}
 	const etype=this._actor.equipSlots()[this._slotId];
