@@ -2329,6 +2329,7 @@ $dddd$=$aaaa$.prototype.isForAll=function f(){
 	return this.checkItemScope(f.tbl);
 };
 $dddd$.tbl=new Set([2, 8, 10, 
+	$aaaa$.TARGET_ENUM_forAllFriends, 
 ]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
 $dddd$=$aaaa$.prototype.needsSelection=function f(){
 	return this.checkItemScope(f.tbl);

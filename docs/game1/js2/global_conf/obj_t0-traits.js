@@ -232,7 +232,16 @@ $dddd$=$pppp$.arrangeData=function f(){
 	}
 	
 	// sorting order
-	{ const arr=$dataCustom.skillOrder.flat(),c2=arr.length.ceilPow2();
+	{ const arr=$dataCustom.stateOrder.filter(x=>x&&x.constructor===Array).flat(),c2=arr.length.ceilPow2();
+	f.doForEach($dataStates,x=>{ if(!x) return;
+		const meta=x.meta;
+		if(!meta) return x.ord=-1;
+		let ord=0;
+		// ...
+		x.ord=ord*c2;
+	});
+	arr.forEach((x,i)=>$dataStates[x]&&($dataStates[x].ord|=i)); }
+	{ const arr=$dataCustom.skillOrder.filter(x=>x&&x.constructor===Array).flat(),c2=arr.length.ceilPow2();
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;

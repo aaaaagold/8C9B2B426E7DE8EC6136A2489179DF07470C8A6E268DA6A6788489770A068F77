@@ -4998,12 +4998,15 @@ $d$=$pppp$.sortStates=function f(){
 };
 $d$.cmp=[
 	(a, b)=>{
-	        const pa=$dataStates[a].priority , pb=$dataStates[b].priority;
-		return (pa===pb)?(a - b):(pb - pa);
+		const sa=$dataStates[a] , sb=$dataStates[b];
+		//const pa=sa.priority , pb=sb.priority;
+		//return (pa===pb)?(sa.ord-sb.ord||a - b):(pb - pa);
+		return sb.priority-sa.priority||sa.ord-sb.ord||a-b;
 	},
-	(a,b)=>{
-	        const pa=a.priority , pb=b.priority;
-		return (pa===pb)?(a.id - b.id):(pb - pa);
+	(sa,sb)=>{
+		//const pa=sa.priority , pb=sb.priority;
+		//return (pa===pb)?(sa.ord-sb.ord||sa.id - sb.id):(pb - pa);
+		return sb.priority-sa.priority||sa.ord-sb.ord||sa.id-sb.id;
 	},
 ];
 $pppp$.restriction=function(){
@@ -10568,6 +10571,9 @@ $pppp$.equipSlots=function f(){
 	}
 	return rtv;
 };
+$pppp$.isWeaponSlot=function(slotId){ // etype starts from 1 ; slotId starts from 0
+	return slotId===1?this.isDualWield():!slotId;
+};
 $d$=$pppp$._equips_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
@@ -13629,10 +13635,10 @@ $d$=$pppp$.makeItemList=function f(){
 	if(this._data){
 		const arr=this._data;
 		if( arr.a===this._actor && arr.s===this._slotId ){
-			const gbb=Game_BattlerBase; const m=arr.a.traitSet(arr.s===1?gbb.TRAIT_EQUIP_WTYPE:gbb.TRAIT_EQUIP_ETYPE);
+			const gbb=Game_BattlerBase; const m=arr.a.traitsSet(arr.a.isWeaponSlot(arr.s)?gbb.TRAIT_EQUIP_WTYPE:gbb.TRAIT_EQUIP_ETYPE);
 			const oldItem=this.item(),newItem=this._newUnEquip; this._newUnEquip=null;
 			if(newItem===oldItem) return; // result unchaged
-			if(m.equals(arr.m)){
+			if(m&&m.equals(arr.m,true)){
 				if(newItem && $gameParty.numItems(newItem)===1){
 					if(arr.length && arr.back===null){
 						arr.back=newItem;
