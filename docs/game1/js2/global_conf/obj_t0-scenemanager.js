@@ -128,6 +128,9 @@ $dddd$.forEach=sp=>sp.refresh_do();
 $aaaa$.addRefresh=function(sp){
 	this._scene._needRefreshes.add(sp);
 };
+$aaaa$.delRefresh=function(sp){
+	this._scene._needRefreshes.delete(sp);
+};
 $rrrr$=$aaaa$.resume;
 $dddd$=$aaaa$.resume=function f(){
 	if(this._resuming) return;

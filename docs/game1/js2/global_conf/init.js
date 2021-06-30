@@ -885,6 +885,15 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 		}
 		return rtv;
 	};
+	w.Queue.prototype.slice=function(s,e){
+		const rtv=[],L=this.length;
+		if(e===undefined) e=L; else if(e<0) e+=this.length;
+		if(e>L) e=L;
+		if(s===undefined) s=0; else if(s<0) s+=this.length;
+		if(s<0) s=0;
+		for(let x=s;x!==e;++x) rtv.push(this.getnth(x));
+		return rtv;
+	};
 	w.Queue.prototype.lower_bound=w.Array.prototype.lower_bound;
 	w.Queue.prototype.binary_search=w.Array.prototype.binary_search;
 	

@@ -539,10 +539,11 @@ $pppp$.setBattler=function(btlr){
 $d$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
-		this._damages.forEach(f.forEach);
-		if(!this._damages[0].isPlaying()){
-			this.parent.removeChild(this._damages[0]);
-			this._damages.shift();
+		this._damages.forEach(f.forEach); // update
+		const maxPop=_global_conf.dmgPopMaxPerBtlr,dmgs=this._damages;
+		for(let L=dmgs.length;L && (maxPop<L || !dmgs[0].isPlaying());L=dmgs.length){
+			this.parent._dmgs.removeChild(dmgs[0]);
+			dmgs.shift();
 		}
 	}
 };
@@ -555,7 +556,7 @@ $pppp$._setupDamagePopup1=function(res){
 	if(this._damages.length && this._damages.back.y>=64) sp.y=this._damages.back.y-23;
 	sp.setup(this._battler);
 	this._damages.push(sp);
-	this.parent.addChild(sp);
+	this.parent._dmgs.addChild(sp);
 };
 $pppp$.setupDamagePopup = function() {
 	if(this._battler.isDamagePopupRequested()){
@@ -571,6 +572,7 @@ $pppp$.setupDamagePopup = function() {
 				}
 			} }else this._setupDamagePopup1(res); }
 			for(let i=0;i!==laters.length;++i) this._setupDamagePopup1(laters[i]);
+			while(q[0] && q[0].merge) this._setupDamagePopup1(q.shift());
 		}
 		this._battler.clearDamagePopup();
 		this._battler.clearResult();
@@ -1226,6 +1228,15 @@ $d$=$pppp$[$k$]=function f(scene){
 	this._scene=scene;
 	f.ori.call(this);
 }; $d$.ori=$r$;
+$k$='createBattleField';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(){
+	f.ori.call(this);
+	const bf=this._battleField;
+	const dmgs=bf._dmgs=new Spriteset_BattleFieldDamages();
+	dmgs.y=dmgs.x=0;
+	bf.addChild(dmgs);
+}; $d$.ori=$r$;
 $d$=$pppp$._sortE=function f(forced){
 	const bfc=this._battleField.children;
 	if(forced||this._lastBfcLen!==bfc.length){
@@ -1290,6 +1301,8 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
+	["_dmgPopMaxPerBtlr",undefined,404],
+	["_chasePopAfterFrame",$aaaa$.readFlag],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
 ];
@@ -1318,13 +1331,14 @@ $aaaa$.applyData=function(config) {
 	for(let arr=this.ConfigOptions,x=0,xs=arr.length;x!==xs;++x)
 		if(arr[x][1]) this[arr[x][0]]=arr[x][1].call(this,config,arr[x][0],arr[x][2]);
 		else if(arr[x][0] in config) this[arr[x][0]]=config[arr[x][0]];
+		else this[arr[x][0]]=arr[x][2];
 };
 $pppp$=$aaaa$=undef;
 
 // - ImageManager
 $aaaa$=ImageManager;
 { const f=function(){ return arguments[2]===""?"":(arguments[1]==="?"?"?":"&"); };
-$aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=[^&]*)?(?=(&|$))/g,'$1').replace(/(\?)?[&]+($)?/g,f);
+$aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=[^&]*)?(?=(&|$))/g,'$1').replace(/(\?)?[&]+($)?/g,f).replace(/\?$/,'');
 }
 $aaaa$.loadEnemy=function(filename,hue,args){
 	return this.loadBitmap('img/enemies/', filename, hue, true, args);
@@ -1606,20 +1620,15 @@ $d$=$aaaa$.clearTBDCache=function f(){
 	}else this._TBDCache=new Set();
 };
 $d$.forEach=b=>b.clearCache();
-$aaaa$.initChases=function(){
+$aaaa$.initChases=function f(){
 	let M=this._chases;
-	if(M){
-		M.get($gameParty).clear();
-		M.get($gameTroop).clear();
-		M.get(this).clear();
-	}else{
-		M=this._chases=new Map();
-		let c;
-		M.set($gameParty,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		M.set($gameTroop,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		M.set(this,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		// btlr -> traitCodeSet according to friend or opponent or all
-	}
+	if(M) M.clear();
+	else M=this._chases=new Map();
+	let arr=Game_BattlerBase.CHASE_FRIENDS,c;
+	M.set($gameParty,c=new Map());	c.byCond=arr.map(_=>new Set());
+	M.set($gameTroop,c=new Map());	c.byCond=arr.map(_=>new Set());
+	M.set(this,c=new Map());	c.byCond=arr.map(_=>new Set());
+	// btlr -> traitCodeSet according to friend or opponent or all
 };
 $k$='initMembers';
 $r$=$aaaa$[$k$];
@@ -1803,19 +1812,22 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	{ const rnd=Math.random();
 	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
 	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
-	else realTarget=this.invokeNormalAction(s,t);
+	else realTarget=this.invokeNormalAction(s,t); // TODO
+	s.reserveActResQ().push(undefined); // delimiter
+	realTarget.reserveActResQ().push(undefined); // delimiter
 	}
 	s.setLastTarget(t);
 	this.refreshStatus();
 	return realTarget;
 };
-$aaaa$.updateChase=function(btlr,stateObjChanged){
+$aaaa$.updateChase=function(btlr,isRemoved){
 	if(!this._chases) this.initChases();
 	const gbb=Game_BattlerBase;
 	{ const fu=this._chases.get(btlr.friendsUnit()) , cf=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_FRIEND); if(fu){
 		if(cf && cf.size){
 			fu.set(btlr,gbb.CHASE_FRIENDS);
-			cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
+			if(isRemoved) cf.forEach.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].delete(btlr));
+			else cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
 		}else{
 			fu.delete(btlr);
 			fu.byCond.forEach(s=>s.delete(btlr));
@@ -1824,7 +1836,8 @@ $aaaa$.updateChase=function(btlr,stateObjChanged){
 	{ const ou=this._chases.get(btlr.opponentsUnit()) , co=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_OPPONENT); if(ou){
 		if(co && co.size){
 			ou.set(btlr,gbb.CHASE_OPPONENTS);
-			co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
+			if(isRemoved) co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].delete(btlr));
+			else co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
 		}else{
 			ou.delete(btlr);
 			ou.byCond.forEach(s=>s.delete(btlr));
@@ -1833,6 +1846,7 @@ $aaaa$.updateChase=function(btlr,stateObjChanged){
 	{ const au=this._chases.get(this) , ca=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_ALLBATTLER); if(au){
 		if(ca && ca.size){
 			au.set(btlr,gbb.CHASE_ALLBATTLERS);
+			if(isRemoved) ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].delete(btlr));
 			ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].add(btlr));
 		}else{
 			au.delete(btlr);
@@ -1871,7 +1885,12 @@ $d$.doChase=function f(self,btlrs,cond,s,t){
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
 		const notExists=[];
-		set.forEach(btlr=>f.forEach(self,notExists,btlrs,btlr,idx,s,t));
+		if(cond==='die'){
+			set.forEach(btlr=>{
+				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t);
+				notExists.push(btlr);
+			});
+		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t));
 		for(let x=notExists.length;x--;) set.delete(notExists[x]);
 	}
 };
@@ -1884,14 +1903,17 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 	if(skills && skills.size){ skills.forEach((v,k)=>{
 		const a=new Game_Action(btlr);
 		a.setItemObject($dataSkills[k]);
-		for(let x=v;x--;) a.apply(t,true);
+		for(let x=~~v;x-->0;){
+			a.apply(t,!_global_conf.chasePopAfterFrame);
+			self._logWindow.displayActionChaseResults(btlr,t,a);
+		}
 	}); }
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
-	this.invokeChaseAction(this._action,subject,realTarget); // TODO
-	this._action.apply(realTarget);
-	this._logWindow.displayActionResults(subject, realTarget, this._action);
+	const usedAct=this._action.apply(realTarget);
+	this._logWindow.displayActionResults(subject, realTarget, usedAct);
+	if(usedAct) this.invokeChaseAction(usedAct,subject,realTarget);
 	return realTarget;
 };
 $r$=$aaaa$.invokeReflection=function(subject, target) {
@@ -3243,7 +3265,7 @@ $pppp$=$aaaa$.prototype;
 $pppp$.changeInputWindow=function(){
 	if(BattleManager.isInputting()){
 		if(BattleManager.actor()) this.startActorCommandSelection();
-		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
+		else if(!this._logWindow.active && (!this._battlePlan || !this._battlePlan.visible)) this.startPartyCommandSelection(); // viewLog
 	}else this.endCommandSelection();
 };
 $r$=$pppp$.terminate;
@@ -3306,6 +3328,7 @@ $pppp$.commandUsePlan=function(){
 	this._allSpecific=0;
 	this._windowLayer.visible=false;
 	const cmdw=this._partyCommandWindow;
+	cmdw.active=false;
 	if(this._battlePlan===undefined){
 		const plan = this._battlePlan = new Window_BattlePlan , bye=()=>this._windowLayer.visible=cmdw.active=!(plan.visible=plan.active=false);
 		SceneManager._scene.addChild(plan);
@@ -3431,8 +3454,8 @@ $pppp$.selectNextCommand=function(){
 	BattleManager.selectNextCommand();
 	this.changeInputWindow();
 };
-$r$=Scene_Battle.prototype.onActorOk;
-$d$=Scene_Battle.prototype.onActorOk=function f(){
+$r$=$pppp$.onActorOk;
+$d$=$pppp$.onActorOk=function f(){
 	const w=this._swapActorWindow;
 	switch(w._mode){
 	default: return f.ori.call(this);
@@ -5008,8 +5031,9 @@ $d$=$pppp$.clearStates=function f(){
 			}
 		}
 		this._states.length=newidx;
+		this._overall_delCache();
+		if(SceneManager.isBattle()) BattleManager.updateChase(this);
 	}else this._states=[];
-	this._overall_delCache();
 };
 $pppp$.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
@@ -5025,6 +5049,7 @@ $pppp$.eraseState=function(stateId){
 			stat.m.byKey2_del_mul(data.tmapP);
 		}
 		this._overall_delCache();
+		if(SceneManager.isBattle()) BattleManager.updateChase(this);
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
@@ -5055,15 +5080,15 @@ $d$.key=Game_BattlerBase.CACHEKEY_STATE;
 $d$.map=id=>$dataStates[id];
 $pppp$._addNewState_updateCache=function(stateId){
 	this._states.push(stateId);
-	const stat=this._states_getCache();
+	const data=$dataStates[stateId] , stat=this._states_getCache();
 	if(stat){
 		stat.a.add(stateId);
-		const data=$dataStates[stateId];
 		stat.push(data);
 		stat.s.byKey2_sum(data.tmapS);
 		stat.m.byKey2_mul(data.tmapP);
 	}
 	this._overall_delCache();
+	if(SceneManager.isBattle()) BattleManager.updateChase(this);
 };
 $pppp$.addNewState=function(stateId){
 	let cancel=false;
@@ -7545,6 +7570,7 @@ $pppp$.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
 	if(tmp._pt_battleMembers.length<this.maxBattleMembers()){
 		tmp._pt_battleMembers_actor2idx.set(addedActor,tmp._pt_battleMembers.length);
 		tmp._pt_battleMembers.push(addedActor);
+		if(SceneManager.isBattle()) BattleManager.updateChase(addedActor);
 	}
 	tmp._pt_allMembers_idSet.add(id);
 	let flridx=tmp._pt_allMembers.length-1;
@@ -7558,9 +7584,9 @@ $pppp$.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
 			let ref=flrs.length?flrs.back:$gamePlayer;
 			$gamePlayer._followers.addFollower(flr=new Game_Follower(flridx+1).locate(ref.x,ref.y));
 		}
-		let sc=SceneManager._scene;
-		let sps=sc&&sc._spriteset;
-		if(sc.constructor===Scene_Battle){
+		const sc=SceneManager._scene;
+		const sps=sc&&sc._spriteset;
+		if(sps && sc.constructor===Scene_Battle){
 			let arr1=sps._battleField,arr2=sps._actorSprites;
 			let tmp=new Sprite_Actor;
 			arr1.addChild(tmp); arr2.push(tmp);
@@ -7600,6 +7626,7 @@ $pppp$.removeActor=function(actorId,_searchFrom){
 		
 		idx=tmp._pt_battleMembers_actor2idx?tmp._pt_battleMembers_actor2idx.get(obj):tmp._pt_battleMembers.indexOf(obj);
 		if(idx>=0){
+			if(SceneManager.isBattle()) BattleManager.updateChase(obj);
 			if(idx+1===tmp._pt_battleMembers.length){
 				tmp._pt_battleMembers.pop();
 				if(tmp._pt_battleMembers_actor2idx) tmp._pt_battleMembers_actor2idx.delete(obj);
@@ -9966,7 +9993,8 @@ $pppp$.getSelfItemObj=function(obj){
 	return false;
 };
 $pppp$.canForSelf=obj=>!!obj;
-$d$=$pppp$.apply=function f(target,viaChase){
+$d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
+	// return action used if used
 	const result = target.result() , subject = this.subject();
 	let tmp=this; if(subject===target){
 		const slf=this.getSelfItemObj();
@@ -9986,8 +10014,16 @@ $d$=$pppp$.apply=function f(target,viaChase){
 	if( !(result.used = act.testApply(target)) ) return;
 	result.physical = act.isPhysical();
 	result.drain = act.isDrain();
-	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ) return f.toQ(result,target); // if(result.isHit())
-	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ) return f.toQ(result,target); // if(result.isHit())
+	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ){
+		result.merge=dmgPopupFollowPrev;
+		f.toQ(result,target); // if(result.isHit())
+		return act;
+	}
+	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ){
+		result.merge=dmgPopupFollowPrev;
+		f.toQ(result,target); // if(result.isHit())
+		return act;
+	}
 	// if(result.isHit())
 	{
 		const item=act.item();
@@ -10000,19 +10036,19 @@ $d$=$pppp$.apply=function f(target,viaChase){
 		act.applyItemUserEffect(target);
 	}
 	
-	const sc=SceneManager._scene;
-	if(sc&&sc.constructor===Scene_Battle){
-		result.later=viaChase;
+	if(SceneManager.isBattle()){
+		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
 			const q=subject.reserveActResQ() , res=subject.result();
 			if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0){
-				res.later=viaChase;
+				res.merge=dmgPopupFollowPrev;
 				q.push(res.copy());
 			}
-			else if(!viaChase) q.push(undefined); // delimiter
+			//else if(!dmgPopupFollowPrev) q.push(undefined); // delimiter // handled by btlmgr.invokeAction
 		}
 	}
+	return act;
 };
 $d$.toQ=(res,trgt)=>{
 	if(!res.used) return;
@@ -10291,7 +10327,7 @@ $d$.tbl={
 		'physical','drain','critical',
 		'hpAffected',
 		'hpDamage','mpDamage','tpDamage','stpDamage',
-		'later'
+		'later','merge',
 	],
 };
 Object.defineProperties($aaaa$.prototype,{
@@ -11708,6 +11744,7 @@ $pppp$.addEnemy=function(enemyId,x,y,dur,ox,oy){
 	const sc=SceneManager._scene;
 	if(!sc||sc.constructor!==Scene_Battle) return;
 	const sps=sc._spriteset,sp=new Sprite_Enemy(e);
+	BattleManager.updateChase(e);
 	sps._battleField.addChild(sp);
 	sps._enemySprites.push(sp);
 	sp.startMove(ox-x,oy-y,0);
@@ -12175,6 +12212,7 @@ $pppp$.update=function() {
 		this.processCursorMove();
 		this.processHandling();
 		if(this.downArrowVisible || this.upArrowVisible) this.processWheel();
+		if(this.rightArrowVisible || this.leftArrowVisible) this.processWheelH();
 		this.processTouch();
 	}else this._touching = false;
 	this._stayCount++;
@@ -12192,13 +12230,22 @@ $pppp$.processHandling=function f(){
 		}
 	}
 };
-$pppp$.processWheel = function() {
-	let threshold = 20;
-	if (TouchInput.wheelY >= threshold) {
+$pppp$.processWheel=function(){
+	const threshold = 20;
+	if(TouchInput.wheelY >= threshold){
 		this.scrollDown();
 	}
-	if (TouchInput.wheelY <= -threshold) {
+	else if(TouchInput.wheelY <= -threshold){
 		this.scrollUp();
+	}
+};
+$pppp$.processWheelH=function(){
+	const threshold = 20;
+	if(TouchInput.wheelX >= threshold){
+		this.cursorRight();
+	}
+	else if(TouchInput.wheelX <= -threshold){
+		this.cursorLeft();
 	}
 };
 $pppp$.processTouch = function() {
@@ -12811,21 +12858,37 @@ $d$=$pppp$.update=function f(){
 	}
 }; $d$.ori=$r$;
 $pppp$.skipMeta=function(){
-	let rtv=0;
-	for(let q=this._methods;q.length&&q.front.name[0]==="-";q.shift())
-		++rtv;
-	return rtv;
+	//let rtv=0;
+	for(let q=this._methods,c,n;q.length&&(n=(c=q.front).name)[0]==="-";q.shift()){
+		if(n[1]==='s' && n[2]==='e' && n[3]==='t' && n[4]==='_'){ switch(n.slice(5)){
+		case 'doMore':
+			this._doMore=true;
+		break;
+		case 'doOne':
+			this._doMore=false;
+		break;
+		case 'break':
+			q.shift();
+			return;
+		break;
+		} }
+		//++rtv;
+	}
+	//return rtv;
 };
 $pppp$.callNextMethod=function(){
 	this.skipMeta();
-	if(this._methods.length){
-		let method = this._methods.shift();
-		if(method.name && this[method.name]){
-			this[method.name].apply(this, method.params);
-		}else throw new Error('Method not found: ' + method.name);
-	}
-	this.skipMeta();
+	do{
+		if(this._methods.length){
+			let method = this._methods.shift();
+			if(method.name && this[method.name]){
+				this[method.name].apply(this, method.params);
+			}else throw new Error('Method not found: ' + method.name);
+		}
+		this.skipMeta();
+	}while(this._doMore);
 };
+$pppp$.none=none;
 $r$=$pppp$.addText;
 $d$=$pppp$.addText=function f(txt){
 	this._historyLines.push(txt);
@@ -12839,6 +12902,7 @@ $pppp$.popBaseLine=function(){
 $k$='showAnimation';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(subject, targets, animationId, item){
+	if(_global_conf.noAnimation) return;
 	const p=Game_Action.prototype;
 	const item2=p.getSelfItemObj(item);
 	if(item2!==false){
@@ -12956,6 +13020,26 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action){
 		this.displayFailure(target);
 		this.displayHitRec(subject,target);
 		this.push('-actResEnde');
+		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
+	}
+};
+$pppp$.displayActionChaseResults=function f(subject,target,action){
+	if(target.result().used){
+		this.push('-actChaseResStrt');
+		this.push('-set_doMore');
+		// lag
+		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
+		this.displayCritical(target);
+		if(subject!==target) this.push('popupDamage', target);
+		this.push('popupDamage', subject);
+		this.displayDamage(target);
+		this.displayAffectedStatus(target);
+		this.displayFailure(target);
+		this.displayHitRec(subject,target);
+		this.push('-set_doOne');
+		//this.push('none');
+		this.push('-actChaseResEnde');
+		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
 // Window_BattleLog.prototype.displayDamage
