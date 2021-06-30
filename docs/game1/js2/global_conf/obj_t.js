@@ -540,9 +540,10 @@ $d$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
 		this._damages.forEach(f.forEach); // update
-		while(this._damages.length && !this._damages[0].isPlaying()){
-			this.parent._dmgs.removeChild(this._damages[0]);
-			this._damages.shift();
+		const maxPop=_global_conf.dmgPopMaxPerBtlr,dmgs=this._damages;
+		for(let L=dmgs.length;L && (maxPop<L || !dmgs[0].isPlaying());L=dmgs.length){
+			this.parent._dmgs.removeChild(dmgs[0]);
+			dmgs.shift();
 		}
 	}
 };
@@ -1300,6 +1301,8 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
+	["_dmgPopMaxPerBtlr",undefined,404],
+	["_chasePopAfterFrame",$aaaa$.readFlag],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
 ];
@@ -1328,6 +1331,7 @@ $aaaa$.applyData=function(config) {
 	for(let arr=this.ConfigOptions,x=0,xs=arr.length;x!==xs;++x)
 		if(arr[x][1]) this[arr[x][0]]=arr[x][1].call(this,config,arr[x][0],arr[x][2]);
 		else if(arr[x][0] in config) this[arr[x][0]]=config[arr[x][0]];
+		else this[arr[x][0]]=arr[x][2];
 };
 $pppp$=$aaaa$=undef;
 
@@ -1900,7 +1904,7 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 		const a=new Game_Action(btlr);
 		a.setItemObject($dataSkills[k]);
 		for(let x=~~v;x-->0;){
-			a.apply(t,true);
+			a.apply(t,!_global_conf.chasePopAfterFrame);
 			self._logWindow.displayActionChaseResults(btlr,t,a);
 		}
 	}); }
@@ -3324,6 +3328,7 @@ $pppp$.commandUsePlan=function(){
 	this._allSpecific=0;
 	this._windowLayer.visible=false;
 	const cmdw=this._partyCommandWindow;
+	cmdw.active=false;
 	if(this._battlePlan===undefined){
 		const plan = this._battlePlan = new Window_BattlePlan , bye=()=>this._windowLayer.visible=cmdw.active=!(plan.visible=plan.active=false);
 		SceneManager._scene.addChild(plan);
@@ -12225,21 +12230,21 @@ $pppp$.processHandling=function f(){
 		}
 	}
 };
-$pppp$.processWheel = function() {
-	let threshold = 20;
-	if (TouchInput.wheelY >= threshold) {
+$pppp$.processWheel=function(){
+	const threshold = 20;
+	if(TouchInput.wheelY >= threshold){
 		this.scrollDown();
 	}
-	if (TouchInput.wheelY <= -threshold) {
+	else if(TouchInput.wheelY <= -threshold){
 		this.scrollUp();
 	}
 };
 $pppp$.processWheelH=function(){
 	const threshold = 20;
-	if (TouchInput.wheelX >= threshold) {
+	if(TouchInput.wheelX >= threshold){
 		this.cursorRight();
 	}
-	if (TouchInput.wheelX <= -threshold) {
+	else if(TouchInput.wheelX <= -threshold){
 		this.cursorLeft();
 	}
 };
@@ -12862,6 +12867,10 @@ $pppp$.skipMeta=function(){
 		case 'doOne':
 			this._doMore=false;
 		break;
+		case 'break':
+			q.shift();
+			return;
+		break;
 		} }
 		//++rtv;
 	}
@@ -12879,6 +12888,7 @@ $pppp$.callNextMethod=function(){
 		this.skipMeta();
 	}while(this._doMore);
 };
+$pppp$.none=none;
 $r$=$pppp$.addText;
 $d$=$pppp$.addText=function f(txt){
 	this._historyLines.push(txt);
@@ -12892,6 +12902,7 @@ $pppp$.popBaseLine=function(){
 $k$='showAnimation';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(subject, targets, animationId, item){
+	if(_global_conf.noAnimation) return;
 	const p=Game_Action.prototype;
 	const item2=p.getSelfItemObj(item);
 	if(item2!==false){
@@ -13009,6 +13020,7 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action){
 		this.displayFailure(target);
 		this.displayHitRec(subject,target);
 		this.push('-actResEnde');
+		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
 $pppp$.displayActionChaseResults=function f(subject,target,action){
@@ -13025,7 +13037,9 @@ $pppp$.displayActionChaseResults=function f(subject,target,action){
 		this.displayFailure(target);
 		this.displayHitRec(subject,target);
 		this.push('-set_doOne');
+		//this.push('none');
 		this.push('-actChaseResEnde');
+		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
 // Window_BattleLog.prototype.displayDamage

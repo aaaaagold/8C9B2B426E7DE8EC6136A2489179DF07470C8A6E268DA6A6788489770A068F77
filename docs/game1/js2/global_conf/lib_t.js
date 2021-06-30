@@ -175,6 +175,32 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 			}
 		},
 	configurable: false},
+	dmgPopMaxPerBtlr: {
+		get:function(){
+			let key='_dmgPopMaxPerBtlr';
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
+		},set:function(rhs){
+			let key='_dmgPopMaxPerBtlr';
+			if($dataMap) return $gameSystem._usr[key]=rhs;
+			else{
+				window['/tmp/'].chConfig=1;
+				return ConfigManager[key]=rhs;
+			}
+		},
+	configurable: false},
+	chasePopAfterFrame: {
+		get:function(){
+			let key='_chasePopAfterFrame';
+			return ($gameSystem._usr && $gameSystem._usr[key]!==undef)?$gameSystem._usr[key]:ConfigManager[key];
+		},set:function(rhs){
+			let key='_chasePopAfterFrame';
+			if($dataMap) return $gameSystem._usr[key]=rhs;
+			else{
+				window['/tmp/'].chConfig=1;
+				return ConfigManager[key]=rhs;
+			}
+		},
+	configurable: false},
 	simpleTouchMove: {
 		get:function(){
 			let key='_simpleTouchMove';
@@ -202,7 +228,7 @@ Object.defineProperties(_global_conf,{ // relative: 'ConfigManager.ConfigOptions
 				return ConfigManager[key]=rhs;
 			}
 		},
-	configurable: false}
+	configurable: false},
 });
 
 _global_conf["get-customActors"] = ()=>{

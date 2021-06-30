@@ -1176,6 +1176,8 @@ $d$=$pppp$.createOptionsWindow=function f(){
 		[$dataCustom.opts_displayEffect,";displayEffect;func",1,[
 			[$dataCustom.noAnimation,"_global_conf;noAnimation"],
 			[$dataCustom.noAutotile,"_global_conf;noAutotile"],
+			[$dataCustom.dmgPopMaxPerBtlr,"_global_conf;dmgPopMaxPerBtlr;real;0::1"],
+			[$dataCustom.chasePopAfterFrame,"_global_conf;chasePopAfterFrame"],
 		]],
 		[$dataCustom.opt_characterControl,";characterControl;func",1,[
 			[$dataCustom.simpleTouchMove,"_global_conf;simpleTouchMove"],

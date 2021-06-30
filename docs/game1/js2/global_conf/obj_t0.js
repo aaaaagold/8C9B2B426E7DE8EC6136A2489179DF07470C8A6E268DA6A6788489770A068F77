@@ -1468,11 +1468,18 @@ $dddd$=$aaaa$._switchPauseBtn=function f(){
 		d.body.ac(f.tbl[1]=d.ce('button').ac(
 			d.ce('div').at("pause")
 		).sa('style',"position:absolute;right:0px;margin:11px;z-index:1022;"));
-		f.tbl[1].onclick=f.tbl[0];
+		f.tbl[1].onmspointerdown=f.tbl[1].onpointerdown=f.tbl[1].onclick=f.tbl[0];
 	}else if(btn.ga('class')==="none") btn.sa('class','');
 	else btn.sa('class',"none");
 };
-$dddd$.tbl=[()=>SceneManager.pause(),undefined];
+$dddd$.tbl=[e=>{
+	e.stopImmediatePropagation();
+	e.preventDefault();
+	SceneManager.pause();
+	Input.clear();
+	Input.update();
+	TouchInput.update();
+},undefined];
 $rrrr$=$dddd$=$aaaa$=undef;
 
 // - Bitmap
