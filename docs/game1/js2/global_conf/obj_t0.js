@@ -2209,49 +2209,44 @@ $aaaa$=function Spriteset_BattleFieldDamages(){
 window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Sprite.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
+$aaaa$.prototype.destructor = function(){
+	const r=[]; this.children.forEach(v=>r.push(v));
+	for(let x=r.length;x--;) this.removeChild(r[x]);
+	for(let x=0;x!==r.length;++x) if(r[x].destructor) r[x].destructor();
+	this.destroy( PIXI.Container.prototype.destructor.tbl ); // del children , sprites' textures
+};
 $rrrr$=$aaaa$.prototype.initialize;
 $dddd$=$aaaa$.prototype.initialize=function f(){
 	f.ori.call(this);
-	this.children=new Queue;
+	this.children=new Set();
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.removeChild=function(c){
-	if(this.children[0]!==c){ throw new Error('not the first child'); debugger; }
+	if(!this.children.has(c)) return;
 	c.parent=null;
 	c.transform._parentID = -1;
-	this.children.pop();
+	this.children.delete(c);
 	this._boundsID++;
 	//this.onChildrenChange(0); // empty function
 	c.emit('removed', this);
 	return c;
 };
-$aaaa$.prototype.removeChildAt=function(idx){
-	const q=this.children;
-	let c;
-	if(q.length===idx+1){ c=q.back; q.pop_back(); }
-	else if(!idx){ c=q.front; q.pop(); }
-	else{ throw new Error('not a endpoint child'); debugger; }
-	c.parent = null;
-	c.transform._parentID = -1;
-	this._boundsID++;
-	//this.onChildrenChange(0); // empty function
-	c.emit('removed', this);
-	return c;
+$aaaa$.prototype.removeChildAt=function(){
+	throw new Error('you should not use this function');
 };
 $aaaa$.prototype.removeChildren=function(){
-	const q=this.children;
-	for(let i=q.length;i--;){ const curr=q.getnth(i);
+	const r=[]; this.children.forEach(v=>r.push(v));
+	this.children.clear();
+	for(let i=r.length;i--;){ const curr=r[i];
 		curr.parent = null;
 		if(curr.transform) curr.transform._parentID = -1;
 	}
 	this._boundsID++;
 	this.onChildrenChange(0);
-	for(let i=q.length;i--;) q.getnth(i).emit('removed', this);
-	const rtv=q.slice();
-	q.clear();
-	return rtv;
+	for(let i=r.length;i--;) r[i].emit('removed', this);
+	return r.reverse();
 };
 $aaaa$.prototype.update=none;
-$aaaa$.prototype.updateTransform=function(){
+$dddd$=$aaaa$.prototype.updateTransform=function f(){
 	this._boundsID++;
 	
 	this.transform.updateTransform(this.parent.transform);
@@ -2259,13 +2254,9 @@ $aaaa$.prototype.updateTransform=function(){
 	// TODO: check render flags, how to process stuff here
 	this.worldAlpha = this.alpha * this.parent.worldAlpha;
 	
-	for(let i=0,q=this.children,j=q.length;i!==j;++i){
-		const child = this.children.getnth(i);
-		if (child.visible) {
-			child.updateTransform();
-		}
-	}
+	this.children.forEach(f.forEach);
 };
+$dddd$.forEach=c=>c.visible&&c.updateTransform();
 $aaaa$.prototype.renderCanvas=function(renderer){
 	// if not visible or the alpha is 0 then no need to render this
 	if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
@@ -2274,9 +2265,7 @@ $aaaa$.prototype.renderCanvas=function(renderer){
 	
 	if(this._mask) renderer.maskManager.pushMask(this._mask);
 	
-	for(let i=0,q=this.children,j=q.length;i!==j;++i){
-		this.children.getnth(i).renderCanvas(renderer);
-	}
+	this.children.forEach(c=>c.renderCanvas(renderer));
 	
 	if(this._mask) renderer.maskManager.popMask(renderer);
 };

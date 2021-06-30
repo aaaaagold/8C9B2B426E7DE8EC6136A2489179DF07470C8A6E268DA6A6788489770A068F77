@@ -1821,13 +1821,14 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	this.refreshStatus();
 	return realTarget;
 };
-$aaaa$.updateChase=function(btlr,stateObjChanged){
+$aaaa$.updateChase=function(btlr,isRemoved){
 	if(!this._chases) this.initChases();
 	const gbb=Game_BattlerBase;
 	{ const fu=this._chases.get(btlr.friendsUnit()) , cf=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_FRIEND); if(fu){
 		if(cf && cf.size){
 			fu.set(btlr,gbb.CHASE_FRIENDS);
-			cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
+			if(isRemoved) cf.forEach.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].delete(btlr));
+			else cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
 		}else{
 			fu.delete(btlr);
 			fu.byCond.forEach(s=>s.delete(btlr));
@@ -1836,7 +1837,8 @@ $aaaa$.updateChase=function(btlr,stateObjChanged){
 	{ const ou=this._chases.get(btlr.opponentsUnit()) , co=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_OPPONENT); if(ou){
 		if(co && co.size){
 			ou.set(btlr,gbb.CHASE_OPPONENTS);
-			co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
+			if(isRemoved) co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].delete(btlr));
+			else co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
 		}else{
 			ou.delete(btlr);
 			ou.byCond.forEach(s=>s.delete(btlr));
@@ -1845,6 +1847,7 @@ $aaaa$.updateChase=function(btlr,stateObjChanged){
 	{ const au=this._chases.get(this) , ca=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_ALLBATTLER); if(au){
 		if(ca && ca.size){
 			au.set(btlr,gbb.CHASE_ALLBATTLERS);
+			if(isRemoved) ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].delete(btlr));
 			ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].add(btlr));
 		}else{
 			au.delete(btlr);
@@ -1883,7 +1886,12 @@ $d$.doChase=function f(self,btlrs,cond,s,t){
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
 		const notExists=[];
-		set.forEach(btlr=>f.forEach(self,notExists,btlrs,btlr,idx,s,t));
+		if(cond==='die'){
+			set.forEach(btlr=>{
+				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t);
+				notExists.push(btlr);
+			});
+		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t));
 		for(let x=notExists.length;x--;) set.delete(notExists[x]);
 	}
 };
@@ -5025,6 +5033,7 @@ $d$=$pppp$.clearStates=function f(){
 		this._states.length=newidx;
 	}else this._states=[];
 	this._overall_delCache();
+	if(SceneManager.isBattle()) BattleManager.updateChase(this);
 };
 $pppp$.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
@@ -7561,6 +7570,7 @@ $pppp$.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
 	if(tmp._pt_battleMembers.length<this.maxBattleMembers()){
 		tmp._pt_battleMembers_actor2idx.set(addedActor,tmp._pt_battleMembers.length);
 		tmp._pt_battleMembers.push(addedActor);
+		if(SceneManager.isBattle()) BattleManager.updateChase(addedActor);
 	}
 	tmp._pt_allMembers_idSet.add(id);
 	let flridx=tmp._pt_allMembers.length-1;
@@ -7616,6 +7626,7 @@ $pppp$.removeActor=function(actorId,_searchFrom){
 		
 		idx=tmp._pt_battleMembers_actor2idx?tmp._pt_battleMembers_actor2idx.get(obj):tmp._pt_battleMembers.indexOf(obj);
 		if(idx>=0){
+			if(SceneManager.isBattle()) BattleManager.updateChase(obj);
 			if(idx+1===tmp._pt_battleMembers.length){
 				tmp._pt_battleMembers.pop();
 				if(tmp._pt_battleMembers_actor2idx) tmp._pt_battleMembers_actor2idx.delete(obj);
@@ -11733,6 +11744,7 @@ $pppp$.addEnemy=function(enemyId,x,y,dur,ox,oy){
 	const sc=SceneManager._scene;
 	if(!sc||sc.constructor!==Scene_Battle) return;
 	const sps=sc._spriteset,sp=new Sprite_Enemy(e);
+	BattleManager.updateChase(e);
 	sps._battleField.addChild(sp);
 	sps._enemySprites.push(sp);
 	sp.startMove(ox-x,oy-y,0);
