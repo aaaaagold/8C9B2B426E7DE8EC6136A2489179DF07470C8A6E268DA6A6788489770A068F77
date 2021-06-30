@@ -1616,20 +1616,15 @@ $d$=$aaaa$.clearTBDCache=function f(){
 	}else this._TBDCache=new Set();
 };
 $d$.forEach=b=>b.clearCache();
-$aaaa$.initChases=function(){
+$aaaa$.initChases=function f(){
 	let M=this._chases;
-	if(M){
-		M.get($gameParty).clear();
-		M.get($gameTroop).clear();
-		M.get(this).clear();
-	}else{
-		M=this._chases=new Map();
-		let c;
-		M.set($gameParty,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		M.set($gameTroop,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		M.set(this,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
-		// btlr -> traitCodeSet according to friend or opponent or all
-	}
+	if(M) M.clear();
+	else M=this._chases=new Map();
+	let arr=Game_BattlerBase.CHASE_FRIENDS,c;
+	M.set($gameParty,c=new Map());	c.byCond=arr.map(_=>new Set());
+	M.set($gameTroop,c=new Map());	c.byCond=arr.map(_=>new Set());
+	M.set(this,c=new Map());	c.byCond=arr.map(_=>new Set());
+	// btlr -> traitCodeSet according to friend or opponent or all
 };
 $k$='initMembers';
 $r$=$aaaa$[$k$];
@@ -5031,9 +5026,9 @@ $d$=$pppp$.clearStates=function f(){
 			}
 		}
 		this._states.length=newidx;
+		this._overall_delCache();
+		if(SceneManager.isBattle()) BattleManager.updateChase(this);
 	}else this._states=[];
-	this._overall_delCache();
-	if(SceneManager.isBattle()) BattleManager.updateChase(this);
 };
 $pppp$.eraseState=function(stateId){
 	const index=this._states.indexOf(stateId);
