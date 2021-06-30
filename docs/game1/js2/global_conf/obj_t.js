@@ -3265,7 +3265,7 @@ $pppp$=$aaaa$.prototype;
 $pppp$.changeInputWindow=function(){
 	if(BattleManager.isInputting()){
 		if(BattleManager.actor()) this.startActorCommandSelection();
-		else if(!this._logWindow.active) this.startPartyCommandSelection(); // viewLog
+		else if(!this._logWindow.active && (!this._battlePlan || !this._battlePlan.visible)) this.startPartyCommandSelection(); // viewLog
 	}else this.endCommandSelection();
 };
 $r$=$pppp$.terminate;
