@@ -7,8 +7,10 @@
 $aaaa$=Scene_Boot;
 $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
+	// == tune consts ==
+	if($dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
 	
-	// not ability
+	// == not abilities ==
 	//  damaged img
 	f.doForEach($dataActors,x=>{
 		x.dmgimg=x.meta.dmgimg?JSON.parse(x.meta.dmgimg):undefined;
@@ -73,9 +75,11 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.armv);
 	}
 	
+	// == abilities ==
+	
 	// custom traits // Game_BattlerBase.TRAITS_CUSTOM
-{ // // custom traits id
-	const enums = objs.enums.
+	// // custom traits id
+	objs.enums.
 		addEnum("AUTOREVIVE").
 		addEnum("MUST_SUBST").
 		addEnum("ATKTIMES_MUL").
@@ -90,81 +94,14 @@ $dddd$=$pppp$.arrangeData=function f(){
 		addEnum("HitRecHpV").
 		addEnum("HitRecMpR").
 		addEnum("HitRecMpV").
-		addEnum("__DUMMY") , d = x=>{ if(!x) return;
-		const meta=x.meta;
-		if(meta.escape){ // has, built-in code
-			const n=Number(meta.escape);
-			x.traits.push({code:Game_BattlerBase.TRAIT_PARTY_ABILITY,dataId:Game_Party.ABILITY_MUST_ESCAPE,value:isNaN(n)?1:n});
-		}
-		if(meta.revive){ // has
-			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.AUTOREVIVE,value:meta.revive});
-		}
-		if(meta.mustSubst){ // has
-			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.MUST_SUBST,value:meta.mustSubst});
-		}
-		if(meta.noRecoverall){ // has
-			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.NoRecoverAll,value:meta.noRecoverall});
-		}
-		if(meta.atktimes_mul){ // *
-			const n=Number(meta.atktimes_mul);
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.ATKTIMES_MUL,value:n});
-		}
-		if(meta.trg_btlEnd){ // +
-			const n=Number(meta.trg_btlEnd);
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.TrgBattleEnd,value:n});
-		}
-		if(meta.decDmg){ // +
-			const ld=JSON.parse(meta.decDmg);
-			for(let i=0;i!==ld.length;++i){
-				const n=ld[i][1]; if(isNaN(n)) continue;
-				switch(ld[i][0]){
-				case 'p': {
-					x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.DECDMG_P,value:n});
-				}break;
-				case 'm': {
-					x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.DECDMG_M,value:n});
-				}break;
-				}
-			}
-		}
-		if(meta.rflA){ // +
-			const n=Number(meta.rflA)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.REFLECT_A,value:n});
-		}
-		if(meta.rflP){ // +
-			const n=Number(meta.rflP)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.REFLECT_P,value:n});
-		}
-		if(meta.hitRecHpR){ // +
-			const n=Number(meta.hitRecHpR)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecHpR,value:n});
-		}
-		if(meta.hitRecHpV){ // +
-			const n=Number(meta.hitRecHpV)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecHpV,value:n});
-		}
-		if(meta.hitRecMpR){ // +
-			const n=Number(meta.hitRecMpR)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecMpR,value:n});
-		}
-		if(meta.hitRecMpV){ // +
-			const n=Number(meta.hitRecMpV)-0;
-			if(n) x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.HitRecMpV,value:n});
-		}
-		if(meta.MPSubst){ // 1-*
-			let n=meta.MPSubst===true?0:(1-meta.MPSubst||1);
-			if(n>1) n=1;
-			if(n<0) n=0;
-			x.traits.push({code:Game_BattlerBase.TRAITS_CUSTOM,dataId:enums.MPSubstitute,value:n});
-		}
-	};
-	f.doForEach($dataActors  ,d);
-	f.doForEach($dataArmors  ,d);
-	f.doForEach($dataClasses ,d);
-	f.doForEach($dataEnemies ,d);
-	f.doForEach($dataStates  ,d);
-	f.doForEach($dataWeapons ,d);
-}
+	addEnum("__DUMMY");
+	Game_BattlerBase._initChase();
+	f.doForEach($dataActors  ,f.note2traits);
+	f.doForEach($dataArmors  ,f.note2traits);
+	f.doForEach($dataClasses ,f.note2traits);
+	f.doForEach($dataEnemies ,f.note2traits);
+	f.doForEach($dataStates  ,f.note2traits);
+	f.doForEach($dataWeapons ,f.note2traits);
 	
 	// switch skills // meta.switch -> effect.isSwitch
 	f.doForEach($dataSkills,x=>{ if(!x) return;
@@ -504,6 +441,116 @@ $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
 	if(u) dataobj.unionCnt=JSON.parse(u);
 };
+$dddd$.note2traits=x=>{
+	const meta=x&&x.meta; if(!meta) return;
+	const enums=objs.enums , gbb=Game_BattlerBase , tc=gbb.TRAITS_CUSTOM;
+	if(meta.escape){ // has, built-in code
+		const n=Number(meta.escape);
+		x.traits.push({code:gbb.TRAIT_PARTY_ABILITY,dataId:Game_Party.ABILITY_MUST_ESCAPE,value:isNaN(n)?1:n});
+	}
+	if(meta.revive){ // has
+		x.traits.push({code:tc,dataId:enums.AUTOREVIVE,value:meta.revive});
+	}
+	if(meta.mustSubst){ // has
+		x.traits.push({code:tc,dataId:enums.MUST_SUBST,value:meta.mustSubst});
+	}
+	if(meta.noRecoverall){ // has
+		x.traits.push({code:tc,dataId:enums.NoRecoverAll,value:meta.noRecoverall});
+	}
+	if(meta.trg_btlEnd){ // +
+		const n=Number(meta.trg_btlEnd);
+		if(n) x.traits.push({code:tc,dataId:enums.TrgBattleEnd,value:n});
+	}
+	if(meta.decDmg){ // +
+		const ld=JSON.parse(meta.decDmg);
+		for(let i=0;i!==ld.length;++i){
+			const n=ld[i][1]; if(isNaN(n)) continue;
+			switch(ld[i][0]){
+			case 'p': {
+				x.traits.push({code:tc,dataId:enums.DECDMG_P,value:n});
+			}break;
+			case 'm': {
+				x.traits.push({code:tc,dataId:enums.DECDMG_M,value:n});
+			}break;
+			}
+		}
+	}
+	if(meta.rflA){ // +
+		const n=Number(meta.rflA)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.REFLECT_A,value:n});
+	}
+	if(meta.rflP){ // +
+		const n=Number(meta.rflP)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.REFLECT_P,value:n});
+	}
+	if(meta.hitRecHpR){ // +
+		const n=Number(meta.hitRecHpR)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.HitRecHpR,value:n});
+	}
+	if(meta.hitRecHpV){ // +
+		const n=Number(meta.hitRecHpV)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.HitRecHpV,value:n});
+	}
+	if(meta.hitRecMpR){ // +
+		const n=Number(meta.hitRecMpR)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.HitRecMpR,value:n});
+	}
+	if(meta.hitRecMpV){ // +
+		const n=Number(meta.hitRecMpV)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.HitRecMpV,value:n});
+	}
+	if(meta.chases){ // +
+		// chase with: friend/opponent/both
+		// chase cond: magical/physical/elements / all/anyatk/atk/GUARD/spaceout/cure
+		// <chases:[[with,cond,skill,more]...]>
+			// with: 1/"friend" 2/"opponent" 3/"all"
+			// cond: txt or elementId -> idx
+			// dataObj.repeat *= sum(more)
+		const chases=JSON.parse(meta.chases) , gbb=Game_BattlerBase;
+		for(let i=0;i!==chases.length;++i){ const chase=chases[i]; if(!chase) continue;
+			
+			let chaseWith,chtype=0;
+			switch(chase[0]){ // with
+			case "friend":
+			case 1: {
+				chtype=1;
+				chaseWith=gbb.CHASE_FRIENDS;
+			}break;
+			case "opponent":
+			case 2: {
+				chtype=2;
+				chaseWith=gbb.CHASE_OPPONENTS;
+			}break;
+			case "all":
+			case 3: {
+				chtype=3;
+				chaseWith=gbb.CHASE_ALLBATTLERS;
+			}break;
+			}
+			if(!chaseWith) continue;
+			
+			const chaseIdx=gbb.cond2idx(chase[1]); // make tbl
+			const chaseKey=chaseWith[chaseIdx]; // preserve this var pointer for debug
+			const chaseCode=gbb[chaseKey];
+			if(!chaseCode) continue;
+			const chaseSkill=chase[2];
+			const chaseMore=(chase[3]|0)||1;
+			
+			x.traits.push({code:gbb[gbb.CHASES[chtype]] , dataId:chaseIdx , value:1 , comment:gbb.CHASES[chtype]+" - "+chaseKey});
+			x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
+		}
+	}
+	if(meta.atktimes_mul){ // *
+		const n=Number(meta.atktimes_mul);
+		x.traits.push({code:tc,dataId:enums.ATKTIMES_MUL,value:isNaN(n)?1:n});
+	}
+	if(meta.MPSubst){ // 1-*
+		let n=meta.MPSubst===true?0:(1-meta.MPSubst||1);
+		if(n>1) n=1;
+		if(n<0) n=0;
+		x.traits.push({code:tc,dataId:enums.MPSubstitute,value:n});
+	}
+};
 $rrrr$=$pppp$.start;
 $dddd$=$pppp$.start=function f(){ // this only exec. once
 	this.arrangeData();
@@ -578,7 +625,9 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("HitRecHpV").
 	addEnum("HitRecMpR").
 	addEnum("HitRecMpV").
-	addEnum("__DUMMY") , gbb=Game_BattlerBase.addEnum("TRAITS_CUSTOM");
+	addEnum("__DUMMY") , gbb=Game_BattlerBase.
+	addEnum("TRAITS_CUSTOM").
+	addEnum("__DUMMY") ;
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
 };
@@ -625,7 +674,54 @@ $pppp$.hitRecMpR=function(){
 $pppp$.hitRecMpV=function(){
 	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecMpV);
 };
+gbb._initChase=function f(){
+	if(f.inited) return;
+	f.inited=true;
+	gbb.CHASES=["",]; // 1-indexed
+	gbb.CHASES.toIdx=new Map();
+	[
+		[gbb.CHASE_FRIENDS=[],"FRIEND"],
+		[gbb.CHASE_OPPONENTS=[],"OPPONENT"],
+		[gbb.CHASE_ALLBATTLERS=[],"ALLBATTLER"],
+	].forEach(info=>{
+		const arr=info[0]; arr.toKey=new Map(); arr.toIdx=new Map();
+		const p="TRAIT_CHASE_"+info[1];
+		gbb.CHASES.push(p);
+		gbb.addEnum(p);
+		const prefix = p+"_" , toIdx = !gbb.CHASES.toIdx.size && gbb.CHASES.toIdx ;
+		$dataSystem.elements.forEach( (x,i)=>i&&gbb.addEnum(arr[i]=prefix+"ATK_"+x) );
+		['ATK_PHYSICAL','ATK_MAGICAL','HEAL','ALL','ANYATK','ATTACK','GUARD','SPACEOUT',].forEach(x=>{
+			const k=prefix+x , xLower=x.toLowerCase();
+			if(toIdx) toIdx.set(xLower,arr.length);
+			arr.toKey.set(xLower,k);
+			gbb.addEnum(k);
+			arr.push(k);
+		});
+	});
+};
+gbb.cond2code=function(arr,cond){
+	return this[arr.toKey.get(cond)||arr[cond]];
+};
+gbb.cond2idx=function(cond){
+	return this.CHASES.toIdx.get(cond)||cond;
+};
+$pppp$._chaseWhom=function(arr,cond){
+	const code=gbb.cond2code(arr,cond);
+	return code && this.traitsSet(code);
+};
+$pppp$.chaseFriend=function f(cond){
+	return this._chaseWhom(gbb.CHASE_FRIENDS,cond);
+};
+$pppp$.chaseOpponent=function f(cond){
+	return this._chaseWhom(gbb.CHASE_OPPONENTS,cond);
+};
+$pppp$.chaseAllBattler=function f(cond){
+	return this._chaseWhom(gbb.CHASE_ALLBATTLERS,cond);
+};
 }
+$pppp$.bareHandsElementId=function(){
+	return $dataSystem.elements.barehand;
+};
 
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---

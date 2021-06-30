@@ -1988,7 +1988,7 @@ $aaaa$.prototype.remove=function(){
 			return this.parent.waitRemove(this);
 		}else this.parent.removeChild(this);
 };
-Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
+if(0) Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs^=0; // this.y=rhs;
@@ -2044,6 +2044,22 @@ Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 			return this._z2=rhs;
 		}else return rhs;
 	},configurable:false},
+});
+else Object.defineProperties($aaaa$.prototype,{
+	y:{get:function(){
+		return this.position.y;
+	},set:function(rhs){ rhs|=0; // this.y=rhs;
+		if(this._character===$gamePlayer || this.oy===undefined && this.y!==rhs) return this.transform.position.y=rhs;
+		else return rhs;
+	},configurable:false},
+	z:{
+		get:function(){return this._z;},
+		set:function(rhs){return this._z=rhs|0;},
+	},
+	z2:{
+		get:function(){return this._z2;},
+		set:function(rhs){return this._z2=rhs|0;},
+	},
 });
 $aaaa$.prototype.update=function f(){ // overwrite, forEach is slowwwwwwwwww
 	for(let arr=this.children,x=arr.length;x--;){ let child=arr[x];
