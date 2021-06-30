@@ -539,9 +539,9 @@ $pppp$.setBattler=function(btlr){
 $d$=$pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
-		this._damages.forEach(f.forEach);
-		if(!this._damages[0].isPlaying()){
-			this.parent.removeChild(this._damages[0]);
+		this._damages.forEach(f.forEach); // update
+		while(this._damages.length && !this._damages[0].isPlaying()){
+			this.parent._dmgs.removeChild(this._damages[0]);
 			this._damages.shift();
 		}
 	}
@@ -555,7 +555,7 @@ $pppp$._setupDamagePopup1=function(res){
 	if(this._damages.length && this._damages.back.y>=64) sp.y=this._damages.back.y-23;
 	sp.setup(this._battler);
 	this._damages.push(sp);
-	this.parent.addChild(sp);
+	this.parent._dmgs.addChild(sp);
 };
 $pppp$.setupDamagePopup = function() {
 	if(this._battler.isDamagePopupRequested()){
@@ -1227,6 +1227,15 @@ $d$=$pppp$[$k$]=function f(scene){
 	this._scene=scene;
 	f.ori.call(this);
 }; $d$.ori=$r$;
+$k$='createBattleField';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(){
+	f.ori.call(this);
+	const bf=this._battleField;
+	const dmgs=bf._dmgs=new Spriteset_BattleFieldDamages();
+	dmgs.y=dmgs.x=0;
+	bf.addChild(dmgs);
+}; $d$.ori=$r$;
 $d$=$pppp$._sortE=function f(forced){
 	const bfc=this._battleField.children;
 	if(forced||this._lastBfcLen!==bfc.length){
@@ -1804,7 +1813,9 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	{ const rnd=Math.random();
 	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
 	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
-	else realTarget=this.invokeNormalAction(s,t);
+	else realTarget=this.invokeNormalAction(s,t); // TODO
+	s.reserveActResQ().push(undefined); // delimiter
+	realTarget.reserveActResQ().push(undefined); // delimiter
 	}
 	s.setLastTarget(t);
 	this.refreshStatus();
@@ -1885,9 +1896,9 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 	if(skills && skills.size){ skills.forEach((v,k)=>{
 		const a=new Game_Action(btlr);
 		a.setItemObject($dataSkills[k]);
-		for(let x=v;x--;){
-			a.apply(t,!window.showChaseRes);
-			if(window.showChaseRes) self._logWindow.displayActionChaseResults(btlr,t,a);
+		for(let x=~~v;x-->0;){
+			a.apply(t,true);
+			self._logWindow.displayActionChaseResults(btlr,t,a);
 		}
 	}); }
 };
@@ -1895,11 +1906,7 @@ $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
 	const usedAct=this._action.apply(realTarget);
 	this._logWindow.displayActionResults(subject, realTarget, usedAct);
-	if(usedAct){
-		this.invokeChaseAction(usedAct,subject,realTarget); // TODO
-		subject.reserveActResQ().push(undefined); // delimiter
-		realTarget.reserveActResQ().push(undefined); // delimiter
-	}
+	if(usedAct) this.invokeChaseAction(usedAct,subject,realTarget);
 	return realTarget;
 };
 $r$=$aaaa$.invokeReflection=function(subject, target) {
@@ -3439,8 +3446,8 @@ $pppp$.selectNextCommand=function(){
 	BattleManager.selectNextCommand();
 	this.changeInputWindow();
 };
-$r$=Scene_Battle.prototype.onActorOk;
-$d$=Scene_Battle.prototype.onActorOk=function f(){
+$r$=$pppp$.onActorOk;
+$d$=$pppp$.onActorOk=function f(){
 	const w=this._swapActorWindow;
 	switch(w._mode){
 	default: return f.ori.call(this);
@@ -5033,6 +5040,7 @@ $pppp$.eraseState=function(stateId){
 			stat.m.byKey2_del_mul(data.tmapP);
 		}
 		this._overall_delCache();
+		if(SceneManager.isBattle()) BattleManager.updateChase(this);
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
@@ -5063,15 +5071,15 @@ $d$.key=Game_BattlerBase.CACHEKEY_STATE;
 $d$.map=id=>$dataStates[id];
 $pppp$._addNewState_updateCache=function(stateId){
 	this._states.push(stateId);
-	const stat=this._states_getCache();
+	const data=$dataStates[stateId] , stat=this._states_getCache();
 	if(stat){
 		stat.a.add(stateId);
-		const data=$dataStates[stateId];
 		stat.push(data);
 		stat.s.byKey2_sum(data.tmapS);
 		stat.m.byKey2_mul(data.tmapP);
 	}
 	this._overall_delCache();
+	if(SceneManager.isBattle()) BattleManager.updateChase(this);
 };
 $pppp$.addNewState=function(stateId){
 	let cancel=false;
@@ -7566,9 +7574,9 @@ $pppp$.addActor = function(actorId,bool_genNewIfRepeated) { // neednotice
 			let ref=flrs.length?flrs.back:$gamePlayer;
 			$gamePlayer._followers.addFollower(flr=new Game_Follower(flridx+1).locate(ref.x,ref.y));
 		}
-		let sc=SceneManager._scene;
-		let sps=sc&&sc._spriteset;
-		if(sc.constructor===Scene_Battle){
+		const sc=SceneManager._scene;
+		const sps=sc&&sc._spriteset;
+		if(sps && sc.constructor===Scene_Battle){
 			let arr1=sps._battleField,arr2=sps._actorSprites;
 			let tmp=new Sprite_Actor;
 			arr1.addChild(tmp); arr2.push(tmp);
@@ -10017,8 +10025,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 		act.applyItemUserEffect(target);
 	}
 	
-	const sc=SceneManager._scene;
-	if(sc&&sc.constructor===Scene_Battle){
+	if(SceneManager.isBattle()){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
@@ -12991,7 +12998,8 @@ $pppp$.displayActionChaseResults=function f(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
-		if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
+		// lag
+		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
 		if(subject!==target) this.push('popupDamage', target);
 		this.push('popupDamage', subject);

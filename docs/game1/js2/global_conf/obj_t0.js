@@ -2202,8 +2202,86 @@ $aaaa$.prototype._setBitmap_args=function(){
 };
 $rrrr$=$dddd$=$aaaa$=undef; // END sprite
 
-// - Sprite_DamageChild
+// - Spriteset_BattleFieldDamages
+$aaaa$=function Spriteset_BattleFieldDamages(){
+	this.initialize.apply(this, arguments);
+};
+window[$aaaa$.name]=$aaaa$;
+$aaaa$.prototype = Object.create(Sprite.prototype);
+$aaaa$.prototype.constructor = $aaaa$;
+$rrrr$=$aaaa$.prototype.initialize;
+$dddd$=$aaaa$.prototype.initialize=function f(){
+	f.ori.call(this);
+	this.children=new Queue;
+}; $dddd$.ori=$rrrr$;
+$aaaa$.prototype.removeChild=function(c){
+	if(this.children[0]!==c){ throw new Error('not the first child'); debugger; }
+	c.parent=null;
+	c.transform._parentID = -1;
+	this.children.pop();
+	this._boundsID++;
+	//this.onChildrenChange(0); // empty function
+	c.emit('removed', this);
+	return c;
+};
+$aaaa$.prototype.removeChildAt=function(idx){
+	const q=this.children;
+	let c;
+	if(q.length===idx+1){ c=q.back; q.pop_back(); }
+	else if(!idx){ c=q.front; q.pop(); }
+	else{ throw new Error('not a endpoint child'); debugger; }
+	c.parent = null;
+	c.transform._parentID = -1;
+	this._boundsID++;
+	//this.onChildrenChange(0); // empty function
+	child.emit('removed', this);
+	return c;
+};
+$aaaa$.prototype.removeChildren=function(){
+	const q=this.children;
+	for(let i=q.length;i--;){ const curr=q.getnth(i);
+		curr.parent = null;
+		if(curr.transform) curr.transform._parentID = -1;
+	}
+	this._boundsID++;
+	this.onChildrenChange(0);
+	for(let i=q.length;i--;) q.getnth(i).emit('removed', this);
+	const rtv=q.slice();
+	q.clear();
+	return rtv;
+};
+$aaaa$.prototype.update=none;
+$aaaa$.prototype.updateTransform=function(){
+	this._boundsID++;
+	
+	this.transform.updateTransform(this.parent.transform);
+	
+	// TODO: check render flags, how to process stuff here
+	this.worldAlpha = this.alpha * this.parent.worldAlpha;
+	
+	for(let i=0,q=this.children,j=q.length;i!==j;++i){
+		const child = this.children.getnth(i);
+		if (child.visible) {
+			child.updateTransform();
+		}
+	}
+};
+$aaaa$.prototype.renderCanvas=function(renderer){
+	// if not visible or the alpha is 0 then no need to render this
+	if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
+		return;
+	}
+	
+	if(this._mask) renderer.maskManager.pushMask(this._mask);
+	
+	for(let i=0,q=this.children,j=q.length;i!==j;++i){
+		this.children.getnth(i).renderCanvas(renderer);
+	}
+	
+	if(this._mask) renderer.maskManager.popMask(renderer);
+};
 
+// - Sprite_DamageChild
 $aaaa$=function Sprite_DamageChild(){
 	this.initialize.apply(this, arguments);
 };
@@ -2215,6 +2293,7 @@ $aaaa$.prototype._refresh=function(){
 	SceneManager.delRefresh(this);
 	SceneManager.addRefresh(this);
 };
+
 $rrrr$=$dddd$=$aaaa$=undef;
 
 Sprite_Damage.prototype.createChildSprite=function() {
