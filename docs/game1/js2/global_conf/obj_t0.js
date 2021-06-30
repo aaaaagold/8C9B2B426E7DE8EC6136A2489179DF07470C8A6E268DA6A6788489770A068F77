@@ -2234,7 +2234,7 @@ $aaaa$.prototype.removeChildAt=function(idx){
 	c.transform._parentID = -1;
 	this._boundsID++;
 	//this.onChildrenChange(0); // empty function
-	child.emit('removed', this);
+	c.emit('removed', this);
 	return c;
 };
 $aaaa$.prototype.removeChildren=function(){
