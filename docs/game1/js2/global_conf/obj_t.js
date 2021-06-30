@@ -12207,6 +12207,7 @@ $pppp$.update=function() {
 		this.processCursorMove();
 		this.processHandling();
 		if(this.downArrowVisible || this.upArrowVisible) this.processWheel();
+		if(this.rightArrowVisible || this.leftArrowVisible) this.processWheelH();
 		this.processTouch();
 	}else this._touching = false;
 	this._stayCount++;
@@ -12231,6 +12232,15 @@ $pppp$.processWheel = function() {
 	}
 	if (TouchInput.wheelY <= -threshold) {
 		this.scrollUp();
+	}
+};
+$pppp$.processWheelH=function(){
+	const threshold = 20;
+	if (TouchInput.wheelX >= threshold) {
+		this.cursorRight();
+	}
+	if (TouchInput.wheelX <= -threshold) {
+		this.cursorLeft();
 	}
 };
 $pppp$.processTouch = function() {

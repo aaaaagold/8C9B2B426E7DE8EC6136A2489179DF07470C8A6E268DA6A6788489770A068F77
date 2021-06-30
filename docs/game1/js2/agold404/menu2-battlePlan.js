@@ -201,10 +201,40 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 	ra.x=this.width-(la.x=la.width);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.maxItems=()=>$gameParty.allMembers().length; // the list is cached, fast enough
+$aaaa$.prototype.topIndex=function(){ return this._scrollIdx; };
 $aaaa$.prototype.isCurrentItemEnabled=function(){ return true; };
 $aaaa$.prototype.isCursorVisible=function(){
 	const loc=this._index-this._scrollIdx;
 	return loc>=0||loc<this._maxCols;
+};
+$aaaa$.prototype.onTouch=function(triggered){
+	this.touchLfRhArrowsLfRh(triggered,this);
+	return this._onTouch_iw(triggered,this);
+};
+$aaaa$.prototype.processWheelH=function(){
+	const threshold = 20;
+	const lastScrollIdx=this._scrollIdx;
+	if(TouchInput.wheelX >= threshold){
+		const d=this._scrollIdx+this.maxPageItems()<this.maxItems();
+		this._scrollIdx+=d;
+		this._index+=d;
+	}
+	if(TouchInput.wheelX <= -threshold){
+		const d=this._scrollIdx>0;
+		this._scrollIdx-=d;
+		this._index-=d;
+	}
+	if(lastScrollIdx!==this._scrollIdx){
+	//	const idx=this._index;
+		if(this._index<this._scrollIdx) this._index=this._scrollIdx;
+		else{
+			const R=this._scrollIdx+this.maxPageItems();
+			if(this._index>=R && R>0) this._index=R-1;
+		}
+		this.refresh();
+		//this.updateCursor();
+		this.refresh_plans();
+	}
 };
 $aaaa$.prototype.itemRect=function(index){
 	const rect = new Rectangle() , maxCols = this.maxCols();
