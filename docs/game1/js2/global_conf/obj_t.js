@@ -571,6 +571,7 @@ $pppp$.setupDamagePopup = function() {
 				}
 			} }else this._setupDamagePopup1(res); }
 			for(let i=0;i!==laters.length;++i) this._setupDamagePopup1(laters[i]);
+			while(q[0] && q[0].merge) this._setupDamagePopup1(q.shift());
 		}
 		this._battler.clearDamagePopup();
 		this._battler.clearResult();
@@ -1884,14 +1885,21 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 	if(skills && skills.size){ skills.forEach((v,k)=>{
 		const a=new Game_Action(btlr);
 		a.setItemObject($dataSkills[k]);
-		for(let x=v;x--;) a.apply(t,true);
+		for(let x=v;x--;){
+			a.apply(t,!window.showChaseRes);
+			if(window.showChaseRes) self._logWindow.displayActionChaseResults(btlr,t,a);
+		}
 	}); }
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
-	this.invokeChaseAction(this._action,subject,realTarget); // TODO
-	this._action.apply(realTarget);
-	this._logWindow.displayActionResults(subject, realTarget, this._action);
+	const usedAct=this._action.apply(realTarget);
+	this._logWindow.displayActionResults(subject, realTarget, usedAct);
+	if(usedAct){
+		this.invokeChaseAction(usedAct,subject,realTarget); // TODO
+		subject.reserveActResQ().push(undefined); // delimiter
+		realTarget.reserveActResQ().push(undefined); // delimiter
+	}
 	return realTarget;
 };
 $r$=$aaaa$.invokeReflection=function(subject, target) {
@@ -9966,7 +9974,8 @@ $pppp$.getSelfItemObj=function(obj){
 	return false;
 };
 $pppp$.canForSelf=obj=>!!obj;
-$d$=$pppp$.apply=function f(target,viaChase){
+$d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
+	// return action used if used
 	const result = target.result() , subject = this.subject();
 	let tmp=this; if(subject===target){
 		const slf=this.getSelfItemObj();
@@ -9986,8 +9995,16 @@ $d$=$pppp$.apply=function f(target,viaChase){
 	if( !(result.used = act.testApply(target)) ) return;
 	result.physical = act.isPhysical();
 	result.drain = act.isDrain();
-	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ) return f.toQ(result,target); // if(result.isHit())
-	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ) return f.toQ(result,target); // if(result.isHit())
+	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ){
+		result.merge=dmgPopupFollowPrev;
+		f.toQ(result,target); // if(result.isHit())
+		return act;
+	}
+	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ){
+		result.merge=dmgPopupFollowPrev;
+		f.toQ(result,target); // if(result.isHit())
+		return act;
+	}
 	// if(result.isHit())
 	{
 		const item=act.item();
@@ -10002,17 +10019,18 @@ $d$=$pppp$.apply=function f(target,viaChase){
 	
 	const sc=SceneManager._scene;
 	if(sc&&sc.constructor===Scene_Battle){
-		result.later=viaChase;
+		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
 			const q=subject.reserveActResQ() , res=subject.result();
 			if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0){
-				res.later=viaChase;
+				res.merge=dmgPopupFollowPrev;
 				q.push(res.copy());
 			}
-			else if(!viaChase) q.push(undefined); // delimiter
+			//else if(!dmgPopupFollowPrev) q.push(undefined); // delimiter // handled by btlmgr.invokeAction
 		}
 	}
+	return act;
 };
 $d$.toQ=(res,trgt)=>{
 	if(!res.used) return;
@@ -10291,7 +10309,7 @@ $d$.tbl={
 		'physical','drain','critical',
 		'hpAffected',
 		'hpDamage','mpDamage','tpDamage','stpDamage',
-		'later'
+		'later','merge',
 	],
 };
 Object.defineProperties($aaaa$.prototype,{
@@ -12811,20 +12829,31 @@ $d$=$pppp$.update=function f(){
 	}
 }; $d$.ori=$r$;
 $pppp$.skipMeta=function(){
-	let rtv=0;
-	for(let q=this._methods;q.length&&q.front.name[0]==="-";q.shift())
-		++rtv;
-	return rtv;
+	//let rtv=0;
+	for(let q=this._methods,c,n;q.length&&(n=(c=q.front).name)[0]==="-";q.shift()){
+		if(n[1]==='s' && n[2]==='e' && n[3]==='t' && n[4]==='_'){ switch(n.slice(5)){
+		case 'doMore':
+			this._doMore=true;
+		break;
+		case 'doOne':
+			this._doMore=false;
+		break;
+		} }
+		//++rtv;
+	}
+	//return rtv;
 };
 $pppp$.callNextMethod=function(){
 	this.skipMeta();
-	if(this._methods.length){
-		let method = this._methods.shift();
-		if(method.name && this[method.name]){
-			this[method.name].apply(this, method.params);
-		}else throw new Error('Method not found: ' + method.name);
-	}
-	this.skipMeta();
+	do{
+		if(this._methods.length){
+			let method = this._methods.shift();
+			if(method.name && this[method.name]){
+				this[method.name].apply(this, method.params);
+			}else throw new Error('Method not found: ' + method.name);
+		}
+		this.skipMeta();
+	}while(this._doMore);
 };
 $r$=$pppp$.addText;
 $d$=$pppp$.addText=function f(txt){
@@ -12956,6 +12985,22 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action){
 		this.displayFailure(target);
 		this.displayHitRec(subject,target);
 		this.push('-actResEnde');
+	}
+};
+$pppp$.displayActionChaseResults=function f(subject,target,action){
+	if(target.result().used){
+		this.push('-actChaseResStrt');
+		this.push('-set_doMore');
+		if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
+		this.displayCritical(target);
+		if(subject!==target) this.push('popupDamage', target);
+		this.push('popupDamage', subject);
+		this.displayDamage(target);
+		this.displayAffectedStatus(target);
+		this.displayFailure(target);
+		this.displayHitRec(subject,target);
+		this.push('-set_doOne');
+		this.push('-actChaseResEnde');
 	}
 };
 // Window_BattleLog.prototype.displayDamage

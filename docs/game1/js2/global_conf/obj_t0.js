@@ -2116,6 +2116,70 @@ $aaaa$.prototype._refresh=function(){
 	}
 	this.texture._updateID++;
 };
+$aaaa$.prototype._executeTint=function(x, y, w, h){
+	const context = this._context;
+	const tone = this._colorTone;
+	const color = this._blendColor;
+	
+	context.globalCompositeOperation = 'copy';
+	context.drawImage(this._bitmap.canvas, x, y, w, h, 0, 0, w, h);
+	
+	if(Graphics.canUseSaturationBlend() && tone[3]>0){
+		context.globalCompositeOperation = 'saturation';
+		context.fillStyle = 'rgba(255,255,255,' + Math.max(0, tone[3]+1) / 256 + ')';
+		context.fillRect(0, 0, w, h);
+	}
+	
+	if(tone[0]>0||tone[1]>0||tone[2]>0){
+		context.globalCompositeOperation = 'lighter';
+		context.fillStyle = Utils.rgbToCssColor(
+			Math.max(0, tone[0])>>>0,
+			Math.max(0, tone[1])>>>0,
+			Math.max(0, tone[2])>>>0
+		);
+		context.fillRect(0, 0, w, h);
+	}
+	
+	if(Graphics._canUseMultiplyBlend){ if(tone[0]<0||tone[1]<0||tone[2]<0){
+		const r2 = Math.max(0, -tone[0])>>>0;
+		const g2 = Math.max(0, -tone[1])>>>0;
+		const b2 = Math.max(0, -tone[2])>>>0;
+		ctx.globalCompositeOperation = 'multiply';
+		ctx.fillStyle = Utils.rgbToCssColor(255-r2, 255-g2, 255-b2);
+		ctx.fillRect(0, 0, w,h);
+	} }else if(Graphics.canUseDifferenceBlend()&&(tone[0]<0||tone[1]<0||tone[2]<0)){
+		context.globalCompositeOperation = 'difference';
+		context.fillStyle = 'white';
+		context.fillRect(0, 0, w, h);
+		
+		context.globalCompositeOperation = 'lighter';
+		context.fillStyle = Utils.rgbToCssColor(
+			Math.max(0, -tone[0])>>>0,
+			Math.max(0, -tone[1])>>>0,
+			Math.max(0, -tone[2])>>>0
+		);
+		context.fillRect(0, 0, w, h);
+		
+		context.globalCompositeOperation = 'difference';
+		context.fillStyle = 'white';
+		context.fillRect(0, 0, w, h);
+	}
+	
+	if(color[3]>0){
+		context.globalCompositeOperation = 'source-atop';
+		context.fillStyle = Utils.rgbToCssColor(
+			Math.max(0, color[0])>>>0,
+			Math.max(0, color[1])>>>0,
+			Math.max(0, color[2])>>>0
+		);
+		context.globalAlpha = Math.max(0, color[3]+1) / 256;
+		context.fillRect(0, 0, w, h);
+	}
+
+	context.globalCompositeOperation = 'destination-in';
+	context.globalAlpha = 1;
+	context.drawImage(this._bitmap.canvas, x, y, w, h, 0, 0, w, h);
+};
 $aaaa$.prototype.getRef=none;
 $aaaa$.prototype._setBitmap_args=function(){
 	let hasSth=false,rtv={}; // args
@@ -2136,8 +2200,33 @@ $aaaa$.prototype._setBitmap_args=function(){
 	}
 	return hasSth&&rtv;
 };
+$rrrr$=$dddd$=$aaaa$=undef; // END sprite
+
+// - Sprite_DamageChild
+
+$aaaa$=function Sprite_DamageChild(){
+	this.initialize.apply(this, arguments);
+};
+window[$aaaa$.name]=$aaaa$;
+$aaaa$.prototype = Object.create(Sprite.prototype);
+$aaaa$.prototype.constructor = $aaaa$;
+$aaaa$.prototype.refresh_do=$aaaa$.prototype._refresh;
+$aaaa$.prototype._refresh=function(){
+	SceneManager.delRefresh(this);
+	SceneManager.addRefresh(this);
+};
 $rrrr$=$dddd$=$aaaa$=undef;
 
+Sprite_Damage.prototype.createChildSprite=function() {
+	const sprite = new Sprite_DamageChild();
+	sprite.bitmap = this._damageBitmap;
+	sprite.anchor.x = 0.5;
+	sprite.anchor.y = 1;
+	sprite.y = -40;
+	sprite.ry = sprite.y;
+	this.addChild(sprite);
+	return sprite;
+};
 
 // manager
 
