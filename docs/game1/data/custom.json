@@ -57,6 +57,8 @@
 	"opts_displayEffect": "遊戲顯示效果設定",
 		"noAnimation": "不顯示動畫特效",
 		"noAutotile": "不更新動態地圖(如水流效果)",
+		"dmgPopMaxPerBtlr": "每位戰鬥員最大同時存在的彈出數字量",
+		"chasePopAfterFrame": "追擊造成的數字晚幾幀再出現",
 	"opt_characterControl":"角色操控選項",
 		"simpleTouchMove":"使用智障型點擊移動:取消點擊移動的自動避開障礙物",
 	"clearMapDataCache":"清除地圖資料快取",
