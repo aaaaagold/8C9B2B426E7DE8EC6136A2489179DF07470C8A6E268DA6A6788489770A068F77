@@ -1606,6 +1606,21 @@ $d$=$aaaa$.clearTBDCache=function f(){
 	}else this._TBDCache=new Set();
 };
 $d$.forEach=b=>b.clearCache();
+$aaaa$.initChases=function(){
+	let M=this._chases;
+	if(M){
+		M.get($gameParty).clear();
+		M.get($gameTroop).clear();
+		M.get(this).clear();
+	}else{
+		M=this._chases=new Map();
+		let c;
+		M.set($gameParty,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
+		M.set($gameTroop,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
+		M.set(this,c=new Map());	c.byCond=Game_BattlerBase.CHASE_FRIENDS.map(_=>new Set());
+		// btlr -> traitCodeSet according to friend or opponent or all
+	}
+};
 $k$='initMembers';
 $r$=$aaaa$[$k$];
 $d$=$aaaa$[$k$]=function f(){
@@ -1629,6 +1644,8 @@ $d$=$aaaa$[$k$]=function f(){
 	else this._isChanting=new Map();
 	
 	this._actionNoEffect=false;
+	
+	this.initChases();
 }; $d$.ori=$r$;
 $k$='saveBgmAndBgs';
 $r$=$aaaa$[$k$];
@@ -1787,13 +1804,92 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
 	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
 	else realTarget=this.invokeNormalAction(s,t);
-	}	
+	}
 	s.setLastTarget(t);
 	this.refreshStatus();
 	return realTarget;
 };
+$aaaa$.updateChase=function(btlr,stateObjChanged){
+	if(!this._chases) this.initChases();
+	const gbb=Game_BattlerBase;
+	{ const fu=this._chases.get(btlr.friendsUnit()) , cf=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_FRIEND); if(fu){
+		if(cf && cf.size){
+			fu.set(btlr,gbb.CHASE_FRIENDS);
+			cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
+		}else{
+			fu.delete(btlr);
+			fu.byCond.forEach(s=>s.delete(btlr));
+		}
+	} }
+	{ const ou=this._chases.get(btlr.opponentsUnit()) , co=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_OPPONENT); if(ou){
+		if(co && co.size){
+			ou.set(btlr,gbb.CHASE_OPPONENTS);
+			co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
+		}else{
+			ou.delete(btlr);
+			ou.byCond.forEach(s=>s.delete(btlr));
+		}
+	} }
+	{ const au=this._chases.get(this) , ca=btlr.getTraits_overall_s(gbb.TRAIT_CHASE_ALLBATTLER); if(au){
+		if(ca && ca.size){
+			au.set(btlr,gbb.CHASE_ALLBATTLERS);
+			ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].add(btlr));
+		}else{
+			au.delete(btlr);
+			au.byCond.forEach(s=>s.delete(btlr));
+		}
+	} }
+};
+$d$=$aaaa$.invokeChaseAction=function f(act,s,t){
+	if(!s||!t) return;
+	const M=this._chases , fu=s.friendsUnit() ;
+	const btlrs=M&&M.get(fu);
+	if(!btlrs || !btlrs.size) return;
+	// allow to be same skills, mostly are different though
+	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t);
+	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t);
+	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t);
+	const item=act.item();
+	if(item.damage.type){
+		if(act.isRecover()) f.doChase(this,btlrs, 'heal' ,s,t);
+		else{
+			if(act.isPhysical()) f.doChase(this,btlrs, 'atk_physical' ,s,t);
+			if(act.isMagical()) f.doChase(this,btlrs, 'atk_magical' ,s,t);
+			// anyatk
+			f.doChase(this,btlrs, 'anyatk' ,s,t);
+		}
+		if(item.damage.elementId<0){
+			// as normal attack
+			s.attackElements().forEach((_,k)=>f.doChase(this,btlrs, k ,s,t));
+		}else f.doChase(this,btlrs, item.damage.elementId ,s,t);
+	}
+	// all
+	f.doChase(this,btlrs, 'all' ,s,t);
+};
+$d$.doChase=function f(self,btlrs,cond,s,t){
+	const idx=Game_BattlerBase.cond2idx(cond);
+	const set=btlrs.byCond[idx];
+	if(set && set.size){
+		const notExists=[];
+		set.forEach(btlr=>f.forEach(self,notExists,btlrs,btlr,idx,s,t));
+		for(let x=notExists.length;x--;) set.delete(notExists[x]);
+	}
+};
+$d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
+	const codes=btlrs.get(btlr);
+	if(!codes) return notExists.push(btlr);
+	const code=Game_BattlerBase[codes[chaseIdx]];
+	if(!code) return;
+	const skills=btlr.traitsSet(code); // skillId -> repeat
+	if(skills && skills.size){ skills.forEach((v,k)=>{
+		const a=new Game_Action(btlr);
+		a.setItemObject($dataSkills[k]);
+		for(let x=v;x--;) a.apply(t,true);
+	}); }
+};
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
+	this.invokeChaseAction(this._action,subject,realTarget); // TODO
 	this._action.apply(realTarget);
 	this._logWindow.displayActionResults(subject, realTarget, this._action);
 	return realTarget;
@@ -1854,6 +1950,8 @@ $d$=$aaaa$.endBattle=function f(res){
 	}
 	// too early to delete cache, however, need to remove them from party
 	delList.forEach(f.forEach,this);
+	
+	this._chases=undefined;
 }; $d$.ori=$r$;
 $d$.forEach=function(info){
 	const actor=info[0] , i=info[1];
@@ -4999,13 +5097,9 @@ $d$=$pppp$.sortStates=function f(){
 $d$.cmp=[
 	(a, b)=>{
 		const sa=$dataStates[a] , sb=$dataStates[b];
-		//const pa=sa.priority , pb=sb.priority;
-		//return (pa===pb)?(sa.ord-sb.ord||a - b):(pb - pa);
 		return sb.priority-sa.priority||sa.ord-sb.ord||a-b;
 	},
 	(sa,sb)=>{
-		//const pa=sa.priority , pb=sb.priority;
-		//return (pa===pb)?(sa.ord-sb.ord||sa.id - sb.id):(pb - pa);
 		return sb.priority-sa.priority||sa.ord-sb.ord||sa.id-sb.id;
 	},
 ];
@@ -5602,9 +5696,15 @@ $pppp$.gainStp = function(value){
 	this._result.stpDamage = -value;
 	this.setStp(this.stp + value);
 };
-$pppp$.onBattleStart = function() {
+$pppp$.friendsUnit=none;
+$pppp$.opponentsUnit=none;
+$pppp$.registChase=function(){
+	BattleManager.updateChase(this);
+};
+$pppp$.onBattleStart=function(){
 	this.setActionState('undecided');
 	this.clearMotion();
+	this.registChase();
 };
 $r$=$pppp$.onTurnEnd;
 $d$=$pppp$.onTurnEnd=function f(){
@@ -5616,11 +5716,16 @@ $d$=$pppp$.onTurnEnd=function f(){
 		this.refresh(true);
 	}
 }; $d$.ori=$r$;
+$pppp$.clearChase=function(){
+	const M=BattleManager._chases;
+	if(M) M.forEach(s=>s.delete(this));
+};
 $k$='onBattleEnd';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.gainSilentTp(this.TPRegenAtBattleEnd());
+	this.clearChase();
 }; $d$.ori=$r$;
 $pppp$.isChanting=function(){
 	return this.isWaiting()&&BattleManager._isChanting&&BattleManager._isChanting.get(this);
@@ -5635,7 +5740,7 @@ $pppp$.performActionStart = function(action) {
 };
 $pppp$.performAction=none; // ori:empty
 $pppp$._updateFlr=none;
-$pppp$=$aaaa$=undef;
+$pppp$=$aaaa$=undef; // END Game_Battler
 
 // - chrB
 $aaaa$=Game_CharacterBase;
@@ -9573,6 +9678,9 @@ $pppp$.setSkill=function(skillId){
 		BattleManager._isChanting.set(subject,n+1);
 	}
 };
+$pppp$.isAttack=function(subject){
+	return this.item() === $dataSkills[(subject||this.subject()).attackSkillId()];
+};
 $pppp$.isGuard=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).guardSkillId()];
 };
@@ -9858,7 +9966,7 @@ $pppp$.getSelfItemObj=function(obj){
 	return false;
 };
 $pppp$.canForSelf=obj=>!!obj;
-$d$=$pppp$.apply=function f(target){
+$d$=$pppp$.apply=function f(target,viaChase){
 	const result = target.result() , subject = this.subject();
 	let tmp=this; if(subject===target){
 		const slf=this.getSelfItemObj();
@@ -9894,11 +10002,15 @@ $d$=$pppp$.apply=function f(target){
 	
 	const sc=SceneManager._scene;
 	if(sc&&sc.constructor===Scene_Battle){
+		result.later=viaChase;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
 			const q=subject.reserveActResQ() , res=subject.result();
-			if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0) q.push(res.copy());
-			else q.push(undefined); // delimiter
+			if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0){
+				res.later=viaChase;
+				q.push(res.copy());
+			}
+			else if(!viaChase) q.push(undefined); // delimiter
 		}
 	}
 };
