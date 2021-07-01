@@ -13134,6 +13134,26 @@ $pppp$.addSkillCommands=function f(omits){
 $pppp$.addSpaceoutCommand=function(){
 	this.addCommand($dataCustom.spaceout, 'spaceout', this._actor.canSpaceout());
 };
+$pppp$=$aaaa$=undef;
+
+// - Window_BattleEnemy
+$aaaa$=Window_BattleEnemy;
+$pppp$=$aaaa$.prototype;
+$pppp$.refresh=function(){
+	this._enemies = $gameTroop.members();
+	Window_Selectable.prototype.refresh.call(this);
+};
+$pppp$.isCurrentItemEnabled=function(idx){
+	const i=idx===undefined?this._index:idx;
+	// for skills affecting dead enemies in future 
+	return this._enemies && this._enemies[i] && !this._enemies[i].isHidden() && !this._enemies[i].isDeathStateAffected();
+};
+$pppp$.drawItem=function(index){
+	this.changePaintOpacity(this.isCurrentItemEnabled(index));
+	const rect = this.itemRectForText(index);
+	this.drawText(this._enemies[index].name(), rect.x, rect.y, rect.width);
+};
+$pppp$=$aaaa$=undef;
 
 // - command
 $aaaa$=Window_Command;
