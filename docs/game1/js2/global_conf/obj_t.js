@@ -1338,7 +1338,7 @@ $pppp$=$aaaa$=undef;
 // - ImageManager
 $aaaa$=ImageManager;
 { const f=function(){ return arguments[2]===""?"":(arguments[1]==="?"?"?":"&"); };
-$aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=[^&]*)?(?=(&|$))/g,'$1').replace(/(\?)?[&]+($)?/g,f);
+$aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=[^&]*)?(?=(&|$))/g,'$1').replace(/(\?)?[&]+($)?/g,f).replace(/\?$/,'');
 }
 $aaaa$.loadEnemy=function(filename,hue,args){
 	return this.loadBitmap('img/enemies/', filename, hue, true, args);
