@@ -1917,7 +1917,7 @@ $aaaa$.invokeNormalAction=function(subject, target){
 	return realTarget;
 };
 $r$=$aaaa$.invokeReflection=function(subject, target) {
-	this._action._reflectionTarget = target;
+	//this._action._reflectionTarget = target;
 	this._logWindow.displayReflection(target);
 	this._action.apply(subject);
 	this._logWindow.displayActionResults(target, subject, this._action);
@@ -3265,7 +3265,7 @@ $pppp$=$aaaa$.prototype;
 $pppp$.changeInputWindow=function(){
 	if(BattleManager.isInputting()){
 		if(BattleManager.actor()) this.startActorCommandSelection();
-		else if(!this._logWindow.active && (!this._battlePlan || !this._battlePlan.visible)) this.startPartyCommandSelection(); // viewLog
+		else if(!this._logWindow.active && (!this._battlePlan || !this._battlePlan.visible) && !this.isSwapWindowActive()) this.startPartyCommandSelection(); // viewLog
 	}else this.endCommandSelection();
 };
 $r$=$pppp$.terminate;
@@ -3315,7 +3315,11 @@ $pppp$.createHelpWindow=function(){
 	Scene_MenuBase.prototype.createHelpWindow.call(this);
 	this._helpWindow.visible=false;
 };
+$pppp$.isSwapWindowActive=function(){
+	return this._swapActorWindow && this._swapActorWindow.active && this._swapActorWindow._mode==='s';
+};
 $pppp$.commandSwap=function(){
+	this._statusWindow.noRefresh=true; // directly draw when needed
 	const w=this._swapActorWindow;
 	w._mode='s';
 	w._pendingIndex=-1;
@@ -3327,10 +3331,11 @@ $pppp$.commandSwap=function(){
 $pppp$.commandUsePlan=function(){
 	this._allSpecific=0;
 	this._windowLayer.visible=false;
-	const cmdw=this._partyCommandWindow;
-	cmdw.active=false;
+	const cmdw=this._partyCommandWindow , statw=this._statusWindow , swapw=this._swapActorWindow ;
+	swapw.noRefresh=statw.noRefresh=!(cmdw.active=false);
 	if(this._battlePlan===undefined){
-		const plan = this._battlePlan = new Window_BattlePlan , bye=()=>this._windowLayer.visible=cmdw.active=!(plan.visible=plan.active=false);
+		const plan = this._battlePlan = new Window_BattlePlan ;
+		const bye=()=>this._windowLayer.visible=cmdw.active=!(swapw.noRefresh=statw.noRefresh=plan.visible=plan.active=false) ;
 		SceneManager._scene.addChild(plan);
 		plan.setHandler('cancel' ,bye);
 		plan.setHandler('ok'     ,()=>{
@@ -3486,10 +3491,12 @@ $d$=$pppp$[$k$]=function f(){
 			const idx=w._pendingIndex;
 			w._pendingIndex=-1;
 			w.redrawItem(idx);
+			w.activate(); // needed
 		}else{
 			w._mode=undefined;
 			w.deactivate();
 			w.hide();
+			this._statusWindow.noRefresh=false;
 			this._partyCommandWindow.activate();
 		}
 	}break;
@@ -5011,9 +5018,16 @@ Object.defineProperties($aaaa$.prototype, {
 	lastPayHp:{ get: function() { return this.lastPay().hp||0; },configurable: false},
 	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
 });
+$k$='clearBuffs';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(){
+	f.ori.call(this);
+	// this._buffs must be Array so that any other members appear on it will not be saved to game saves
+	this._buffs.set=new Set();
+}).ori=$r$;
 
-$pppp$.isMaxBuffAffected=none;
-$pppp$.isMaxDebuffAffected=none;
+$pppp$.isMaxBuffAffected=none; // 2 ?
+$pppp$.isMaxDebuffAffected=none; // this._buffs[paramId]===-2 ?
 $d$=$pppp$.updateStateTurns=function f(){
 	this._states.forEach(f.forEach, this._stateTurns);
 };
@@ -5053,6 +5067,9 @@ $pppp$.eraseState=function(stateId){
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
+};
+$pppp$.isStateExpired=function(stateId){
+	return !this._stateTurns[stateId];
 };
 $pppp$.isStateAffected=function(stateId){
 	return (this._states_getCache()||this._states_updateCache()).a.has(stateId);
@@ -5148,6 +5165,44 @@ $pppp$.stateOverlayIndex=function(){
 	const states = this.states_noSlice();
 	if(states.length) return states[0].overlay;
 	else return 0;
+};
+$pppp$.eraseBuff=function(paramId){
+	this._buffs[paramId] = this._buffTurns[paramId] = 0;
+	this.buffCnt();
+	this._buffs.set.delete(paramId);
+};
+$pppp$.buffCnt=function(){
+	// count effected buff/debuff
+	let s=this._buffs.set;
+	if(!s){
+		s=this._buffs.set=new Set();
+		for(let x=0,arr=this._buffs;x!==arr.length;++x) if(arr[x]) s.add(x);
+	}
+	return s.size;
+};
+$pppp$.increaseBuff=function(paramId){
+	if(this.isMaxBuffAffected(paramId)) return;
+	this.buffCnt();
+	const s=this._buffs.set;
+	if(++this._buffs[paramId]) s.add(paramId);
+	else s.delete(paramId);
+};
+$pppp$.decreaseBuff = function(paramId) {
+	if(this.isMaxDebuffAffected(paramId)) return;
+	this.buffCnt();
+	const s=this._buffs.set;
+	if(--this._buffs[paramId]) s.add(paramId);
+	else s.delete(paramId);
+};
+$pppp$.isBuffOrDebuffAffected=function(paramId){
+	return !!this._buffs[paramId];
+};
+$pppp$.isBuffExpired=function(paramId){
+	return !this._buffTurns[paramId];
+};
+$pppp$.updateBuffTurns=function(){
+	this.buffCnt();
+	this._buffs.set.forEach(v=>this._buffTurns[v]&&(--this._buffTurns[v]));
 };
 $pppp$.stateIcons=function(rtv){
 	const icons=rtv||[] , arr=this.states_noSlice();
@@ -5618,6 +5673,32 @@ $pppp$.weapon2ImageId=function(){
 $pppp$.startWeapon2Animation=function(weaponImageId) {
 	this._weapon2ImageId = weaponImageId;
 };
+$d$=$pppp$.removeStatesAuto=function f(timing){
+	f.tbl[0].length=0; f.tbl._=this; f.tbl.t=timing;
+	this._states.forEach(f.tbl[1],f.tbl);
+	f.tbl[0].forEach(f.tbl[2],f.tbl);
+};
+$d$.tbl=[
+	[], // tmp
+	function(stateId){
+		const state=$dataStates[stateId];
+		if(this._.isStateExpired(stateId) && state.autoRemovalTiming === this.t){
+			this[0].push(stateId);
+		}
+	},
+	function(stateId){ this._.removeState(stateId); },
+];
+$pppp$.removeAllBuffs=function(){
+	this.buffCnt();
+	this._buffs.set.forEach( paramId => this._buffs[paramId] = this._buffTurns[paramId] = 0 );
+	this._buffs.set.clear();
+};
+$pppp$.removeBuffsAuto=function(){
+	const tmp=[];
+	this.buffCnt();
+	this._buffs.set.forEach( v => this.isBuffExpired(v) && tmp.push(v) );
+	for(let i=tmp.length;i--;) this.removeBuff(i);
+};
 $pppp$.action=function(idx){
 	return this._actions.getnth(idx);
 };
@@ -5655,14 +5736,6 @@ $pppp$.clearActions=function(){
 	this._actions.clear(2);
 	BattleManager._isGuardWaiting&&BattleManager._isGuardWaiting.delete(this);
 	BattleManager._isChanting&&BattleManager._isChanting.delete(this);
-};
-$pppp$.removeStatesAuto=function(timing){
-	this._states.forEach(stateId=>{
-		const state=$dataStates[stateId];
-		if(this.isStateExpired(stateId) && state.autoRemovalTiming === timing) {
-			this.removeState(stateId);
-		}
-	});
 };
 $pppp$.makeActionTimes=function(){ // change logic: rnd each -> rnd remainder(<1)
 	const rtv=this.traitsSum(Game_BattlerBase.TRAIT_ACTION_PLUS,0)||0; // id應該是0啦。原本的code用actionPlusSet每個算機率決定是否+1，未指定id
@@ -5731,16 +5804,25 @@ $pppp$.onBattleStart=function(){
 	this.clearMotion();
 	this.registChase();
 };
-$r$=$pppp$.onTurnEnd;
-$d$=$pppp$.onTurnEnd=function f(){
+$pppp$.onTurnEnd=function f(){
 	this.noRefresh=true;
-	f.ori.call(this);
+	
+	//f.ori.call(this);
+	this.clearResult();
+	this.regenerateAll();
+	if(!BattleManager.isForcedTurn()){
+		this.updateStateTurns();
+		this.updateBuffTurns();
+		this.removeStatesAuto(2);
+		this.removeBuffsAuto();
+	}
+	
 	this.noRefresh=0;
 	if(this._needRefresh){
 		delete this._needRefresh;
 		this.refresh(true);
 	}
-}; $d$.ori=$r$;
+};
 $pppp$.clearChase=function(){
 	const M=BattleManager._chases;
 	if(M) M.forEach(s=>s.delete(this));
@@ -10009,7 +10091,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 		}
 	}
 	const act=tmp;
-	subject.clearResult();
+	if(subject!==target) subject.clearResult();
 	result.clear();
 	if( !(result.used = act.testApply(target)) ) return;
 	result.physical = act.isPhysical();
@@ -11768,17 +11850,19 @@ $d$=$pppp$[$k$]=function f(x,y,w,h){
 	const noRefreshArrows=this._noRefreshArrows||undefined;
 	this._noRefreshArrows=true;
 	
+	this._updateCtr=0;
+	
 	f.ori.call(this,x,y,w,h);
 	
 	this._noRefreshArrows=noRefreshArrows;
 	this._refreshArrows(); // reduce dup calls
-	
 	
 	this.adjLrArrows=undefined;
 	this._iconloop=undefined;
 }; $d$.ori=$r$;
 $r$=$pppp$.update;
 $d$=$pppp$.update=function f(){
+	++this._updateCtr; this._updateCtr&=0x3FFFFFFF;
 	if(this._iconloop){
 		for(let x=0,arr=this._iconloop;x!==arr.length;++x){
 			const info=arr[x]; if(this._index===info[5]) f.forEach.call(this,info,x);
@@ -11814,9 +11898,7 @@ $d$.forEach=function f(info){
 	this.processDrawIcon(icons[idx][0],f.tbl);
 };
 $d$.forEach.tbl={x:0,y:0};
-if(0)$pppp$.refresh=function(){
-	//SceneManager.addRefresh(this);
-};
+if(0)$pppp$.refresh=SceneManager._addRefresh; // not all things have: refresh_do
 $pppp$.drawActorFace=function(actor, x, y, width, height){
 	this.drawFace(actor.faceName(), actor.faceIndex(), x, y, width, height);
 	const iconw=Window_Base._iconHeight+1;
@@ -11836,33 +11918,55 @@ $pppp$.drawActorFace=function(actor, x, y, width, height){
 };
 $pppp$.drawActorIcons=function(actor, x, y, width){
 	width = width || 144;
-	const ty=y+2 , maxLen=~~(width / Window_Base._iconWidth) , stats=actor.states_noSlice() , fs=this.contents.fontSize ;
-	const fs2=(fs>>1)+(fs>>3)+(fs>>4),w_4=(Window_Base._iconWidth>>2),w_4_3=(Window_Base._iconWidth>>1)+(Window_Base._iconWidth>>2);
+	const ty=y+2 , w_4=(Window_Base._iconWidth>>2) , w_4_3=(Window_Base._iconWidth>>1)+(Window_Base._iconWidth>>2) , stats=actor.states_noSlice() , fs=this.contents.fontSize ;
+	const fs2=(fs>>1)+(fs>>3)+(fs>>4) , iconsLen=stats.length+actor.buffCnt() , rect=new Rectangle(x,ty,width,Window_Base._iconHeight) ;
+	this.contents.clearRect(rect.x,rect.y,rect.width,rect.height);
+	const iconsWidth=iconsLen*Window_Base._iconWidth;
+	this.changeTextColor( this.iconStackTextColor() );
 	let tx=x;
-	for(let i=0,sz=Math.min(maxLen,stats.length);i!==sz;++i){
-		const stat=stats[i]
-		this.drawIcon(stat.iconIndex, tx, ty);
-		if(stat.autoRemovalTiming){
+	{
+		let m=this._needRedrawIconsMap; if(!m) m=this._needRedrawIconsMap=new Map();
+		if(width<iconsWidth){
+			const wait=120;
+			const M=~~((wait<<1)+Window_Base._iconWidth-width+iconsWidth);
+			let r=~~(this._updateCtr%M); // the empty one
+			if(r+wait<M) r-=wait;
+			else r=M-(wait<<1);
+			if(r>0) tx-=r;
+			m.set(actor,[x,y,width,]);
+		}else m.delete(actor);
+	}
+	
+	// states
+	for(let i=0,sz=stats.length;i!==sz;++i){
+		const stat=stats[i];
+		if(this.drawIcon(stat.iconIndex,tx,ty,rect) && stat.autoRemovalTiming){
 			this.setFontsize(fs2);
-			this.drawText(actor._stateTurns[stat.id],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),Window_Base._iconWidth);
+			this.drawText(actor._stateTurns[stat.id],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),Window_Base._iconWidth,undefined,rect);
 			this.setFontsize(fs);
 		}
 		tx+=Window_Base._iconWidth;
 	}
-	if(stats.length<maxLen){
+	
+	// buffs
+	{
 		const arr=actor._buffs;
-		for(let i=0,ti=stats.length;i!==arr.length && ti!==maxLen;++i){
+		for(let i=0,ti=stats.length;i!==arr.length;++i){
 			if(arr[i]){
-				this.drawIcon(actor.buffIconIndex(arr[i],i), tx, ty);
-				this.setFontsize(fs2);
-				this.drawText('x'+arr[i],tx+w_4,ty-2,w_4_3,'right');
-				this.drawText(actor._buffTurns[i],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),w_4_3);
-				this.setFontsize(fs);
+				if(this.drawIcon(actor.buffIconIndex(arr[i],i),tx,ty,rect)){
+					this.setFontsize(fs2);
+					this.drawText('x'+(arr[i]<0?-arr[i]:arr[i]),tx+w_4,ty-2,w_4_3,'right',rect);
+					this.drawText(actor._buffTurns[i],tx+2,ty+(Window_Base._iconHeight-this.lineHeight()),w_4_3,undefined,rect);
+					this.setFontsize(fs);
+				}
 				tx+=Window_Base._iconWidth;
 				++ti;
 			}
 		}
 	}
+	//rect.width+=Window_Base._iconWidth; // in case text blurred when scrolling
+	this.drawIcon(-1,tx,ty,rect); // empty
+	this.resetTextColor();
 };
 $pppp$.drawActorStp=function(actor, x, y, width){
 	width = width || 186;
@@ -12367,9 +12471,7 @@ $pppp$.processTouchOutsideFrame=none;
 $pppp$.refresh_do=function(){
 	if(this.clearContents()) this.drawAllItems();
 };
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
-};
+$pppp$.refresh=SceneManager._addRefresh;
 $pppp$.drawAllItems=function(){
 	let i=this.topIndex();
 	const ende=Math.min(this.maxItems(),this.maxPageItems()+i);
@@ -12949,34 +13051,33 @@ $pppp$.setTopRow=function(row){ // setBottomRow use this function
 	}
 };
 $pppp$.refresh_do=function(){
-if(this._mode==="h"){
-	this.drawBackground();
-	const viewCount=this.numLines() , scrollIdx=(this._scrollIdx|=0) , head=this._historyLines.length+". ";
-	const headLen=head.length,headWidth=this.textWidth(head);
-	this._scrollY=this.itemHeight()*scrollIdx;
-	this.clearContents();
-	this.resetTextColor();
-	for(let x=0;x!==viewCount;++x) this.drawItem( scrollIdx+x , headLen , headWidth );
-}else{
-	let drawFrom=0;
-	if(this._lastLines){
-		drawFrom=this._lastLines.length;
-		for(let x=0,last=this._lastLines,curr=this._lines;x!==last.length;++x){
-			if(last[x]!==curr[x]){ drawFrom=x; break; }
+	if(!this.visible) return;
+	if(this._mode==="h"){
+		this.drawBackground();
+		const viewCount=this.numLines() , scrollIdx=(this._scrollIdx|=0) , head=this._historyLines.length+". ";
+		const headLen=head.length,headWidth=this.textWidth(head);
+		this._scrollY=this.itemHeight()*scrollIdx;
+		this.clearContents();
+		this.resetTextColor();
+		for(let x=0;x!==viewCount;++x) this.drawItem( scrollIdx+x , headLen , headWidth );
+	}else{
+		let drawFrom=0;
+		if(this._lastLines){
+			drawFrom=this._lastLines.length;
+			for(let x=0,last=this._lastLines,curr=this._lines;x!==last.length;++x){
+				if(last[x]!==curr[x]){ drawFrom=x; break; }
+			}
+		}else this._lastLines=[];
+		this.drawBackground();
+		for(let i=drawFrom,last=this._lastLines,arr=this._lines,sz=Math.max(last.length,arr.length);i!==sz;++i){
+			if(last[i]===arr[i]) continue;
+			last[i]=arr[i];
+			this.drawLineText(i);
 		}
-	}else this._lastLines=[];
-	this.drawBackground();
-	for(let i=drawFrom,last=this._lastLines,arr=this._lines,sz=Math.max(last.length,arr.length);i!==sz;++i){
-		if(last[i]===arr[i]) continue;
-		last[i]=arr[i];
-		this.drawLineText(i);
+		this._lastLines.length=this._lines.length;
 	}
-	this._lastLines.length=this._lines.length;
-}
 };
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
-};
+$pppp$.refresh=SceneManager._addRefresh;
 $pppp$.isRepeatedAnimationAction=function(action){
 	return action.isKindOfAttack() && action.numRepeats()>0;
 };
@@ -13253,30 +13354,54 @@ $pppp$.redrawtxt=function(){
 	}
 };
 $pppp$.refresh_do=function(){
-	if(!this._forceRefresh && this._lastText===this._text) return;
+	if(!this.visible || !this._forceRefresh && this._lastText===this._text) return;
 	if(this._lastText!==this._text) this.resetStrtLoc();
 	this._forceRefresh=false;
 	this.redrawtxt();
 };
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
-};
+$pppp$.refresh=SceneManager._addRefresh;
 $pppp$=$aaaa$=undef;
 
 // - Window_BattleStatus
 $aaaa$=Window_BattleStatus;
 $pppp$=$aaaa$.prototype;
-$d$=$pppp$.refresh_do=function f(){
-	if(this.noRefresh) return;
-	if(BattleManager._phase===f.key){
-		let idx=$gameTemp._pt_battleMembers_actor2idx.get(BattleManager._subject);
-		if(idx!==undefined && this._index!==idx) this.select(idx);
+$r$=$pppp$.update;
+($pppp$.update=function f(){
+	f.ori.call(this);
+	// redraw scrolling icons
+	const m=this._needRedrawIconsMap;
+	if(m && m.size){
+		this._refreshIconsOnly=true;
+		SceneManager._addRefresh.call(this);
 	}
-	if(this.clearContents()) this.drawAllItems();
+}).ori=$r$;
+$d$=$pppp$.refresh_do=function f(){
+	if(this.noRefresh || !this.visible) return;
+	
+	if(this._refreshAll){
+		this._refreshAll=false;
+		const m=this._needRedrawIconsMap;
+		if(m) m.clear();
+		if(BattleManager._phase===f.key){
+			let idx=$gameTemp._pt_battleMembers_actor2idx.get(BattleManager._subject);
+			if(idx!==undefined && this._index!==idx) this.select(idx);
+		}
+		if(this.clearContents()) this.drawAllItems();
+		return;
+	}
+	if(this._refreshIconsOnly){
+		this._refreshIconsOnly=false;
+		const m=this._needRedrawIconsMap;
+		if(m && m.size){
+			const outOfViews=[];
+			m.forEach((v,k)=>this.drawActorIcons(k,v[0],v[1],v[2]));
+		}
+	}
 };
 $d$.key="action";
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
+$pppp$.refresh=function f(){
+	this._refreshAll=true;
+	SceneManager._addRefresh.call(this);
 };
 $k$='drawBasicArea';
 $r$=$pppp$[$k$];
@@ -13403,6 +13528,38 @@ $pppp$=$aaaa$=undef;
 // - Window_MenuStatus
 $aaaa$=Window_MenuStatus;
 $pppp$=$aaaa$.prototype;
+$r$=$pppp$.update;
+($pppp$.update=function f(){
+	f.ori.call(this);
+	const m=this._needRedrawIconsMap;
+	if(m && m.size){
+		this._refreshIconsOnly=true;
+		SceneManager._addRefresh.call(this);
+	}
+}).ori=$r$;
+$r$=$pppp$.refresh_do;
+($pppp$.refresh_do=function f(){
+	if(!this.visible) return;
+	if(this._refreshAll){
+		this._refreshAll=false;
+		const m=this._needRedrawIconsMap;
+		if(m) m.clear();
+		return f.ori.call(this);
+	}
+	if(this._refreshIconsOnly){
+		this._refreshIconsOnly=false;
+		const m=this._needRedrawIconsMap;
+		if(m && m.size){
+			const outOfViews=[];
+			m.forEach((v,k)=>this.drawActorIcons(k,v[0],v[1],v[2]));
+		}
+	}
+}).ori=$r$;
+$r$=$pppp$.refresh;
+($pppp$.refresh=function f(){
+	this._refreshAll=true;
+	f.ori.call(this);
+}).ori=$r$;
 $r$=$pppp$.drawItem;
 $d$=$pppp$.drawItem=function f(idx){
 	const rect = this.itemRect(idx);
@@ -13428,6 +13585,39 @@ $d$=$pppp$.drawItem=function f(idx){
 	this.drawText((idx+1)+'.',rect.x,y);
 	this.resetTextColor();
 }; $d$.ori=$r$;
+$pppp$=$aaaa$=undef;
+
+// - Window_SkillStatus
+$aaaa$=Window_SkillStatus;
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.update;
+($pppp$.update=function f(){
+	f.ori.call(this);
+	const m=this._needRedrawIconsMap;
+	if(m && m.size){
+		this._refreshIconsOnly=true;
+		SceneManager._addRefresh.call(this);
+	}
+}).ori=$r$;
+$r$=$pppp$.refresh;
+($pppp$.refresh_do=function f(){
+	if(!this.visible) return;
+	if(this._refreshAll){
+		this._refreshAll=false;
+		const m=this._needRedrawIconsMap;
+		if(m) m.clear();
+		return f.ori.call(this);
+	}
+	if(this._refreshIconsOnly){
+		this._refreshIconsOnly=false;
+		const m=this._needRedrawIconsMap;
+		if(m && m.size) m.forEach((v,k)=>this.drawActorIcons(k,v[0],v[1],v[2]));
+	}
+}).ori=$r$;
+($pppp$.refresh=function f(){
+	this._refreshAll=true;
+	f.ori.call(this);
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - Window_SkillList
@@ -13534,7 +13724,7 @@ $pppp$.pageTotal=function(){
 	return Math.ceil(($dataSystem.terms.params.length+2)/this._rows);
 };
 $pppp$.refresh_do=function(){
-	if(this.clearContents() && this._actor){
+	if(this.visible && this.clearContents() && this._actor){
 		this.drawActorName(this._actor, this.textPadding(), 0);
 		const h=this.lineHeight();
 		let y=0;
@@ -13566,9 +13756,7 @@ $pppp$.refresh_do=function(){
 	}
 	
 };
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
-};
+$pppp$.refresh=SceneManager._addRefresh;
 $pppp$._cursorLeft=function(trig){
 	const w=this._statusWindow;
 	if(w){
@@ -14269,12 +14457,10 @@ $d$=$pppp$.drawItemEffect=function f(item){
 $d$.max=()=>Infinity;
 $d$.min=()=>-Infinity;
 $pppp$.refresh_do=function(){
-	if(!this.clearContents()) return;
+	if(!this.visible || !this.clearContents()) return;
 	this.drawItemEffect(this._item);
 };
-$pppp$.refresh=function(){
-	SceneManager.addRefresh(this);
-};
+$pppp$.refresh=SceneManager._addRefresh;
 //$pppp$.drawEquipInfo=0;
 $pppp$.currentEquippedItem = function(actor, etypeId){
 	const equips = actor.equips() , slots = actor.equipSlots() , list = [];

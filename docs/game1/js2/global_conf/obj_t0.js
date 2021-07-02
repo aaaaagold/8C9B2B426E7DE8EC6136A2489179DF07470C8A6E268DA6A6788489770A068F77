@@ -5,6 +5,11 @@
 
 if(!window.objs) window.objs={};
 
+// 寫RMMV的javascript遊戲引擎的人是在?原來我買的是美術包
+// 還好我剛好是資工系，不然我一定要求退費。
+
+//* LIB-RELATED
+
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
@@ -257,6 +262,16 @@ $aaaa$.prototype.removeChildren = function removeChildren(){ // ori: wrong range
 	}
 	return rtv;
 };
+
+//* COMMON USED FUNCs // assign these functions as methods
+
+SceneManager._addRefresh=function(){
+	//SceneManager.delRefresh(this);
+	SceneManager.addRefresh(this);
+};
+
+//* BASE OBJECTs
+
 // - WindowLayer
 $aaaa$=WindowLayer;
 $dddd$=$aaaa$.prototype.update=function f(){
@@ -423,6 +438,10 @@ $aaaa$.prototype.stpGaugeColor1=function(){
 $aaaa$.prototype.stpGaugeColor2=function(){
 	return '#c040f0';
 };
+$dddd$=$aaaa$.prototype.iconStackTextColor=function f(idx){
+	return f.tbl[idx|0]||'#ffffff';
+};
+$dddd$.tbl=['#c0f040','#40c0f0'];
 $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 	if(triggered && (targetWindow.upArrowVisible||targetWindow.downArrowVisible)){
 		const ua=targetWindow.  _upArrowSprite;
@@ -463,14 +482,34 @@ $dddd$=$aaaa$.prototype.textColor=function f(n){
 	return rtv;
 };
 $dddd$.tbl=new Map();
-$aaaa$.prototype.drawIcon=function(iconIndex, x, y){
-	const pw = Window_Base._iconWidth;
-	const ph = Window_Base._iconHeight;
+$aaaa$.prototype.drawText=function(text,x,y,maxWidth,align,rect){
+	this.contents.drawText(text,x,y,maxWidth,this.lineHeight(),align,rect);
+};
+$aaaa$.prototype.drawIcon=function(iconIndex,x,y,inRect){
+	// return true if drawn
+	let pw = Window_Base._iconWidth ;
+	let ph = Window_Base._iconHeight;
+	let dx=0,dy=0;
+	if(inRect){
+		let rx=inRect.x , ry=inRect.y ;
+		if(x<rx){
+			pw-=dx=rx-x;
+			x=rx;
+		}
+		if(y<ry){
+			ph-=dy=ry-y;
+			y=ry;
+		}
+		rx+=inRect.width ; if(x+pw>rx) pw=rx-x;
+		ry+=inRect.height; if(y+ph>ry) ph=ry-y;
+		if(pw<=0||ph<=0) return;
+	}
 	if(iconIndex>=0){
 		const bitmap = ImageManager.loadSystem('IconSet');
-		const sx = (iconIndex&15) * pw;
-		const sy = (iconIndex>>4) * ph;
-		this.contents.blt(bitmap, sx, sy, pw, ph, x, y);
+		const sx = (iconIndex&15) * Window_Base._iconWidth ;
+		const sy = (iconIndex>>4) * Window_Base._iconHeight;
+		this.contents.blt(bitmap, sx+dx, sy+dy, pw, ph, x, y);
+		return true;
 	}else this.contents.clearRect(x,y,pw,ph);
 };
 $aaaa$.prototype.loadFace=function(fn){
@@ -1543,31 +1582,49 @@ Object.defineProperty(Bitmap.prototype, 'paintOpacity',{
 	},
 	configurable: true,
 });
-$aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align){
+$dddd$=$aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align,rect){
 	// rewrite: actual line height is about 1.25x fontsize. draw @ y = 1x fontsize.
 	// Note: Firefox has a bug with textBaseline: Bug 737852
 	//	   So we use 'alphabetic' here.
 	if (text !== undefined) {
+		if(rect&&rect.constructor!==Rectangle) rect=undefined;
+		
 		let tx = x;
 		// let ty = y + lineHeight - ( lineHeight - this.fontSize * 1.25 )/2 - this.fontSize * 0.25;
 		const ty = y + (lineHeight>>1) + this.fontSize * 0.375;
-		const context = this._context , alpha = context.globalAlpha;
 		maxWidth = maxWidth || 0x7fffffff;
 		if(align === 'center') tx += maxWidth>>1;
 		if(align === 'right') tx += maxWidth;
-		context.save();
+		const ctx = this._context;
+		let context=ctx,dx=0,dy=0;
+		const alpha = context.globalAlpha;
+		
+		if(rect){
+			f.tbl.width =rect.width ;
+			f.tbl.height=rect.height;
+			context=this.__context=f.tbl.getContext('2d');
+			dx=-rect.x;
+			dy=-rect.y;
+		}else context.save();
+		
 		context.font = this._makeFontNameText();
 		context.textAlign = align;
 		context.textBaseline = 'alphabetic';
 		context.globalAlpha = 1;
-		this._drawTextOutline(text, tx, ty, maxWidth);
+		this._drawTextOutline(text, tx+dx, ty+dy, maxWidth);
 		context.globalAlpha = alpha;
-		this._drawTextBody(text, tx, ty, maxWidth);
-		context.restore();
+		this._drawTextBody(text, tx+dx, ty+dy, maxWidth);
+		
+		if(rect){
+			const c=f.tbl,w=c.width,h=c.height;
+			(this.__context=ctx).drawImage(c,rect.x,rect.y);
+		}else context.restore();
+		
 		this._setDirty();
 		return ty;
 	}
 };
+$dddd$.tbl=d.ce('canvas');
 $rrrr$=$aaaa$.prototype.measureTextWidth;
 $dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
 	//debug.log(txt,this.fontFace); // mostly are chr not string // debug
@@ -2124,6 +2181,7 @@ $aaaa$.prototype._refresh=function(){
 	this.texture._updateID++;
 };
 $aaaa$.prototype._executeTint=function(x, y, w, h){
+	// 雷ㄛ 在ToneSprite.prototype._renderCanvas知道要略過無效的特效,在這邊就不知道了
 	const context = this._context;
 	const tone = this._colorTone;
 	const color = this._blendColor;
@@ -2285,10 +2343,7 @@ window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Sprite.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
 $aaaa$.prototype.refresh_do=$aaaa$.prototype._refresh;
-$aaaa$.prototype._refresh=function(){
-	SceneManager.delRefresh(this);
-	SceneManager.addRefresh(this);
-};
+$aaaa$.prototype._refresh=SceneManager._addRefresh;
 
 $rrrr$=$dddd$=$aaaa$=undef;
 
