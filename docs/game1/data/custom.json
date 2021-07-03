@@ -141,10 +141,22 @@
 	"equAbl":"裝備能力",
 	"canEqu":"可裝備者",
 	"itemEffect":{
+		"_explain":{
+			"isNormalAtk":"是否如普攻一樣：命中時，以一定機率對對象增加特定狀態",
+			"repeats":"對一個對象重複使用幾次",
+			"speed":"額外速度，與施放角色的敏捷相加，即該技能的速度。速度越快，越優先動作。同回合中使用多個技能時，以最低者為比較基準。速度相同時，先玩家再怪物，隊伍中較前者優先。",
+			"":""
+		},
 		"_placeholder":"%%",
+		"isNormalAtk_txt":"歸為普攻:",
+		"isNormalAtk":[
+			"否",
+			"是",
+			""
+		],
+		"repeats":"次數:%%",
 		"tpGain":"恢復TP:%%/擊",
 		"speed":"速度+:%%",
-		"repeats":"次數:%%",
 		"scope_txt":"對象:",
 		"scope":[
 			"無或特殊",
@@ -173,8 +185,8 @@
 			"魔法",
 			""
 		],
-		"dmgEle_txt":"屬性:",
 		"dmgEleSpecial_comment":"反序,id為負",
+		"dmgEle_txt":"屬性:",
 		"dmgEleSpecial":[
 			"無",
 			"依普攻",
@@ -240,6 +252,10 @@
 		"":""
 	},
 	"battle":{
+		"logs":{
+			"chase":"%1 追加使用 %2",
+			"":""
+		},
 		"you":"你",
 		"allAtk":"全員攻擊",
 		"allGuard":"全員防禦",
