@@ -76,3 +76,8 @@ if(typeof objs!=="undefined" && objs.isDev){
 	};
 }
 if(typeof objs!=='undefined' && objs.isDev) console.log("strt");
+
+// dev shortcuts
+if(objs.isDev){ const w=window;
+	w.bm=BattleManager;
+}

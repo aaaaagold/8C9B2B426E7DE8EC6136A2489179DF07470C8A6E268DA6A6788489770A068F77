@@ -124,7 +124,7 @@ $dddd$=$aaaa$.renderScene=function f(){
 	}
 	f.ori.call(this);
 }; $dddd$.ori=$rrrr$;
-$dddd$.forEach=sp=>sp.refresh_do();
+$dddd$.forEach=sp=>sp.parent&&sp.refresh_do();
 $aaaa$.addRefresh=function(sp){
 	this._scene._needRefreshes.add(sp);
 };

@@ -67,7 +67,8 @@ list.deleteSummoned=(action,trgt)=>{
 	const subject=action.subject();
 	if(subject.friendsUnit()!==trgt.friendsUnit()) return;
 	{ const sc=SceneManager._scene; if(sc && sc.constructor===Scene_Skill){
-		return sc.itemTargetActors().forEach(actor=>actor&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+		sc.itemTargetActors().forEach(actor=>actor&&$gameActors.destroy(actor._actorId)&&$gameParty.removeActor(actor._actorId));
+		return true;
 	} }
 	if(trgt.constructor===Game_Actor){
 		const aid=trgt.actorId();
@@ -77,6 +78,7 @@ list.deleteSummoned=(action,trgt)=>{
 			$gameActors.destroy(aid);
 		}
 	}else trgt.escape();
+	return true;
 };
 const newSummoned=(act,argv)=>{
 	const rtv=rpgevts.list.addClone(false,argv);

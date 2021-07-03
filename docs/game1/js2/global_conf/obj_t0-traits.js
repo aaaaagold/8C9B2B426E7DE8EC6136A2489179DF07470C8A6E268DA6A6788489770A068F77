@@ -8,7 +8,7 @@ $aaaa$=Scene_Boot;
 $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
 	// == tune consts ==
-	if($dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
+	if(undefined===$dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
 	
 	// == not abilities ==
 	//  damaged img
@@ -259,7 +259,11 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
 	
-	// make def, spaceout much faster
+	// custom speed
+	f.doForEach($dataItems,f.changeSpeed);
+	f.doForEach($dataSkills,f.changeSpeed);
+	
+	// make defend, spaceout much faster
 	if(!$dataSkills.speedUp){
 		$dataSkills.speedUp=true;
 		$dataSkills[3].speed=$dataSkills[2].speed<<=10;
@@ -272,6 +276,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.tmapS=$dataStates[id].tmapS;
 		x.tmapP=$dataStates[id].tmapP;
 	});
+	
+	// markAsNormalAtk
+	f.doForEach($dataItems,f.markAsNormalAtk);
+	f.doForEach($dataSkills,f.markAsNormalAtk);
 	
 	// maxItem
 	f.doForEach($dataArmors,f.makeMaxStack);
@@ -327,6 +335,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		//if(!x.tmapP) x.tmapP=new Map(); // ???
 	});
 };
+$dddd$.changeSpeed=dataobj=>{
+	const n=Number(dataobj.meta.speed);
+	if(!isNaN(n)) dataobj.speed=n;
+};
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
 $dddd$.extendDescription_e=dataobj=>{
 	const arr=dataobj.params , txt=$dataSystem.terms.params;
@@ -344,8 +356,10 @@ $dddd$.extendDescription_i=dataobj=>{
 	const ie=$dataCustom.itemEffect,dmg=dataobj.damage;
 	const infos=[],tmpkeys=[];
 	let k,ext='';
+	k='isNormalAtk';	if(dataobj.scope) infos.push(k);
 	k='repeats';	if(dataobj.scope) infos.push(k);
 	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
+	k='speed';	if(dataobj[k]!==0) infos.push(k);
 	k='scope';	if(dataobj[k]!==0) infos.push(k);
 	if(dataobj.scope && dataobj.damage.type){
 		k='hitType';	infos.push(k);
@@ -441,6 +455,7 @@ $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
 	if(u) dataobj.unionCnt=JSON.parse(u);
 };
+$dddd$.markAsNormalAtk=dataobj=>dataobj.isNormalAtk=dataobj.effects.some(e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0)|0;
 $dddd$.note2traits=x=>{
 	const meta=x&&x.meta; if(!meta) return;
 	const enums=objs.enums , gbb=Game_BattlerBase , tc=gbb.TRAITS_CUSTOM;
