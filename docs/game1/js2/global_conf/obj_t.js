@@ -3502,6 +3502,11 @@ $d$=$pppp$[$k$]=function f(){
 	}break;
 	}
 }; $d$.ori=$r$;
+$pppp$.selectEnemySelection=function(){
+	this._enemyWindow.refresh();
+	this._enemyWindow.show();
+	this._enemyWindow.activate();
+};
 $pppp$.onEnemyOk=function(){
 	switch(this._allSpecific){
 	default:{
@@ -3547,7 +3552,10 @@ $pppp$.onSelectAction=function(){
 	this._skillWindow.hide();
 	this._itemWindow.hide();
 	if(!action.needsSelection()) this.selectNextCommand();
-	else if(action.isForOpponent()) this.selectEnemySelection();
+	else if(action.isForOpponent()){
+		this._enemyWindow._action=action;
+		this.selectEnemySelection();
+	}
 	else this.selectActorSelection();
 };
 $pppp$.endCommandSelection=function(){
@@ -13253,6 +13261,12 @@ $pppp$.drawItem=function(index){
 	this.changePaintOpacity(this.isCurrentItemEnabled(index));
 	const rect = this.itemRectForText(index);
 	this.drawText(this._enemies[index].name(), rect.x, rect.y, rect.width);
+};
+$pppp$.show=function(idx){
+	if(idx===undefined) idx=this._action && this._action.subject()._lastTargetIndex;
+	this.refresh();
+	this.select(idx|0);
+	Window_Selectable.prototype.show.call(this);
 };
 $pppp$=$aaaa$=undef;
 
