@@ -549,12 +549,13 @@ $d$=$pppp$.updateDamagePopup=function f(){
 };
 $d$.forEach=c=>c.update();
 $pppp$._setupDamagePopup1=function(res){
-	this._battler._result=res;
 	const sp = new Sprite_Damage();
 	sp.x = this.x + this.damageOffsetX();
-	sp.y = this.y + this.damageOffsetY(); 
-	if(this._damages.length && this._damages.back.y>=64) sp.y=this._damages.back.y-23;
-	sp.setup(this._battler);
+	{ const newy=this._damages.length && this._damages.back.y;
+	sp.y=(newy<64)?this.y+this.damageOffsetY():(newy-23);
+	}
+	//this._battler._result=res;
+	sp.setup(this._battler,res);
 	this._damages.push(sp);
 	this.parent._dmgs.addChild(sp);
 };
@@ -925,39 +926,40 @@ $pppp$=$aaaa$=undef;
 // - Sprite_Damage
 $aaaa$=Sprite_Damage;
 $pppp$=$aaaa$.prototype;
-$pppp$.setup=function(target){
-	const res = target.result();
+$pppp$.setup=function(target,res){
+	if(!res) res = target.result();
 	if(res.missed || res.evaded) this.createMiss();
 	else{
 		const ha=!!res.hpAffected;
 		if(target.isAlive() && res.mpDamage !== 0){
-			this.createDigits(2, res.mpDamage,-ha,-ha*0.5);
+			this.createDigits(2,res.recover,res.mpDamage,-ha,-ha*0.5);
 			this.y-=(ha<<4);
 		}
-		if(ha) this.createDigits(0, res.hpDamage);
+		if(ha) this.createDigits(0,res.recover,res.hpDamage);
 	}
 	if(res.critical) this.setupCriticalEffect();
 };
-$k$='createDigits';
-$r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(colorCh,v,shax,shay){
+$pppp$.createDigits=function(colorCh,rcv,v,shax,shay){
+	rcv|=0;
 	if(isNaN(shax)) shax=0;
 	if(isNaN(shay)) shay=0;
-	const w = this.digitWidth() , h = this.digitHeight();
-	const s = Math.abs(v).toString();
-	const rh=(colorCh+(v<0))*h;
+	const w=this.digitWidth() , h=this.digitHeight();
+	const rh=(colorCh+(v<0||v===0&&rcv))*h , s=Math.abs(v).toString();
 	for (let i=0,iw=-(((s.length-1)*w)>>1); i!==s.length;++i){
-		const sprite = this.createChildSprite();
+		const sp = this.createChildSprite();
 		const n = Number(s[i]);
-		sprite.setFrame(n * w, rh, w, h);
-		//sprite.x = (i - (s.length - 1) / 2) * w;
-		sprite.x = iw; iw+=w;
-		sprite.dy = -i;
-		const a=sprite.anchor;
+		sp.setFrame(n * w, rh, w, h);
+		//sp.x = (i - (s.length - 1) / 2) * w;
+		sp.x = iw; iw+=w;
+		sp.dy = -i;
+		const a=sp.anchor;
 		a.x+=shax; a.y+=shay;
 	}
 	this.__value=v;
-}; $d$.ori=$r$;
+};
+$pppp$.updateOpacity=function(){
+	if(this._duration < 8) this.opacity = this._duration<<5;
+};
 $pppp$=$aaaa$=undef;
 
 // - Sprite_StateIcon
@@ -1301,7 +1303,7 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
-	["_dmgPopMaxPerBtlr",undefined,404],
+	["_dmgPopMaxPerBtlr",undefined,0x23],
 	["_chasePopAfterFrame",$aaaa$.readFlag],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
@@ -1903,7 +1905,7 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 	if(skills && skills.size){ skills.forEach((v,k)=>{
 		const a=new Game_Action(btlr);
 		a.setItemObject($dataSkills[k]);
-		for(let x=~~v;x-->0;){
+		for(let x=a.numRepeats()*~~v;x-->0;){
 			a.apply(t,!_global_conf.chasePopAfterFrame);
 			self._logWindow.displayActionChaseResults(btlr,t,a);
 		}
@@ -1919,18 +1921,20 @@ $aaaa$.invokeNormalAction=function(subject, target){
 $r$=$aaaa$.invokeReflection=function(subject, target) {
 	//this._action._reflectionTarget = target;
 	this._logWindow.displayReflection(target);
+	this._action._reflected=true;
 	this._action.apply(subject);
-	this._logWindow.displayActionResults(target, subject, this._action);
+	this._action._reflected=undefined;
+	this._logWindow.displayActionResults(subject, subject, this._action);
 };
 $aaaa$.invokeMagicReflection=$r$;
 $aaaa$.invokePhysicReflection=$r$;
-$aaaa$.invokeOtherAction=function(subject,target,dataobj,isDispCtrMsg){
+$aaaa$.invokeOtherAction=function(subject,target,dataobj,isDispCtrMsg,isInstShowMsg){
 	if(!dataobj) return;
 	const action=new Game_Action(subject);
 	action.setItemObject(dataobj);
-	action.apply(target);
+	action.apply(target,isInstShowMsg);
 	if(isDispCtrMsg) this._logWindow.displayCounter(target);
-	this._logWindow.displayActionResults(subject, target, action);
+	this._logWindow.displayActionResults(subject, target, action, isInstShowMsg);
 };
 $aaaa$.invokeCounterAttack=function(oriS,oriT){
 	this.invokeOtherAction(oriT,oriS,$dataSkills[oriT.attackSkillId()],true);
@@ -2065,9 +2069,24 @@ $d$=$pppp$[$k$]=function f(w){
 }; $d$.ori=$r$;
 $r$=$pppp$.applyItem;
 $d$=$pppp$.applyItem=function f(){
-	//debug.log('Scene_ItemBase.prototype.applyItem');
-	return f.ori.call(this);
-}; $d$.ori=$r$;
+	const action = new Game_Action(this.user());
+	action.setItemObject(this.item());
+	this._action=action;
+	this.itemTargetActors().forEach(f.forEach,this);
+	action.applyGlobal();
+};
+$d$.forEach=function(t){
+	const a=this._action;
+	if(a)for(let i=0,s=a.subject(),r=a.numRepeats();i<r;++i){
+		if(s!==t){ const rnd=Math.random(); if( rnd<a.itemArf(t) || rnd<a.itemPrf(t) || rnd<a.itemMrf(t) ){
+			a._reflected=true;
+			a.apply(s);
+			a._reflected=undefined;
+			continue;
+		} }
+		a.apply(t);
+	}
+};
 $pppp$=$aaaa$=undef;
 
 // Scene_Item
@@ -9837,15 +9856,15 @@ $pppp$.speed=function(){
 	}
 	return speed;
 };
-$d$=$pppp$.isKindOfAttack=function f(){ // is a type of normal attack. show weapon animation
-	// and add repeat times
-	if(this.isAttack()) return true;
-	else{
-		const item=this.item();
-		return item&&item.effects.some(f.forEach);
-	}
+$d$=$pppp$.isRecover=function f(item){
+	return f.tbl[(item||this.item()).damage.type]|0;
 };
-$d$.forEach=e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0; // state 0 === attack state
+$d$.tbl=[0,0,0,1,1,]; // 3,4
+$pppp$.isKindOfAttack=function f(item){ // is a type of normal attack. show weapon animation
+	// and add repeat times
+	if(!item) item=this.item();
+	return item&&item.isNormalAtk; // parsed in arrangeData
+};
 $pppp$.numRepeats=function f(){
 	const item=this.item(),subject=this.subject();
 	let repeats=item.repeats;
@@ -10086,7 +10105,7 @@ $pppp$.canForSelf=obj=>!!obj;
 $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	// return action used if used
 	const result = target.result() , subject = this.subject();
-	let tmp=this; if(subject===target){
+	let tmp=this; if(!this._reflected && subject===target){
 		const slf=this.getSelfItemObj();
 		if(slf!==false){
 			if(!this.canForSelf(slf)){
@@ -10114,19 +10133,32 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 		f.toQ(result,target); // if(result.isHit())
 		return act;
 	}
+	const isBtl=SceneManager.isBattle();
+	let hpd=0,mpd=0,stpd=0;
+	const addDs=res=>{ hpd+=res.hpDamage; mpd+=res.mpDamage; stpd+=res.stpDamage; };
 	// if(result.isHit())
 	{
 		const item=act.item();
 		if(item.damage.type>0){
 			result.critical = (Math.random() < act.itemCri(target));
 			const value = act.makeDamageValue(target, result.critical);
+			f.clearDs(result);
 			act.executeDamage(target, value);
+			addDs(result);
+			result.recover=this.isRecover(item); // used when value===0
 		}
-		item.effects.forEach(eff=>act.applyItemEffect(target, eff));
+		item.effects.forEach(eff=>{
+			f.clearDs(result);
+			act.applyItemEffect(target, eff);
+			addDs(result);
+		});
+		f.clearDs(result);
 		act.applyItemUserEffect(target);
+		addDs(result);
+		result.hpDamage=hpd; result.mpDamage=mpd; result.stpDamage=stpd;
 	}
 	
-	if(SceneManager.isBattle()){
+	if(isBtl){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
@@ -10145,6 +10177,7 @@ $d$.toQ=(res,trgt)=>{
 	// prepare for displaying this info
 	trgt.pushActResQ(res);
 };
+$d$.clearDs=res=>{ res.hpDamage=0; res.mpDamage=0; res.stpDamage=0; };
 $pppp$.makeDamageValue=function(target,isCri){
 	const item = this.item() , baseValue = this.evalDamageFormula(target);
 	// calc. value based on target's ele. def. and what item's elements are
@@ -10178,22 +10211,20 @@ $d$=$pppp$.evalDamageFormula=function f(target){
 		const item = this.item(); if(!item) return 0;
 		const dmg=item.damage;
 		if(!dmg.formula) return 0;
-		//let a = this.subject() , b = target;
 		
+		//let a = this.subject() , b = target;
 		if(dmg.formula.constructor!==Function){
-			f.tbl[0][3]="return "+(dmg.formula_txt=dmg.formula);
-			dmg.formula=Function.apply(null,f.tbl[0]);
+			f.tbl[3]="return "+(dmg.formula_txt=dmg.formula);
+			dmg.formula=Function.apply(null,f.tbl);
 		}
 		let value = dmg.formula.call(none,undefined,this.subject(),target);
+		
 		value*=value>0;
-		if(f.tbl[1].has(dmg.type)) value=-value;
-		return value||0;
+		if(this.isRecover(item)) value=-value;
+		return value||0; // prevent NaN
 	}catch(e){ return 0; } // only handling function creation failure
 };
-$d$.tbl=[
-	['window','a','b',], // def func args
-	new Set([3,4,]), // recover type
-];
+$d$.tbl=['window','a','b',]; // def func args
 $pppp$.elementsMaxRate=function(target,map_ele){
 	if(map_ele.size){
 		let rtv=0;
@@ -10210,7 +10241,7 @@ $pppp$.applyGuard=function(damage,target){
 };
 $r$=$pppp$.executeDamage;
 $d$=$pppp$.executeDamage=function f(trgt,val){
-	const s=(val>0)&&this.subject();
+	const s=(val>0||!this.isRecover())&&this.subject();
 	if(s){
 		const gainHp = ~~((s.hitRecHpR()*val+s.hitRecHpV())*s.rec) , gainMp = ~~((s.hitRecMpR()*val+s.hitRecMpV())*s.rec);
 		if(gainHp||gainMp){
@@ -10219,7 +10250,7 @@ $d$=$pppp$.executeDamage=function f(trgt,val){
 			r2.later=true;
 			s.gainHp(gainHp);
 			s.gainMp(gainMp);
-			s.pushActResQ(r2);
+			if(SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
 			s._result=orires;
 		}
 	}
@@ -10232,9 +10263,8 @@ $pppp$.executeHpDamage=function(target, value){
 	const mpsubst=value>0 && target.MPSubstituteRate();
 	if(mpsubst){
 		let mpDmg=~~(value*mpsubst); if(!(mpDmg<=target.mp)) mpDmg=target.mp;
-		const hpDmg=value-mpDmg;
+		target.gainHp(mpDmg-value); // gain<=0
 		if(mpDmg) this.executeMpDamage(target,mpDmg);
-		target.gainHp(-hpDmg);
 	}else target.gainHp(-value);
 	if(value > 0){
 		target.onDamage(value);
@@ -10244,15 +10274,33 @@ $pppp$.executeHpDamage=function(target, value){
 	this.gainDrainedHp(value);
 };
 $pppp$.gainDrainedHp=function(val){
-	if(this.isDrain()){
+	if(val && this.isDrain()){
 		//if(this._reflectionTarget !== undefined) s=this._reflectionTarget;
-		this.subject().gainHp(val);
+		const s=this.subject();
+		const orires=s&&s.result();
+		const r2=s._result=new Game_ActionResult();
+		r2.later=true;
+		s.gainHp(val);
+		if(SceneManager.isBattle()){
+			// should be displayed in logs
+			s.pushActResQ(r2);
+		}
+		s._result=orires;
 	}
 };
 $pppp$.gainDrainedMp=function(val){
-	if(this.isDrain()){
+	if(val && this.isDrain()){
 		//if(this._reflectionTarget !== undefined) s=this._reflectionTarget;
-		this.subject().gainMp(val);
+		const s=this.subject();
+		const orires=s&&s.result();
+		const r2=s._result=new Game_ActionResult();
+		r2.later=true;
+		s.gainMp(val);
+		if(SceneManager.isBattle()){
+			// should be displayed in logs
+			s.pushActResQ(r2);
+		}
+		s._result=orires;
 	}
 };
 $d$=$pppp$.applyItemEffect=function f(target,effect){
@@ -10398,6 +10446,7 @@ $pppp$.clear=function(){
 	this.success = false;
 	this.physical = false;
 	this.drain = false;
+	this.recover = false;
 	this.critical = false;
 	this.hpAffected = false;
 	this.stpDamage = this.tpDamage = this.mpDamage = this.hpDamage = 0;
@@ -10414,7 +10463,7 @@ $d$.tbl={
 	arr:['addedStates','removedStates','addedBuffs','addedDebuffs','removedBuffs',],
 	val:[
 		'used','missed','evaded','success',
-		'physical','drain','critical',
+		'physical','drain','recover','critical',
 		'hpAffected',
 		'hpDamage','mpDamage','tpDamage','stpDamage',
 		'later','merge',
@@ -10441,6 +10490,9 @@ Object.defineProperties($aaaa$.prototype,{
 	configurable:false},
 	physical:{ get:function(){return this.phy;},
 		set:function(rhs){return this.phy=rhs&&1||0;}, // whatif half?
+	configurable:false},
+	recover:{ get:function(){return this.rcv;},
+		set:function(rhs){return this.rcv=rhs&&1||0;},
 	configurable:false},
 	removedBuffs:{ get:function(){return this.rmBuf;},
 		set:function(rhs){return this.rmBuf=rhs;},
@@ -13117,9 +13169,19 @@ $pppp$.startAction=function(subject, action, targets){
 	}
 	this.displayAction(subject, item);
 };
-$d$=$pppp$.displayActionResults=function f(subject,target,action){
+$pppp$.displayAction = function(subject, item) {
+	const numMethods = this._methods.length;
+	if(DataManager.isSkill(item)){
+		const arg0=(item.message1||item.message2)&&"\\skill["+item.id+"]";
+		if(item.message1) this.push('addText', subject.name() + item.message1.format(arg0));
+		if(item.message2) this.push('addText', item.message2.format(arg0));
+	}else this.push('addText', TextManager.useItem.format(subject.name(), "\\item["+item.id+"]"));
+	if(this._methods.length === numMethods) this.push('wait');
+};
+$d$=$pppp$.displayActionResults=function f(subject,target,action,isInstShowMsg){
 	if(target.result().used){
 		this.push('-actResStrt');
+		if(isInstShowMsg) this.push('-set_doMore');
 		if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
 		if(subject!==target) this.push('popupDamage', target);
@@ -13128,14 +13190,16 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action){
 		this.displayAffectedStatus(target);
 		this.displayFailure(target);
 		this.displayHitRec(subject,target);
+		if(isInstShowMsg) this.push('-set_doOne');
 		this.push('-actResEnde');
-		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
+		if(!isInstShowMsg&&_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
 $pppp$.displayActionChaseResults=function f(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
+		this.push('addText', $dataCustom.battle.logs.chase.format(subject.name(),action.item().name));
 		// lag
 		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
@@ -13183,21 +13247,27 @@ $pppp$.displayHitRec=function(subject,target){
 	const v=res.hpDamage+res.mpDamage+res.tpDamage+res.stpDamage;
 	
 };
-$pppp$.makeStpDamageText = function(target) {
-	let result = target.result();
-	let damage = result.tpDamage;
-	let isActor = target.isActor();
-	let fmt;
-	if (damage > 0) {
-		fmt = isActor ? TextManager.actorLoss : TextManager.enemyLoss;
-		return fmt.format(target.name(), $dataCustom.stp, damage);
-	} else if (damage < 0) {
-		fmt = isActor ? TextManager.actorGain : TextManager.enemyGain;
-		return fmt.format(target.name(), $dataCustom.stp, -damage);
-	} else {
-		return '';
-	}
+$pppp$.makeHpDamageText=function(target){
+	const res = target.result() , isActor = target.isActor();
+	const v = res.hpDamage , k=TextManager.hp;
+	if(v>0){
+		if(res.drain) return (isActor ? TextManager.actorDrain : TextManager.enemyDrain) . format(target.name(), k, v);
+		else return (isActor ? TextManager.actorDamage : TextManager.enemyDamage) . format(target.name(), v);
+	}else if (v < 0 || v===0 && res.recover) return (isActor ? TextManager.actorRecovery : TextManager.enemyRecovery) . format(target.name(), k, -v);
+	else return (isActor ? TextManager.actorNoDamage : TextManager.enemyNoDamage) . format(target.name());
 };
+$pppp$._makeNotHpDamageText=function(target,k){
+	const res = target.result() , isActor = target.isActor();
+	const v = res.mpDamage;
+	if(v>0){
+		if(res.drain) return (isActor ? TextManager.actorDrain : TextManager.enemyDrain) . format(target.name(), k, v);
+		else return (isActor ? TextManager.actorLoss : TextManager.enemyLoss) . format(target.name(), k, v);
+	}else if (v < 0 || v===0 && res.recover) return (isActor ? TextManager.actorRecovery : TextManager.enemyRecovery) . format(target.name(), k, -v);
+	else return '';
+};
+$pppp$.makeMpDamageText=function(target){ return this._makeNotHpDamageText(target,TextManager.mp); };
+$pppp$.makeTpDamageText=function(target){ return this._makeNotHpDamageText(target,TextManager.tp); };
+$pppp$.makeStpDamageText=function(target){ return this._makeNotHpDamageText(target,$dataCustom.stp); };
 $pppp$=$aaaa$=undef;
 
 // - Window_PartyCommand;

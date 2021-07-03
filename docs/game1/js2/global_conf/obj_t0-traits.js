@@ -273,6 +273,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.tmapP=$dataStates[id].tmapP;
 	});
 	
+	// markAsNormalAtk
+	f.doForEach($dataItems,f.markAsNormalAtk);
+	f.doForEach($dataSkills,f.markAsNormalAtk);
+	
 	// maxItem
 	f.doForEach($dataArmors,f.makeMaxStack);
 	f.doForEach($dataItems,f.makeMaxStack);
@@ -344,8 +348,10 @@ $dddd$.extendDescription_i=dataobj=>{
 	const ie=$dataCustom.itemEffect,dmg=dataobj.damage;
 	const infos=[],tmpkeys=[];
 	let k,ext='';
+	k='isNormalAtk';	if(dataobj.scope) infos.push(k);
 	k='repeats';	if(dataobj.scope) infos.push(k);
 	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
+	k='speed';	if(dataobj[k]!==0) infos.push(k);
 	k='scope';	if(dataobj[k]!==0) infos.push(k);
 	if(dataobj.scope && dataobj.damage.type){
 		k='hitType';	infos.push(k);
@@ -441,6 +447,7 @@ $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
 	if(u) dataobj.unionCnt=JSON.parse(u);
 };
+$dddd$.markAsNormalAtk=dataobj=>dataobj.isNormalAtk=dataobj.effects.some(e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0)|0;
 $dddd$.note2traits=x=>{
 	const meta=x&&x.meta; if(!meta) return;
 	const enums=objs.enums , gbb=Game_BattlerBase , tc=gbb.TRAITS_CUSTOM;

@@ -13,6 +13,11 @@ if(!window.objs) window.objs={};
 // rewrite ugly lib
 String.prototype.padZero=function(len){ return this.padStart(len,'0'); };
 String.prototype.contains=function(s){ return this.indexOf(s)!==-1; };
+String.prototype.format=function(){
+	return this.replace(/%([0-9]+)/g, (s, n)=>{
+		return arguments[Number(n) - 1];
+	});
+};
 Number.prototype.mod=function(n){ n|=0; let t=(this|0)%n; t+=(t<0)*n; return t^0; };
 Number.prototype.padZero=function(n){ return (this+'').padStart(n,'0'); };
 Math.randomInt=max=>~~(Math.random()*max);
@@ -453,8 +458,8 @@ $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 		const uar=new Rectangle(uap.x-(uaw>>1),uap.y-uah,uaw,uah<<1);
 		const dar=new Rectangle(dap.x-(daw>>1),dap.y-dah,daw,dah<<1);
 		const x=TouchInput.x,y=TouchInput.y;
-		if(uar.contains(x,y)){ this.processPageup(); return true; }
-		else if(dar.contains(x,y)){ this.processPagedown(); return true; }
+		if(uar.contain(x,y)){ this.processPageup(); return true; }
+		else if(dar.contain(x,y)){ this.processPagedown(); return true; }
 	}
 };
 $aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
@@ -468,8 +473,8 @@ $aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
 		const lar=new Rectangle(lap.x-law,lap.y-(lah>>1),law<<1,lah);
 		const rar=new Rectangle(rap.x-raw,rap.y-(rah>>1),raw<<1,rah);
 		const x=TouchInput.x,y=TouchInput.y;
-		if(lar.contains(x,y)){ this.cursorLeft(true); return true; }
-		else if(rar.contains(x,y)){ this.cursorRight(true); return true; }
+		if(lar.contain(x,y)){ this.cursorLeft(true); return true; }
+		else if(rar.contain(x,y)){ this.cursorRight(true); return true; }
 	}
 };
 $dddd$=$aaaa$.prototype.textColor=function f(n){
@@ -1335,10 +1340,9 @@ $rrrr$=$aaaa$._updateAllElements;
 $dddd$=$aaaa$._updateAllElements=function f(){
 	f.ori.call(this);
 	// custom divs
-	let target=this._canvas;
+	const target=this._canvas;
 	if(target){
-		let style=target.style,attrs=["left","top","width","height"];
-		let arr=_global_conf["newDiv"].divs;
+		const style=target.style , attrs=f.tbl , arr=_global_conf["newDiv"].divs;
 		for(let x=0;x!==arr.length;++x){
 			let s=arr[x].style;
 			for(let a=0;a!==attrs.length;++a) s[attrs[a]]=style[attrs[a]];
@@ -1346,6 +1350,7 @@ $dddd$=$aaaa$._updateAllElements=function f(){
 	}
 	this._preCalScreenTileCoord();
 }; $dddd$.ori=$rrrr$;
+$dddd$.tbl=["left","top","right","bottom","width","height",];
 $aaaa$._updateRealScale = function() {
 	if (this._stretchEnabled) {
 		let h = document.body.clientWidth; //window.innerWidth;
@@ -2323,16 +2328,42 @@ $dddd$=$aaaa$.prototype.updateTransform=function f(){
 };
 $dddd$.forEach=c=>c.visible&&c.updateTransform();
 $aaaa$.prototype.renderCanvas=function(renderer){
-	// if not visible or the alpha is 0 then no need to render this
-	if (!this.visible || this.worldAlpha <= 0 || !this.renderable) {
-		return;
-	}
-	
+	if(!this.visible || this.worldAlpha <= 0 || !this.renderable) return;
 	if(this._mask) renderer.maskManager.pushMask(this._mask);
 	
 	this.children.forEach(c=>c.renderCanvas(renderer));
 	
 	if(this._mask) renderer.maskManager.popMask(renderer);
+};
+$aaaa$.prototype.renderWebGL=function(renderer){
+	if(!this.visible || this.worldAlpha <= 0 || !this.renderable) return;
+
+	// do a quick check to see if this element has a mask or a filter.
+	if(this._mask || this._filters) this.renderAdvancedWebGL(renderer);
+	else{
+		//this._renderWebGL(renderer); // this obj should be nothing but a container
+		this.children.forEach(c=>c.renderWebGL(renderer));
+	}
+};
+$aaaa$.prototype.renderAdvancedWebGL=function(renderer){
+	renderer.flush();
+	const filters = this._filters , mask = this._mask;
+	// push filter first as we need to ensure the stencil buffer is correct for any masking
+	if(filters){
+		if(!this._enabledFilters) this._enabledFilters = [];
+		this._enabledFilters.length = 0;
+		for(let i=0;i!==filters.length;++i) if(filters[i].enabled) this._enabledFilters.push(filters[i]);
+		if(this._enabledFilters.length) renderer.filterManager.pushFilter(this, this._enabledFilters);
+	}
+	if(mask) renderer.maskManager.pushMask(this, this._mask);
+	this._renderWebGL(renderer);
+	
+	//this._renderWebGL(renderer); // this obj should be nothing but a container
+	this.children.forEach(c=>c.renderWebGL(renderer));
+	
+	renderer.flush();
+	if(mask) renderer.maskManager.popMask(this, this._mask);
+	if(filters && this._enabledFilters && this._enabledFilters.length) renderer.filterManager.popFilter();
 };
 
 // - Sprite_DamageChild
