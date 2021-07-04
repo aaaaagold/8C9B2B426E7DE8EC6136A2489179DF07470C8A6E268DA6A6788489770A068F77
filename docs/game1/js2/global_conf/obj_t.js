@@ -943,19 +943,36 @@ $pppp$.createDigits=function(colorCh,rcv,v,shax,shay){
 	rcv|=0;
 	if(isNaN(shax)) shax=0;
 	if(isNaN(shay)) shay=0;
+	this._updateCtr|=0;
 	const w=this.digitWidth() , h=this.digitHeight();
 	const rh=(colorCh+(v<0||v===0&&rcv))*h , s=Math.abs(v).toString();
-	for (let i=0,iw=-(((s.length-1)*w)>>1); i!==s.length;++i){
+	for (let i=0,iw=-(((s.length-1)*w)>>1);i!==s.length;++i){
 		const sp = this.createChildSprite();
 		const n = Number(s[i]);
 		sp.setFrame(n * w, rh, w, h);
 		//sp.x = (i - (s.length - 1) / 2) * w;
 		sp.x = iw; iw+=w;
-		sp.dy = -i;
+		sp.dy = -(sp._idx=i);
+		sp._updateStrt=this._updateCtr;
 		const a=sp.anchor;
 		a.x+=shax; a.y+=shay;
 	}
 	this.__value=v;
+};
+$pppp$.update=function(){
+	Sprite.prototype.update.call(this);
+	if(this._duration > 0){
+		--this._duration;
+		this._updateCtr|=0;
+		++this._updateCtr;
+		//for(let i=0,arr=this.children;i!==arr.length;++i) this.updateChild(arr[i]);
+		for(let i=0,arr=this.children;i!==arr.length;++i){
+			arr[i].setBlendColor(this._flashColor);
+			arr[i].refreshY(); // ensure updateY
+		}
+	}
+	this.updateFlash();
+	this.updateOpacity();
 };
 $pppp$.updateOpacity=function(){
 	if(this._duration < 8) this.opacity = this._duration<<5;
@@ -1303,8 +1320,8 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
-	["_dmgPopMaxPerBtlr",undefined,0x23],
-	["_chasePopAfterFrame",$aaaa$.readFlag],
+	["_dmgPopMaxPerBtlr",undefined,44],
+	["_chasePopAfterFrame",$aaaa$.readFlag,1],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
 ];
@@ -1861,42 +1878,43 @@ $d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	const M=this._chases , fu=s.friendsUnit() ;
 	const btlrs=M&&M.get(fu);
 	if(!btlrs || !btlrs.size) return;
-	// allow to be same skills, mostly are different though
-	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t);
-	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t);
-	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t);
 	const item=act.item();
+	// allow to be same skills, mostly are different though
+	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item);
+	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item);
+	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t,item);
+	// is dmg/rcvr
 	if(item.damage.type){
 		if(act.isRecover()) f.doChase(this,btlrs, 'heal' ,s,t);
 		else{
-			if(act.isPhysical()) f.doChase(this,btlrs, 'atk_physical' ,s,t);
-			if(act.isMagical()) f.doChase(this,btlrs, 'atk_magical' ,s,t);
+			if(act.isPhysical()) f.doChase(this,btlrs, 'atk_physical' ,s,t,item);
+			if(act.isMagical()) f.doChase(this,btlrs, 'atk_magical' ,s,t,item);
 			// anyatk
-			f.doChase(this,btlrs, 'anyatk' ,s,t);
+			f.doChase(this,btlrs, 'anyatk' ,s,t,item);
 		}
 		if(item.damage.elementId<0){
 			// as normal attack
-			s.attackElements().forEach((_,k)=>f.doChase(this,btlrs, k ,s,t));
-		}else f.doChase(this,btlrs, item.damage.elementId ,s,t);
+			s.attackElements().forEach((_,k)=>f.doChase(this,btlrs, k ,s,t,item));
+		}else f.doChase(this,btlrs, item.damage.elementId ,s,t,item);
 	}
 	// all
-	f.doChase(this,btlrs, 'all' ,s,t);
+	f.doChase(this,btlrs, 'all' ,s,t,item);
 };
-$d$.doChase=function f(self,btlrs,cond,s,t){
+$d$.doChase=function f(self,btlrs,cond,s,t,item){
 	const idx=Game_BattlerBase.cond2idx(cond);
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
 		const notExists=[];
 		if(cond==='die'){
 			set.forEach(btlr=>{
-				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t);
+				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t,item);
 				notExists.push(btlr);
 			});
 		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t));
 		for(let x=notExists.length;x--;) set.delete(notExists[x]);
 	}
 };
-$d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
+$d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t,item)=>{
 	const codes=btlrs.get(btlr);
 	if(!codes) return notExists.push(btlr);
 	const code=Game_BattlerBase[codes[chaseIdx]];
@@ -1904,9 +1922,10 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t)=>{
 	const skills=btlr.traitsSet(code); // skillId -> repeat
 	if(skills && skills.size){ skills.forEach((v,k)=>{
 		const a=new Game_Action(btlr);
-		a.setItemObject($dataSkills[k]);
-		for(let x=a.numRepeats()*~~v;x-->0;){
-			a.apply(t,!_global_conf.chasePopAfterFrame);
+		a.usePreload(t);
+		a.setItemObject(k===-1?item:$dataSkills[k]);
+		for(let x=a.numRepeats()*~~v,ncpaf=!_global_conf.chasePopAfterFrame;x-->0;){
+			a.apply(t,ncpaf);
 			self._logWindow.displayActionChaseResults(btlr,t,a);
 		}
 	}); }
@@ -5044,6 +5063,10 @@ Object.defineProperties($aaaa$.prototype, {
 	lastPayMp:{ get: function() { return this.lastPay().mp||0; },configurable: false},
 	lastPayHp:{ get: function() { return this.lastPay().hp||0; },configurable: false},
 	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
+	dmgRcvHpR:{ get: function() { return this.hitRecHpR(); },configurable: false},
+	dmgRcvHpV:{ get: function() { return this.hitRecHpV(); },configurable: false},
+	dmgRcvMpR:{ get: function() { return this.hitRecMpR(); },configurable: false},
+	dmgRcvMpV:{ get: function() { return this.hitRecMpV(); },configurable: false},
 });
 $k$='clearBuffs';
 $r$=$pppp$[$k$];
@@ -5462,7 +5485,7 @@ $pppp$.param=function(paramId){
 		case 39: return this.hitRecHpR().toFixed(3);
 		case 40: return this.hitRecHpV();
 		case 41: return this.hitRecMpR().toFixed(3);
-		case 42: return this.hitRecMpV();
+		case 42: return this.hitRecHpV();
 		}
 		return this.param(); // nothing
 	}
@@ -9758,8 +9781,21 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
-	this.meta={};
+	this.meta={preload:false};
 }; $d$.ori=$r$;
+($pppp$.usePreload=function f(t){
+	const meta=this.meta , s=this.subject();
+	meta.preload=true;
+	meta.s={};
+	meta.t={};
+	for(let x=0,arr=f.tbl;x!==arr.length;++x){
+		meta.s[arr[x]]=s[arr[x]];
+		if(t) meta.t[arr[x]]=t[arr[x]];
+	}
+}).tbl=[
+	'hit','eva','mev','cri','cev','rec',
+	'dmgRcvHpR','dmgRcvHpV','dmgRcvMpR','dmgRcvMpV',
+];
 $d$=$pppp$.toMotion=function f(){
 	const item=this._item;
 	switch(item._dataClass){
@@ -10091,6 +10127,23 @@ $pppp$.itemArf=function(target){
 $pppp$.itemPrf=function(target){
 	return (this.isPhysical()) ? target.reflectPRate() : 0 ;
 };
+$pppp$.itemHit=function(t,s){
+	return this.item().successRate * 0.01 * (this.isPhysical()?( this.meta.preload?this.meta.s:(s||this.subject()) ).hit:1);
+};
+$pppp$.itemEva=function(t){
+	switch(this.item().hitType){
+	default:
+	case Game_Action.HITTYPE_CERTAIN:
+		return 0;
+	case Game_Action.HITTYPE_PHYSICAL:
+		return (this.meta.preload?this.meta.t:t).eva;
+	case Game_Action.HITTYPE_MAGICAL:
+		return (this.meta.preload?this.meta.t:t).mev;
+	}
+};
+$pppp$.itemCri=function(t){
+	return this.item().damage.critical ? (this.meta.preload?this.meta.s:this.subject()).cri * (1 - (this.meta.preload?this.meta.t:t).cev) : 0;
+};
 $pppp$.getSelfItemObj=function(obj){
 	const item=arguments.length?obj:this.item();
 	if(item){ const l=item.meta.self;
@@ -10123,7 +10176,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	if( !(result.used = act.testApply(target)) ) return;
 	result.physical = act.isPhysical();
 	result.drain = act.isDrain();
-	if( result.missed = (result.used && Math.random() >= act.itemHit(target)) ){
+	if( result.missed = (result.used && Math.random() >= act.itemHit(target,subject)) ){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // if(result.isHit())
 		return act;
@@ -10152,10 +10205,8 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 			act.applyItemEffect(target, eff);
 			addDs(result);
 		});
-		f.clearDs(result);
-		act.applyItemUserEffect(target);
-		addDs(result);
 		result.hpDamage=hpd; result.mpDamage=mpd; result.stpDamage=stpd;
+		act.applyItemUserEffect(target);
 	}
 	
 	if(isBtl){
@@ -10196,7 +10247,7 @@ $pppp$.makeDamageValue=function(target,isCri){
 	}break;
 	}
 	if(baseValue < 0){
-		value *= target.rec;
+		value *= (this.meta.preload?this.meta.t:target).rec;
 	}
 	if(isCri){
 		value = this.applyCritical(value);
@@ -10239,12 +10290,16 @@ $pppp$.applyGuard=function(damage,target){
 	const r=damage>0 && target.isGuard() && 2*target.grd;
 	return r>1?damage/r:damage;
 };
-$r$=$pppp$.executeDamage;
-$d$=$pppp$.executeDamage=function f(trgt,val){
+$k$='executeDamage';
+$r$=$pppp$[$k$];
+$d$=$pppp$[$k$]=function f(trgt,val){
 	const s=(val>0||!this.isRecover())&&this.subject();
 	if(s){
-		const gainHp = ~~((s.hitRecHpR()*val+s.hitRecHpV())*s.rec) , gainMp = ~~((s.hitRecMpR()*val+s.hitRecMpV())*s.rec);
-		if(gainHp||gainMp){
+		const ss=this.meta.preload?this.meta.s:s;
+		let gainHp = ss.dmgRcvHpR*val+ss.dmgRcvHpV , gainMp = ss.dmgRcvMpR*val+ss.dmgRcvMpV , rec;
+		if((gainHp||gainMp) && (rec=ss.rec)){
+			gainHp*=rec; gainHp|=0; 
+			gainMp*=rec; gainMp|=0;
 			const orires=s&&s.result();
 			const r2=s._result=new Game_ActionResult();
 			r2.later=true;
@@ -10451,7 +10506,7 @@ $pppp$.clear=function(){
 	this.hpAffected = false;
 	this.stpDamage = this.tpDamage = this.mpDamage = this.hpDamage = 0;
 	this.removedBuffs.length = this.addedDebuffs.length = this.addedBuffs.length = this.removedStates.length = this.addedStates.length = 0;
-	this.later=false;
+	this.merge=this.later=false;
 };
 $d$=$pppp$.copy=function f(){
 	const rtv=new this.constructor();
@@ -13189,13 +13244,12 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action,isInstShowMsg){
 		this.displayDamage(target);
 		this.displayAffectedStatus(target);
 		this.displayFailure(target);
-		this.displayHitRec(subject,target);
 		if(isInstShowMsg) this.push('-set_doOne');
 		this.push('-actResEnde');
 		if(!isInstShowMsg&&_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
-$pppp$.displayActionChaseResults=function f(subject,target,action){
+$pppp$.displayActionChaseResults=function(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
@@ -13208,7 +13262,6 @@ $pppp$.displayActionChaseResults=function f(subject,target,action){
 		this.displayDamage(target);
 		this.displayAffectedStatus(target);
 		this.displayFailure(target);
-		this.displayHitRec(subject,target);
 		this.push('-set_doOne');
 		//this.push('none');
 		this.push('-actChaseResEnde');
@@ -13242,10 +13295,9 @@ $pppp$.displayAddedStates=function(target){
 		}
 	});
 };
-$pppp$.displayHitRec=function(subject,target){
-	const res=target.result();
-	const v=res.hpDamage+res.mpDamage+res.tpDamage+res.stpDamage;
-	
+$pppp$.displayDrained=function(subject,target){
+	// // const res=target.result();
+	//const v=res.hpDamage+res.mpDamage+res.tpDamage+res.stpDamage;
 };
 $pppp$.makeHpDamageText=function(target){
 	const res = target.result() , isActor = target.isActor();

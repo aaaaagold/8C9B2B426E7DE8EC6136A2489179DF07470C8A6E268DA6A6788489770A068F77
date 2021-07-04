@@ -2292,12 +2292,17 @@ $dddd$=$aaaa$.prototype.initialize=function f(){
 }; $dddd$.ori=$rrrr$;
 $aaaa$.prototype.removeChild=function(c){
 	if(!this.children.has(c)) return;
+	
 	c.parent=null;
 	c.transform._parentID = -1;
 	this.children.delete(c);
 	this._boundsID++;
 	//this.onChildrenChange(0); // empty function
 	c.emit('removed', this);
+	
+	c.destructor();
+	//{ const r=c.children.slice(); for(let i=r.length;i--;) c.removeChildAt(i); }
+	
 	return c;
 };
 $aaaa$.prototype.removeChildAt=function(){
@@ -2373,20 +2378,82 @@ $aaaa$=function Sprite_DamageChild(){
 window[$aaaa$.name]=$aaaa$;
 $aaaa$.prototype = Object.create(Sprite.prototype);
 $aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.refresh_do=$aaaa$.prototype._refresh;
-$aaaa$.prototype._refresh=SceneManager._addRefresh;
+$aaaa$.prototype.clearMember=function(bm){
+	this._bitmap = null;
+	this._frame = new Rectangle();
+	this._realFrame = new Rectangle();
+	this._blendColor = [0, 0, 0, 0];
+	this._colorTone = [0, 0, 0, 0];
+	this._canvas = null;
+	this._context = null;
+	this._tintTexture = null;
+	
+	this._isPicture = false;
+
+	this.spriteId = Sprite._counter++;
+	this.opaque = false;
+
+	this.bitmap = bm;
+};
+($aaaa$.prototype.refresh_do=function f(){
+	if(this._needUpdateY){
+		this._needUpdateY=false;
+		this.updateY();
+	}
+	if(this._needRefreshAll){
+		this._needRefreshAll=false;
+		return f.ori.call(this);
+	}
+}).ori=$aaaa$.prototype._refresh;
+$aaaa$.prototype._refresh=function(){
+	this._needRefreshAll=true;
+	SceneManager._addRefresh.call(this);
+};
+$aaaa$.prototype.getUpdateCtr=function(){
+	return 0|((this.parent && this.parent._updateCtr)-this._updateStrt);
+};
+$aaaa$.prototype.refreshY=function(){
+	this._needUpdateY=true;
+	SceneManager._addRefresh.call(this);
+};
+$t$=($aaaa$.prototype.updateY=function f(){
+	if(this._idx===undefined) return;
+	let arr=f.tbl[this._idx]; if(!arr) arr=f.tbl[this._idx]=[];
+	const ctr=this.getUpdateCtr(); if(!ctr) return;
+	if(!arr[0]){
+		arr[0]=[this._getY(),-this._idx];
+		arr._lst=0;
+	}
+	for(let i=arr._lst;i<ctr;++i){
+		let ry=arr[i][0],dy=arr[i][1];
+		ry+=(dy+=0.5);
+		if(ry>=0){
+			ry=0;
+			dy*=-0.6; // -0.59375;
+		}
+		arr[i+1]=[ry,dy];
+	} 
+	arr._lst=ctr;
+	{ const newy=~~arr[ctr][0];
+	if(this.y!==newy) this.y=newy;
+	}
+}).tbl=[]; // [ idx -> [ t -> [ry,dy] ] ]
+($aaaa$.prototype._getY=function f(idx,t){
+	idx|=0; t|=0;
+	if(!idx||!t) return -40;
+	return ~~f.tbl[idx][t][0];
+}).tbl=$t$;
 
 $rrrr$=$dddd$=$aaaa$=undef;
 
-Sprite_Damage.prototype.createChildSprite=function() {
-	const sprite = new Sprite_DamageChild();
-	sprite.bitmap = this._damageBitmap;
-	sprite.anchor.x = 0.5;
-	sprite.anchor.y = 1;
-	sprite.y = -40;
-	sprite.ry = sprite.y;
-	this.addChild(sprite);
-	return sprite;
+Sprite_Damage.prototype.createChildSprite=function f(){
+	const sp = new Sprite_DamageChild();
+	sp.bitmap = this._damageBitmap;
+	sp.anchor.x = 0.5;
+	sp.anchor.y = 1;
+	sp.ry = sp.y = sp._getY();
+	this.addChild(sp);
+	return sp;
 };
 
 // manager
