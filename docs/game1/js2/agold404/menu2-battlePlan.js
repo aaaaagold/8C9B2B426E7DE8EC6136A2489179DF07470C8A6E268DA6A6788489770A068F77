@@ -662,12 +662,14 @@ $aaaa$.prototype.addSubwindow_list=function(x,y,width,height,displayActorCnt){
 	return rtv;
 };
 $aaaa$.prototype.ok_list=function(){
-	const lw=this._listWindow;
+	const lw=this._listWindow,tw=this._targetWindow;
 	const item=lw.currItem();
 	if(this._targetWindow.mode_viaObj(item)){
-		this._targetWindow.select(0);
-		this._targetWindow._lastWindow=lw;
-		this._targetWindow.activate();
+		const a=this._actor;
+		tw._index = this._typeWindow._type==='edt' && a.getPlanObj(this._pidx)===item && a.getPlan(this._pidx)[2]-1;
+		if(!(tw._index>=0)) tw._index=0;
+		tw._lastWindow=lw;
+		tw.activate();
 	}else{
 		this._setPlan(item,0);
 		lw.activate();

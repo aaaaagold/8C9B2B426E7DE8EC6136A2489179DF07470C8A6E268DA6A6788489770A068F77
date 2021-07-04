@@ -1920,15 +1920,19 @@ $d$.doChase.forEach=(self,notExists,btlrs,btlr,chaseIdx,s,t,item)=>{
 	const code=Game_BattlerBase[codes[chaseIdx]];
 	if(!code) return;
 	const skills=btlr.traitsSet(code); // skillId -> repeat
-	if(skills && skills.size){ skills.forEach((v,k)=>{
+	if(skills && skills.size){
 		const a=new Game_Action(btlr);
-		a.usePreload(t);
-		a.setItemObject(k===-1?item:$dataSkills[k]);
-		for(let x=a.numRepeats()*~~v,ncpaf=!_global_conf.chasePopAfterFrame;x-->0;){
-			a.apply(t,ncpaf);
-			self._logWindow.displayActionChaseResults(btlr,t,a);
-		}
-	}); }
+		a.setPreloadFlag();
+		a.setPreload_s();
+		skills.forEach((v,k)=>{
+			a.setPreload_t(t);
+			a.setItemObject(k===-1?item:$dataSkills[k]);
+			for(let x=a.numRepeats()*~~v,ncpaf=!_global_conf.chasePopAfterFrame;x-->0;){
+				a.apply(t,ncpaf);
+				self._logWindow.displayActionChaseResults(btlr,t,a);
+			}
+		});
+	}
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
@@ -9783,19 +9787,27 @@ $d$=$pppp$[$k$]=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
 	this.meta={preload:false};
 }; $d$.ori=$r$;
-($pppp$.usePreload=function f(t){
-	const meta=this.meta , s=this.subject();
-	meta.preload=true;
-	meta.s={};
-	meta.t={};
-	for(let x=0,arr=f.tbl;x!==arr.length;++x){
-		meta.s[arr[x]]=s[arr[x]];
-		if(t) meta.t[arr[x]]=t[arr[x]];
-	}
+$pppp$.setPreloadFlag=function(){
+	this.meta.preload=true;
+};
+($pppp$.setPreload_t=function f(t){
+	const meta=this.meta; if(!meta.t) meta.t={};
+	for(let x=0,arr=f.tbl;x!==arr.length;++x) meta.t[arr[x]]=t[arr[x]];
 }).tbl=[
-	'hit','eva','mev','cri','cev','rec',
+	'eva','mev','cev','rec',
+];
+($pppp$.setPreload_s=function f(){
+	const meta=this.meta , s=this.subject(); if(!meta.s) meta.s={};
+	for(let x=0,arr=f.tbl;x!==arr.length;++x) meta.s[arr[x]]=s[arr[x]];
+}).tbl=[
+	'hit','cri','rec',
 	'dmgRcvHpR','dmgRcvHpV','dmgRcvMpR','dmgRcvMpV',
 ];
+$pppp$.usePreload=function f(t){
+	this.setPreloadFlag();
+	this.setPreload_s();
+	if(t) this.setPreload_t(t);
+};
 $d$=$pppp$.toMotion=function f(){
 	const item=this._item;
 	switch(item._dataClass){
@@ -13253,7 +13265,7 @@ $pppp$.displayActionChaseResults=function(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
-		this.push('addText', $dataCustom.battle.logs.chase.format(subject.name(),action.item().name));
+		this.push('addText', $dataCustom.battle.logs.chase.format(subject.name(),"\\skill["+action.item().id+']'));
 		// lag
 		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
