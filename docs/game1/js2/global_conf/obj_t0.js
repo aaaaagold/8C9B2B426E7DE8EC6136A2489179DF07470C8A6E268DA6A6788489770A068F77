@@ -233,7 +233,8 @@ PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=functi
 // .removeChild && .destructor , most using PIXI.Container.prototype.removeChild
 // - PIXI.Container
 $aaaa$=PIXI.Container;
-$dddd$=$aaaa$.prototype.destructor=function f(){ // TODO
+$pppp$=$aaaa$.prototype;
+$d$=$pppp$.destructor=function f(){ // TODO
 	const r=this.children.slice();
 	for(let x=r.length;x--;) this.removeChildAt(x); // also done by destroy, remove first for efficiency
 	for(let x=0;x!==r.length;++x) if(r[x].destructor) r[x].destructor();
@@ -241,14 +242,14 @@ $dddd$=$aaaa$.prototype.destructor=function f(){ // TODO
 	//const bitmap=this.bitmap;
 	this.destroy( f.tbl ); // del children , sprites' textures
 };
-$dddd$.tbl={chilren:true,texture:true};
-$aaaa$.prototype.addChildBefore=function(child,before){
+$d$.tbl={chilren:true,texture:true};
+$pppp$.addChildBefore=function(child,before){
 	const index=this.children.indexOf(before);
 	if(index>=0) this.addChildAt(child,index);
 	else this.addChild(child);
 	return this;
 };
-$aaaa$.prototype.removeChildren = function removeChildren(){ // ori: wrong range exception condition
+$pppp$.removeChildren = function removeChildren(){ // ori: wrong range exception condition
 	const arr=this.children;
 	const strt = Number(arguments[0])||0;
 	const ende = Number(arguments[1])||arr.length;
@@ -279,14 +280,16 @@ SceneManager._addRefresh=function(){
 
 // - WindowLayer
 $aaaa$=WindowLayer;
-$dddd$=$aaaa$.prototype.update=function f(){
+$pppp$=$aaaa$.prototype;
+$d$=$pppp$.update=function f(){
 	this.children.forEach(f.forEach);
 };
-$dddd$.forEach=c=>c.update&&c.update();
-$rrrr$=$dddd$=$aaaa$=undef;
+$d$.forEach=c=>c.update&&c.update();
+$pppp$=$aaaa$=undef;
 // - Window
 $aaaa$=Window;
-$aaaa$.prototype._refreshCursor = function() { // rewrite: original create bitmap EVERY TIME
+$pppp$=$aaaa$.prototype;
+$pppp$._refreshCursor = function() { // rewrite: original create bitmap EVERY TIME
 	let pad = this._padding;
 	let x = this._cursorRect.x + pad - this.origin.x;
 	let y = this._cursorRect.y + pad - this.origin.y;
@@ -325,7 +328,7 @@ $aaaa$.prototype._refreshCursor = function() { // rewrite: original create bitma
 		bitmap.blt(skin, p+q-m, p+q-m, m, m, ox+w-m, oy+h-m, m, m);
 	}
 };
-$aaaa$.prototype._updatePauseSign = function() {
+$pppp$._updatePauseSign = function() {
 	const sprite = this._windowPauseSignSprite;
 	if(!sprite) return;
 	const x = (this._animationCount>>4)&1 , y = (this._animationCount>>5)&1;
@@ -340,8 +343,9 @@ $aaaa$.prototype._updatePauseSign = function() {
 };
 // - Window_Base
 $aaaa$=Window_Base;
-$rrrr$=$aaaa$.prototype._refreshArrows;
-$dddd$=$aaaa$.prototype._refreshArrows=function f(){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$._refreshArrows;
+$d$=$pppp$._refreshArrows=function f(){
 	if(this._noRefreshArrows) return;
 	f.ori.call(this);
 	if(!this._leftArrowSprite){
@@ -363,14 +367,14 @@ $dddd$=$aaaa$.prototype._refreshArrows=function f(){
 		la.move(p,y);
 		ra.move(this.width-p,y);
 	}
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.prototype._updateArrows;
-$dddd$=$aaaa$.prototype._updateArrows=function f(){
+}; $d$.ori=$r$;
+$r$=$pppp$._updateArrows;
+$d$=$pppp$._updateArrows=function f(){
 	f.ori.call(this);
 	this._leftArrowSprite.visible = this.leftArrowVisible;
 	this._rightArrowSprite.visible = this.rightArrowVisible;
-}; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype._arrowsFloating=function f(){
+}; $d$.ori=$r$;
+$d$=$pppp$._arrowsFloating=function f(){
 	if(this.upArrowVisible | this.leftArrowVisible){
 		this.ctr_arrows^=0; ++this.ctr_arrows;
 		const s=Math.sin(this.ctr_arrows*f.rad1)/2,s0=0.5-s,s1=0.5+s;
@@ -380,7 +384,7 @@ $dddd$=$aaaa$.prototype._arrowsFloating=function f(){
 		this._rightArrowSprite.anchor.x=s1;
 	}
 };
-$dddd$.rad1=PI_64;
+$d$.rad1=PI_64;
 Object.defineProperties($aaaa$.prototype,{
 	fontSize:{
 		get:function(){return this._fontSize;},
@@ -391,27 +395,27 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	configurable:true},
 });
-$aaaa$.prototype.lineHeight=function(){
+$pppp$.lineHeight=function(){
 	return this.fontSize&&this._lineHeight||36;
 };
-$aaaa$.prototype.standardFontSize=function(){
+$pppp$.standardFontSize=function(){
 	return this.fontSize||28;
 };
-$aaaa$.prototype.setFontsize=function(sz){
+$pppp$.setFontsize=function(sz){
 	this.fontSize=sz;
 	if(this.contents) this.contents.fontSize=sz;
 };
-$aaaa$.prototype.standardFontFace=function(){
+$pppp$.standardFontFace=function(){
 	if($gameSystem.isKorean()) return _global_conf.useFont+',Dotum, AppleGothic, sans-serif';
 	else return _global_conf.useFont;
 };
-$aaaa$.prototype.contentsWidth = function() {
+$pppp$.contentsWidth = function() {
 	return this.width - (this.standardPadding()<<1);
 };
-$aaaa$.prototype.contentsHeight = function() {
+$pppp$.contentsHeight = function() {
 	return this.height - (this.standardPadding()<<1);
 };
-$aaaa$.prototype.createContents=function(){
+$pppp$.createContents=function(){
 	const w=this.contentsWidth() , h=this.contentsHeight();
 	// TODO: BUG: [webgl] sprite.bitmap.reCreate dismatch sprite.texture size // 'w._windowContentsSprite.texture._updateUvs();' AFTER first render can fix it
 	if(Graphics.isWebGL()){
@@ -423,31 +427,31 @@ $aaaa$.prototype.createContents=function(){
 	}else if(!this.clearContents()) this.contents = new Bitmap(w,h);
 	this.resetFontSettings();
 };
-$aaaa$.prototype.hpCostColor=function(){
+$pppp$.hpCostColor=function(){
 	return this.hpGaugeColor2();
 };
-$aaaa$.prototype.stpColor = function(actor) {
+$pppp$.stpColor = function(actor) {
 	if(actor.isStarving()) return this.deathColor();
 	else if(actor.isHungry()) return this.crisisColor();
 	else return this.normalColor();
 };
-$aaaa$.prototype.expGaugeColor1=function(){
+$pppp$.expGaugeColor1=function(){
 	return '#80e040';
 };
-$aaaa$.prototype.expGaugeColor2=function(){
+$pppp$.expGaugeColor2=function(){
 	return '#c0f040';
 };
-$aaaa$.prototype.stpGaugeColor1=function(){
+$pppp$.stpGaugeColor1=function(){
 	return '#8040e0';
 };
-$aaaa$.prototype.stpGaugeColor2=function(){
+$pppp$.stpGaugeColor2=function(){
 	return '#c040f0';
 };
-$dddd$=$aaaa$.prototype.iconStackTextColor=function f(idx){
+$d$=$pppp$.iconStackTextColor=function f(idx){
 	return f.tbl[idx|0]||'#ffffff';
 };
-$dddd$.tbl=['#c0f040','#40c0f0'];
-$aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
+$d$.tbl=['#c0f040','#40c0f0'];
+$pppp$.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 	if(triggered && (targetWindow.upArrowVisible||targetWindow.downArrowVisible)){
 		const ua=targetWindow.  _upArrowSprite;
 		const da=targetWindow._downArrowSprite;
@@ -462,7 +466,7 @@ $aaaa$.prototype.touchUpDnArrowsPgUpDn=function(triggered,targetWindow){
 		else if(dar.contain(x,y)){ this.processPagedown(); return true; }
 	}
 };
-$aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
+$pppp$.touchLfRhArrowsLfRh=function(triggered,targetWindow){
 	if(triggered && (targetWindow.leftArrowVisible||targetWindow.rightArrowVisible)){
 		const la=targetWindow. _leftArrowSprite;
 		const ra=targetWindow._rightArrowSprite;
@@ -477,7 +481,7 @@ $aaaa$.prototype.touchLfRhArrowsLfRh=function(triggered,targetWindow){
 		else if(rar.contain(x,y)){ this.cursorRight(true); return true; }
 	}
 };
-$dddd$=$aaaa$.prototype.textColor=function f(n){
+$d$=$pppp$.textColor=function f(n){
 	let rtv=f.tbl.get(n);
 	if(rtv===undefined){
 		let px = 96 + (n&7) * 12 + 6;
@@ -486,11 +490,43 @@ $dddd$=$aaaa$.prototype.textColor=function f(n){
 	}
 	return rtv;
 };
-$dddd$.tbl=new Map();
-$aaaa$.prototype.drawText=function(text,x,y,maxWidth,align,rect){
+$d$.tbl=new Map();
+$pppp$.drawText=function(text,x,y,maxWidth,align,rect){
 	this.contents.drawText(text,x,y,maxWidth,this.lineHeight(),align,rect);
 };
-$aaaa$.prototype.drawIcon=function(iconIndex,x,y,inRect){
+$pppp$._rmAllIconSprite=function(){
+	// TODO: use sprites to draw icons
+	// for WebGL
+	// put this at the begin of update
+	if(!this._iconPool_free) this._iconPool_free=[];
+	if(!this._iconPool_used) this._iconPool_used=[];
+	for(const dx=-this.getGlobalPosition().x,arr=this._iconPool_used,arr2=this._iconPool_free;arr.length;){
+		const sp=arr.pop();
+		sp.x=dx-sp.width;
+		arr2.push(sp);
+	}
+};
+$pppp$._newIconSprite=function(){
+	// TODO: use sprites to draw icons
+	// for WebGL
+	if(!this._iconPool_free) this._iconPool_free=[];
+	if(!this._iconPool_used) this._iconPool_used=[];
+	if(this._iconPool_free.length){
+		const rtv=this._iconPool_free.pop();
+		this._iconPool_used.push(rtv);
+		return rtv;
+	}
+	const rtv=new Sprite();
+	rtv.bitmap=ImageManager.loadSystem('IconSet');
+	rtv.width =Window_Base._iconWidth ;
+	rtv.height=Window_Base._iconHeight;
+	let iss=this._iconSprites; if(!iss) this.addChild(iss=this._iconSprites=new PIXI.Container());
+	iss.addChild(rtv);
+	this._iconPool_used.push(rtv);
+	return rtv;
+};
+$pppp$.drawIcon=function(iconIndex,x,y,inRect){
+	const test=0; // TODO: use sprites to draw icons
 	// return true if drawn
 	let pw = Window_Base._iconWidth ;
 	let ph = Window_Base._iconHeight;
@@ -510,18 +546,25 @@ $aaaa$.prototype.drawIcon=function(iconIndex,x,y,inRect){
 		if(pw<=0||ph<=0) return;
 	}
 	if(iconIndex>=0){
-		const bitmap = ImageManager.loadSystem('IconSet');
 		const sx = (iconIndex&15) * Window_Base._iconWidth ;
 		const sy = (iconIndex>>4) * Window_Base._iconHeight;
-		this.contents.blt(bitmap, sx+dx, sy+dy, pw, ph, x, y);
+		if(test&&Graphics.isWebGL()){
+			const sp=this._newIconSprite();
+			sp.x=x;
+			sp.y=y;
+			sp.setFrame(sx+dx,sy+dy,pw,ph);
+		}else{
+			const bitmap = ImageManager.loadSystem('IconSet');
+			this.contents.blt(bitmap, sx+dx, sy+dy, pw, ph, x, y);
+		}
 		return true;
-	}else this.contents.clearRect(x,y,pw,ph);
+	}else if(!test||!Graphics.isWebGL()) this.contents.clearRect(x,y,pw,ph);
 };
-$aaaa$.prototype.loadFace=function(fn){
+$pppp$.loadFace=function(fn){
 	return ImageManager.loadFace(fn);
 };
-$rrrr$=$aaaa$.prototype.drawFace;
-$dddd$=$aaaa$.prototype.drawFace=function f(fn, fi, x, y, w, h){
+$r$=$pppp$.drawFace;
+$d$=$pppp$.drawFace=function f(fn, fi, x, y, w, h){
 	x|=0; y|=0;
 	w = w || Window_Base._faceWidth;
 	h = h || Window_Base._faceHeight;
@@ -548,8 +591,8 @@ $dddd$=$aaaa$.prototype.drawFace=function f(fn, fi, x, y, w, h){
 		dx,dy,dw,dh
 	);
 	return;
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1, color2, valWidth) {
+}; $d$.ori=$r$;
+$pppp$.drawCurrentAndMax = function(current, max, x, y, width, color1, color2, valWidth) {
 	const labelWidth = this.textWidth('HP');
 	const valueWidth = valWidth||this.textWidth('000');
 	const slashWidth = this.textWidth('/')>>1;
@@ -568,16 +611,17 @@ $aaaa$.prototype.drawCurrentAndMax = function(current, max, x, y, width, color1,
 		this.drawText(current, x1, y, valueWidth, 'right');
 	}
 };
-$aaaa$.prototype.cursorShown=function(){
+$pppp$.cursorShown=function(){
 	const cr=this._cursorRect;
 	return cr && cr.width && cr.height;
 };
-$aaaa$.prototype.subWindows=none;
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$.subWindows=none;
+$pppp$=$aaaa$=undef;
 // - Texture
 $aaaa$=PIXI.Texture;
-$rrrr$=Object.getOwnPropertyDescriptor($aaaa$.prototype,'frame').get;
-$dddd$=function set(frame){ // rewrite: much useful debug info
+$pppp$=$aaaa$.prototype;
+$r$=Object.getOwnPropertyDescriptor($aaaa$.prototype,'frame').get;
+$d$=function set(frame){ // rewrite: much useful debug info
 	this._frame = frame;
 	this.noFrame = false;
 	if (frame.x + frame.width > this.baseTexture.width || frame.y + frame.height > this.baseTexture.height) {
@@ -593,12 +637,13 @@ $dddd$=function set(frame){ // rewrite: much useful debug info
 		this._updateUvs();
 	}
 };
-Object.defineProperty($aaaa$.prototype,'frame',{get:$rrrr$,set:$dddd$});
-$rrrr$=$dddd$=$aaaa$=undef;
+Object.defineProperty($aaaa$.prototype,'frame',{get:$r$,set:$d$});
+$pppp$=$aaaa$=undef;
 // - TileRenderer
 $aaaa$=PIXI.tilemap.TileRenderer;
+$pppp$=$aaaa$.prototype;
 { const TileRenderer=$aaaa$;
-$dddd$=$aaaa$.prototype.bindTextures = function f(renderer, shader, textures) {
+$d$=$pppp$.bindTextures = function f(renderer, shader, textures) {
 	const bounds = this.boundSprites , glts = this.glTextures , len = textures.length , maxTextures = this.maxTextures;
 	if (len > 4 * maxTextures) return;
 	let doClear = TileRenderer.DO_CLEAR;
@@ -627,9 +672,9 @@ $dddd$=$aaaa$.prototype.bindTextures = function f(renderer, shader, textures) {
 	shader.uniforms.uSamplers = this.texLoc;
 };
 }
-$dddd$.DO_CLEAR=$aaaa$.DO_CLEAR;
-$dddd$._clearBuffer=null; // new Uint8Array(1024 * 1024 * 4); // if 'null', fill zero, matching the size
-$dddd$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth, clearHeight) {
+$d$.DO_CLEAR=$aaaa$.DO_CLEAR;
+$d$._clearBuffer=null; // new Uint8Array(1024 * 1024 * 4); // if 'null', fill zero, matching the size
+$d$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth, clearHeight) {
 	let gl = tex.gl;
 	let baseTex = sprite.texture.baseTexture;
 	if (clearBuffer && clearWidth > 0 && clearHeight > 0) {
@@ -638,7 +683,7 @@ $dddd$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth
 	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
 	gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, tex.format, tex.type, baseTex.source);
 };
-$aaaa$.prototype.checkLeaks=function () {
+$pppp$.checkLeaks=function () {
 	const now = Date.now() , old = now - 255 , t = this.lastTimeCheck;
 	if(t < old || t > now){
 		this.lastTimeCheck = now;
@@ -646,7 +691,7 @@ $aaaa$.prototype.checkLeaks=function () {
 		for(let key in vbs) if(vbs[key].lastTimeAccess < old) this.removeVb(key);
 	}
 };
-$aaaa$.prototype.getVb = function (id) {
+$pppp$.getVb = function (id) {
 	// 雷ㄛ 變數名稱寫錯是在衝三小
 	this.checkLeaks();
 	let vb=this.vbs[id];
@@ -656,17 +701,19 @@ $aaaa$.prototype.getVb = function (id) {
 	}
 	return null;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 // - CompositeRectTileLayer
 $aaaa$=PIXI.tilemap.CompositeRectTileLayer;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(z, bitmaps, useSqr, texPerChild){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(z, bitmaps, useSqr, texPerChild){
 	texPerChild=texPerChild||16; // cannot >16 ?_? // webGL guarentee at least 8 textures ; implementation ususally 16 textures
 	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 // - RectTileLayer
 $aaaa$=PIXI.tilemap.RectTileLayer;
-$dddd$=$aaaa$.prototype.renderWebGL = function f(renderer, useSquare){
+$pppp$=$aaaa$.prototype;
+$d$=$pppp$.renderWebGL = function f(renderer, useSquare){
 	if(useSquare === void 0) useSquare = false;
 	let points = this.pointsBuf;
 	if(points.length === 0) return;
@@ -797,8 +844,8 @@ $dddd$=$aaaa$.prototype.renderWebGL = function f(renderer, useSquare){
 	if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
 	else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
 };
-$dddd$.buf=new ArrayBuffer(0);
-$rrrr$=$dddd$=$aaaa$=undef;
+$d$.buf=new ArrayBuffer(0);
+$pppp$=$aaaa$=undef;
 
 $tttt$={};
 if(isDev&&!window._objs){ // dev , will eventually becomes non-dev
@@ -864,24 +911,26 @@ $tttt$=undefined;
 
 // - Point
 $aaaa$=Point;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x, y){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(x, y){
 	// (int,int)
 	return f.ori.call(this,~~x,~~y);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+}; $d$.ori=$r$;
+$pppp$=$aaaa$=undef;
 
 // - Rectangle
 $aaaa$=Rectangle;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(x, y, width, height){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(x, y, width, height){
 	// (int,int,int,int)
 	return f.ori.call(this, ~~x, ~~y, ~~width, ~~height);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.contain=function(x,y){
+}; $d$.ori=$r$;
+$pppp$.contain=function(x,y){
 	return x>=this.x && x<this.x+this.width && y>=this.y && y<this.y+this.height;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - Utils
 Utils.isAndroidChrome=function() {
@@ -899,20 +948,21 @@ Utils.isMobileSafari=function(){
 	let agent = navigator.userAgent;
 	return this._isMobileSafari=( !!(agent.match(/iPhone|iPad|iPod/) && agent.indexOf('AppleWebKit') && !agent.indexOf('CriOS')) );
 };
-$dddd$=Utils.rgbToCssColor=function f(r,g,b){
+$d$=Utils.rgbToCssColor=function f(r,g,b){
 	return "#"+f.toHex(r)+f.toHex(g)+f.toHex(b);
 };
-$dddd$.toHex=function f(n){
+$d$.toHex=function f(n){
 	return f.tbltxt[255<n?255:f.tblclamp[n]|0];
 };
-$dddd$.toHex.tblclamp=[]; for(let x=0;x!==256;++x) $dddd$.toHex.tblclamp[x]=x;
-$dddd$.toHex.tbltxt=[]; for(let x=0;x!==256;++x) $dddd$.toHex.tbltxt[x]=x.toString(16).padZero(2);
-$rrrr$=$dddd$=$aaaa$=undef;
+$d$.toHex.tblclamp=[]; for(let x=0;x!==256;++x) $d$.toHex.tblclamp[x]=x;
+$d$.toHex.tbltxt=[]; for(let x=0;x!==256;++x) $d$.toHex.tbltxt[x]=x.toString(16).padZero(2);
+$pppp$=$aaaa$=undef;
 
 // - ResourceHandler
 $aaaa$=ResourceHandler;
-$rrrr$=$aaaa$.createLoader;
-$dddd$=$aaaa$.createLoader=function(type,url, retryMethod, resignMethod, retryInterval) {
+$pppp$=$aaaa$.prototype;
+$r$=$aaaa$.createLoader;
+$d$=$aaaa$.createLoader=function(type,url, retryMethod, resignMethod, retryInterval) {
 	//debug.log('ResourceHandler.createLoader');
 	retryInterval = retryInterval || this._defaultRetryInterval;
 	let reloaders = this._reloaders;
@@ -945,20 +995,21 @@ $dddd$=$aaaa$.createLoader=function(type,url, retryMethod, resignMethod, retryIn
 			}
 		}
 	};
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.retry;
-$dddd$=$aaaa$.retry=function(giveUp) {
+}; $d$.ori=$r$;
+$r$=$aaaa$.retry;
+$d$=$aaaa$.retry=function(giveUp) {
 	if(0<this._reloaders.length){
 		Graphics.eraseLoadingError();
 		SceneManager.resume();
 		this._reloaders.forEach(reloader=>reloader(giveUp));
 		this._reloaders.length = 0;
 	}
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+}; $d$.ori=$r$;
+$pppp$=$aaaa$=undef;
 
 // - ImageCache
 $aaaa$=ImageCache;
+$pppp$=$aaaa$.prototype;
 $tttt$=1<<27; if($tttt$<$aaaa$.limit) $tttt$=$aaaa$.limit;
 delete $aaaa$.limit;
 Object.defineProperties($aaaa$,{
@@ -967,14 +1018,14 @@ Object.defineProperties($aaaa$,{
 	},
 });
 $aaaa$.limit=1<<27;
-$aaaa$.prototype.initialize=function(){
+$pppp$.initialize=function(){
 	this._items  = new Map();
 	this._tmparr = []; // used when a function need an array , will do '.length=0'
 };
-$aaaa$.prototype.clear=function(){
+$pppp$.clear=function(){
 	this._items.clear();
 };
-$aaaa$.prototype.add=function(key, value){
+$pppp$.add=function(key, value){
 	this._items.set(key,{
 		bitmap: value,
 		touch: Date.now(),
@@ -982,7 +1033,7 @@ $aaaa$.prototype.add=function(key, value){
 	});
 	this._truncateCache();
 };
-$aaaa$.prototype.get=function(key){
+$pppp$.get=function(key){
 	const tmp = this._items.get(key);
 	if(tmp){
 		tmp.touch = Date.now();
@@ -990,7 +1041,7 @@ $aaaa$.prototype.get=function(key){
 	}
 	return null;
 };
-$aaaa$.prototype.reserve=function(key, value, reservationId){
+$pppp$.reserve=function(key, value, reservationId){
 	let tmp=this._items.get(key);
 	if(!tmp){
 		this._items.set(key,tmp={
@@ -1001,18 +1052,18 @@ $aaaa$.prototype.reserve=function(key, value, reservationId){
 	}
 	tmp.reservationId = reservationId;
 };
-$aaaa$.prototype.releaseReservation=function(reservationId){
+$pppp$.releaseReservation=function(reservationId){
 	const items = this._items , arr = this._tmparr;
 	arr.length=0;
 	items.forEach(v=>arr.push(v));
 	//arr.forEach(item=>item.reservationId===reservationId && items.delete(item.key));
 	arr.forEach(item=>item.reservationId===reservationId && (item.reservationId=undefined));
 };
-$aaaa$.prototype._itemSize=item=>{
+$pppp$._itemSize=item=>{
 	let bm=item.bitmap;
 	return ((bm._image_ori && bm._image_ori!==bm._image)?0:(bm.width * bm.height)) + 0xFF;
 };
-$dddd$=$aaaa$.prototype._truncateCache=function f(){
+$d$=$pppp$._truncateCache=function f(){
 	const items = this._items , arr = this._tmparr;
 	arr.length=0;
 	items.forEach(v=>arr.push(v));
@@ -1022,44 +1073,45 @@ $dddd$=$aaaa$.prototype._truncateCache=function f(){
 		else items.delete(item.key);
 	});
 };
-$dddd$.cmp=(a,b)=>b.touch-a.touch;
-$rrrr$=$aaaa$.prototype._mustBeHeld;
-$dddd$=$aaaa$.prototype._mustBeHeld=function f(item){
+$d$.cmp=(a,b)=>b.touch-a.touch;
+$r$=$pppp$._mustBeHeld;
+$d$=$pppp$._mustBeHeld=function f(item){
 	{
 		let bm=item.bitmap;
 		if(bm._image_ori&&bm._image_ori!==bm._image) return false;
 	}
 	return f.ori.call(this,item);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.isReady=function(){
+}; $d$.ori=$r$;
+$pppp$.isReady=function(){
 	let rtv=true;
 	this._items.forEach(v=>rtv=rtv&&( (!v.bitmap._decodeAfterRequest) || v.bitmap.isReady() ));
 	return rtv;
 };
-$aaaa$.prototype.getErrorBitmap=function(){
+$pppp$.getErrorBitmap=function(){
 	const rtv=false;
 	this._items.forEach(v=>rtv=rtv||( v.bitmap.isError() && v.bitmap ));
 	return rtv||null;
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - RequestQueue
 $aaaa$=RequestQueue;
-$aaaa$.prototype.initialize=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.initialize=function(){
 	this._queue = new Queue();
 	this._tmpQ  = new Queue();
 };
-$aaaa$.prototype.raisePriority=function(key){
+$pppp$.raisePriority=function(key){
 	this._tmpQ.clear((this._queue.length<<1)|1);
 	this._queue.forEach(item=>item.key===key?this._tmpQ.push_front(item):this._tmpQ.push_back(item));
 	{ const tmp=this._tmpQ; this._tmpQ=this._queue; this._queue=tmp; }
 };
-$aaaa$.prototype.clear=function(){
+$pppp$.clear=function(){
 	// when it is an array, use '.length=0;' ?  https://stackoverflow.com/questions/1232040/
 	this._queue.clear();
 	this._tmpQ .clear();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - Decrypter
 Decrypter.extToEncryptExt = function(url) {
@@ -1076,6 +1128,7 @@ Decrypter.extToEncryptExt = function(url) {
 
 // - WebAudio
 $aaaa$=WebAudio;
+$pppp$=$aaaa$.prototype;
 Object.defineProperty($aaaa$.prototype, 'pitch', {
 	get: function() {
 		return this._pitch;
@@ -1094,12 +1147,12 @@ Object.defineProperty($aaaa$.prototype, 'pitch', {
 	},
 	configurable: true
 });
-$rrrr$=$aaaa$.prototype.clear;
-$dddd$=$aaaa$.prototype.clear=function f(){
+$r$=$pppp$.clear;
+$d$=$pppp$.clear=function f(){
 	f.ori.call(this);
 	this._loadListeners=new Queue();
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.initialize=function(url){
+}; $d$.ori=$r$;
+$pppp$.initialize=function(url){
 	if (!WebAudio._initialized) {
 		WebAudio.initialize();
 	}
@@ -1112,7 +1165,7 @@ $aaaa$.prototype.initialize=function(url){
 	this._load(url);
 	this._url = url;
 };
-$aaaa$.prototype.fadeOut = function(duration) {
+$pppp$.fadeOut = function(duration) {
 	if(this._gainNode){
 		const gain = this._gainNode.gain , currentTime = WebAudio._context.currentTime;
 		gain.setValueAtTime(this._volume, currentTime);
@@ -1122,7 +1175,7 @@ $aaaa$.prototype.fadeOut = function(duration) {
 	}
 	this._autoPlay = false;
 };
-$aaaa$.prototype.seek=function() {
+$pppp$.seek=function() {
 	if(WebAudio._context){
 		let pos = (WebAudio._context.currentTime - this._startTime) * this._pitch;
 		if (this._loopLength > 0){
@@ -1133,7 +1186,7 @@ $aaaa$.prototype.seek=function() {
 		return pos;
 	}else return 0;
 };
-$aaaa$.prototype._load=function f(url){
+$pppp$._load=function f(url){
 	if(f.cache===undefined) f.cache=new CacheSystem(2);
 	if(WebAudio._context){
 		let self=this,url_ori=url;
@@ -1162,7 +1215,7 @@ $aaaa$.prototype._load=function f(url){
 		return f.cache.xhrq_regist(url_ori,callbacks); // xhr.send();
 	}
 };
-$aaaa$.prototype._startPlaying=function(loop, offset){
+$pppp$._startPlaying=function(loop, offset){
 	if(this._loopLength>0){
 		offset-=this._loopStart;
 		offset%=this._loopLength;
@@ -1177,20 +1230,22 @@ $aaaa$.prototype._startPlaying=function(loop, offset){
 	this._startTime = WebAudio._context.currentTime - offset / this._pitch;
 	this._createEndTimer();
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 // - Html5Audio
 $aaaa$=Html5Audio;
-$rrrr$=$aaaa$.clear;
-$dddd$=$aaaa$.clear=function f(){
+$pppp$=$aaaa$.prototype;
+$r$=$aaaa$.clear;
+$d$=$aaaa$.clear=function f(){
 	f.ori.call(this);
 	this._loadListeners=new Queue();
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$dddd$=$aaaa$=undef;
+}; $d$.ori=$r$;
+$pppp$=$aaaa$=undef;
 
 // - Graphics
 $aaaa$=Graphics;
-$rrrr$=$aaaa$.initialize;
-$dddd$=$aaaa$.initialize=function f(w,h,type){
+$pppp$=$aaaa$.prototype;
+$r$=$aaaa$.initialize;
+$d$=$aaaa$.initialize=function f(w,h,type){
 	f.ori.call(this,w,h,type);
 	this._pad=Game_Map.e*3;
 	const p2=this._pad<<1;
@@ -1198,14 +1253,14 @@ $dddd$=$aaaa$.initialize=function f(w,h,type){
 	this._boxHeight_pad4=(this._boxHeight_pad3=(this._boxHeight_pad2=this._boxHeight+p2)+this._pad)+this._pad;
 	this._boxWidth_pad6=this._boxWidth_pad4+p2;
 	this._boxHeight_pad6=(this._boxHeight_pad5=this._boxHeight_pad4+this._pad)+this._pad;
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$._onKeyDown;
-$dddd$=$aaaa$._onKeyDown=function f(){
+}; $d$.ori=$r$;
+$r$=$aaaa$._onKeyDown;
+$d$=$aaaa$._onKeyDown=function f(){
 	//debug.keydown('Graphics._onKeyDown');
 	return f.ori.call(this,arguments[0]);
-}; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$._testCanvasBlendModes;
-$dddd$=$aaaa$._testCanvasBlendModes=function f(){
+}; $d$.ori=$r$;
+$r$=$aaaa$._testCanvasBlendModes;
+$d$=$aaaa$._testCanvasBlendModes=function f(){
 	f.ori.call(this);
 	let canvas = document.createElement('canvas');
 	canvas.width = 1;
@@ -1218,7 +1273,7 @@ $dddd$=$aaaa$._testCanvasBlendModes=function f(){
 	context.fillStyle = 'white';
 	context.fillRect(0, 0, 1, 1);
 	this._canUseMultiplyBlend = context.getImageData(0, 0, 1, 1).data[0]===0;
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 $aaaa$._createRenderer=function(){
 	PIXI.dontSayHello=true;
 	const width=this._width , height=this._height;
@@ -1243,7 +1298,7 @@ $aaaa$._createRenderer=function(){
 	}
 };
 $aaaa$._createGameFontLoader=none;
-$rrrr$=$aaaa$.isFontLoaded=function(name){
+$r$=$aaaa$.isFontLoaded=function(name){
 	if(this._cssFontLoading){
 		if(this._fontLoaded) return this._fontLoaded.check('10px '+name);
 		return false;
@@ -1258,16 +1313,16 @@ $rrrr$=$aaaa$.isFontLoaded=function(name){
 		return width1 !== width2;
 	}
 };
-$dddd$=$aaaa$.isFontLoaded=function f(name){
+$d$=$aaaa$.isFontLoaded=function f(name){
 	let rtv=f.ori.call(this,name);
 	if(!rtv){ debug.log("font issue"); if(objs.isDev) debugger; }
 	return rtv;
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 $aaaa$.playVideo=function(src) {
 	this._videoLoader = ResourceHandler.createLoader('video',null, this._playVideo.bind(this, src), this._onVideoError.bind(this));
 	this._playVideo(src);
 };
-$dddd$=$aaaa$.blurBorder=function f(stage){
+$d$=$aaaa$.blurBorder=function f(stage){
 	// light weight: 1/4 width , 1/4 height. and that's the limit
 	const c=this._canvas;//,ctx=c.getContext('2d');
 	const w=c.width>>2,h=c.height>>2;
@@ -1307,8 +1362,8 @@ $dddd$=$aaaa$.blurBorder=function f(stage){
 	
 	if(gc2.style.display==="none") gc2.style.display="";
 };
-$dddd$.template=d.ce('canvas');
-$dddd$.gc2=undefined;
+$d$.template=d.ce('canvas');
+$d$.gc2=undefined;
 $aaaa$.render=function f(stage){
 	if(0<this._skipCount) this._skipCount^=0;
 	else this._skipCount&=0;
@@ -1336,8 +1391,8 @@ $aaaa$._preCalScreenTileCoord=function(){
 	Game_Map.prototype._screenTileX=this._width/Game_Map.prototype.tileWidth();
 	Game_Map.prototype._screenTileY=this._height/Game_Map.prototype.tileHeight();
 };
-$rrrr$=$aaaa$._updateAllElements;
-$dddd$=$aaaa$._updateAllElements=function f(){
+$r$=$aaaa$._updateAllElements;
+$d$=$aaaa$._updateAllElements=function f(){
 	f.ori.call(this);
 	// custom divs
 	const target=this._canvas;
@@ -1349,8 +1404,8 @@ $dddd$=$aaaa$._updateAllElements=function f(){
 		}
 	}
 	this._preCalScreenTileCoord();
-}; $dddd$.ori=$rrrr$;
-$dddd$.tbl=["left","top","right","bottom","width","height",];
+}; $d$.ori=$r$;
+$d$.tbl=["left","top","right","bottom","width","height",];
 $aaaa$._updateRealScale = function() {
 	if (this._stretchEnabled) {
 		let h = document.body.clientWidth; //window.innerWidth;
@@ -1388,7 +1443,7 @@ $aaaa$._makeErrorHtml=(name, message)=>d.ce("div").sa("style","background-color:
 ).ac(d.ce("br")).ac(
 	d.ce("font").sa("color","white").at(message)
 ).ac(d.ce("br"));
-$dddd$=$aaaa$.printError=function f(name, message){
+$d$=$aaaa$.printError=function f(name, message){
 	this._errorShowed=true;
 	const div999=d.ge('div999');
 	if(div999) div999.sa('class','none');
@@ -1404,7 +1459,7 @@ $dddd$=$aaaa$.printError=function f(name, message){
 	this._applyCanvasFilter();
 	this._clearUpperCanvas();
 };
-$dddd$.restart=function f(){
+$d$.restart=function f(){
 	// revert Graphics._applyCanvasFilter
 	let g=Graphics;
 	let s=g._canvas.style;
@@ -1433,7 +1488,7 @@ $dddd$.restart=function f(){
 	const div999=d.ge('div999');
 	if(div999) div999.sa('class','');
 };
-$dddd$=$aaaa$.printLoadingError=function f(type,url){
+$d$=$aaaa$.printLoadingError=function f(type,url){
 	//console.log("Graphics.printLoadingError");
 	let rtv=this._errorPrinter;
 	if (this._errorPrinter && !this._errorShowed) {
@@ -1473,7 +1528,7 @@ $dddd$=$aaaa$.printLoadingError=function f(type,url){
 	}
 	return rtv;
 };
-$dddd$.alts={
+$d$.alts={
 	'img':self=>{
 		// using transparent image?
 		let btn = d.ce('button');
@@ -1506,7 +1561,7 @@ $aaaa$.eraseLoadingError=function(){
 		this.startLoading();
 	}
 };
-$dddd$=$aaaa$._switchPauseBtn=function f(){
+$d$=$aaaa$._switchPauseBtn=function f(){
 	const btn=f.tbl[1];
 	if(!btn){
 		d.body.ac(f.tbl[1]=d.ce('button').ac(
@@ -1516,7 +1571,7 @@ $dddd$=$aaaa$._switchPauseBtn=function f(){
 	}else if(btn.ga('class')==="none") btn.sa('class','');
 	else btn.sa('class',"none");
 };
-$dddd$.tbl=[e=>{
+$d$.tbl=[e=>{
 	e.stopImmediatePropagation();
 	e.preventDefault();
 	SceneManager.pause();
@@ -1524,11 +1579,12 @@ $dddd$.tbl=[e=>{
 	Input.update();
 	TouchInput.update();
 },undefined];
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - Bitmap
 $aaaa$=Bitmap;
-$aaaa$.prototype._reCreateTextureIfNeeded=function(w,h){
+$pppp$=$aaaa$.prototype;
+$pppp$._reCreateTextureIfNeeded=function(w,h){
 	if(this.__canvas){
 		const c=this.__canvas;
 		if(Graphics.isWebGL() && w*h===0) h=w=1;
@@ -1541,14 +1597,14 @@ $aaaa$.prototype._reCreateTextureIfNeeded=function(w,h){
 		}
 	}
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(w,h){
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(w,h){
 	this._reCreateTextureIfNeeded(w,h);
 	f.ori.call(this,w,h);
 	this.clearRect(0,0,1,1); // cleared 'CanvasRenderingContext2D' drawn faster
 	this._loadListeners=new Queue();
 	this.fontFace=_global_conf.useFont;
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 $aaaa$.load=function f(url,key,type){
 	if(url==="data:,") return ImageManager.loadEmptyBitmap();
 	//let sharp=url.indexOf("#");
@@ -1587,7 +1643,7 @@ Object.defineProperty(Bitmap.prototype, 'paintOpacity',{
 	},
 	configurable: true,
 });
-$dddd$=$aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align,rect){
+$d$=$pppp$.drawText=function f(text,x,y,maxWidth,lineHeight,align,rect){
 	// rewrite: actual line height is about 1.25x fontsize. draw @ y = 1x fontsize.
 	// Note: Firefox has a bug with textBaseline: Bug 737852
 	//	   So we use 'alphabetic' here.
@@ -1629,29 +1685,29 @@ $dddd$=$aaaa$.prototype.drawText=function f(text,x,y,maxWidth,lineHeight,align,r
 		return ty;
 	}
 };
-$dddd$.tbl=d.ce('canvas');
-$rrrr$=$aaaa$.prototype.measureTextWidth;
-$dddd$=$aaaa$.prototype.measureTextWidth=function f(txt){
+$d$.tbl=d.ce('canvas');
+$r$=$pppp$.measureTextWidth;
+$d$=$pppp$.measureTextWidth=function f(txt){
 	//debug.log(txt,this.fontFace); // mostly are chr not string // debug
 	if(!txt) return 0;
 	txt=txt.replace(/(\碧|\筵|\綰)/g,'一'); // bug: https://zh.wikipedia.org/zh-tw/%E5%BE%AE%E8%BB%9F%E6%AD%A3%E9%BB%91%E9%AB%94#%E5%B7%B2%E7%9F%A5%E5%95%8F%E9%A1%8C
 	return f.ori.call(this,txt);
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 if(0&&0){
-$aaaa$.prototype._addNoteRefresh=function(sprite){
+$pppp$._addNoteRefresh=function(sprite){
 	if(!(Graphics.isWebGL()&&this._args)) return; // no need
 	if(!this._noteRefresh) this._noteRefresh=new Set();
 	if(sprite&&sprite._refresh) this._noteRefresh.add(sprite);
 };
-$dddd$=$aaaa$.prototype._doNoteRefresh=function f(){
+$d$=$pppp$._doNoteRefresh=function f(){
 	if(!this._noteRefresh) return;
 	if(Graphics.isWebGL()&&this._args) this._noteRefresh.forEach(f.forEach);
 	this._noteRefresh.clear();
 	console.log(this._url);
 };
-$dddd$.forEach=c=>c._refresh();
+$d$.forEach=c=>c._refresh();
 }
-$aaaa$.prototype._editAccordingToArgs_chr2sv=function(src){
+$pppp$._editAccordingToArgs_chr2sv=function(src){
 	const chridx=Number(this._args.chr2sv);
 	if(isNaN(chridx)) return src;
 	if(!this._dones) this._dones={};
@@ -1698,7 +1754,7 @@ $aaaa$.prototype._editAccordingToArgs_chr2sv=function(src){
 	if(reflect_h) this._dones.reflect_h=true;
 	return c;
 };
-$dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
+$d$=$pppp$._editAccordingToArgs_scale=function f(src){
 	let scale=Number(this._args.scale);
 	if(isNaN(scale)) return src;
 	this._scale=scale;
@@ -1731,7 +1787,7 @@ $dddd$=$aaaa$.prototype._editAccordingToArgs_scale=function f(src){
 	return c;
 };
 { const tmpCanvas=document.createElement('canvas');
-$dddd$.f=(dst,src,xs,ys,pw,ph,pwS,phS)=>{
+$d$.f=(dst,src,xs,ys,pw,ph,pwS,phS)=>{
 	dst.width=pwS*xs; dst.height=phS*ys;
 	let ctx=dst.getContext('2d');
 	let tmpc=tmpCanvas; tmpc.width=pw; tmpc.height=ph;
@@ -1743,7 +1799,7 @@ $dddd$.f=(dst,src,xs,ys,pw,ph,pwS,phS)=>{
 	} }
 };
 }
-$aaaa$.prototype._editAccordingToArgs=function(){
+$pppp$._editAccordingToArgs=function(){
 	// this function cannot exec twice if scaling happens
 	// * reserve this behavior for debugging
 	if(!this._image_ori) this._image_ori=this._image;
@@ -1806,7 +1862,7 @@ $aaaa$.prototype._editAccordingToArgs=function(){
 	this._image=src;
 	return true;
 };
-$aaaa$.prototype._createCanvas=function(width, height){
+$pppp$._createCanvas=function(width, height){
 	this.__canvas = this.__canvas || document.ce('canvas');
 	this.__context = this.__canvas.getContext('2d');
 	
@@ -1827,13 +1883,13 @@ $aaaa$.prototype._createCanvas=function(width, height){
 	}
 	this._setDirty();
 };
-$rrrr$=$aaaa$.prototype._createBaseTexture;
-$dddd$=$aaaa$.prototype._createBaseTexture=function f(srcObj){
+$r$=$pppp$._createBaseTexture;
+$d$=$pppp$._createBaseTexture=function f(srcObj){
 	f.ori.call(this,srcObj);
 	this._canvas; // if(this._image): cause __baseTexture.source from 'img' become 'canvas'. this increases drawing speed
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 // not sure
-$aaaa$.prototype.bltImage=function(source, sx, sy, sw, sh, dx, dy, dw, dh){ // rewrite: can use/draw on out-of-bound pixels
+$pppp$.bltImage=function(source, sx, sy, sw, sh, dx, dy, dw, dh){ // rewrite: can use/draw on out-of-bound pixels
 	dw = dw || sw;
 	dh = dh || sh;
 	if ( sw > 0 && sh > 0 && dw > 0 && dh > 0 && dw+dh !== 2 ) {
@@ -1842,7 +1898,7 @@ $aaaa$.prototype.bltImage=function(source, sx, sy, sw, sh, dx, dy, dw, dh){ // r
 		this._setDirty();
 	}
 };
-$rrrr$=$aaaa$.prototype.decode=function(){
+$r$=$pppp$.decode=function(){
 	switch(this._loadingState){
 		case 'requestCompleted': case 'decryptCompleted':
 			this._loadingState = 'loaded';
@@ -1867,15 +1923,15 @@ $rrrr$=$aaaa$.prototype.decode=function(){
 			break;
 	}
 };
-$dddd$=$aaaa$.prototype.decode=function f(){
+$d$=$pppp$.decode=function f(){
 	let flag=!this._loader && this._loadingState.slice(-4)==='ting'; // case 'requesting': case 'decrypting':
 	f.ori.call(this);
 	if(flag){
 		this._image.removeEventListener('error', this._errorListener);
 		this._image.addEventListener('error',this._errorListener=this._loader = ResourceHandler.createLoader('img',this._url,this._requestImage.bind(this),this._onError.bind(this) ));
 	}
-}; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.prototype._requestImage=function f(url){
+}; $d$.ori=$r$;
+$d$=$pppp$._requestImage=function f(url){
 	if(Bitmap._reuseImages.length !== 0){
 		this._image = Bitmap._reuseImages.pop();
 	}else{
@@ -1937,8 +1993,8 @@ $dddd$=$aaaa$.prototype._requestImage=function f(url){
 		}
 	}
 };
-$dddd$.baseTimeout=location.protocol==="https:"?8763:4876;
-$dddd$.onerr=function f(){ this.onerror=null;
+$d$.baseTimeout=location.protocol==="https:"?8763:4876;
+$d$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
 	debug.warn("err:","loading",src);
 	if(!(this._errCnt>=0)) this._errCnt=0;
@@ -1947,11 +2003,12 @@ $dddd$.onerr=function f(){ this.onerror=null;
 	else localStorage.setItem('_errCnt',this._errCnt);
 	setTimeout(()=>{ this.onerror=f; this.setLoadSrcWithTimeout(src,0xC8763<<(this._errCnt)); },111);
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - ScreenSprite
 $aaaa$=ScreenSprite;
-$aaaa$.prototype.setColor=function(r, g, b){
+$pppp$=$aaaa$.prototype;
+$pppp$.setColor=function(r, g, b){
 	//debug.log('ScreenSprite.prototype.setColor');
 		r &= 0xFF;
 		g &= 0xFF;
@@ -1969,11 +2026,12 @@ $aaaa$.prototype.setColor=function(r, g, b){
 		graphics.drawRect(0,0, Graphics.width , Graphics.height );
 	}
 };
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 // - ToneSprite
 $aaaa$=ToneSprite;
-$dddd$=$aaaa$.prototype._renderCanvas = function f(renderer) { // rewrite: wtf the original one draws 3 times when negtive color values only
+$pppp$=$aaaa$.prototype;
+$d$=$pppp$._renderCanvas = function f(renderer) { // rewrite: wtf the original one draws 3 times when negtive color values only
 	// lazy update , suppose effects are uniformly applied to each pixel
 	if (this.visible) {
 		const ctx = renderer.context , width = ctx.canvas.width , height = ctx.canvas.height;
@@ -2037,20 +2095,21 @@ if(0){
 		ctx.restore();
 	}
 };
-$dddd$.black='#000000';
-$dddd$.difference='difference';
-$dddd$.gc=undefined;
-$dddd$.lighter='lighter';
-$dddd$.multiply='multiply';
-$dddd$.saturation='saturation';
-$dddd$.white='#FFFFFF';
-$rrrr$=$dddd$=$aaaa$=undef;
+$d$.black='#000000';
+$d$.difference='difference';
+$d$.gc=undefined;
+$d$.lighter='lighter';
+$d$.multiply='multiply';
+$d$.saturation='saturation';
+$d$.white='#FFFFFF';
+$pppp$=$aaaa$=undef;
 
 // - sprite
 $aaaa$=Sprite;
+$pppp$=$aaaa$.prototype;
 // notify parent:Tilemap
 //
-$aaaa$.prototype.remove=function(){
+$pppp$.remove=function(){
 	if(this.parent)
 		if(this.parent.waitRemove){
 			this.visible=false;
@@ -2130,12 +2189,12 @@ else Object.defineProperties($aaaa$.prototype,{
 		set:function(rhs){return this._z2=rhs|0;},
 	},
 });
-$aaaa$.prototype.update=function f(){ // overwrite, forEach is slowwwwwwwwww
+$pppp$.update=function f(){ // overwrite, forEach is slowwwwwwwwww
 	for(let arr=this.children,x=arr.length;x--;){ let child=arr[x];
 		child && child.update && child.update();
 	}
 };
-$aaaa$.prototype._refresh=function(){
+$pppp$._refresh=function(){
 	//debug.log2("Sprite.prototype._refresh");
 	let tmp;
 	const frameX = ~~this._frame.x;
@@ -2185,7 +2244,7 @@ $aaaa$.prototype._refresh=function(){
 	}
 	this.texture._updateID++;
 };
-$aaaa$.prototype._executeTint=function(x, y, w, h){
+$pppp$._executeTint=function(x, y, w, h){
 	// 雷ㄛ 在ToneSprite.prototype._renderCanvas知道要略過無效的特效,在這邊就不知道了
 	const context = this._context;
 	const tone = this._colorTone;
@@ -2250,8 +2309,8 @@ $aaaa$.prototype._executeTint=function(x, y, w, h){
 	context.globalAlpha = 1;
 	context.drawImage(this._bitmap.canvas, x, y, w, h, 0, 0, w, h);
 };
-$aaaa$.prototype.getRef=none;
-$aaaa$.prototype._setBitmap_args=function(){
+$pppp$.getRef=none;
+$pppp$._setBitmap_args=function(){
 	let hasSth=false,rtv={}; // args
 	let r=this.getRef(),meta;
 	if(!r) return;
@@ -2270,27 +2329,27 @@ $aaaa$.prototype._setBitmap_args=function(){
 	}
 	return hasSth&&rtv;
 };
-$rrrr$=$dddd$=$aaaa$=undef; // END sprite
+$pppp$=$aaaa$=undef; // END sprite
 
 // - Spriteset_BattleFieldDamages
 $aaaa$=function Spriteset_BattleFieldDamages(){
 	this.initialize.apply(this, arguments);
 };
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Sprite.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.destructor = function(){
+$pppp$=$aaaa$.prototype=Object.create(Sprite.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.destructor = function(){
 	const r=[]; this.children.forEach(v=>r.push(v));
 	for(let x=r.length;x--;) this.removeChild(r[x]);
 	for(let x=0;x!==r.length;++x) if(r[x].destructor) r[x].destructor();
 	this.destroy( PIXI.Container.prototype.destructor.tbl ); // del children , sprites' textures
 };
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this.children=new Set();
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.removeChild=function(c){
+}; $d$.ori=$r$;
+$pppp$.removeChild=function(c){
 	if(!this.children.has(c)) return;
 	
 	c.parent=null;
@@ -2305,23 +2364,24 @@ $aaaa$.prototype.removeChild=function(c){
 	
 	return c;
 };
-$aaaa$.prototype.removeChildAt=function(){
+$pppp$.removeChildAt=function(){
 	throw new Error('you should not use this function');
 };
-$aaaa$.prototype.removeChildren=function(){
+$pppp$.removeChildren=function(){
 	const r=[]; this.children.forEach(v=>r.push(v));
 	this.children.clear();
-	for(let i=r.length;i--;){ const curr=r[i];
-		curr.parent = null;
-		if(curr.transform) curr.transform._parentID = -1;
+	for(let i=r.length;i--;){ const c=r[i];
+		c.parent = null;
+		if(c.transform) c.transform._parentID = -1;
+		c.destructor();
 	}
 	this._boundsID++;
 	this.onChildrenChange(0);
 	for(let i=r.length;i--;) r[i].emit('removed', this);
 	return r.reverse();
 };
-$aaaa$.prototype.update=none;
-$dddd$=$aaaa$.prototype.updateTransform=function f(){
+$pppp$.update=none;
+$d$=$pppp$.updateTransform=function f(){
 	this._boundsID++;
 	
 	this.transform.updateTransform(this.parent.transform);
@@ -2331,8 +2391,8 @@ $dddd$=$aaaa$.prototype.updateTransform=function f(){
 	
 	this.children.forEach(f.forEach);
 };
-$dddd$.forEach=c=>c.visible&&c.updateTransform();
-$aaaa$.prototype.renderCanvas=function(renderer){
+$d$.forEach=c=>c.visible&&c.updateTransform();
+$pppp$.renderCanvas=function(renderer){
 	if(!this.visible || this.worldAlpha <= 0 || !this.renderable) return;
 	if(this._mask) renderer.maskManager.pushMask(this._mask);
 	
@@ -2340,7 +2400,7 @@ $aaaa$.prototype.renderCanvas=function(renderer){
 	
 	if(this._mask) renderer.maskManager.popMask(renderer);
 };
-$aaaa$.prototype.renderWebGL=function(renderer){
+$pppp$.renderWebGL=function(renderer){
 	if(!this.visible || this.worldAlpha <= 0 || !this.renderable) return;
 
 	// do a quick check to see if this element has a mask or a filter.
@@ -2350,7 +2410,7 @@ $aaaa$.prototype.renderWebGL=function(renderer){
 		this.children.forEach(c=>c.renderWebGL(renderer));
 	}
 };
-$aaaa$.prototype.renderAdvancedWebGL=function(renderer){
+$pppp$.renderAdvancedWebGL=function(renderer){
 	renderer.flush();
 	const filters = this._filters , mask = this._mask;
 	// push filter first as we need to ensure the stencil buffer is correct for any masking
@@ -2376,9 +2436,9 @@ $aaaa$=function Sprite_DamageChild(){
 	this.initialize.apply(this, arguments);
 };
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Sprite.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
-$aaaa$.prototype.clearMember=function(bm){
+$pppp$=$aaaa$.prototype=Object.create(Sprite.prototype);
+$pppp$.constructor = $aaaa$;
+$pppp$.clearMember=function(bm){
 	this._bitmap = null;
 	this._frame = new Rectangle();
 	this._realFrame = new Rectangle();
@@ -2395,7 +2455,7 @@ $aaaa$.prototype.clearMember=function(bm){
 
 	this.bitmap = bm;
 };
-($aaaa$.prototype.refresh_do=function f(){
+($pppp$.refresh_do=function f(){
 	if(this._needUpdateY){
 		this._needUpdateY=false;
 		this.updateY();
@@ -2404,19 +2464,19 @@ $aaaa$.prototype.clearMember=function(bm){
 		this._needRefreshAll=false;
 		return f.ori.call(this);
 	}
-}).ori=$aaaa$.prototype._refresh;
-$aaaa$.prototype._refresh=function(){
+}).ori=$pppp$._refresh;
+$pppp$._refresh=function(){
 	this._needRefreshAll=true;
 	SceneManager._addRefresh.call(this);
 };
-$aaaa$.prototype.getUpdateCtr=function(){
+$pppp$.getUpdateCtr=function(){
 	return 0|((this.parent && this.parent._updateCtr)-this._updateStrt);
 };
-$aaaa$.prototype.refreshY=function(){
+$pppp$.refreshY=function(){
 	this._needUpdateY=true;
 	SceneManager._addRefresh.call(this);
 };
-$t$=($aaaa$.prototype.updateY=function f(){
+$t$=($pppp$.updateY=function f(){
 	if(this._idx===undefined) return;
 	let arr=f.tbl[this._idx]; if(!arr) arr=f.tbl[this._idx]=[];
 	const ctr=this.getUpdateCtr(); if(!ctr) return;
@@ -2438,13 +2498,13 @@ $t$=($aaaa$.prototype.updateY=function f(){
 	if(this.y!==newy) this.y=newy;
 	}
 }).tbl=[]; // [ idx -> [ t -> [ry,dy] ] ]
-($aaaa$.prototype._getY=function f(idx,t){
+($pppp$._getY=function f(idx,t){
 	idx|=0; t|=0;
 	if(!idx||!t) return -40;
 	return ~~f.tbl[idx][t][0];
 }).tbl=$t$;
 
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 
 Sprite_Damage.prototype.createChildSprite=function f(){
 	const sp = new Sprite_DamageChild();
@@ -2460,6 +2520,7 @@ Sprite_Damage.prototype.createChildSprite=function f(){
 
 // - StorageManager
 $aaaa$=StorageManager;
+$pppp$=$aaaa$.prototype;
 $aaaa$.backup=function(savefileId){
 	if(this.exists(savefileId)){
 		if(this.isLocalMode()){
@@ -2496,22 +2557,23 @@ TextManager.custom=(id)=>$dataCustom[id]||'';
 
 // - Scene_MenuBase
 $aaaa$=Scene_MenuBase;
-$rrrr$=$aaaa$.prototype.createHelpWindow;
-$dddd$=$aaaa$.prototype.createHelpWindow=function f(){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.createHelpWindow;
+$d$=$pppp$.createHelpWindow=function f(){
 	f.ori.call(this);
 	const w=this._helpWindow;
 	w.fontSize=0;
 	const fsz=w.standardFontSize();
 	w.setFontsize((fsz>>1) + (fsz>>3));
 	w.height=w.fittingHeight(3);
-}; $dddd$.ori=$rrrr$;
-$aaaa$.prototype.nextActor=function(){
+}; $d$.ori=$r$;
+$pppp$.nextActor=function(){
 	const rtv=$gameParty.makeMenuActorNext();
 	this.updateActor();
 	this.onActorChange();
 	return this._actorIdx=rtv;
 };
-$aaaa$.prototype.previousActor=function(){
+$pppp$.previousActor=function(){
 	const rtv=$gameParty.makeMenuActorPrevious();
 	this.updateActor();
 	this.onActorChange();
@@ -2520,31 +2582,33 @@ $aaaa$.prototype.previousActor=function(){
 
 // - gameover
 $aaaa$=Scene_Gameover;
-$rrrr$=$aaaa$.prototype.start;
-$dddd$=$aaaa$.prototype.start=function f(){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.start;
+$d$=$pppp$.start=function f(){
 	f.ori.call(this);
 	let bs=this._backSprite;
 	bs.x=(this.width -bs.width )>>1;
 	bs.y=(this.height-bs.height)>>1;
-}; $dddd$.ori=$rrrr$;
+}; $d$.ori=$r$;
 
 
 // object
 
 // - system
 $aaaa$=Game_System;
-$rrrr$=$aaaa$.prototype.initialize;
-$dddd$=$aaaa$.prototype.initialize=function f(){
+$pppp$=$aaaa$.prototype;
+$r$=$pppp$.initialize;
+$d$=$pppp$.initialize=function f(){
 	f.ori.call(this);
 	this._usr=new Game_System.Usr;
 	ConfigManager.ConfigOptionsWithSystem.forEach(x=>{
 		if(!(x[0] in ConfigManager)) return;
 		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
 	});
-}; $dddd$.ori=$rrrr$;
-$dddd$=$aaaa$.Usr=function(){};
-$dddd$.prototype.contructor=$dddd$;
-Object.defineProperties($dddd$.prototype,{
+}; $d$.ori=$r$;
+$d$=$aaaa$.Usr=function(){};
+$d$.prototype.contructor=$d$;
+Object.defineProperties($d$.prototype,{
 	_noLeaderHp: { get: function(){ return this._noHpL; }, set: function(rhs){
 			if(this._noHpL===rhs) return rhs;
 			const p=SceneManager.isMap()&&SceneManager._scene._pannel;
@@ -2558,12 +2622,12 @@ Object.defineProperties($dddd$.prototype,{
 			return this._noMpL=0|!!rhs;
 	}, configurable: false },
 });
-$aaaa$.prototype.onAfterLoad=function(){ // overwrite. wtf you forgot "pos"
+$pppp$.onAfterLoad=function(){ // overwrite. wtf you forgot "pos"
 	Graphics.frameCount = this._framesOnSave;
 	if(this._bgmOnSave) AudioManager.playBgm(this._bgmOnSave,this._bgmOnSave.pos); else AudioManager.fadeOutBgm(1);
 	if(this._bgsOnSave) AudioManager.playBgs(this._bgsOnSave,this._bgsOnSave.pos); else AudioManager.fadeOutBgs(1);
 };
-$aaaa$.prototype.playtimeText=function(){
+$pppp$.playtimeText=function(){
 	let fc=Graphics.frameCount; if(fc>872654640) fc=872654640;
 	let sec  =~~(fc/60);
 	let min  =~~(sec/60); sec%=60;
@@ -2573,148 +2637,152 @@ $aaaa$.prototype.playtimeText=function(){
 
 // - timer
 $aaaa$=Game_Timer;
-$aaaa$.prototype.clear=function(){
+$pppp$=$aaaa$.prototype;
+$pppp$.clear=function(){
 	this._working = false;
 	this._frames=0;
 	this._scale=2;
 	this._alignX="R";
 	this._alignY="T";
 }
-$aaaa$.prototype.initialize = function() {
+$pppp$.initialize = function() {
 	this.clear();
 };
-$aaaa$.prototype.onExpire=function(){
+$pppp$.onExpire=function(){
 	BattleManager.abort();
 	this.clear();
 };
 
 // - screen
 $aaaa$=Game_Screen;
-$aaaa$.prototype.eraseBattlePictures=function(){ // overwrite. wtf
+$pppp$=$aaaa$.prototype;
+$pppp$.eraseBattlePictures=function(){ // overwrite. wtf
 	//this._pictures = this._pictures.slice(0, this.maxPictures() + 1);
 	// ? https://stackoverflow.com/questions/1232040/
 	this._pictures.length=Math.min(this.maxPictures(),this._pictures.length);
 };
-$aaaa$.prototype.maxPictures=()=>3;
+$pppp$.maxPictures=()=>3;
 
 // - action
 $aaaa$=Game_Action;
+$pppp$=$aaaa$.prototype;
 $aaaa$.TARGET_ENUM_MAX=12;
 $aaaa$.TARGET_ENUM_forAllFriends=12; // item,skill: meta.forAllFriends
 $aaaa$.TARGET_ENUM_forAliveBattler=++$aaaa$.TARGET_ENUM_MAX; // 13
 $aaaa$.TARGET_ENUM_forDeadBattler=++$aaaa$.TARGET_ENUM_MAX; // 14
 $aaaa$.TARGET_ENUM_forAllBattler=++$aaaa$.TARGET_ENUM_MAX; // 15
 $aaaa$.TARGET_ENUM_forAllFriend=++$aaaa$.TARGET_ENUM_MAX; // 16 // item,skill: meta.forAllFriends
-$dddd$=$aaaa$.prototype.isForOpponent=function f(){
+$d$=$pppp$.isForOpponent=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([1, 2, 3, 4, 5, 6]);
-$dddd$=$aaaa$.prototype.isForAllFriend=function f(){
+$d$.tbl=new Set([1, 2, 3, 4, 5, 6]);
+$d$=$pppp$.isForAllFriend=function f(){
 	return this.item().scope===f.tbl;
 };
-$dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriend;
-$dddd$=$aaaa$.prototype.isForAllFriends=function f(){
+$d$.tbl=$aaaa$.TARGET_ENUM_forAllFriend;
+$d$=$pppp$.isForAllFriends=function f(){
 	return this.item().scope===f.tbl;
 };
-$dddd$.tbl=$aaaa$.TARGET_ENUM_forAllFriends;
-$dddd$=$aaaa$.prototype.isForBattler=function f(){
+$d$.tbl=$aaaa$.TARGET_ENUM_forAllFriends;
+$d$=$pppp$.isForBattler=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([
+$d$.tbl=new Set([
 	$aaaa$.TARGET_ENUM_forAliveBattler, 
 	$aaaa$.TARGET_ENUM_forDeadBattler, 
 	$aaaa$.TARGET_ENUM_forAllBattler, 
 ]);
-$dddd$=$aaaa$.prototype.isDeadNotMatter=function f(){
+$d$=$pppp$.isDeadNotMatter=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([
+$d$.tbl=new Set([
 	$aaaa$.TARGET_ENUM_forAllFriends, 
 	$aaaa$.TARGET_ENUM_forAllBattler, 
 	$aaaa$.TARGET_ENUM_forAllFriend, 
 ]);
-$dddd$=$aaaa$.prototype.isForFriend=function f(){
+$d$=$pppp$.isForFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([7, 8, 9, 10, 11,
+$d$.tbl=new Set([7, 8, 9, 10, 11,
 	$aaaa$.TARGET_ENUM_forAllFriends, 
 	$aaaa$.TARGET_ENUM_forAllFriend, 
-]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
-$dddd$=$aaaa$.prototype.isForDeadFriend=function f(){
+]).union_inplaceThis($pppp$.isForBattler.tbl);
+$d$=$pppp$.isForDeadFriend=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([9, 10]);
-$dddd$=$aaaa$.prototype.isForUser=function f(){
+$d$.tbl=new Set([9, 10]);
+$d$=$pppp$.isForUser=function f(){
 	return this.item().scope===f.tbl;
 };
-$dddd$.tbl=11;
-$dddd$=$aaaa$.prototype.isForOne=function f(){
+$d$.tbl=11;
+$d$=$pppp$.isForOne=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([1, 3, 7, 9, 11, 
+$d$.tbl=new Set([1, 3, 7, 9, 11, 
 	$aaaa$.TARGET_ENUM_forAllFriend, 
 ]);
-$dddd$=$aaaa$.prototype.isForRandom=function f(){
+$d$=$pppp$.isForRandom=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([3, 4, 5, 6]);
-$dddd$=$aaaa$.prototype.isForAll=function f(){
+$d$.tbl=new Set([3, 4, 5, 6]);
+$d$=$pppp$.isForAll=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([2, 8, 10, 
+$d$.tbl=new Set([2, 8, 10, 
 	$aaaa$.TARGET_ENUM_forAllFriends, 
-]).union_inplaceThis($aaaa$.prototype.isForBattler.tbl);
-$dddd$=$aaaa$.prototype.needsSelection=function f(){
+]).union_inplaceThis($pppp$.isForBattler.tbl);
+$d$=$pppp$.needsSelection=function f(){
 	return this.checkItemScope(f.tbl);
 };
-$dddd$.tbl=new Set([1,7,9,
+$d$.tbl=new Set([1,7,9,
 	$aaaa$.TARGET_ENUM_forAllFriend,
 ]);
-$dddd$=$aaaa$.prototype.isHpEffect=function f(){
+$d$=$pppp$.isHpEffect=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([1, 3, 5]);
-$dddd$=$aaaa$.prototype.isMpEffect=function f(){
+$d$.tbl=new Set([1, 3, 5]);
+$d$=$pppp$.isMpEffect=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([2, 4, 6]);
-$dddd$=$aaaa$.prototype.isDamage=function f(){
+$d$.tbl=new Set([2, 4, 6]);
+$d$=$pppp$.isDamage=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([1, 2]);
-$dddd$=$aaaa$.prototype.isRecover=function f(){
+$d$.tbl=new Set([1, 2]);
+$d$=$pppp$.isRecover=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([3, 4]);
-$dddd$=$aaaa$.prototype.isDrain=function f(){
+$d$.tbl=new Set([3, 4]);
+$d$=$pppp$.isDrain=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([5, 6]);
-$dddd$=$aaaa$.prototype.isHpRecover=function f(){
+$d$.tbl=new Set([5, 6]);
+$d$=$pppp$.isHpRecover=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([3]);
-$dddd$=$aaaa$.prototype.isMpRecover=function f(){
+$d$.tbl=new Set([3]);
+$d$=$pppp$.isMpRecover=function f(){
 	return this.checkDamageType(f.tbl);
 };
-$dddd$.tbl=new Set([4]);
+$d$.tbl=new Set([4]);
 
 // - unit
 $aaaa$=Game_Unit;
+$pppp$=$aaaa$.prototype;
 $aaaa$.isAlive=m=>m.isAlive();
-$dddd$=$aaaa$.prototype.aliveMembers=function f(){
+$d$=$pppp$.aliveMembers=function f(){
     return this.members().filter(f.forEach);
 };
-$dddd$.forEach=$aaaa$.isAlive;
-$dddd$=$aaaa$.prototype.deadMembers=function f(){
+$d$.forEach=$aaaa$.isAlive;
+$d$=$pppp$.deadMembers=function f(){
     return this.members().filter(f.forEach);
 };
-$dddd$.forEach=m=>m.isDead();
-$dddd$=$aaaa$.prototype.isAllDead=function f(){
+$d$.forEach=m=>m.isDead();
+$d$=$pppp$.isAllDead=function f(){
 	return !this.members().some(f.some);
 };
-$dddd$.some=$aaaa$.isAlive;
-$aaaa$.prototype.alwaysSubstitute=function(){
+$d$.some=$aaaa$.isAlive;
+$pppp$.alwaysSubstitute=function(){
 	const members = this.members();
 	for(let i=0;i!==members.length;++i)
 		if(members[i].isAlwaysSubstitute())
@@ -2726,48 +2794,47 @@ $aaaa$.prototype.alwaysSubstitute=function(){
 
 // - Window_MapName
 $aaaa$=Window_MapName;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true);
 
 // - Window_Gold
 $aaaa$=Window_Gold;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true);
 
 // - Window_ShopCommand
 $aaaa$=Window_ShopCommand;
+$pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true,true);
-$aaaa$.prototype.updateArrows=none;
+$pppp$.updateArrows=none;
 
 // - Window_DummyWithText
-function Window_DummyWithText(){
+$aaaa$=function Window_DummyWithText(){
 	this.initialize.apply(this, arguments);
-}
-$aaaa$=Window_DummyWithText;
+};
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_Base.prototype);
-$aaaa$.prototype.constructor = $aaaa$;
+$pppp$=$aaaa$.prototype=Object.create(Window_Base.prototype);
+$pppp$.constructor = $aaaa$;
 makeDummyWindowProto($aaaa$,true);
 
 // - Window_Dummy
-function Window_Dummy(){
+$aaaa$=function Window_Dummy(){
 	this.initialize.apply(this, arguments);
-}
-$aaaa$=Window_Dummy;
+};
 window[$aaaa$.name]=$aaaa$;
-$aaaa$.prototype = Object.create(Window_DummyWithText.prototype);
-$aaaa$.prototype._refreshContents=none;
-$aaaa$.prototype._updateContents=none;
+$pppp$=$aaaa$.prototype=Object.create(Window_DummyWithText.prototype);
+$pppp$._refreshContents=none;
+$pppp$._updateContents=none;
 
 
-$rrrr$=$dddd$=$aaaa$=undef;
+$pppp$=$aaaa$=undef;
 // --- --- BEG debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
-if(objs.isDev){
-objs.debug=()=>{
+objs.debug=(objs.isDev)?()=>{
 	objs._doFlow.call(null,"debugger");
-};
-}
+}:none;
 
-$rrrr$=$dddd$=$aaaa$=undef;
+$r$=$d$=$pppp$=$aaaa$=$t$=undef;
 // --- --- END debugging --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
 
 if(objs.isDev) console.log("obj_t0");

@@ -1320,7 +1320,7 @@ $aaaa$.ConfigOptionsWithSystem=[
 	["_lvUpHint",$aaaa$.readFlag,1],
 	["_noAnimation",$aaaa$.readFlag],
 	["_noAutotile",$aaaa$.readFlag],
-	["_dmgPopMaxPerBtlr",undefined,44],
+	["_dmgPopMaxPerBtlr",undefined,0x40],
 	["_chasePopAfterFrame",$aaaa$.readFlag,1],
 	["_simpleTouchMove",$aaaa$.readFlag],
 	["_useFont"],
@@ -5507,53 +5507,68 @@ $pppp$.param=function(paramId){
 $pppp$.setHp=function(hp){
 	if(this._hp === hp) return;
 	this._hp = hp;
-	this.refresh(true);
+	this.refresh(true,1);
 };
 $pppp$.setMp=function(mp){
 	if(this._mp === mp) return;
 	this._mp = mp;
-	this.refresh(true);
+	this.refresh(true,2);
 };
 $pppp$.setTp=function(tp){
 	if(this._tp === tp) return;
 	this._tp = tp;
-	this.refresh(true);
+	this.refresh(true,3);
 };
 $pppp$.setStp=function(val){
 	if(this._stp===val) return;
 	this._stp=val;
-	this.refresh();
+	this.refresh(true,4);
 };
 $pppp$.maxStp=()=>1000;
-$d$=$pppp$.refresh=function f(){
-	this.stateResistSet().forEach(f.forEach, this);
-	let tmp;
-	
-	if(this._hp<0) this._hp=0;
+$pppp$.refresh_hp=function(){
+	if(!(this._hp>=0)) this._hp=0;
 	else{
-		tmp=this.mhp;
+		const tmp=this.mhp;
 		if(this._hp>tmp) this._hp=tmp;
 	}
-	
-	if(this._mp<0) this._mp=0;
+};
+$pppp$.refresh_mp=function(){
+	if(!(this._mp>=0)) this._mp=0;
 	else{
-		tmp=this.mmp;
+		const tmp=this.mmp;
 		if(this._mp>tmp) this._mp=tmp;
 	}
-	
-	if(this._tp<0) this._tp=0;
+};
+$pppp$.refresh_tp=function(){
+	if(!(this._tp>=0)) this._tp=0;
 	else{
-		tmp=this.maxTp();
+		const tmp=this.maxTp();
 		if(this._tp>tmp) this._tp=tmp;
 	}
-	
+};
+$pppp$.refresh_stp=function(){
 	if(this._stp!==undefined){
-		if(this._stp<0) this._stp=0;
+		if(!(this._stp>=0)) this._stp=0;
 		else{
-			tmp=this.maxStp();
+			const tmp=this.maxStp();
 			if(this._stp>tmp) this._stp=tmp;
 		}
 	}
+};
+$d$=$pppp$.refresh=function f(_,only){
+	switch(only){
+	case 1: return this.refresh_hp();
+	case 2: return this.refresh_mp();
+	case 3: return this.refresh_tp();
+	case 4: return this.refresh_stp();
+	};
+	
+	this.stateResistSet().forEach(f.forEach, this);
+	
+	this.refresh_hp();
+	this.refresh_mp();
+	this.refresh_tp();
+	this.refresh_stp();
 };
 $d$.forEach=function(_,stateId){
 	this.eraseState(stateId);
@@ -5682,6 +5697,11 @@ $d$=$pppp$[$k$]=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
 	this._actions=new Queue(2);
 	this._weapon2ImageId = 0;
 }; $d$.ori=$r$;
+$pppp$.refresh=function(_,only){
+	Game_BattlerBase.prototype.refresh.call(this,0,only); // ensure hp non-neg.
+	if(this.hp === 0) this.addState(this.deathStateId());
+	else this.removeState(this.deathStateId());
+};
 $pppp$.setSprite=function(sprite){
 	let m=SceneManager._scene._chr2sp;
 	if(!m) m=SceneManager._scene._chr2sp=new Map();
@@ -10305,20 +10325,22 @@ $pppp$.applyGuard=function(damage,target){
 $k$='executeDamage';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(trgt,val){
-	const s=(val>0||!this.isRecover())&&this.subject();
+	const s=!this.isRecover()&&this.subject();
 	if(s){
 		const ss=this.meta.preload?this.meta.s:s;
 		let gainHp = ss.dmgRcvHpR*val+ss.dmgRcvHpV , gainMp = ss.dmgRcvMpR*val+ss.dmgRcvMpV , rec;
 		if((gainHp||gainMp) && (rec=ss.rec)){
-			gainHp*=rec; gainHp|=0; 
+			gainHp*=rec; gainHp|=0;
 			gainMp*=rec; gainMp|=0;
-			const orires=s&&s.result();
-			const r2=s._result=new Game_ActionResult();
-			r2.later=true;
-			s.gainHp(gainHp);
-			s.gainMp(gainMp);
-			if(SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
-			s._result=orires;
+			if(gainHp||gainMp){
+				const orires=s&&s.result();
+				const r2=s._result=new Game_ActionResult();
+				r2.later=true;
+				s.gainHp(gainHp);
+				s.gainMp(gainMp);
+				if(SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
+				s._result=orires;
+			}
 		}
 	}
 	f.ori.call(this,trgt,val);
@@ -10326,7 +10348,6 @@ $d$=$pppp$[$k$]=function f(trgt,val){
 $pppp$.executeHpDamage=function(target, value){
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
-	target.noRefresh=true;
 	const mpsubst=value>0 && target.MPSubstituteRate();
 	if(mpsubst){
 		let mpDmg=~~(value*mpsubst); if(!(mpDmg<=target.mp)) mpDmg=target.mp;
@@ -10334,10 +10355,8 @@ $pppp$.executeHpDamage=function(target, value){
 		if(mpDmg) this.executeMpDamage(target,mpDmg);
 	}else target.gainHp(-value);
 	if(value > 0){
-		target.onDamage(value);
+		target.onDamage(value); // removeStatesByDamage
 	}
-	target.noRefresh=0;
-	if(value) target.refresh();
 	this.gainDrainedHp(value);
 };
 $pppp$.gainDrainedHp=function(val){
@@ -11270,10 +11289,10 @@ $d$=$pppp$.optimizeEquipments=function f(){
 };
 $d$.cmp=(a,b)=>a[1]-b[1];
 $d$.tbl={preserveRepeats:true};
-$pppp$.refresh=function(noReleaseEquips){
+$pppp$.refresh=function(noReleaseEquips,only){
 	if(this.noRefresh) return this._needRefresh=true;
 	if(!noReleaseEquips) this.releaseUnequippableItems(false);
-	Game_Battler.prototype.refresh.call(this);
+	Game_Battler.prototype.refresh.call(this,0,only);
 };
 $d$=$pppp$._skills_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
@@ -11989,6 +12008,7 @@ $d$=$pppp$[$k$]=function f(x,y,w,h){
 }; $d$.ori=$r$;
 $r$=$pppp$.update;
 $d$=$pppp$.update=function f(){
+	//this._rmAllIconSprite(); // TODO: use sprites to draw icons
 	++this._updateCtr; this._updateCtr&=0x3FFFFFFF;
 	if(this._iconloop){
 		for(let x=0,arr=this._iconloop;x!==arr.length;++x){
