@@ -1172,10 +1172,6 @@ Game_Action.prototype.isMagical = function() {
     return this.item().hitType === Game_Action.HITTYPE_MAGICAL;
 };
 
-Game_Action.prototype.isAttack = function() {
-    return this.item() === $dataSkills[this.subject().attackSkillId()];
-};
-
 Game_Action.prototype.isMagicSkill = function() {
     if (this.isSkill()) {
         return $dataSystem.magicSkills.contains(this.item().stypeId);
@@ -1264,28 +1260,6 @@ Game_Action.prototype.itemMrf = function(target) {
     }
 };
 
-Game_Action.prototype.itemHit = function(target) {
-    if (this.isPhysical()) {
-        return this.item().successRate * 0.01 * this.subject().hit;
-    } else {
-        return this.item().successRate * 0.01;
-    }
-};
-
-Game_Action.prototype.itemEva = function(target) {
-    if (this.isPhysical()) {
-        return target.eva;
-    } else if (this.isMagical()) {
-        return target.mev;
-    } else {
-        return 0;
-    }
-};
-
-Game_Action.prototype.itemCri = function(target) {
-    return this.item().damage.critical ? this.subject().cri * (1 - target.cev) : 0;
-};
-
 Game_Action.prototype.calcElementRate = function(target) {
     if (this.item().damage.elementId < 0) {
         return this.elementsMaxRate(target, this.subject().attackElements());
@@ -1336,26 +1310,6 @@ Game_Action.prototype.executeMpDamage = function(target, value) {
     }
     target.gainMp(-value);
     this.gainDrainedMp(value);
-};
-
-Game_Action.prototype.gainDrainedHp = function(value) {
-    if (this.isDrain()) {
-       var gainTarget = this.subject();
-       if (this._reflectionTarget !== undefined) {
-            gainTarget = this._reflectionTarget;
-        }
-       gainTarget.gainHp(value);
-    }
-};
-
-Game_Action.prototype.gainDrainedMp = function(value) {
-    if (this.isDrain()) {
-       var gainTarget = this.subject();
-       if (this._reflectionTarget !== undefined) {
-           gainTarget = this._reflectionTarget;
-       }
-       gainTarget.gainMp(value);
-    }
 };
 
 Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
@@ -1687,18 +1641,9 @@ Game_BattlerBase.prototype.resetStateCounts = function(stateId) {
     this._stateTurns[stateId] = state.minTurns + Math.randomInt(variance);
 };
 
-Game_BattlerBase.prototype.isStateExpired = function(stateId) {
-    return this._stateTurns[stateId] === 0;
-};
-
 Game_BattlerBase.prototype.clearBuffs = function() {
     this._buffs = [0,0,0,0,0,0,0,0];
     this._buffTurns = [0,0,0,0,0,0,0,0];
-};
-
-Game_BattlerBase.prototype.eraseBuff = function(paramId) {
-    this._buffs[paramId] = 0;
-    this._buffTurns[paramId] = 0;
 };
 
 Game_BattlerBase.prototype.buffLength = function() {
@@ -1721,41 +1666,9 @@ Game_BattlerBase.prototype.isBuffOrDebuffAffected = function(paramId) {
     return this._buffs[paramId] !== 0;
 };
 
-Game_BattlerBase.prototype.isMaxBuffAffected = function(paramId) {
-    return this._buffs[paramId] === 2;
-};
-
-Game_BattlerBase.prototype.isMaxDebuffAffected = function(paramId) {
-    return this._buffs[paramId] === -2;
-};
-
-Game_BattlerBase.prototype.increaseBuff = function(paramId) {
-    if (!this.isMaxBuffAffected(paramId)) {
-        this._buffs[paramId]++;
-    }
-};
-
-Game_BattlerBase.prototype.decreaseBuff = function(paramId) {
-    if (!this.isMaxDebuffAffected(paramId)) {
-        this._buffs[paramId]--;
-    }
-};
-
 Game_BattlerBase.prototype.overwriteBuffTurns = function(paramId, turns) {
     if (this._buffTurns[paramId] < turns) {
         this._buffTurns[paramId] = turns;
-    }
-};
-
-Game_BattlerBase.prototype.isBuffExpired = function(paramId) {
-    return this._buffTurns[paramId] === 0;
-};
-
-Game_BattlerBase.prototype.updateBuffTurns = function() {
-    for (var i = 0; i < this._buffTurns.length; i++) {
-        if (this._buffTurns[i] > 0) {
-            this._buffTurns[i]--;
-        }
     }
 };
 
@@ -1768,16 +1681,6 @@ Game_BattlerBase.prototype.die = function() {
 Game_BattlerBase.prototype.revive = function() {
     if (this._hp === 0) {
         this._hp = 1;
-    }
-};
-
-Game_BattlerBase.prototype.buffIconIndex = function(buffLevel, paramId) {
-    if (buffLevel > 0) {
-        return Game_BattlerBase.ICON_BUFF_START + (buffLevel - 1) * 8 + paramId;
-    } else if (buffLevel < 0) {
-        return Game_BattlerBase.ICON_DEBUFF_START + (-buffLevel - 1) * 8 + paramId;
-    } else {
-        return 0;
     }
 };
 
@@ -2160,15 +2063,6 @@ Game_Battler.prototype.clearResult = function() {
     this._result.clear();
 };
 
-Game_Battler.prototype.refresh = function() {
-    Game_BattlerBase.prototype.refresh.call(this);
-    if (this.hp === 0) {
-        this.addState(this.deathStateId());
-    } else {
-        this.removeState(this.deathStateId());
-    }
-};
-
 Game_Battler.prototype.addState = function(stateId) {
     if (this.isStateAddable(stateId)) {
         if (!this.isStateAffected(stateId)) {
@@ -2257,20 +2151,6 @@ Game_Battler.prototype.removeBattleStates = function() {
             this.removeState(state.id);
         }
     }, this);
-};
-
-Game_Battler.prototype.removeAllBuffs = function() {
-    for (var i = 0; i < this.buffLength(); i++) {
-        this.removeBuff(i);
-    }
-};
-
-Game_Battler.prototype.removeBuffsAuto = function() {
-    for (var i = 0; i < this.buffLength(); i++) {
-        if (this.isBuffExpired(i)) {
-            this.removeBuff(i);
-        }
-    }
 };
 
 Game_Battler.prototype.removeStatesByDamage = function() {
@@ -2390,16 +2270,6 @@ Game_Battler.prototype.onAllActionsEnd = function() {
     this.clearResult();
     this.removeStatesAuto(1);
     this.removeBuffsAuto();
-};
-
-Game_Battler.prototype.onTurnEnd = function() {
-    this.clearResult();
-    this.regenerateAll();
-    if (!BattleManager.isForcedTurn()) {
-        this.updateStateTurns();
-        this.updateBuffTurns();
-    }
-    this.removeStatesAuto(2);
 };
 
 Game_Battler.prototype.onBattleEnd = function() {
@@ -2695,10 +2565,6 @@ Game_Actor.prototype.usableSkills = function() {
 
 Game_Actor.prototype.hasNoWeapons = function() {
     return this.weapons().length === 0;
-};
-
-Game_Actor.prototype.bareHandsElementId = function() {
-    return 1;
 };
 
 Game_Actor.prototype.paramBase = function(paramId) {
@@ -6522,7 +6388,7 @@ Game_Interpreter.prototype.checkFreeze = function() {
     }
 };
 
-Game_Interpreter.prototype.terminate=function(){
+Game_Interpreter.prototype.terminate = function(){
     this._list = null;
     this._comments = '';
 };

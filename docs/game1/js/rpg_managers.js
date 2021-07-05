@@ -2264,14 +2264,7 @@ BattleManager.endAction = function() {
 BattleManager.invokeAction;
 BattleManager.invokeNormalAction;
 BattleManager.invokeCounterAttack;
-
-BattleManager.invokeMagicReflection = function(subject, target) {
-	this._action._reflectionTarget = target;
-    this._logWindow.displayReflection(target);
-    this._action.apply(subject);
-    this._logWindow.displayActionResults(target, subject);
-};
-
+BattleManager.invokeMagicReflection;
 BattleManager.applySubstitute;
 
 BattleManager.checkSubstitute = function(target) {

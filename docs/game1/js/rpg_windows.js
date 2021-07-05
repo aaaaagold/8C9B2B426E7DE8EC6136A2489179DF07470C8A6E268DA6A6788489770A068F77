@@ -213,10 +213,6 @@ Window_Base.prototype.changePaintOpacity = function(enabled) {
     this.contents.paintOpacity = enabled ? 255 : this.translucentOpacity();
 };
 
-Window_Base.prototype.drawText = function(text, x, y, maxWidth, align) {
-    this.contents.drawText(text, x, y, maxWidth, this.lineHeight(), align);
-};
-
 Window_Base.prototype.actorName = function(n) {
     var actor = n >= 1 ? $gameActors.actor(n) : null;
     return actor ? actor.name() : '';
@@ -349,14 +345,6 @@ Window_Base.prototype.drawActorLevel = function(actor, x, y) {
     this.drawText(TextManager.levelA, x, y, 48);
     this.resetTextColor();
     this.drawText(actor.level, x + 84, y, 36, 'right');
-};
-
-Window_Base.prototype.drawActorIcons = function(actor, x, y, width) {
-    width = width || 144;
-    var icons = actor.allIcons().slice(0, Math.floor(width / Window_Base._iconWidth));
-    for (var i = 0; i < icons.length; i++) {
-        this.drawIcon(icons[i], x + Window_Base._iconWidth * i, y + 2);
-    }
 };
 
 Window_Base.prototype.drawActorHp = function(actor, x, y, width) {
@@ -1108,13 +1096,6 @@ Window_Help.prototype.initialize = function(numLines) {
     var height = this.fittingHeight(numLines || 2);
     Window_Base.prototype.initialize.call(this, 0, 0, width, height);
     this._text = '';
-};
-
-Window_Help.prototype.setText = function(text) {
-    if (this._text !== text) {
-        this._text = text;
-        this.refresh();
-    }
 };
 
 Window_Help.prototype.clear = function() {
@@ -4139,23 +4120,6 @@ Window_BattleLog.prototype.displayRegeneration = function(subject) {
     this.push('popupDamage', subject);
 };
 
-Window_BattleLog.prototype.displayAction = function(subject, item) {
-    var numMethods = this._methods.length;
-    if (DataManager.isSkill(item)) {
-        if (item.message1) {
-            this.push('addText', subject.name() + item.message1.format(item.name));
-        }
-        if (item.message2) {
-            this.push('addText', item.message2.format(item.name));
-        }
-    } else {
-        this.push('addText', TextManager.useItem.format(subject.name(), item.name));
-    }
-    if (this._methods.length === numMethods) {
-        this.push('wait');
-    }
-};
-
 Window_BattleLog.prototype.displayCounter = function(target) {
     this.push('performCounter', target);
     this.push('addText', TextManager.counterAttack.format(target.name()));
@@ -4290,61 +4254,6 @@ Window_BattleLog.prototype.displayBuffs = function(target, buffs, fmt) {
         this.push('pushBaseLine');
         this.push('addText', fmt.format(target.name(), TextManager.param(paramId)));
     }, this);
-};
-
-Window_BattleLog.prototype.makeHpDamageText = function(target) {
-    var result = target.result();
-    var damage = result.hpDamage;
-    var isActor = target.isActor();
-    var fmt;
-    if (damage > 0 && result.drain) {
-        fmt = isActor ? TextManager.actorDrain : TextManager.enemyDrain;
-        return fmt.format(target.name(), TextManager.hp, damage);
-    } else if (damage > 0) {
-        fmt = isActor ? TextManager.actorDamage : TextManager.enemyDamage;
-        return fmt.format(target.name(), damage);
-    } else if (damage < 0) {
-        fmt = isActor ? TextManager.actorRecovery : TextManager.enemyRecovery;
-        return fmt.format(target.name(), TextManager.hp, -damage);
-    } else {
-        fmt = isActor ? TextManager.actorNoDamage : TextManager.enemyNoDamage;
-        return fmt.format(target.name());
-    }
-};
-
-Window_BattleLog.prototype.makeMpDamageText = function(target) {
-    var result = target.result();
-    var damage = result.mpDamage;
-    var isActor = target.isActor();
-    var fmt;
-    if (damage > 0 && result.drain) {
-        fmt = isActor ? TextManager.actorDrain : TextManager.enemyDrain;
-        return fmt.format(target.name(), TextManager.mp, damage);
-    } else if (damage > 0) {
-        fmt = isActor ? TextManager.actorLoss : TextManager.enemyLoss;
-        return fmt.format(target.name(), TextManager.mp, damage);
-    } else if (damage < 0) {
-        fmt = isActor ? TextManager.actorRecovery : TextManager.enemyRecovery;
-        return fmt.format(target.name(), TextManager.mp, -damage);
-    } else {
-        return '';
-    }
-};
-
-Window_BattleLog.prototype.makeTpDamageText = function(target) {
-    var result = target.result();
-    var damage = result.tpDamage;
-    var isActor = target.isActor();
-    var fmt;
-    if (damage > 0) {
-        fmt = isActor ? TextManager.actorLoss : TextManager.enemyLoss;
-        return fmt.format(target.name(), TextManager.tp, damage);
-    } else if (damage < 0) {
-        fmt = isActor ? TextManager.actorGain : TextManager.enemyGain;
-        return fmt.format(target.name(), TextManager.tp, -damage);
-    } else {
-        return '';
-    }
 };
 
 //-----------------------------------------------------------------------------
@@ -4611,20 +4520,9 @@ Window_BattleEnemy.prototype.drawItem = function(index) {
     this.drawText(name, rect.x, rect.y, rect.width);
 };
 
-Window_BattleEnemy.prototype.show = function() {
-    this.refresh();
-    this.select(0);
-    Window_Selectable.prototype.show.call(this);
-};
-
 Window_BattleEnemy.prototype.hide = function() {
     Window_Selectable.prototype.hide.call(this);
     $gameTroop.select(null);
-};
-
-Window_BattleEnemy.prototype.refresh = function() {
-    this._enemies = $gameTroop.aliveMembers();
-    Window_Selectable.prototype.refresh.call(this);
 };
 
 Window_BattleEnemy.prototype.select = function(index) {
