@@ -13369,7 +13369,9 @@ $pppp$.displayActionChaseResults=function(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
-		this.push('addText', $dataCustom.battle.logs.chase.format(subject.name(),"\\skill["+action.item().id+']'));
+		{ const item=action.item(),logs=$dataCustom.battle.logs;
+		this.push('addText', (item.scope?logs.chaseAim:logs.chase).format(subject.name(),target.name(),"\\skill["+item.id+']'));
+		}
 		// lag
 		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
 		this.displayCritical(target);
