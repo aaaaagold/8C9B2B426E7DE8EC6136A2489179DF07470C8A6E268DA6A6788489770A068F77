@@ -781,18 +781,25 @@ $pppp$.updateFrame=function(){
 };
 $pppp$.updateStateSprite=function(){
 	const hpmp=this._hpMpSprite , icon=this._stateIconSprite;
+	{ const ds=icon.scale,ss=this.scale;
+	ds.x=1/ss.x; ds.y=1/ss.y;
+	}
 	if(hpmp){
-		icon.y = hpmp.y+hpmp.height + icon.height*icon.anchor.y + 1;
+		icon.y = hpmp.y+hpmp.height*hpmp.scale.y + icon.height*icon.anchor.y*icon.scale.y + 1;
+		// hpmp.y will be capped to full-view-top
 	}else{
-		icon.y = -~~((this._frame.height*this.anchor.y + 40) * 0.9);
-		if (icon.y < 20 - this.y) {
-			icon.y = 20 - this.y;
+		{ let newy = -~~(this._frame.height*this.anchor.y);
+		if(newy < 20 - this.y) newy = 20 - this.y;
+		icon.y=newy;
+		}
+		{ const y=icon.getGlobalPosition().y,maxy=(Window_Base._iconHeight>>1)+1;
+		if(y<maxy) icon.y+=(maxy-y)/this.scale.y;
 		}
 	}
 };
 $d$=$pppp$.updateHpMpSprite=function f(forced){
 	
-	const scale=this.scale,sp=this._hpMpSprite;
+	const scale=this.scale,sp=this._hpMpSprite; if(!sp) return;
 	const sx=scale.x,sy=scale.y,bm=sp.bitmap;
 	const wl=SceneManager._scene._windowLayer;
 	if(wl){
@@ -1789,30 +1796,36 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 		st.noRefresh=true;
 		lg.push('pushBaseLine');
 		if(this._subject.stp===0){
-			if(!this._action.meta) this._action.meta={};
+			if(!this._action.meta) this._action.initMeta();
 			this._action.meta.stpReduced=true;
 		}
-		const q=this._subject.reserveActResQ(); // if(q) q.clear(); // cleared @ BattleManager.startAction
-		this.invokeAction(this._subject,target,q);
+		//const q=this._subject.reserveActResQ(); // if(q) q.clear(); // cleared @ BattleManager.startAction
+		this.invokeAction(this._subject,target);
 		if(!this._targets.length && this._action.isForOne()){
 			// aim only 1, setLastTarget
 			// move setLastTarget from 'invokeAction' to here
 			this._subject.setLastTarget(target);
 		}
-		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
-			lg._methods.pop_back();
-			while(this._targets.back===target){
+		if(this._actionNoEffect=!this._actUsed){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
+			lg._methods.pop_back(); // ???
+			this._action.setPreloadFlag();
+			this._action.setPreload_s();
+			while(!this._actUsed && this._targets.back===target){
 				this._targets.pop();
-				this.invokeAction(this._subject,target,q);
+				this.invokeAction(this._subject,target);
 			}
+			this._action.clearPreloadFlag();
 		}else{ // target aimed, try aim more
 			f.tmp.clear(); f.tmp.add(target);
 			const arr=this._targets;
+			this._action.setPreloadFlag();
+			this._action.setPreload_s();
 			while(arr.length){
 				let sz=f.tmp.size; f.tmp.add(this._targets.back);
 				if(sz===f.tmp.size) break;
-				this.invokeAction(this._subject,this._targets.pop(),q);
+				this.invokeAction(this._subject,this._targets.pop());
 			}
+			this._action.clearPreloadFlag();
 			lg.push('popBaseLine');
 		}
 		st.noRefresh=false;
@@ -1820,7 +1833,7 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 		// inst becomes go through 1 turn
 		//if(this._actionNoEffect) return this.updateAction(instPopDmg);
 	}else{
-		if(!this._action.meta) this._action.meta={};
+		if(!this._action.meta) this._action.initMeta();
 		if(this._subject.stp!==undefined && !this._action.meta.stpReduced && !this._action.isSpaceout(this._subject)){
 			this._action.meta.stpReduced=true;
 			this._subject.gainStp(-1);
@@ -1829,16 +1842,19 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 	}
 };
 $d$.tmp=new Set();
-$aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_Queue
+$aaaa$.invokeAction=function(s,t){ // subject , target
 	let realTarget=t;
+	this._actUsed=this._usedAct_normal=this._usedAct_other=this._usedAct_reflect=undefined;
 	{ const rnd=Math.random();
-	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
-	else{
+	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ){
+		this.invokeReflection(realTarget=s,t);
+		this._actUsed=this._usedAct_reflect;
+	}else{
 		realTarget=this.invokeNormalAction(s,t);
 		if(realTarget&&rnd<this._action.itemCnt(realTarget)){
 			this.invokeCounterAttack(s,realTarget);
-			realTarget=s; // not sure
 		}
+		this._actUsed=this._usedAct_normal;
 	}
 	s.reserveActResQ().push(undefined); // delimiter
 	realTarget.reserveActResQ().push(undefined); // delimiter
@@ -1886,43 +1902,43 @@ $d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	const M=this._chases , fu=s.friendsUnit() ;
 	const btlrs=M&&M.get(fu);
 	if(!btlrs || !btlrs.size) return;
-	const item=act.item();
+	const item=act.item(),preloads={s:new Map(),ts:undefined,tt:undefined};
 	// allow to be same skills, mostly are different though
-	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item);
-	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item);
-	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t,item);
+	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item,preloads);
+	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item,preloads);
+	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t,item,preloads);
 	// is dmg/rcvr
 	if(item.damage.type){
-		if(act.isRecover()) f.doChase(this,btlrs, 'heal' ,s,t);
+		if(act.isRecover()) f.doChase(this,btlrs, 'heal' ,s,t,item,preloads);
 		else{
-			if(act.isPhysical()) f.doChase(this,btlrs, 'atk_physical' ,s,t,item);
-			if(act.isMagical()) f.doChase(this,btlrs, 'atk_magical' ,s,t,item);
+			if(act.isPhysical()) f.doChase(this,btlrs, 'atk_physical' ,s,t,item,preloads);
+			if(act.isMagical()) f.doChase(this,btlrs, 'atk_magical' ,s,t,item,preloads);
 			// anyatk
-			f.doChase(this,btlrs, 'anyatk' ,s,t,item);
+			f.doChase(this,btlrs, 'anyatk' ,s,t,item,preloads);
 		}
 		if(item.damage.elementId<0){
 			// as normal attack
-			s.attackElements().forEach((_,k)=>f.doChase(this,btlrs, k ,s,t,item));
-		}else f.doChase(this,btlrs, item.damage.elementId ,s,t,item);
+			s.attackElements().forEach((_,k)=>f.doChase(this,btlrs, k ,s,t,item,preloads));
+		}else f.doChase(this,btlrs, item.damage.elementId ,s,t,item,preloads);
 	}
 	// all
-	f.doChase(this,btlrs, 'all' ,s,t,item);
+	f.doChase(this,btlrs, 'all' ,s,t,item,preloads);
 };
-$d$.doChase=function f(self,btlrs,cond,s,t,item){
+$d$.doChase=function f(self,btlrs,cond,s,t,item,preloads){
 	const idx=Game_BattlerBase.cond2idx(cond);
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
 		const notExists=[];
 		if(cond==='die'){
 			set.forEach(btlr=>{
-				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t,item);
+				btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t,item,preloads);
 				notExists.push(btlr);
 			});
-		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t));
+		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t,item,preloads));
 		for(let x=notExists.length;x--;) set.delete(notExists[x]);
 	}
 };
-$d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item){
+$d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item,preloads){
 	const codes=btlrs.get(btlr);
 	if(!codes) return notExists.push(btlr);
 	const code=Game_BattlerBase[codes[chaseIdx]];
@@ -1931,10 +1947,15 @@ $d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item){
 	if(skills && skills.size){
 		const a=new Game_Action(btlr);
 		a.setPreloadFlag();
-		a.setPreload_s();
+		let ps=preloads.s.get(btlr);
+		if(!ps){
+			a.setPreload_s();
+			preloads.s.set(btlr,ps=a.getPreload_s());
+		}
+		a.refPreload_s(ps);
 		const ncpaf=!_global_conf.chasePopAfterFrame;
 		skills.forEach((v,k)=>{ if(!k) return;
-			const repeat=f.setAction(item,a,s,t,k);
+			const repeat=f.setAction(item,a,s,t,k,preloads);
 			for(let x=repeat*~~v;x-->0;){
 				a.apply(t,ncpaf);
 				self._logWindow.displayActionChaseResults(btlr,t,a);
@@ -1942,25 +1963,31 @@ $d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item){
 		});
 	}
 };
-$d$.doChase.forEach.setAction=(item,act,s,t,k)=>{
-	let rfl,skill,trgt,repeat=0;
+$d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
+	let rfl,skill,trgt,pk,repeat=0;
 	switch(k){
 	case "r-":
-		rfl=1; trgt=s;
+		rfl=1; trgt=s; pk='ts';
 	break;
 	case "r+":
-		rfl=1; trgt=t;
+		rfl=1; trgt=t; pk='tt';
 	break;
 	default:
 		if(k<0){
-			trgt=s;
+			trgt=s; pk='ts';
 			k=-k;
-		}else trgt=t;
+		}else{
+			trgt=t; pk='tt';
+		}
 		skill=$dataSkills[k];
 	break;
 	}
 	if(rfl||skill){
-		act.setPreload_t(trgt);
+		if(!preloads[pk]){
+			act.setPreload_t(trgt);
+			preloads[pk]=act.getPreload_t();
+		}
+		act.refPreload_t(preloads[pk]);
 		act.setItemObject(rfl?item:skill);
 		repeat=act.numRepeats(rfl);
 	}
@@ -1968,7 +1995,8 @@ $d$.doChase.forEach.setAction=(item,act,s,t,k)=>{
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
-	const usedAct=this._action.apply(realTarget);
+	if(this._action.isUsePreload()) this._action.setPreload_t(realTarget);
+	const usedAct=this._usedAct_normal=this._action.apply(realTarget);
 	this._logWindow.displayActionResults(subject, realTarget, usedAct);
 	if(usedAct) this.invokeChaseAction(usedAct,subject,realTarget);
 	return realTarget;
@@ -1977,9 +2005,10 @@ $r$=$aaaa$.invokeReflection=function(subject, target) {
 	//this._action._reflectionTarget = target;
 	this._logWindow.displayReflection(target);
 	this._action._reflected=true;
-	this._action.apply(subject);
+	if(this._action.isUsePreload()) this._action.setPreload_t(subject);
+	const usedAct=this._usedAct_reflect=this._action.apply(subject);
 	this._action._reflected=undefined;
-	this._logWindow.displayActionResults(subject, subject, this._action);
+	this._logWindow.displayActionResults(subject, subject, usedAct);
 };
 $aaaa$.invokeMagicReflection=$r$;
 $aaaa$.invokePhysicReflection=$r$;
@@ -1987,7 +2016,7 @@ $aaaa$.invokeOtherAction=function(subject,target,dataobj,isDispCtrMsg,isInstShow
 	if(!dataobj) return;
 	const action=new Game_Action(subject);
 	action.setItemObject(dataobj);
-	const usedAct=action.apply(target,isInstShowMsg);
+	const usedAct=this._usedAct_other=action.apply(target,isInstShowMsg);
 	if(isDispCtrMsg) this._logWindow.displayCounter(subject,target);
 	this._logWindow.displayActionResults(subject, target, action, isInstShowMsg);
 	if(usedAct) this.invokeChaseAction(usedAct,subject,target);
@@ -3528,7 +3557,7 @@ $pppp$.selectNextCommand=function(){
 		if(act.isForOne()) s.setLastTarget(t0);
 		}
 		this.changeInputWindow();
-		act.meta={};
+		act.initMeta();
 		bm._subject=null;
 		bm._targets.length=0;
 		BattleManager.checkBattleEnd();
@@ -5124,13 +5153,14 @@ $d$=$pppp$.updateStateTurns=function f(){
 $d$.forEach=function(stateId) {
 	this[stateId]>0 && --this[stateId];
 };
-$d$=$pppp$.clearStates=function f(){
+$d$=$pppp$.clearStates=function f(ignoreBuff){
 	this._states_delCache();
 	this._stateTurns={};
 	if(this._states){
 		let newidx=0;
 		for(let x=0,arr=this._states;x!==arr.length;++x){
-			if($dataStates[arr[x]].meta.persist){
+			const meta=$dataStates[arr[x]].meta;
+			if(meta.persist || ignoreBuff && meta.buff){
 				arr[newidx++]=arr[x];
 			}
 		}
@@ -5525,7 +5555,7 @@ $pppp$.param=function(paramId){
 		case 39: return this.hitRecHpR().toFixed(3);
 		case 40: return this.hitRecHpV();
 		case 41: return this.hitRecMpR().toFixed(3);
-		case 42: return this.hitRecHpV();
+		case 42: return this.hitRecMpV();
 		}
 		return this.param(); // nothing
 	}
@@ -5609,31 +5639,11 @@ $d$=$pppp$.refresh=function f(_,only){
 $d$.forEach=function(_,stateId){
 	this.eraseState(stateId);
 };
-$k$='recoverAll';
-$r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(ignoreBuff){
+$pppp$.recoverAll=function f(ignoreBuff){
 	if(this.noRecoverAll()) return;
-	if(ignoreBuff){
-		let arr=this._states.filter(f.forEach);
-		let steps={},turns={};
-		for(let x=0;x!==arr.length;++x){
-			let id=arr[x];
-			steps[id]=this._stateSteps[id];
-			turns[id]=this._stateTurns[id];
-		}
-		f.ori.call(this);
-		if(this._stp<=0) this._stp=1;
-		for(let x=0;x!==arr.length;++x){
-			let id=arr[x];
-			this._states.push(id);
-			this._stateSteps[id]=steps[id];
-			this._stateTurns[id]=turns[id];
-		}
-	}else return f.ori.call(this);
-}; $d$.ori=$r$;
-$d$.forEach=x=>{
-	const meta=$dataStates[x.toId()].meta;
-	return meta.buff||meta.persist;
+	this.clearStates(ignoreBuff);
+	this._hp = this.mhp;
+	this._mp = this.mmp;
 };
 $pppp$.stpRate=function(){
 	return this.stp/this.maxStp()||0;
@@ -9847,10 +9857,22 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
-	this.meta={preload:false};
+	this.initMeta();
 }; $d$.ori=$r$;
+$pppp$.initMeta=function(){
+	this.meta={
+		preload:false, // preload btlr attrs for not evaluated again
+		deadNotMatch:undefined, // used in testApply. true if failure reason is death/live state
+	};
+};
+$pppp$.clearPreloadFlag=function(){
+	this.meta.preload=false;
+};
 $pppp$.setPreloadFlag=function(){
 	this.meta.preload=true;
+};
+$pppp$.isUsePreload=function(){
+	return this.meta.preload;
 };
 ($pppp$.setPreload_t=function f(t){
 	const meta=this.meta; if(!meta.t) meta.t={};
@@ -9865,6 +9887,18 @@ $pppp$.setPreloadFlag=function(){
 	'hit','cri','rec',
 	'dmgRcvHpR','dmgRcvHpV','dmgRcvMpR','dmgRcvMpV',
 ];
+$pppp$.refPreload_t=function(ref){
+	this.meta.t=ref;
+};
+$pppp$.refPreload_s=function(ref){
+	this.meta.s=ref;
+};
+$pppp$.getPreload_t=function(){
+	return this.meta.t;
+};
+$pppp$.getPreload_s=function(){
+	return this.meta.s;
+};
 $pppp$.usePreload=function f(t){
 	this.setPreloadFlag();
 	this.setPreload_s();
@@ -10154,6 +10188,7 @@ $pppp$.itemTargetCandidates = function() {
 };
 $r$=$pppp$.testApply;
 $d$=$pppp$.testApply=function f(target){
+	this.meta.deadNotMatch=undefined;
 	if(!target) return false;
 	const item=this.item();
 	if(!item) return false;
@@ -10162,7 +10197,7 @@ $d$=$pppp$.testApply=function f(target){
 	//const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&eval('objs.'+meta.filter));
 	if(filter) return filter(target,this.subject());
 	return (
-		( this.isDeadNotMatter() || this.isForDeadFriend() === target.isDead() ) &&
+		!(this.meta.deadNotMatch=!( this.isDeadNotMatter() || this.isForDeadFriend() === target.isDead() )) &&
 		(
 			(meta.stomach && target.stp!==undefined && target.stp<target.mstp) || // inline stp cond.
 			$gameParty.inBattle() || this.isForOpponent() ||
@@ -10257,15 +10292,23 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	const act=tmp;
 	if(subject!==target) subject.clearResult();
 	result.clear();
-	if( !(result.used = act.testApply(target)) ) return;
+	const used=result.used = act.testApply(target);
+	if( !used ){
+		if(this.meta.deadNotMatch){
+			//act.applyItemUserEffect(target);
+		}
+		this.meta.deadNotMatch=undefined;
+		//return;
+	}
+		this.meta.deadNotMatch=undefined;
 	result.physical = act.isPhysical();
 	result.drain = act.isDrain();
-	if( result.missed = (result.used && Math.random() >= act.itemHit(target,subject)) ){
+	if( result.missed = (used && Math.random() >= act.itemHit(target,subject)) ){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // if(result.isHit())
 		return act;
 	}
-	if( result.evaded = (!result.missed && Math.random() < act.itemEva(target)) ){
+	if( result.evaded = (used && !result.missed && Math.random() < act.itemEva(target)) ){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // if(result.isHit())
 		return act;
@@ -10280,7 +10323,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 			result.critical = (Math.random() < act.itemCri(target));
 			const value = act.makeDamageValue(target, result.critical);
 			f.clearDs(result);
-			act.executeDamage(target, value);
+			act.executeDamage(target, value, used);
 			addDs(result);
 			result.recover=this.isRecover(item); // used when value===0
 		}
@@ -10293,7 +10336,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 		act.applyItemUserEffect(target);
 	}
 	
-	if(isBtl){
+	if(isBtl && used){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target); // at least this is not 'later'
 		if(subject!==target){
@@ -10305,7 +10348,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 			//else if(!dmgPopupFollowPrev) q.push(undefined); // delimiter // handled by btlmgr.invokeAction
 		}
 	}
-	return act;
+	return used && act;
 };
 $d$.toQ=(res,trgt)=>{
 	if(!res.used) return;
@@ -10336,7 +10379,7 @@ $pppp$.makeDamageValue=function(target,isCri){
 	if(isCri){
 		value = this.applyCritical(value);
 	}
-	value = this.applyVariance(value, item.damage.variance);
+	if(item.damage.variance) value = this.applyVariance(value, item.damage.variance);
 	value = this.applyGuard(value, target);
 	value-=decDmg;
 	return ~~value;
@@ -10376,7 +10419,7 @@ $pppp$.applyGuard=function(damage,target){
 };
 $k$='executeDamage';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(trgt,val){
+$d$=$pppp$[$k$]=function f(trgt,val,used){
 	const s=!this.isRecover()&&this.subject();
 	if(s){
 		const ss=this.meta.preload?this.meta.s:s;
@@ -10390,14 +10433,18 @@ $d$=$pppp$[$k$]=function f(trgt,val){
 				r2.later=true;
 				s.gainHp(gainHp);
 				s.gainMp(gainMp);
-				if(SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
+				if(used && SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
 				s._result=orires;
 			}
 		}
 	}
-	f.ori.call(this,trgt,val);
+	//f.ori.call(this,trgt,val,used);
+	if(used){
+		if(this.isHpEffect()) this.executeHpDamage(trgt,val);
+		if(this.isMpEffect()) this.executeMpDamage(trgt,val);
+	}
 }; $d$.ori=$r$;
-$pppp$.executeHpDamage=function(target, value){
+$pppp$.executeHpDamage=function(target,value){
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
 	const mpsubst=value>0 && target.MPSubstituteRate();
@@ -10512,7 +10559,7 @@ $pppp$.itemEffectAddNormalState=function(target, effect){
 	}
 	if(Math.random() < chance){
 		if(effect.isSwitch){
-			if(!this.meta) this.meta={};
+			if(!this.meta) this.initMeta();
 			if(!this.meta._switchApplied){
 				this.meta._switchApplied=true;
 				if( target.isStateAffected(effect.dataId) ) target.removeState(effect.dataId);
@@ -11527,7 +11574,7 @@ $pppp$.attackElements=function(){
 	}
 	return rtv;
 };
-$pppp$.clearStates = function() {
+$pppp$.clearStates=function(ignoreBuff){
 	if(!this._states){ // init, no cache
 		Game_Battler.prototype.clearStates.call(this);
 		this.clearCache(); // ensure nothing go wrong
@@ -11539,7 +11586,7 @@ $pppp$.clearStates = function() {
 			slotChanged=c.s.get(Game_BattlerBase.TRAIT_SLOT_TYPE);
 			lastSlots=slotChanged&&this.equipSlots(); // this is new Array
 		}
-		Game_Battler.prototype.clearStates.call(this);
+		Game_Battler.prototype.clearStates.call(this,ignoreBuff);
 		if(slotChanged) this._equips_slotChanged(lastSlots);
 		if(c.s.get(Game_BattlerBase.TRAIT_SKILL_ADD)) this._skills_delCache_added();
 	}
@@ -13588,7 +13635,7 @@ $pppp$.setText=function(txt){
 	}
 };
 $pppp$.resetStrtLoc=function(){
-	this._txtx=0;
+	this._txtw=0;
 	this._strtx=this.textPadding();
 	this._txtfc2=this._txtfc=Graphics.frameCount;
 };
@@ -13597,8 +13644,8 @@ $d$=$pppp$.update=function f(){
 	f.ori.call(this);
 	{ const wait=120,pad=this.textPadding(),endx=this.contentsWidth()-pad,fc=Graphics.frameCount;
 		const dfc=this._txtfc+wait-fc;
-		if(dfc<0 && this._txtx-this._strtx>endx){
-			if(this._txtx>endx){
+		if(dfc<0 && this._txtw>endx){
+			if(this._txtw+this._strtx>endx){
 				this._txtfc2=fc;
 				this._strtx=pad+dfc;
 				this._forceRefresh=true;
@@ -13619,7 +13666,7 @@ $pppp$.redrawtxt=function(){
 		this.createContents();
 		const res={};
 		this.drawTextEx(this._lastText=this._text,this._strtx,0,undefined,undefined,res);
-		if(res.stat) this._txtx=res.stat.maxX||0;
+		if(res.stat) this._txtw=(res.stat.maxX||0)-this._strtx;
 	}
 };
 $pppp$.refresh_do=function(){
