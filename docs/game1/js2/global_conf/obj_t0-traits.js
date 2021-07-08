@@ -356,18 +356,18 @@ $dddd$.extendDescription_i=dataobj=>{
 	const ie=$dataCustom.itemEffect,dmg=dataobj.damage;
 	const infos=[],tmpkeys=[];
 	let k,ext='';
+	k='consumable';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
 	k='isNormalAtk';	if(dataobj.scope) infos.push(k);
 	k='repeats';	if(dataobj.scope) infos.push(k);
 	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
 	k='speed';	if(dataobj[k]!==0) infos.push(k);
 	k='scope';	if(dataobj[k]!==0) infos.push(k);
-	if(dataobj.scope && dataobj.damage.type){
-		k='hitType';	infos.push(k);
+	if(dataobj.scope){ k='hitType'; infos.push(k); if(dataobj.damage.type){
 		k='dmgEle';	tmpkeys.push(k);	dataobj[k]=dmg.elementId;	infos.push(k);
 		k='dmgType';	tmpkeys.push(k);	dataobj[k]=dmg.type;	infos.push(k);
 		k='dmgCrit';	tmpkeys.push(k);	dataobj[k]=dmg.critical|0;	infos.push(k);
 		k='dmgFormula';	tmpkeys.push(k);	dataobj[k]=dmg.formula;	infos.push(k);
-	}
+	} }
 	infos.forEach(k=>{ if(k && k[0]!=="_"){
 		if(k==='dmgEle'){ const eid=dmg.elementId;
 			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid])+']';
@@ -736,6 +736,12 @@ $pppp$.chaseAllBattler=function f(cond){
 }
 $pppp$.bareHandsElementId=function(){
 	return $dataSystem.elements.barehand;
+};
+$pppp$.attackSkillId=function(){ // TODO: changed by traits, can be multiple
+	return 1;
+};
+$pppp$.counterAttackSkillId=function(){ // TODO: changed by traits, can be multiple
+	return 1;
 };
 
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;

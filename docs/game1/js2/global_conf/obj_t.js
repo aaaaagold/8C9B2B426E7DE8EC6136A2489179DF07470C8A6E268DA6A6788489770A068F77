@@ -1519,6 +1519,9 @@ $aaaa$._bgmVolume = $aaaa$._defaultVolume;
 $aaaa$._bgsVolume = $aaaa$._defaultVolume;
 $aaaa$. _meVolume = $aaaa$._defaultVolume;
 $aaaa$. _seVolume = $aaaa$._defaultVolume;
+$aaaa$.setAllVol=function(vol){
+	this._seVolume=this._meVolume=this._bgsVolume=this._bgmVolume=vol;
+};
 $aaaa$.clearPitch_bgm=function(){
 	if(this._pitchesBgm_itvl===undefined) return;
 	clearInterval(this._pitchesBgm_itvl);
@@ -1790,12 +1793,11 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 			this._action.meta.stpReduced=true;
 		}
 		const q=this._subject.reserveActResQ(); // if(q) q.clear(); // cleared @ BattleManager.startAction
-		{ const realTarget=this.invokeAction(this._subject,target,q);
-		if(instPopDmg && SceneManager._scene._chr2sp){
-			const sp=SceneManager._scene._chr2sp.get(realTarget);
-			realTarget.startDamagePopup();
-			sp.setupDamagePopup();
-		}
+		this.invokeAction(this._subject,target,q);
+		if(!this._targets.length && this._action.isForOne()){
+			// aim only 1, setLastTarget
+			// move setLastTarget from 'invokeAction' to here
+			this._subject.setLastTarget(target);
 		}
 		if(this._actionNoEffect=!target._result.used){ // target disappear (action not used), cancel following sub-action via immediately complete them // so subject will gain TP 
 			lg._methods.pop_back();
@@ -1831,13 +1833,18 @@ $aaaa$.invokeAction=function(s,t,q){ // subject , target , subject_ActionResult_
 	let realTarget=t;
 	{ const rnd=Math.random();
 	if( rnd<this._action.itemArf(t) || rnd<this._action.itemPrf(t) || rnd<this._action.itemMrf(t) ) this.invokeReflection(realTarget=s,t);
-	else if(rnd<this._action.itemCnt(t)) this.invokeCounterAttack(realTarget=s,t);
-	else realTarget=this.invokeNormalAction(s,t); // TODO
+	else{
+		realTarget=this.invokeNormalAction(s,t);
+		if(realTarget&&rnd<this._action.itemCnt(realTarget)){
+			this.invokeCounterAttack(s,realTarget);
+			realTarget=s; // not sure
+		}
+	}
 	s.reserveActResQ().push(undefined); // delimiter
 	realTarget.reserveActResQ().push(undefined); // delimiter
 	}
-	s.setLastTarget(t);
-	this.refreshStatus();
+	//s.setLastTarget(t); // moved to updateAction
+	//this.refreshStatus(); // done in updateAction
 	return realTarget;
 };
 $aaaa$.updateChase=function(btlr,isRemoved){
@@ -1980,12 +1987,13 @@ $aaaa$.invokeOtherAction=function(subject,target,dataobj,isDispCtrMsg,isInstShow
 	if(!dataobj) return;
 	const action=new Game_Action(subject);
 	action.setItemObject(dataobj);
-	action.apply(target,isInstShowMsg);
-	if(isDispCtrMsg) this._logWindow.displayCounter(target);
+	const usedAct=action.apply(target,isInstShowMsg);
+	if(isDispCtrMsg) this._logWindow.displayCounter(subject,target);
 	this._logWindow.displayActionResults(subject, target, action, isInstShowMsg);
+	if(usedAct) this.invokeChaseAction(usedAct,subject,target);
 };
 $aaaa$.invokeCounterAttack=function(oriS,oriT){
-	this.invokeOtherAction(oriT,oriS,$dataSkills[oriT.attackSkillId()],true);
+	this.invokeOtherAction(oriT,oriS,$dataSkills[oriT.counterAttackSkillId()],true);
 };
 $aaaa$.applySubstitute=function(target){
 	const unit=target.friendsUnit();
@@ -3515,7 +3523,10 @@ $pppp$.selectNextCommand=function(){
 		act.applyGlobal();
 		this.refreshStatus();
 		this._logWindow.startAction(s, act, t);
+		{ const t0=t[0];
 		while(t.length) bm.updateAction(true);
+		if(act.isForOne()) s.setLastTarget(t0);
+		}
 		this.changeInputWindow();
 		act.meta={};
 		bm._subject=null;
@@ -13340,7 +13351,7 @@ $pppp$.startAction=function(subject, action, targets){
 	}
 	this.displayAction(subject, item);
 };
-$pppp$.displayAction = function(subject, item) {
+$pppp$.displayAction=function(subject, item) {
 	const numMethods = this._methods.length;
 	if(DataManager.isSkill(item)){
 		const arg0=(item.message1||item.message2)&&"\\skill["+item.id+"]";
@@ -13348,6 +13359,10 @@ $pppp$.displayAction = function(subject, item) {
 		if(item.message2) this.push('addText', item.message2.format(arg0));
 	}else this.push('addText', TextManager.useItem.format(subject.name(), "\\item["+item.id+"]"));
 	if(this._methods.length === numMethods) this.push('wait');
+};
+$pppp$.displayCounter=function(s,t){
+	this.push('performCounter', s);
+	this.push('addText', TextManager.counterAttack.format(s.name(),t.name()));
 };
 $d$=$pppp$.displayActionResults=function f(subject,target,action,isInstShowMsg){
 	if(target.result().used){
