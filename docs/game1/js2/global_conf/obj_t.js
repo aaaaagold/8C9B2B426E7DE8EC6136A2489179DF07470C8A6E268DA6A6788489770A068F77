@@ -5686,6 +5686,28 @@ $d$.tbl={};
 $pppp$.isOccasionOk=function(item){
 	return item.occasion === 0 || (!$gameParty.inBattle())+1 === item.occasion;
 };
+$pppp$.meetNeedStates=function(dataobj){
+	const tbl=dataobj.needStates;
+	if(!tbl) return true;
+	for(let x=0;x!==tbl.length;++x){
+		let rtv=1;
+		for(let arr=tbl[x],z=0;z!==arr.length;++z){
+			const affected=this.isStateAffected(arr[z]<0?-arr[z]:arr[z]);
+			if(arr[z]<0?affected:!affected){
+				rtv=0; break;
+			}
+		}
+		if(rtv){
+			// move it fronter
+			if(x){
+				const d=x===1?1:~~(Math.random()*2);
+				const tmp=tbl[x-d]; tbl[x-d]=tbl[x]; tbl[x]=tmp;
+			}
+			return true;
+		}
+	}
+	return false;
+};
 $d$=$pppp$.canUse=function f(dataItem){
 	const meta=dataItem && dataItem.meta; if(!meta) return false;
 	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(meta.cond));
@@ -5693,16 +5715,18 @@ $d$=$pppp$.canUse=function f(dataItem){
 	}
 	// when use an item via press 'ok' without release, 'meta' has chance to become 'undefined'
 	if(SceneManager._scene.constructor===Scene_Item && meta && (meta.code||meta.func) && $gameParty.hasItem(dataItem)) return true;
+	let rtv=false;
 	switch(dataItem.itemType){
 	default: break;
 	case 's':
-		return this.meetsSkillConditions(dataItem);
+		rtv=this.meetsSkillConditions(dataItem);
 	break;
 	case 'i':
-		return this.meetsItemConditions(dataItem);
+		rtv=this.meetsItemConditions(dataItem);
 	break;
 	}
-	return false;
+	if(rtv) rtv=this.meetNeedStates(dataItem);
+	return rtv;
 };
 $d$.tbl=[
 ['rpgskills',],

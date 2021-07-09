@@ -255,6 +255,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataStates,f.makeTraitsMap);
 	f.doForEach($dataWeapons,f.makeTraitsMap);
 	
+	// needStates
+	f.doForEach($dataItems,f.makeNeedStates);
+	f.doForEach($dataSkills,f.makeNeedStates);
+	
 	// effect, func && code
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
@@ -411,6 +415,13 @@ $dddd$.makeForAllFriends=dataobj=>{
 $dddd$.makeMaxStack=dataobj=>{
 	const m=Number(dataobj.meta.maxStack);
 	dataobj.maxStack=m>=0?m:undefined;
+};
+$dddd$.makeNeedStates=dataobj=>{
+	let ns=dataobj.meta.needStates;
+	if((ns=dataobj.needStates=ns&&JSON.parse(ns))){
+		if(ns.constructor===Array && !ns.some(x=>x&&x.length===0)) ns=ns.filter(x=>x&&x.constructor!==Array);
+		else dataobj.needStates=undefined;
+	}
 };
 $dddd$.makeTraitsMap=dataobj=>{
 	const tarr=dataobj.traits;
