@@ -87,6 +87,8 @@ $dddd$=$pppp$.arrangeData=function f(){
 		addEnum("DECDMG_M").
 		addEnum("MPSubstitute").
 		addEnum("TrgBattleEnd").
+		addEnum("COUNTER_A").
+		addEnum("COUNTER_M").
 		addEnum("REFLECT_A").
 		addEnum("REFLECT_P").
 		addEnum("NoRecoverAll").
@@ -501,6 +503,18 @@ $dddd$.note2traits=x=>{
 			}
 		}
 	}
+	if(meta.ctrA){ // +
+		const n=Number(meta.ctrA)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.COUNTER_A,value:n});
+	}
+	if(meta.ctrP){ // +
+		const n=Number(meta.ctrP)-0;
+		if(n) x.traits.push({code:Game_BattlerBase.TRAIT_XPARAM,dataId:6,value:n}); // built-in default
+	}
+	if(meta.ctrM){ // +
+		const n=Number(meta.ctrM)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.COUNTER_M,value:n});
+	}
 	if(meta.rflA){ // +
 		const n=Number(meta.rflA)-0;
 		if(n) x.traits.push({code:tc,dataId:enums.REFLECT_A,value:n});
@@ -508,6 +522,10 @@ $dddd$.note2traits=x=>{
 	if(meta.rflP){ // +
 		const n=Number(meta.rflP)-0;
 		if(n) x.traits.push({code:tc,dataId:enums.REFLECT_P,value:n});
+	}
+	if(meta.rflM){ // +
+		const n=Number(meta.rflM)-0;
+		if(n) x.traits.push({code:Game_BattlerBase.TRAIT_XPARAM,dataId:5,value:n}); // built-in default
 	}
 	if(meta.hitRecHpR){ // +
 		const n=Number(meta.hitRecHpR)-0;
@@ -644,6 +662,8 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("DECDMG_M").
 	addEnum("MPSubstitute").
 	addEnum("TrgBattleEnd").
+	addEnum("COUNTER_A").
+	addEnum("COUNTER_M").
 	addEnum("REFLECT_A").
 	addEnum("REFLECT_P").
 	addEnum("NoRecoverAll").
@@ -678,6 +698,15 @@ $pppp$.MPSubstituteRate=function(){
 };
 $pppp$.TPRegenAtBattleEnd=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.TrgBattleEnd);
+};
+$pppp$.counterARate=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.COUNTER_A);
+};
+$pppp$.counterPRate=function(){
+	return this.cnt;
+};
+$pppp$.counterMRate=function(){
+	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.COUNTER_M);
 };
 $pppp$.reflectARate=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_A);
