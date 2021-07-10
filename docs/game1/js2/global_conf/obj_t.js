@@ -1852,15 +1852,14 @@ $aaaa$.invokeAction=function(s,t){ // subject , target
 	let realTarget=t;
 	this._actUsed=this._usedAct_normal=this._usedAct_other=this._usedAct_reflect=undefined;
 	{ const rnd=Math.random() , a=this._action;
-	if( rnd<a.itemArf(t) || rnd<a.itemPrf(t) || rnd<a.itemMrf(t) ){
+	if( rnd<a.itemPrf(t) || rnd<a.itemMrf(t) || rnd<a.itemArf(t) ){
 		this.invokeReflection(realTarget=s,t);
 		this._actUsed=this._usedAct_reflect;
 	}else{
 		realTarget=this.invokeNormalAction(s,t);
-		if(realTarget&&( rnd<a.itemAcnt(realTarget) || rnd<a.itemPcnt(realTarget) || rnd<a.itemMcnt(realTarget) )){
+		if( (this._actUsed=this._usedAct_normal) && realTarget && (rnd<a.itemPcnt(realTarget) || rnd<a.itemMcnt(realTarget) || rnd<a.itemAcnt(realTarget)) ){
 			this.invokeCounterAttack(s,realTarget);
 		}
-		this._actUsed=this._usedAct_normal;
 	}
 	s.reserveActResQ().push(undefined); // delimiter
 	realTarget.reserveActResQ().push(undefined); // delimiter
@@ -1908,7 +1907,12 @@ $d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	const M=this._chases , fu=s.friendsUnit() ;
 	const btlrs=M&&M.get(fu);
 	if(!btlrs || !btlrs.size) return;
-	const item=act.item(),preloads={s:new Map(),ts:undefined,tt:undefined};
+	const item=act.item(),preloads={
+		ncpaf:!_global_conf.chasePopAfterFrame,
+		s:new Map(),
+		ts:undefined,
+		tt:undefined,
+	};
 	// allow to be same skills, mostly are different though
 	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item,preloads);
 	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item,preloads);
@@ -1961,7 +1965,7 @@ $d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item,prelo
 			preloads.s.set(btlr,ps=a.copyPreload_s());
 		}
 		a.refPreload_s(ps);
-		const ncpaf=!_global_conf.chasePopAfterFrame;
+		const ncpaf=preloads.ncpaf;
 		skills.forEach((v,k)=>{ if(!k) return;
 			const repeat=f.setAction(item,a,s,t,k,preloads);
 			for(let x=repeat*~~v;x-->0;){
