@@ -8949,6 +8949,10 @@ this.refresh=none;
 		if(0<tmp) this._light=tmp; // is light src if > 0
 	}
 	this._opacity=255;
+	if(meta.opacity){
+		let tmp=Number(meta.opacity);
+		if(tmp>=0) this._opacity=tmp;
+	}
 	if(meta.seenless) this._opacity=0;
 	if(meta.animationCount){
 		let tmp=Number(meta.animationCount);
