@@ -100,6 +100,48 @@ list.manual=(action)=>{
 	//if(returnWindow) return w;
 	SceneManager.addWindowB(w);
 };
+list.defs=action=>{
+	const getTxt=k=>$dataCustom.itemEffect[k+"_txt"]+($dataCustom.itemEffect[k]+'').replace(/,$/,''),txtarr=[],ie=$dataCustom.itemEffect,pr=$dataCustom.params;
+	txtarr.push({txt:"定義及設定:"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"每移動"+Game_Actor.prototype.stepsForTurn()+"步相當於經過1回合"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"普攻:普通攻擊的簡稱"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:ie.dmgType_txt+"不管是對目標:減少或增加,HP或MP，通通都叫做傷害"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:pr.grd+":"+TextManager.guard+"效果的倍數，預設為2，將所受傷害除以該值(未滿0.5時以0.5計，代表無效果)，即防禦時的計算值。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"傷害計算順序:"});
+	txtarr.push("\n");
+	txtarr.push({txt:"1. 由技能或道具公式算出一個值A"});
+	txtarr.push("\n");
+	txtarr.push({txt:"2. 由上述A乘上屬性加成，得到B"});
+	txtarr.push("\n");
+	txtarr.push({txt:"3. 由上述B依據 "+getTxt("hitType")+" 計算倍率再計算增減值(依:"+[pr.pdr,pr.mdr,pr.pdv,pr.mdv]+")，得C"});
+	txtarr.push("\n");
+	txtarr.push({txt:"4. 由上述C依據 "+getTxt("dmgCrit")+" 計算倍率，得D"});
+	txtarr.push("\n");
+	txtarr.push({txt:"5. 由上述D依據目標是否 "+TextManager.guard+" 及目標的 "+pr.grd+" 計算倍率，得E"});
+	txtarr.push("\n");
+	txtarr.push({txt:"6. 由上述E代入傷害計算，若是下列之一情形:\""+ie.dmgType_txt+ie.dmgType.slice(5,7)+"\"，則實際傷害值不會超過目標所擁有的HP或MP量。得F，F為計算結果。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"爆擊:攻擊時機率產生爆擊，數字會變為"+Game_Action.prototype.applyCritical(1)+"倍"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:ie.isNormalAtk_txt+"若使用普攻時會機率對目標產生特定狀態，則使用該技能或道具也會機率產生相同的特定狀態"});
+	txtarr.push("\n");
+	let w=new Window_CustomTextBoard(txtarr);
+	//if(returnWindow) return w;
+	SceneManager.addWindowB(w);
+};
+
 list.licence=(action)=>{
 	let gainFlag=0;
 	let id=action._item._itemId;
