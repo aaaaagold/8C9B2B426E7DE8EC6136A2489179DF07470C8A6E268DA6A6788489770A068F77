@@ -11721,8 +11721,10 @@ $pppp$.performAction=function(action){
 $pppp$.performAttack=function(){
 	const weapons = this.weapons();
 	const attackMotion = $dataSystem.attackMotions[weapons[0]&&weapons[0].wtypeId];
-	if(attackMotion){
-		switch(attackMotion.type){
+	const am2=$dataSystem.attackMotions[weapons[1]&&weapons[1].wtypeId];
+	const m=attackMotion||am2;
+	if(m){
+		switch(m.type){
 			case 0: this.requestMotion('thrust');
 			break;
 			case 1: this.requestMotion('swing');
@@ -11730,9 +11732,8 @@ $pppp$.performAttack=function(){
 			case 2: this.requestMotion('missile');
 			break;
 		}
-		this.startWeaponAnimation(attackMotion.weaponImageId);
-		const m2=$dataSystem.attackMotions[weapons[1]&&weapons[1].wtypeId];
-		if(m2) this.startWeapon2Animation(m2.weaponImageId);
+		this.startWeaponAnimation(attackMotion?attackMotion.weaponImageId:0);
+		this.startWeapon2Animation(am2?am2.weaponImageId:0);
 	}
 };
 $pppp$.onPlayerWalk=function(){
