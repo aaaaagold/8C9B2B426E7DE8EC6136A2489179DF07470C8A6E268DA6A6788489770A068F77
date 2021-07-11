@@ -5541,18 +5541,23 @@ $pppp$.param=function(paramId){
 	
 	// Window_EquipStatus.prototype.drawNewParam use '-', so String(s) are casted to Number
 	switch(~~((paramId+12)/10)){
+	default: return 0;
 	case 1:
 		switch(paramId){
 		case -2: return this.sparam(9).toExponential(2);
 		case -1: return this.makeActionTimes();
 		}
 	break;
-	default:
-	case 2: return this.xparam(paramId-8).toFixed(2);
+	case 2:
+		switch(paramId){
+		case 13: return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
+		case 14: return this.TPRegenAtBattleEnd();
+		}
+		return this.xparam(paramId-8).toFixed(2);
 	break;
 	case 3:
 		switch(paramId){
-		case 26: return this.TPRegenAtBattleEnd(); // page2
+		case 26: return this.attackTimesAdd(); // page2
 		case 27: return this.attackTimesMul().toFixed(3);
 		}
 		return this.sparam(paramId-18).toExponential(2);
@@ -5568,10 +5573,14 @@ $pppp$.param=function(paramId){
 	case 5:
 		switch(paramId){
 		case 38: return this.MPSubstituteRate().toFixed(3);
-		case 39: return this.hitRecHpR().toFixed(3);
-		case 40: return this.hitRecHpV();
-		case 41: return this.hitRecMpR().toFixed(3);
-		case 42: return this.hitRecMpV();
+		case 39: return this.reflectPRate().toFixed(2);
+		case 40: return this.reflectMRate().toFixed(2);
+		case 41: return this.counterPRate().toFixed(2);
+		case 42: return this.counterMRate().toFixed(2);
+		case 43: return this.hitRecHpR().toFixed(2);
+		case 44: return this.hitRecHpV();
+		case 45: return this.hitRecMpR().toFixed(2);
+		case 46: return this.hitRecMpV();
 		}
 		return this.param(); // nothing
 	}

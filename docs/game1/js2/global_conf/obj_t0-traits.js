@@ -43,8 +43,8 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.cri);
 		arr.push(texts.cev);
 		arr.push(texts.mev);
-		arr.push(texts.mrf);
-		arr.push(texts.cnt);
+		arr.push(texts.mec);
+		arr.push(texts.tbe);
 		arr.push(texts.hrg);
 		arr.push(texts.mrg);
 		arr.push(texts.trg);
@@ -56,7 +56,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		isMul[arr.length]=true; arr.push(texts.tcr);
 		isMul[arr.length]=true; arr.push(texts.pdr);
 		isMul[arr.length]=true; arr.push(texts.mdr);
-		arr.push(texts.tbe);
+		arr.push(texts.ata); // 26 // page2
 		isMul[arr.length]=true; arr.push(texts.akr);
 		isMul[arr.length]=true; arr.push(texts.rhp);
 		isMul[arr.length]=true; arr.push(texts.rmp);
@@ -69,6 +69,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.pdv);
 		arr.push(texts.mdv);
 		arr.push(texts.mps);
+		arr.push(texts.prf);
+		arr.push(texts.mrf);
+		arr.push(texts.pcnt);
+		arr.push(texts.mcnt);
 		arr.push(texts.arhr);
 		arr.push(texts.arhv);
 		arr.push(texts.armr);
@@ -713,6 +717,9 @@ $pppp$.reflectARate=function(){
 };
 $pppp$.reflectPRate=function(){
 	return this.traitsSum(gbb.TRAITS_CUSTOM,enums.REFLECT_P);
+};
+$pppp$.reflectMRate=function(){
+	return this.mrf;
 };
 $pppp$.noRecoverAll=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.NoRecoverAll);
