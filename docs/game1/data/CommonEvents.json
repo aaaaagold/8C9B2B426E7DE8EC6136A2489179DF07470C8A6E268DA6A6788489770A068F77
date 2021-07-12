@@ -2,5 +2,17 @@
 null,
 {"id":1,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
 {"id":2,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
-{"id":3,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0}
+{"id":3,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":4,"list":[{"code":111,"indent":0,"parameters":[2,"C",1]},{"code":123,"indent":1,"parameters":["C",0]},{"code":126,"indent":1,"parameters":[220,0,0,1]},{"code":0,"indent":1,"parameters":[]},{"code":412,"indent":0,"parameters":[]},{"code":111,"indent":0,"parameters":[0,157,1]},{"code":121,"indent":1,"parameters":[157,157,0]},{"code":101,"indent":1,"parameters":["",0,0,2]},{"code":401,"indent":1,"parameters":["\\L小姐，你的緞......嗯？黑色的？"]},{"code":101,"indent":1,"parameters":["",0,0,2]},{"code":401,"indent":1,"parameters":["\\F怎麼了嗎？"]},{"code":101,"indent":1,"parameters":["",0,0,2]},{"code":401,"indent":1,"parameters":["\\L啊，沒事......"]},{"code":0,"indent":1,"parameters":[]},{"code":412,"indent":0,"parameters":[]},{"code":0,"indent":0,"parameters":[]}],"name":"反射-女僕緞帶","switchId":1,"trigger":0},
+{"id":5,"list":[{"code":355,"indent":0,"parameters":["{ let evts=$gameMap._events,tids=$gameTemp.peopleIds;"]},{"code":655,"indent":0,"parameters":["for(let d=0,r=1-$gameTemp.peopleRate,arrs=$gameTemp.peopleLoc||[];d!==arrs.length;++d){ for(let x=0,arr=arrs[d];x!==arr.length;++x){"]},{"code":655,"indent":0,"parameters":[" if(Math.random()<r) continue;"]},{"code":655,"indent":0,"parameters":[" $gameMap.cpevt(tids.rnd(),arr[x][0],arr[x][1],1,1,true);"]},{"code":655,"indent":0,"parameters":[" let evt=evts.back; evt.refresh(true)._dir=(d+1)<<1; evt._characterIndex=~~(Math.random()*8);"]},{"code":655,"indent":0,"parameters":["} }"]},{"code":655,"indent":0,"parameters":["}"]},{"code":0,"indent":0,"parameters":[]}],"name":"生產無意義路人","switchId":1,"trigger":0},
+{"id":6,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":7,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":8,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":9,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":10,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":11,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":12,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":13,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":14,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
+{"id":15,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0}
 ]
