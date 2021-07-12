@@ -5146,19 +5146,13 @@ $pppp$.clearCache=function(key){
 	if(key) $gameTemp.delCache(this,key);
 	else $gameTemp.clearCache(this);
 };
-Object.defineProperties($aaaa$.prototype, {
+Object.defineProperties($pppp$, {
 	mtp: { get: function() { return this.maxTp(); }, configurable: false },
 	stp: { get: function() { return this._stp; }, configurable: false },
 	mstp: { get: function() { return this.maxStp(); }, configurable: false },
 	lastPayMp:{ get: function() { return this.lastPay().mp||0; },configurable: false},
 	lastPayHp:{ get: function() { return this.lastPay().hp||0; },configurable: false},
 	lastPayTp:{ get: function() { return this.lastPay().tp||0; },configurable: false},
-	dmgRcvHpR:{ get: function() { return this.hitRecHpR(); },configurable: false},
-	dmgRcvHpV:{ get: function() { return this.hitRecHpV(); },configurable: false},
-	dmgRcvMpR:{ get: function() { return this.hitRecMpR(); },configurable: false},
-	dmgRcvMpV:{ get: function() { return this.hitRecMpV(); },configurable: false},
-	decDmgP:{ get: function() { return this.decreaseDamageP(); },configurable: false},
-	decDmgM:{ get: function() { return this.decreaseDamageM(); },configurable: false},
 });
 $k$='clearBuffs';
 $r$=$pppp$[$k$];
@@ -5564,6 +5558,7 @@ $pppp$.param=function(paramId){
 	break;
 	case 3:
 		switch(paramId){
+		case 21: return this.hpCostRate().toExponential(2);
 		case 26: return this.attackTimesAdd(); // page2
 		case 27: return this.attackTimesMul().toFixed(3);
 		}
@@ -5584,10 +5579,11 @@ $pppp$.param=function(paramId){
 		case 40: return this.reflectMRate().toFixed(2);
 		case 41: return this.counterPRate().toFixed(2);
 		case 42: return this.counterMRate().toFixed(2);
-		case 43: return this.hitRecHpR().toFixed(2);
-		case 44: return this.hitRecHpV();
-		case 45: return this.hitRecMpR().toFixed(2);
-		case 46: return this.hitRecMpV();
+		case 43: return this.pha.toExponential(2);
+		case 44: return this.hitRecHpR().toFixed(2);
+		case 45: return this.hitRecHpV();
+		case 46: return this.hitRecMpR().toFixed(2);
+		case 47: return this.hitRecMpV();
 		}
 		return this.param(); // nothing
 	}
@@ -5688,10 +5684,10 @@ $pppp$.isHungry=function(){
 };
 $pppp$.skillHpCost=function(skill){
 	//return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
-	return ~~(this.mhp*skill.hpCostMR + this.hp*skill.hpCostCR + skill.hpCost);
+	return ~~((~~(skill.hpCostMR&&skill.hpCostMR*this.mhp + this.hp*skill.hpCostCR + skill.hpCost + 0.5)) * this.hcr);
 };
 $pppp$.skillMpCost=function(skill){
-	return ~~((~~(this.mmp*skill.mpCostMR + this.mp*skill.mpCostCR + skill.mpCost + 0.5)) * this.mcr);
+	return ~~((~~(skill.mpCostMR&&skill.mpCostMR*this.mmp + this.mp*skill.mpCostCR + skill.mpCost + 0.5)) * this.mcr);
 	(skill.mpCost * this.mcr)
 	return skill.mpCost+~~(skill.mpCost * this.mcr);
 };
