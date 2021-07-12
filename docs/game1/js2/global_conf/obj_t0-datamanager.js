@@ -360,7 +360,7 @@ $dddd$=$aaaa$.loadMapData = function f(mapId) {
 		
 		// backup
 		// - '.data'
-		$dataMap.data_bak=$dataMap.data.slice(0);
+		$dataMap.data_bak=$dataMap.data.slice();
 		// defaults
 		//if($gamePlayer && $gamePlayer.canDiag===undefined) $gamePlayer.canDiag=1; // default can diag walk
 		// environment traits (use a state)
@@ -421,6 +421,8 @@ if(!$dataMap.meta.disablePreload){
 			evtd.anchory=undefined; if(meta.anchory) evtd.anchory=Number(meta.anchory);
 		}
 		// - tile structure
+		// - - set markerTiles to nothing
+		if($dataMap.meta.markerTiles) for(let s=new Set(JSON.parse($dataMap.meta.markerTiles)),x=0,arr=$dataMap.data;x!==arr.length;++x) if(s.has(arr[x])) arr[x]=0;
 		// - - isChair
 		$dataMap.isChair=[];
 		let chair=$dataTilesets[$dataMap.tilesetId].meta.chair;

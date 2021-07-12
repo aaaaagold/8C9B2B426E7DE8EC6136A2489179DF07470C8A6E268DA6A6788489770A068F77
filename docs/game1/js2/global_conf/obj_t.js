@@ -4320,6 +4320,13 @@ $d$=$pppp$.layeredTiles=function f(x,y){ // rewrite for efficiency
 	return $dataMap.data3d[$dataMap.width*y+x]||f._dummy;
 };
 $d$._dummy=[];
+$pppp$.hasTile_bak=function(x,y,tiles){
+	// use tiles.contains, speedup yourself
+	const sz=$dataMap.width*$dataMap.height;
+	const idx=$dataMap.width*y+x;
+	for(let z=0;z!==4;++z) if(tiles.contains($dataMap.data_bak[idx+sz*z])) return true;
+	return false;
+};
 $pppp$.allTiles=function(x,y){ // rewrite for efficiency
 	//return this.tileEventsXy(x, y).map(evt=>evt.tileId()).concat(this.layeredTiles(x, y));
 	// discard tileEvents // 'this.tileEvents' is mostly empty
