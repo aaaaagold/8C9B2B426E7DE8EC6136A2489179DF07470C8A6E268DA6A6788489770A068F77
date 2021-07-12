@@ -32,7 +32,7 @@ list.newRoadblock=action=>{
 };
 
 const newMyself_argv=[0];
-list.newMyself_actor=(action,leaveAtBattleEnd,equFixed)=>{
+list.newMyself_actor=(action,leaveAtBattleEnd,equFixed,collar)=>{
 	newMyself_argv.length=1; newMyself_argv[0]=action._subjectActorId;
 	const rtv=rpgevts.list.addClone(false,newMyself_argv);
 	if(rtv){
@@ -50,6 +50,10 @@ list.newMyself_actor=(action,leaveAtBattleEnd,equFixed)=>{
 		$gameTemp.lvUpConfigs_pop();
 		$gameTemp.popuptmp=subject.name().replace(/\\/g,"\\\\");
 		$gameMessage.popup("新增了1個\\key'$gameTemp.popuptmp'",true);
+		if(collar){
+			const e=$dataArmors[136];
+			rtv.forceChangeEquip(e.etypeId-1,e); // from 1-based to 0-based
+		}
 		return rtv;
 	}
 	SoundManager.playBuzzer();
@@ -58,10 +62,13 @@ list.newMyself_actor=(action,leaveAtBattleEnd,equFixed)=>{
 list.newMyself_enemy=(action,leaveAtBattleEnd)=>{
 	// TODO
 };
-list.newMyself=(action,leaveAtBattleEnd)=>action._subjectActorId.toId()>0?list.newMyself_actor(action):list.newMyself_enemy(action);
-list.newMyself_battle=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true):list.newMyself_enemy(action,true);
-list.newMyself_battle_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,true,true):list.newMyself_enemy(action,true,true);
-list.newMyself_equFixed=action=>action._subjectActorId.toId()>0?list.newMyself_actor(action,undefined,true):list.newMyself_enemy(action,undefined,true);
+list.newMyself=(action,leaveAtBattleEnd)=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action);
+list.newMyself_battle=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,true);
+list.newMyself_battle_equFixed=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,true,true);
+list.newMyself_battle_collar=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,true,false,true);
+list.newMyself_equFixed=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,undefined,true);
+list.newMyself_equFixed_collar=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,undefined,true,true);
+list.newMyself_collar=action=>(action._subjectActorId.toId()>0?list.newMyself_actor:list.newMyself_enemy)(action,false,false,true);
 
 list.deleteSummoned=(action,trgt)=>{
 	const subject=action.subject();
