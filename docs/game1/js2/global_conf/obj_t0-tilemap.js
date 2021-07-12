@@ -223,10 +223,11 @@ $dddd$.updateChildren=function f(){
 };
 $dddd$.updateChildren.forEach=c=>c&&c.update&&c.update();
 $dddd$=$pppp$._sortChildren=function f(){
+	f.cmp.r=this;
 	this.children.sort(f.cmp);
 };
-$dddd$.cmp=(a,b)=>{
-	return a.z-b.z||(a.oy===undefined?a.y:a.oy)-(b.oy===undefined?b.y:b.oy)||a.z2-b.z2||a.spriteId-b.spriteId;
+$dddd$.cmp=function f(a,b){
+	return a.z-b.z||(a.oy===undefined?a.y:(a.oy-f.r._lastOy))-(b.oy===undefined?b.y:(b.oy-f.r._lastOy))||a.z2-b.z2||a.spriteId-b.spriteId;
 };
 $pppp$.usetree=function(){ this.children=new AVLTree(true); };
 $rrrr$=$pppp$.initialize;

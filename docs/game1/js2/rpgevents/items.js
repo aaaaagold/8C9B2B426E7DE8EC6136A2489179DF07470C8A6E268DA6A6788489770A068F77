@@ -62,27 +62,6 @@ list.manual=(action)=>{
 	txtarr.push("\n");
 	txtarr.push("\n");
 	
-	txtarr.push({txt:"HP: Health Point, 意即體力點數, HP為0的角色無法做任何動作。\\key'\"全部隊友HP皆為0則遊戲結束\"'"});
-	txtarr.push("\n");
-	txtarr.push("\n");
-	txtarr.push({txt:"MP: Mana Point, 意即魔力點數, 使用部分技能需要消耗數量不等的MP。"});
-	txtarr.push("\n");
-	txtarr.push("\n");
-	txtarr.push({txt:"TP: Technique Point, 意即技術點數, 使用部分技能需要消耗數量不等的TP。"});
-	txtarr.push("\n");
-	txtarr.push("\n");
-	if(objs&&objs.confs&&objs.confs.useStp){
-		txtarr.push({txt:"STP: STomach Point, 意即肚子點數, 最大值是 1000"});
-		txtarr.push("\n");
-		txtarr.push({txt:$dataCustom.cstp+" = 0 代表你快餓死了, 該角色所有基礎能力值將剩下 10% ，裝備、狀態等加成則不變。"});
-		txtarr.push("\n");
-		txtarr.push({txt:$dataCustom.cstp+" = 0 時睡覺, "+$dataCustom.cstp+"會變成1"});
-		txtarr.push("\n");
-		txtarr.push({txt:"使用某些物品會影響 "+$dataCustom.cstp});
-		txtarr.push("\n");
-		txtarr.push({txt:"戰鬥時除了使用\\key'$dataCustom.spaceout'以外，每次行動會消耗 "+$dataCustom.cstp+" 1"});
-	}
-	
 	switch(DataManager.getTitle()){
 	case "燒毀":{
 		txtarr.push({txt:"焚木技巧:"});
@@ -129,14 +108,42 @@ list.defs=action=>{
 	txtarr.push("\n");
 	txtarr.push({txt:"5. 由上述D依據目標是否 "+TextManager.guard+" 及目標的 "+pr.grd+" 計算倍率，得E"});
 	txtarr.push("\n");
-	txtarr.push({txt:"6. 由上述E代入傷害計算，若是下列之一情形:\""+ie.dmgType_txt+ie.dmgType.slice(5,7)+"\"，則實際傷害值不會超過目標所擁有的HP或MP量。得F，F為計算結果。"});
+	txtarr.push({txt:"6. 由上述E代入 "+[pr.arh,pr.arm]+" 的計算及傷害計算，若是下列之一情形:\""+ie.dmgType_txt+ie.dmgType.slice(5,7)+"\"，則實際吸收量不會超過目標所擁有的HP或MP量。得F，F為計算結果。"});
 	txtarr.push("\n");
 	txtarr.push("\n");
-	txtarr.push({txt:"爆擊:攻擊時機率產生爆擊，數字會變為"+Game_Action.prototype.applyCritical(1)+"倍"});
+	txtarr.push({txt:"爆擊:攻擊時依角色能力機率產生爆擊，數字的值會變為"+Game_Action.prototype.applyCritical(1)+"倍。"});
 	txtarr.push("\n");
 	txtarr.push("\n");
 	txtarr.push({txt:ie.isNormalAtk_txt+"若使用普攻時會機率對目標產生特定狀態，則使用該技能或道具也會機率產生相同的特定狀態"});
 	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:pr.basic+": "+$dataSystem.terms.params.slice(0,8)});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	
+	if(objs&&objs.confs&&objs.confs.useStp){
+		txtarr.push({txt:"STP: STomach Point, 意即肚子點數, 最大值是 "+Game_Actor.prototype.maxStp()});
+		txtarr.push("\n");
+		txtarr.push({txt:$dataCustom.cstp+" = 0 代表你快餓死了, 該角色HP,MP以外的所有"+pr.basic+"將剩下 10% ，裝備、狀態等加成則不變。"});
+		txtarr.push("\n");
+		txtarr.push({txt:$dataCustom.cstp+" = 0 時睡覺, "+$dataCustom.cstp+"會變成1"});
+		txtarr.push("\n");
+		txtarr.push({txt:"使用某些物品會影響 "+$dataCustom.cstp});
+		txtarr.push("\n");
+		txtarr.push({txt:"戰鬥時除了使用\\key'$dataCustom.spaceout'以外，每次行動會消耗 "+$dataCustom.cstp+" 1"});
+		txtarr.push("\n");
+		txtarr.push("\n");
+	}
+	txtarr.push({txt:"HP: Health Point, 意即體力點數, HP為0的角色無法做任何動作。\\key'\"全部隊員HP皆為0則遊戲結束\"'"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"MP: Mana Point, 意即魔力點數, 使用部分技能需要消耗數量不等的MP。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	txtarr.push({txt:"TP: Technique Point, 意即技術點數, 使用部分技能需要消耗數量不等的TP。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	
 	let w=new Window_CustomTextBoard(txtarr);
 	//if(returnWindow) return w;
 	SceneManager.addWindowB(w);

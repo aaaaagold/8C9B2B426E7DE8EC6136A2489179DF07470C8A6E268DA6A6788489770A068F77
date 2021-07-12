@@ -46,7 +46,7 @@ $dddd$.list={
 		img:[],
 		audio:[ 
 			["se","Load"], ["se","Save"], ["se","Item3"], 
-			["se","Door1"], ["se","Jump1"], ["se","Fall"], ["se","Blow3"], 
+			// ["se","Door1"], ["se","Jump1"], ["se","Fall"], ["se","Blow3"], 
 		],
 	},
 };

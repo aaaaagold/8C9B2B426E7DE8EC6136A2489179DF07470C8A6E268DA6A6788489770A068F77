@@ -228,8 +228,7 @@ $aaaa$.resetPseudoTile=()=>{
 	src=$dataMap.meta.addUpper;
 	for(let x=0,sz=$dataMap.height*$dataMap.width;x!==sz;++x) dst[x]=[];
 	if(src){
-		let added=JSON.parse(src);
-		for(let x=0,arr=added;x!==arr.length;++x){
+		for(let x=0,added=JSON.parse(src);x!==added.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
@@ -247,8 +246,7 @@ $aaaa$.resetPseudoTile=()=>{
 	src=$dataMap.meta.addLower;
 	for(let x=0,sz=$dataMap.height*$dataMap.width;x!==sz;++x) dst[x]=[];
 	if(src){
-		let added=JSON.parse(src);
-		for(let x=0,arr=added;x!==arr.length;++x){
+		for(let x=0,added=JSON.parse(src);x!==added.length;++x){
 			let curr=added[x];
 			let loc=curr.loc;
 			//let cond=eval(curr.cond);
@@ -346,6 +344,43 @@ $dddd$=$aaaa$.evtd_addTxt=function f(evtds,mapId){
 	if(!tbl && mapId) f.tbl.set(mapId,JSON.stringify(log));
 };
 $dddd$.tbl=new Map();
+$aaaa$.addPreloadsViaCmd=(cmd,addeds,audios,imgs)=>{
+	switch(cmd.code){
+	case 212: { // ani
+		const ani=$dataAnimations[cmd.parameters[1]];
+		if(ani){
+			ani.imgs.forEach(x=>{
+				if(addeds){ if(addeds.aniImg.has(x)) return; addeds.aniImg.add(x); }
+				imgs.push(["ani",x]);
+			});
+			ani.ses.forEach(x=>{
+				if(addeds){ if(addeds.se    .has(x)) return; addeds.se    .add(x); }
+				audios.push(["se",x]);
+			});
+		}
+	}break;
+	case 241: { // bgm
+		const x=cmd.parameters[0].name;
+		if(addeds){ if(addeds.bgm.has(x)) break; addeds.bgm.add(x); }
+		audios.push(["bgm",x]);
+	}break;
+	case 245: { // bgs
+		const x=cmd.parameters[0].name;
+		if(addeds){ if(addeds.bgs.has(x)) break; addeds.bgs.add(x); }
+		audios.push(["bgs",x]);
+	}break;
+	case 249: { // me
+		const x=cmd.parameters[0].name;
+		if(addeds){ if(addeds.me .has(x)) break; addeds.me .add(x); }
+		audios.push(["me",x]);
+	}break;
+	case 250: { // se
+		const x=cmd.parameters[0].name;
+		if(addeds){ if(addeds.se .has(x)) break; addeds.se .add(x); }
+		audios.push(["se",x]);
+	}break;
+	}
+};
 $dddd$=$aaaa$.loadMapData = function f(mapId) {
 	debug.log('DataManager.loadMapData');
 	if(f.playerChanges===undefined) f.playerChanges=(kargs)=>{ let tmp;
@@ -380,26 +415,32 @@ $dddd$=$aaaa$.loadMapData = function f(mapId) {
 		// preload
 {
 		// - preload face&&body image according to events' character image
-		let res=this.evtd_faceImg($dataMap.events);
+		const res=this.evtd_faceImg($dataMap.events);
 if(!$dataMap.meta.disablePreload){
-		let faceSet=res[0],chrSet=res[1],imgs=[];
+		const faceSet=res[0],chrSet=res[1],imgs=[];
 		faceSet.forEach(x=>imgs.push(["face",x]));
 		chrSet.forEach(x=>imgs.push(["chr",x]));
-		// - preload bgm,bgs,se
-		let audios=[];
+		// - preload ani,bgm,bgs,se
+		const audios=[];
 		{
+			const addeds={
+				aniImg: new Set(),
+				bgm: new Set(),
+				bgs: new Set(),
+				me: new Set(),
+				se: new Set(),
+			};
+			// bgm,bgs
 			let dbgm = $dataMap.bgm && $dataMap.bgm.name;
 			let dbgs = $dataMap.bgs && $dataMap.bgs.name;
 			let abgm = AudioManager._currentBgm && AudioManager._currentBgm.name;
 			let abgs = AudioManager._currentBgs && AudioManager._currentBgs.name;
 			if(dbgm && dbgm!==abgm) audios.push(["bgm",dbgm]);
 			if(dbgs && dbgs!==abgs) audios.push(["bgs",dbgs]);
-			// se
-			for(let x=0,arr=$dataMap.events;x!==arr.length;++x){ const evtd=arr[x]; if(!evtd) continue;
-				for(let p=0,parr=evtd.pages;p!==parr.length;++p){ for(let l=0,larr=parr[p].list;l!==larr.length;++l){ const curr=larr[l];
-					if(curr.code===250) audios.push(["se",curr.parameters[0].name]);
-				} }
-			}
+			// ani,bgm,bgs,se
+			for(let e=0,es=$dataMap.events;e!==es.length;++e){ const evtd=es[e]; if(!evtd) continue; for(let p=0,parr=evtd.pages;p!==parr.length;++p){ for(let l=0,larr=parr[p].list;l!==larr.length;++l){
+				this.addPreloadsViaCmd(larr[l],addeds,audios,imgs);
+			} } }
 		}
 		// - meta
 		{ let p=$dataMap.meta.preload; if(p){

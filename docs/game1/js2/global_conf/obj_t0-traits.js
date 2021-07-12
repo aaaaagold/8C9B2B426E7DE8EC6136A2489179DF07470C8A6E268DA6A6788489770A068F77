@@ -236,24 +236,6 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.ord=ord;
 	}); }
 	
-	// arrange classes.learnings
-	f.doForEach($dataClasses,x=>{ if(!x) return;
-		const arr=x.learnings,r=new Map();
-		arr.sort((a,b)=>a.level-b.level||$dataSkills[a.skillId].ord-$dataSkills[b.skillId].ord).forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
-		arr.byLv=r;
-	});
-	
-	// arrange animations.timing
-	f.doForEach($dataAnimations,x=>{ if(!x) return;
-		const ts=x.timings; if(!ts) return;
-		const m=ts.byFrmIdx=new Map();
-		ts.forEach(t=>{
-			const tmp=m.get(t.frame);
-			if(tmp) tmp.push(t);
-			else m.set(t.frame,[t]);
-		});
-	});
-	
 	// make traits map
 	f.doForEach($dataActors,f.makeTraitsMap);
 	f.doForEach($dataArmors,f.makeTraitsMap);
@@ -322,6 +304,36 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataSkills,f.extendDescription_i);
 	f.doForEach($dataArmors,f.extendDescription_e);
 	f.doForEach($dataWeapons,f.extendDescription_e);
+	
+	// == build search tables for non-traits ==
+	
+	// arrange classes.learnings
+	f.doForEach($dataClasses,x=>{ if(!x) return;
+		const arr=x.learnings,r=new Map();
+		arr.sort((a,b)=>a.level-b.level||$dataSkills[a.skillId].ord-$dataSkills[b.skillId].ord).forEach(z=>{ let tmp=r.get(z.level); if(!tmp) r.set(z.level,tmp=[]); tmp.push(z); });
+		arr.byLv=r;
+	});
+	
+	// arrange animations
+	f.doForEach($dataAnimations,x=>{ if(!x) return;
+		// img
+		x.imgs=[];
+		x.animation1Name && x.imgs.push(x.animation1Name);
+		x.animation2Name && x.imgs.push(x.animation2Name);
+		// se
+		x.ses=[];
+		// .timing
+		const ts=x.timings; if(!ts) return;
+		const m=ts.byFrmIdx=new Map();
+		ts.forEach(t=>{
+			// tbl
+			const tmp=m.get(t.frame);
+			if(tmp) tmp.push(t);
+			else m.set(t.frame,[t]);
+		// se
+			t.se && t.se.name && x.ses.push(t.se.name);
+		});
+	});
 	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
@@ -658,7 +670,9 @@ $pppp$.addedSkillTypes_arranged=function(omits){
 };
 // Game_BattlerBase.prototype.addedSkills=function(){ return this.traitsSet(Game_BattlerBase.TRAIT_SKILL_ADD); }; // not used
 $pppp$.slotType=function(){
-	return this.traitsMaxId(Game_BattlerBase.TRAIT_SLOT_TYPE);
+	//return this.traitsMaxId(Game_BattlerBase.TRAIT_SLOT_TYPE);
+	//return this.traitsSum(Game_BattlerBase.TRAIT_SLOT_TYPE,1)&1;
+	return this.traitsSet(Game_BattlerBase.TRAIT_SLOT_TYPE).has(1)|0;
 };
 $pppp$.actionPlusSet=function() {
 	return this.traitsSet(Game_BattlerBase.TRAIT_SLOT_TYPE);
