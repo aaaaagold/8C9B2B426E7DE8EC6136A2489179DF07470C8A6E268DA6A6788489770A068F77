@@ -51,7 +51,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		isMul[arr.length]=true; arr.push(texts.tgr);
 		isMul[arr.length]=true; arr.push(texts.grd);
 		isMul[arr.length]=true; arr.push(texts.rec);
-		isMul[arr.length]=true; arr.push(texts.pha);
+		isMul[arr.length]=true; arr.push(texts.hcr);
 		isMul[arr.length]=true; arr.push(texts.mcr);
 		isMul[arr.length]=true; arr.push(texts.tcr);
 		isMul[arr.length]=true; arr.push(texts.pdr);
@@ -73,6 +73,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		arr.push(texts.mrf);
 		arr.push(texts.pcnt);
 		arr.push(texts.mcnt);
+		isMul[arr.length]=true; arr.push(texts.pha);
 		arr.push(texts.arhr);
 		arr.push(texts.arhv);
 		arr.push(texts.armr);
@@ -86,6 +87,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 	objs.enums.
 		addEnum("AUTOREVIVE").
 		addEnum("MUST_SUBST").
+		addEnum("HPCOSTRATE").
 		addEnum("ATKTIMES_MUL").
 		addEnum("DECDMG_P").
 		addEnum("DECDMG_M").
@@ -588,6 +590,10 @@ $dddd$.note2traits=x=>{
 			x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
 		}
 	}
+	if(meta.hcr){ // *
+		const n=Number(meta.hcr);
+		x.traits.push({code:tc,dataId:enums.HPCOSTRATE,value:isNaN(n)?1:n});
+	}
 	if(meta.atktimes_mul){ // *
 		const n=Number(meta.atktimes_mul);
 		x.traits.push({code:tc,dataId:enums.ATKTIMES_MUL,value:isNaN(n)?1:n});
@@ -619,6 +625,15 @@ $aaaa$.addEnum('CACHEKEY_LASTPAY')
 	.addEnum('CACHEKEY_OVERALL_S')
 	.addEnum('CACHEKEY_OVERALL_M')
 	.addEnum('__DUMMY');
+Object.defineProperties($pppp$,{
+	hcr:{ get: function() { return this.hpCostRate(); },configurable: false},
+	dmgRcvHpR:{ get: function() { return this.hitRecHpR(); },configurable: false},
+	dmgRcvHpV:{ get: function() { return this.hitRecHpV(); },configurable: false},
+	dmgRcvMpR:{ get: function() { return this.hitRecMpR(); },configurable: false},
+	dmgRcvMpV:{ get: function() { return this.hitRecMpV(); },configurable: false},
+	decDmgP:{ get: function() { return this.decreaseDamageP(); },configurable: false},
+	decDmgM:{ get: function() { return this.decreaseDamageM(); },configurable: false},
+});
 $pppp$.paramRate = function(paramId) {
 	return this.getTraits_overall_m(Game_BattlerBase.TRAIT_PARAM, paramId);
 };
@@ -661,6 +676,7 @@ $pppp$.partyAbility=function(abilityId){
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
 	addEnum("MUST_SUBST").
+	addEnum("HPCOSTRATE").
 	addEnum("ATKTIMES_MUL").
 	addEnum("DECDMG_P").
 	addEnum("DECDMG_M").
@@ -683,6 +699,12 @@ $pppp$.isAbleToAutoRevive=function(){
 };
 $pppp$.isAlwaysSubstitute=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.MUST_SUBST) && this.canMove();
+};
+$pppp$.hpCostRate=function(){
+	return this.traitsPi(gbb.TRAITS_CUSTOM,enums.HPCOSTRATE);
+};
+$pppp$.mpCostRate=function(){
+	return this.mcr;
 };
 $pppp$.attackTimesMul=function(){
 	return this.traitsPi(gbb.TRAITS_CUSTOM,enums.ATKTIMES_MUL);
