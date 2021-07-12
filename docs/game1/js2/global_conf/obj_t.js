@@ -295,6 +295,7 @@ $d$=$pppp$[$k$]=function f(chr){
 	this._old_anchor_y=undefined;
 	this._balloonSprites=new Set();
 	if(chr&&chr.constructor===Game_Event){
+		this._skipRender=chr._skipRender;
 		// text
 		this.setText(chr.getText());
 		// parentId in meta
@@ -311,19 +312,12 @@ $d$=$pppp$[$k$]=function f(chr){
 	}
 }; $d$.ori=$r$;
 $pppp$.isInView_inScreen=function(){
-	// this.x+24+(1-this.anchor.x)*this._frame.width                >=0 && this.x+24-this.anchor.x*this._frame.width < Graphics._boxWidth
-	// this.x-this.anchor.x*this._frame.width+24 +this._frame.width >=0 && this.x-this.anchor.x*this._frame.width+24 < Graphics._boxWidth
-	// -this._frame.width<= this.x-this.anchor.x*this._frame.width+24 < Graphics._boxWidth
-/*	const frm=this._frame;
-	if(!frm.width||!frm.height) return false;
-	const t=Game_Map.e>>1;
-	const w=Graphics._boxWidth+
-	const x=this.x-this.anchor.x*this._frame.width+t;
-	const y=this.y-this.anchor.y*this._frame.height+t;
-	return parseInt(/)===1 &&
-		parseInt(/)===1
-// */
-	return (~~((this.x+Graphics._boxWidth_pad6)/Graphics._boxWidth_pad4))===1 && (~~((this.y+Graphics._boxHeight_pad5)/Graphics._boxHeight_pad4))===1;
+	return (~~((Graphics._boxWidth_pad6+this.x)/Graphics._boxWidth_pad4))===1 && (~~((Graphics._boxHeight_pad5+this.y)/Graphics._boxHeight_pad4))===1;
+//	const bm=this.bitmap; if(!bm||!bm.isReady()) return true; // not inited yet
+//	const w=bm._image?this.width:0,h=bm._image?this.height:0;
+//	const aw=w*this.anchor.x+Game_Map.e,ah=h*this.anchor.y+Game_Map.e;
+//	const xaw=this.x-aw,yah=this.y-ah;
+//	return xaw<Graphics._boxWidth && yah<Graphics._boxHeight && xaw+w>=0 && yah+h>=0;
 };
 $pppp$.isInView=function(){ // can view?
 	if($gameScreen.limitedView && !this._character._light){
@@ -2985,7 +2979,10 @@ $d$=$pppp$[$k$]=function f(){
 		$gameTemp.initClearedWhenNewMap();
 		// active initialization events: turn on its switch "A"
 		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){ let evt=arr[x];
-			if(evt&&evt.note==="init") $gameSelfSwitches.setValue([$gameMap._mapId,x,"A"],1);
+			if(evt&&evt.note==="init"){
+				$gameMap._events[x]._skipRender=1;
+				$gameSelfSwitches.setValue([$gameMap._mapId,x,"A"],1);
+			}
 		}
 		// random map
 		if($dataMap.meta.random){
@@ -5590,6 +5587,7 @@ $pppp$.param=function(paramId){
 	
 	let value = this.paramBase(paramId) + this.paramPlus(paramId);
 	value *= this.paramRate(paramId) * this.paramBuffRate(paramId);
+	if(paramId>1 && this.stp===0) value/=10;
 	{ let tmp=this.paramMin(paramId);
 	if(!(value>=tmp)) value=tmp;
 	else{
@@ -5684,12 +5682,12 @@ $pppp$.isHungry=function(){
 };
 $pppp$.skillHpCost=function(skill){
 	//return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
-	return ~~((~~(skill.hpCostMR&&skill.hpCostMR*this.mhp + this.hp*skill.hpCostCR + skill.hpCost + 0.5)) * this.hcr);
+	return ~~((~~( (skill.hpCostMR&&skill.hpCostMR*this.mhp) + this.hp*skill.hpCostCR + skill.hpCost + 0.5 ))*this.hcr);
 };
 $pppp$.skillMpCost=function(skill){
-	return ~~((~~(skill.mpCostMR&&skill.mpCostMR*this.mmp + this.mp*skill.mpCostCR + skill.mpCost + 0.5)) * this.mcr);
-	(skill.mpCost * this.mcr)
-	return skill.mpCost+~~(skill.mpCost * this.mcr);
+	//(skill.mpCost * this.mcr)
+	//return skill.mpCost+~~(skill.mpCost * this.mcr);
+	return ~~((~~( (skill.mpCostMR&&skill.mpCostMR*this.mmp) + this.mp*skill.mpCostCR + skill.mpCost + 0.5 ))*this.mcr);
 };
 $pppp$.canPaySkillCost=function(skill){
 	const hpCost=this.skillHpCost(skill);
@@ -8931,6 +8929,9 @@ this.refresh=none;
 	let meta=evtd.meta;
 	
 	// display
+	this._skipRender=meta.skipRender;
+	this._color=undefined;
+	this._scale=undefined;
 	this._z=undefined;
 	if(meta.z){
 		let tmp=Number(meta.z);
@@ -8961,6 +8962,7 @@ this.refresh=none;
 		let tmp=Number(meta.animationCount);
 		if(0<tmp) this._animationCount=tmp; // is light src if > 0
 	}
+	this._refActor=meta.refActor;
 	this._asPlayer=0; // as player collision others
 	// style
 	this._dmg=(meta.damaged)?1:0;
@@ -9215,6 +9217,10 @@ Object.defineProperties($aaaa$.prototype,{
 		return this._odir=rhs;
 	},configurable:false},
 	// simply shorten (custom members)
+	_skipRender:{
+		get:function(){ return this._sr; },
+		set:function(rhs){ return this._sr=rhs|0; },
+	configurable:false},
 	longDistDetection:{
 		get:function(){ return this._lld; },
 		set:function(rhs){ return this._lld=rhs; },
@@ -9226,6 +9232,10 @@ Object.defineProperties($aaaa$.prototype,{
 	_passSelf:{
 		get:function(){ return this._ps; },
 		set:function(rhs){ return this._ps=rhs; },
+	configurable:false},
+	_refActor:{
+		get:function(){ return this._ra; },
+		set:function(rhs){ return this._ra=rhs; },
 	configurable:false},
 	_asPlayer:{
 		get:function(){ return this._asp; },
@@ -9314,8 +9324,52 @@ $d$=$pppp$.update=function f(){
 	//if(this._player>=0)
 	{
 		const a=this.getActor();
+		let needUpdate=false,data,color,scale,cidx,cname;
+		if(this._tmp){
+		if(a&&(
+			this._tmp._lastActor!==a ||
+			this._tmp._lastActorDead!==this._dmg
+		)){
+			needUpdate=true;
+			data=a.getData();
+			color=a._getColorEdt();
+			scale=a._getScaleEdt();
+			cidx=a.characterIndex();
+			cname=a.characterName();
+		}else if(this._tmp._lastActorDead!==this._dmg && this._refActor){
+			if(data=$dataActors[this._refActor]){
+				needUpdate=true;
+				color=data.meta.color;
+				scale=data.meta.scale;
+				cidx=data.characterIndex;
+				cname=data.characterName;
+			}
+		}
+		}
+		if(needUpdate){
+			this._tmp._lastActor=a;
+			this._color=color;
+			this._scale=scale;
+			let dmgimg;
+			if((this._tmp._lastActorDead=this._dmg) && (dmgimg=data.dmgimg)){
+				if(this._dirfx_bak===undefined) this._dirfx_bak=this._dirfx;
+				this._ref_chrIdx  =cidx ;
+				this._ref_chrName =cname;
+				this._characterName  =dmgimg[0];
+				this._characterIndex =dmgimg[1];
+				this._direction=(dmgimg[2]+1)<<1;
+				this._dirfx=1;
+			}else{
+				this._characterName  =cname;
+				this._characterIndex =cidx ;
+				if(this._dirfx_bak!==undefined){
+					this._dirfx=this._dirfx_bak;
+					delete this._dirfx_bak;
+				}
+			}
+		}
 		//const a=$gameActors.actor($gameParty._acs[this._player]);
-		if(a&&(this._tmp&&(
+		if(0&&a&&(this._tmp&&(
 			this._tmp._lastActor!==a ||
 			this._tmp._lastActorDead!==this._dmg
 		))){
@@ -9364,6 +9418,10 @@ $pppp$.updateParallel=function(){
 			}
 		}
 		this._itrp2.update();
+		if(!this._itrp2.isRunning()){
+			this._itrp2.clear();
+			this.unlock();
+		}
 	}
 };
 $pppp$.canUpdate=function(){
