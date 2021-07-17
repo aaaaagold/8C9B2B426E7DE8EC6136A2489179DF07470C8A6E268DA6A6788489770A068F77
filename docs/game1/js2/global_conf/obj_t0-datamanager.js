@@ -411,7 +411,7 @@ $dddd$=$aaaa$.loadMapData = function f(mapId) {
 		// evt.meta.refActor
 		this.evtd_addRef($dataMap.events);
 		// texts
-		this.evtd_addTxt($dataMap.events);
+		this.evtd_addTxt($dataMap.events); // also used @ cmdRef
 		// preload
 {
 		// - preload face&&body image according to events' character image
@@ -517,6 +517,12 @@ if(!$dataMap.meta.disablePreload){
 				evt.id=evts.length-1;
 				evt.x=evt.y=-1; // loop map will x,y mod w,h
 			});
+		}
+		// cmdRef
+		for(let e=0,evtds=$dataMap.events,es=$dataMap.templateStrt;e!==es;++e){
+			const evtd=evtds[e],revtd=evtd&&evtds[evtd.meta.cmdRef]; if(!revtd) continue;
+			for(let p=0,pgs=evtd.pages;p!==pgs.length;++p) if(revtd.pages[p]) pgs[p].list=revtd.pages[p].list;
+			evtd.txts=revtd.txts;
 		}
 		// ====
 		// $gameParty
@@ -848,38 +854,7 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 	tmp._actors=tmp._acs; // make search table
 	// - player
 	$gamePlayer=tmp=content.player; // need by 'addFollowers'
-	if(tmp._mvsp===undefined){ // having chance to be 0
-		tmp._mvsp=tmp._moveSpeed;
-		delete tmp._moveSpeed;
-	}
-	if(tmp._mvtp===undefined){ // having chance to be 0
-		tmp._mvtp=tmp._moveType;
-		delete tmp._moveType;
-	}
-	if(tmp._opct===undefined){ // having chance to be 0
-		tmp._opct=tmp._opacity;
-		delete tmp._opacity;
-	}
-	if(tmp._bm===undefined){ // having chance to be 0
-		tmp._bm=tmp._blendMode;
-		delete tmp._blendMode;
-	}
-	if(tmp._wa===undefined){ // having chance to be false
-		tmp._wa=tmp._walkAnime;
-		delete tmp._walkAnime;
-	}
-	if(tmp._sa===undefined){ // having chance to be false
-		tmp._sa=tmp._stepAnime;
-		delete tmp._stepAnime;
-	}
-	if(tmp._dirfx===undefined){ // having chance to be false
-		tmp._dirfx=tmp._directionFix;
-		delete tmp._directionFix;
-	}
-	if(tmp._trpt===undefined){ // having chance to be false
-		tmp._trpt=tmp._transparent;
-		delete tmp._transparent;
-	}
+	tmp._deleteOldDataMember();
 	// - - followers
 	{
 		let arr=tmp._followers._data;
