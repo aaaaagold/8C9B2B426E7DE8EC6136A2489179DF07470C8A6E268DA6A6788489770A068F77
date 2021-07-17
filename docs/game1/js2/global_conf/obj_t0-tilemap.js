@@ -214,14 +214,44 @@ $dddd$=$pppp$.update=function f(){ // forEach is slowwwwwwwwww
 		++this.animationCount;
 		this.animationFrame = ~~((this.animationCount&=this._fc_2_msk)>>this._fc_2); // always >=0
 	}
-	f.updateChildren.call(this);
+	this.updateChildren();
 	for (let x=0,arr=this.bitmaps;x!==arr.length;x++) if (arr[x]) arr[x].touch();
 }; $dddd$.ori=$rrrr$;
-$dddd$.updateChildren=function f(){
+$dddd$=$pppp$.updateChildren=function f(){
+	f.forEach.t=this;
 	this.children.forEach(f.forEach); // Sprite_Character.updatePosition is here
+	++this._updateLater_cnt;
 	return this.doWaitRemove();
 };
-$dddd$.updateChildren.forEach=c=>c&&c.update&&c.update();
+$dddd$.forEach=function f(c){
+	if(c.constructor===Sprite_Character){
+		if(!f.t._updateLater_chrSet.has(c)){
+			f.t._updateLater_chrSet.add(c);
+			f.t._updateLater_chrArr.push(c);
+			c.setupAnimation();
+			c.setupBalloon();
+		}
+	}else c.update&&c.update();
+};
+$pppp$.doUpdateLater=function(){
+	if(!this._updateLater_cnt) return;
+	const chr=this._updateLater_chrArr;
+	if(this._updateLater_cnt>1){
+		for(let x=0;x!==chr.length;++x){
+			chr[x].update(false,true);
+			chr[x].update();
+		}
+	}else{
+		
+		for(let x=0;x!==chr.length;++x){
+			chr[x].update();
+		}
+	}
+	this._updateLater_chrArr.length=0;
+	this._updateLater_chrSet.clear();
+	this._updateLater_cnt=0;
+	return this.doWaitRemove();
+};
 $dddd$=$pppp$._sortChildren=function f(){
 	f.cmp.r=this;
 	this.children.sort(f.cmp);
@@ -272,6 +302,12 @@ $dddd$=$pppp$.initialize=function f(){
 	//  op order: '+' , '^'
 	this._tileCols=0^Math.ceil(this._width/this._tileWidth)+1;
 	this._tileRows=0^Math.ceil(this._height/this._tileHeight)+1;
+	
+	// reorder tasks
+	// - update right before sorting children
+	this._updateLater_chrSet=new Set();
+	this._updateLater_chrArr=[];
+	this._updateLater_cnt=0;
 	
 	// fast search
 	
@@ -343,16 +379,25 @@ $pppp$.doWaitRemove=function(){
 	this._waitRemoves.forEach(c=>c.parent===this&&this.removeChild(c));
 	return this._waitRemoves.clear();
 };
+if(objs.test_tilemap){
+$pppp$.updateTransform_tail=function(){
+	this.doUpdateLater();
+	this._sortChildren();
+	PIXI.Container.prototype.updateTransform.call(this);
+};
+}else{
 $dddd$=$pppp$.updateTransform_tail=function f(){
+	this.doUpdateLater();
 	this._boundsID++;
 	this.transform.updateTransform(this.parent.transform);
 	this.worldAlpha = this.alpha * this.parent.worldAlpha;
 	return this.children.forEach(f.forEach,true);
 };
 $dddd$.forEach=c=>c.visible&&c.updateTransform();
+}
 $pppp$.updateTransform=function(forced){
-	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
-	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
+	const startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
+	const startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
 	if (forced || this._needsRepaint || 
 		this._lastAnimationFrame !== this.animationFrame ||
@@ -365,12 +410,7 @@ $pppp$.updateTransform=function(forced){
 		this._paintAllTiles(startX, startY);
 		this._needsRepaint = false;
 	}
-	if(objs.test_tilemap){
-	this._sortChildren();
-	PIXI.Container.prototype.updateTransform.call(this);
-	}else{
-	return this.updateTransform_tail();
-	}
+	this.updateTransform_tail();
 };
 $dddd$=$pppp$._createLayers=function f(){ // re-write: psuedo layer
 	let width = this._width;
@@ -1027,8 +1067,8 @@ $dddd$=$pppp$.refreshTileset=function f(){
 };
 $dddd$.toPIXI=bitmap=>bitmap._baseTexture?new PIXI.Texture(bitmap._baseTexture):bitmap;
 $pppp$.updateTransform=function() {
-	let startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
-	let startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
+	const startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
+	const startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
 	if (this._needsRepaint ||
 		this._lastStartX !== startX || this._lastStartY !== startY) {
@@ -1037,12 +1077,7 @@ $pppp$.updateTransform=function() {
 		this._paintAllTiles(startX, startY);
 		this._needsRepaint = false;
 	}
-	if(objs.test_tilemap){
-	this._sortChildren();
-	PIXI.Container.prototype.updateTransform.call(this);
-	}else{
-	return this.updateTransform_tail();
-	}
+	this.updateTransform_tail();
 };
 $dddd$=$pppp$._createLayers=function f(){
 	let width = this._width;
