@@ -353,13 +353,13 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 	});
 	
 	Object.defineProperties(w.Object.prototype,{
-		hasKey: { // it's slow, still need to copy keys to an array (or something like that)
-			// seems this is the only way
-			get:function(){
-				//debug.warn("Obj.hasKey is slow, still need to copy keys to an array (or something like that). And also 'for(let i in Obj)' is too.");
-				for(let i in this){if(w.Object.prototype.hasOwnProperty.call(this,i)) return true;} return false;
-			},
-		configurable: true},
+	//	hasKey: { // it's slow, still need to copy keys to an array (or something like that)
+	//		// seems this is the only way
+	//		get:function(){
+	//			//debug.warn("Obj.hasKey is slow, still need to copy keys to an array (or something like that). And also 'for(let i in Obj)' is too.");
+	//			for(let i in this){if(w.Object.prototype.hasOwnProperty.call(this,i)) return true;} return false;
+	//		},
+	//	configurable: true},
 		hasOwnKey: {
 			get:_=>w.Object.prototype.hasOwnProperty,
 		configurable: true},
