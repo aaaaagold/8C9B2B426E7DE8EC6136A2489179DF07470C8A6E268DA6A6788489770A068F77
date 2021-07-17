@@ -337,13 +337,14 @@ $pppp$.isInView=function(){ // can view?
 $r$=$pppp$.update;		
 $d$=$pppp$.update=function f(forced){
 	if(forced) return f.ori.call(this);
-	let c=this._character;
+	const c=this._character;
 	if(!c) return f.ori.call(this);
-	let playing=(c.isAnimationPlaying()||c.isBalloonPlaying());
-	if(!playing){
+	//let playing=(c.isAnimationPlaying()||c.isBalloonPlaying()); // always undefined
+	//if(!playing)
+	{
 		if(c._erased){
 			return this.remove();
-		}else if(this.isInView()===false){
+		}else if(!this.isInView()){
 			return this.updatePosition(); // give up update if too far
 		}
 	}
@@ -6018,9 +6019,55 @@ $pppp$=$aaaa$=undef; // END Game_Battler
 // - chrB
 $aaaa$=Game_CharacterBase;
 $pppp$=$aaaa$.prototype;
+Object.defineProperties($pppp$,{
+	// default
+	_blendMode:{ get:function(){ return this._bm; },set:function(rhs){
+		return this._bm=rhs;
+	},configurable:false},
+	_isObjectCharacter:{ get:function(){ return this._objChr; },set:function(rhs){
+		return this._objChr=rhs?6:0;
+	},configurable:false},
+	_jumpPeak:{ get:function(){ return this._jp; },set:function(rhs){
+		this._jp=rhs;
+		this._jp2=rhs*rhs;
+		return rhs;
+	},configurable:false},
+	_transparent:{ get:function(){ return this._trpt; },set:function(rhs){
+		return this._trpt=rhs;
+	},configurable:false},
+	// ext
+	_jumpPeak2:{ get:function(){ return this._jp2; },set:function(rhs){
+		return this._jp2=rhs;
+	},configurable:false},
+});
+$pppp$._deleteOldDataMemberByTbl=function(tbl){
+	const tmp=[];
+	for(let x=0;x!==tbl.length;++x){
+		if(this[tbl[x][1]]===undefined){
+			const k=tbl[x][0],t=this[k];
+			delete this[k];
+			tmp.push(x,t);
+		}
+	}
+	for(let x=0;x!==tmp.length;x+=2) this[tbl[tmp[x]][0]]=tmp[x|1];
+};
+$d$=$pppp$._deleteOldDataMember=function f(){
+	this._deleteOldDataMemberByTbl(f.tbl);
+};
+$d$.tbl=[
+	['_blendMode','_bm'],
+	['_isObjectCharacter','_objChr'],
+	['_jumpPeak','_jp'],
+];
+$pppp$.shiftY=$pppp$.isObjectCharacter;
+$r$=$pppp$.jump;
+($pppp$.jump=function f(dx,dy){
+	f.ori.call(this,dx,dy);
+	this._jumpPeak2=this._jumpPeak*this._jumpPeak;
+}).ori=$r$;
 $pppp$.jumpHeight=function(){
 	const d=this._jumpCount - this._jumpPeak;
-	return (this._jumpPeak * this._jumpPeak - d*d)/2.0;
+	return (this._jumpPeak2 - d*d)/2.0;
 };
 $pppp$.scrolledX_tw=function() {
 	return $gameMap.adjustX_tw(this._realX);
@@ -6070,6 +6117,14 @@ $pppp$.screenZ2=function(){ // z of (x,y sys of gameMapZ), distinguish thing at 
 	let rtv=this.z2;
 	return isNone(rtv)?3:rtv;
 };
+$pppp$.updatePattern=function(){
+	if(!this.hasStepAnime() && this._stopCount > 0) this.resetPattern();
+	else{
+		++this._pattern;
+		this._pattern&=3;
+	}
+};
+$pppp$.maxPattern=()=>4;
 $d$=$pppp$.canPassDiagNumpad = function f(x,y,dir){
 	return this.canPassDiagonally(x,y,f.h[dir],f.v[dir]);
 };
@@ -6250,6 +6305,27 @@ $d$=$pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._tmp=[];
 }; $d$.ori=$r$;
+$d$=$pppp$._deleteOldDataMember=function f(){
+	Game_CharacterBase.prototype._deleteOldDataMember.call(this);
+	this._deleteOldDataMemberByTbl(f.tbl);
+};
+$d$.tbl=[
+	['_characterIndex','_chrIdx'],
+	['_characterName','_chrName'],
+	['_direction','_dir'],
+	['_directionFix','_dirfx'],
+	['_moveFrequency','_mvfreq'],
+	['_moveRoute','_mvr'],
+	['_moveRouteForcing','_mvrf'],
+	['_moveRouteIndex','_mvridx'],
+	['_moveSpeed','_mvsp'],
+	['_originalMoveRoute','_omvr'],
+	['_originalMoveRouteIndex','_omvridx'],
+	['_stepAnime','_sa'],
+	['_tileId','_tid'],
+	['_walkAnime','_wa'],
+	['_waitCount','_wc'],
+];
 Object.defineProperties($aaaa$.prototype,{
 	// simply shorten
 	_moveFrequency:{ get:function(){ return this._mvfreq; },set:function(rhs){
@@ -6257,9 +6333,6 @@ Object.defineProperties($aaaa$.prototype,{
 	},configurable:false},
 	_moveSpeed:{ get:function(){ return this._mvsp; },set:function(rhs){
 		return this._mvsp=rhs;
-	},configurable:false},
-	_moveType:{ get:function(){ return this._mvtp; },set:function(rhs){
-		return this._mvtp=rhs;
 	},configurable:false},
 	_direction:{ get:function(){ return this._dir; },set:function(rhs){
 		return this._dir=rhs;
@@ -6282,11 +6355,11 @@ Object.defineProperties($aaaa$.prototype,{
 	_originalMoveRouteIndex:{ get:function(){ return this._omvridx; },set:function(rhs){
 		return this._omvridx=rhs;
 	},configurable:false},
-	_waitCount:{ get:function(){ return this._wc; },set:function(rhs){
-		return this._wc=rhs;
-	},configurable:false},
 	_stepAnime:{ get:function(){ return this._sa; },set:function(rhs){
 		return this._sa=rhs&&1||0;
+	},configurable:false},
+	_waitCount:{ get:function(){ return this._wc; },set:function(rhs){
+		return this._wc=rhs;
 	},configurable:false},
 	_walkAnime:{ get:function(){ return this._wa; },set:function(rhs){
 		return this._wa=rhs&&1||0;
@@ -7025,7 +7098,27 @@ $d$=$pppp$.getData=function f(){
 	const actor=$gameParty.allMembers()[0];
 	return actor?actor.getData():f.ori.call(this);
 }; $d$.ori=$r$;
-Object.defineProperties($aaaa$.prototype, {
+$d$=$pppp$._deleteOldDataMember=function f(){
+	Game_Character.prototype._deleteOldDataMember.call(this);
+	this._deleteOldDataMemberByTbl(f.tbl);
+};
+$d$.tbl=[
+	['_blendMode','_bm'],
+	['_directionFix','_dirfx'],
+	['_moveSpeed','_mvsp'],
+	['_opacity','_opct'],
+	['_stepAnime','_sa'],
+	['_transparent','_trpt'],
+	['_walkAnime','_wa'],
+];
+{ const dirs=[[0,1],[-1,0],[1,0],[0,-1]];
+Object.defineProperties($pppp$,{
+	dirs:{
+		get: function(){ return dirs; },
+	},
+});
+}
+Object.defineProperties($pppp$, {
 	_moveSpeed:{ get: function(){return this._mvsp;},
 		set: function(rhs){
 			this._mvsp=rhs;
@@ -7077,9 +7170,6 @@ Object.defineProperties($aaaa$.prototype, {
 			return isNone(this._name)?this.savefilename:this._name;
 		}, set: function(rhs){
 			return this._name=rhs;
-	}, configurable: false },
-	dirs: { get: function(){
-			return [[0,1],[-1,0],[1,0],[0,-1]];
 	}, configurable: false },
 	speedup: { get: function(){
 			return this._sUp^0;
@@ -9102,18 +9192,20 @@ $pppp$.lock=function(){
 		this._locked = true;
 	}
 };
-$pppp$._deleteOldDataMember=function(){
-	if(this._evtid===undefined){
-		const evtid=this._eventId;
-		delete this._eventId;
-		this._eventId=evtid;
-	}
-	if(this._sba===undefined){
-		const sba=this._strtByAny;
-		delete this._strtByAny;
-		this._strtByAny=sba;
-	}
-}
+$d$=$pppp$._deleteOldDataMember=function f(){
+	Game_Character.prototype._deleteOldDataMember.call(this);
+	this._deleteOldDataMemberByTbl(f.tbl);
+};
+$d$.tbl=[
+	['_eventId','_evtid'],
+	['_moveType','_mvtp'],
+	['_priorityType','_pri'],
+	['_strtByAny','_sba'],
+	['_through','_thru'],
+	['_trigger','_trg'],
+	['_x','__x'],
+	['_y','__y'],
+];
 Object.defineProperties($aaaa$.prototype,{
 	_eventId:{ get:function(){return this._evtid;},set:function(rhs){
 		this._idd=(this._evtid=rhs).toId();
@@ -9213,6 +9305,9 @@ Object.defineProperties($aaaa$.prototype,{
 		},
 	configurable:false},
 	// simply shorten (default members)
+	_moveType:{ get:function(){ return this._mvtp; },set:function(rhs){
+		return this._mvtp=rhs;
+	},configurable:false},
 	_originalDirection:{ get:function(){ return this._odir||2; },set:function(rhs){
 		return this._odir=rhs;
 	},configurable:false},
@@ -9368,32 +9463,6 @@ $d$=$pppp$.update=function f(){
 				}
 			}
 		}
-		//const a=$gameActors.actor($gameParty._acs[this._player]);
-		if(0&&a&&(this._tmp&&(
-			this._tmp._lastActor!==a ||
-			this._tmp._lastActorDead!==this._dmg
-		))){
-			this._tmp._lastActor=a;
-			this._color=a._getColorEdt();
-			this._scale=a._getScaleEdt();
-			let dmgimg;
-			if((this._tmp._lastActorDead=this._dmg) && (dmgimg=a.getData().dmgimg)){
-				if(this._dirfx_bak===undefined) this._dirfx_bak=this._dirfx;
-				this._ref_chrIdx=a._characterIndex;
-				this._ref_chrName=a._characterName;
-				this._characterName  =dmgimg[0];
-				this._characterIndex =dmgimg[1];
-				this._direction=(dmgimg[2]+1)<<1;
-				this._dirfx=1;
-			}else{
-				this._characterName  =a.characterName ();
-				this._characterIndex =a.characterIndex();
-				if(this._dirfx_bak!==undefined){
-					this._dirfx=this._dirfx_bak;
-					delete this._dirfx_bak;
-				}
-			}
-		}//else this._characterName='';
 	}
 	if(this.canUpdate()) return f.ori.call(this);
 }; $d$.ori=$r$;
@@ -10959,37 +11028,37 @@ Object.defineProperties($aaaa$.prototype,{
 $pppp$._deleteOldDataMember=function(){
 	if(this._pp===undefined){
 		[ // 'arr[.][0]' are not used
-			['_actInIdx','_actionInputIndex'],
-			['_actStat','_actionState'],
-			['_acts','_actions'],
-			['_anis','_animations'],
-			['_btlrN','_battlerName'],
-			['_bufTn','_buffTurns'],
-			['_chrIdx','_characterIndex'],
-			['_chrN','_characterName'],
-			['_cid','_classId'],
-			['_dmgPop','_damagePopup'],
-			['_effT','_effectType'],
-			['_faceIdx','_faceIndex'],
-			['_faceN','_faceName'],
-			['_hid','_hidden'],
-			['_lstBtlSk','_lastBattleSkill'],
-			['_lstCmdSym','_lastCommandSymbol'],
-			['_lstMnSk','_lastMenuSkill'],
-			['_lstTrgIdx','_lastTargetIndex'],
-			['_motRfr','_motionRefresh'],
-			['_motT','_motionType'],
-			['_nick','_nickname'],
-			['_pp','_paramPlus'],
-			['_res','_result'],
-			['_statSt','_stateSteps'],
-			['_statTn','_stateTurns'],
-			['_wImgId','_weaponImageId'],
-			['_w2ImgId','_weapon2ImageId'],
+			["_actionInputIndex",	"_actInIdx"],
+			["_actionState",	"_actStat"],
+			["_actions",	"_acts"],
+			["_animations",	"_anis"],
+			["_battlerName",	"_btlrN"],
+			["_buffTurns",	"_bufTn"],
+			["_characterIndex",	"_chrIdx"],
+			["_characterName",	"_chrN"],
+			["_classId",	"_cid"],
+			["_damagePopup",	"_dmgPop"],
+			["_effectType",	"_effT"],
+			["_faceIndex",	"_faceIdx"],
+			["_faceName",	"_faceN"],
+			["_hidden",	"_hid"],
+			["_lastBattleSkill",	"_lstBtlSk"],
+			["_lastCommandSymbol",	"_lstCmdSym"],
+			["_lastMenuSkill",	"_lstMnSk"],
+			["_lastTargetIndex",	"_lstTrgIdx"],
+			["_motionRefresh",	"_motRfr"],
+			["_motionType",	"_motT"],
+			["_nickname",	"_nick"],
+			["_paramPlus",	"_pp"],
+			["_result",	"_res"],
+			["_stateSteps",	"_statSt"],
+			["_stateTurns",	"_statTn"],
+			["_weaponImageId",	"_wImgId"],
+			["_weapon2ImageId",	"_w2ImgId"],
 		].forEach(x=>{
-			const tmp=this[x[1]];
-			delete this[x[1]];
-			this[x[1]]=tmp;
+			const tmp=this[x[0]];
+			delete this[x[0]];
+			this[x[0]]=tmp;
 		});
 		this._result._deleteOldDataMember();
 	}

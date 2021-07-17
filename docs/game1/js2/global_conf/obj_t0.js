@@ -2189,6 +2189,11 @@ else Object.defineProperties($aaaa$.prototype,{
 		set:function(rhs){return this._z2=rhs|0;},
 	},
 });
+Object.defineProperty($aaaa$.prototype, 'opacity', {
+	get:function(){ const rtv=this.alpha; return rtv?rtv*256+1:0; },
+	set:function(val){ this.alpha = (val>0?val+1:0) / 256; },
+	configurable:true,
+});
 $pppp$.update=function f(){ // overwrite, forEach is slowwwwwwwwww
 	for(let arr=this.children,x=arr.length;x--;){ let child=arr[x];
 		child && child.update && child.update();
