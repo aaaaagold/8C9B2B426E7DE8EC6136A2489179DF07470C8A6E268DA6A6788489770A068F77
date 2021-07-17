@@ -334,22 +334,17 @@ $pppp$.isInView=function(){ // can view?
 	}else if(this._skipRender) return false;
 	else return this.isInView_inScreen();
 };
-$r$=$pppp$.update;		
-$d$=$pppp$.update=function f(forced){
-	if(forced) return f.ori.call(this);
-	const c=this._character;
-	if(!c) return f.ori.call(this);
-	//let playing=(c.isAnimationPlaying()||c.isBalloonPlaying()); // always undefined
-	//if(!playing)
-	{
-		if(c._erased){
-			return this.remove();
-		}else if(!this.isInView()){
-			return this.updatePosition(); // give up update if too far
-		}
+$k$='update_doAll';
+$pppp$[$k$]=$pppp$.update;
+($pppp$.update=function(forced,arg0AsView){
+	if(!arg0AsView&&forced) return this.update_doAll();
+	if(this._character._erased){
+		return this.remove();
+	}else if(arg0AsView?!forced:!this.isInView()){
+		return this.updatePosition(); // give up update if too far
 	}
-	return f.ori.call(this);
-}; $d$.ori=$r$;
+	return this.update_doAll();
+}).ori=$pppp$[$k$];
 $pppp$.updateBitmap_forced=function(){
 	this._character._imgModded=true;
 	this.updateBitmap();
@@ -3843,7 +3838,7 @@ $pppp$=$aaaa$=undef;
 // - map
 $aaaa$=Game_Map;
 $pppp$=$aaaa$.prototype;
-Object.defineProperties($aaaa$.prototype, {
+Object.defineProperties($pppp$, {
 	size: { get: function() { return $dataMap ? $gameMap.width()*$gameMap.height() : undefined; }, configurable: false },
 	w: { get: function(){return this.width();}, configurable: false },
 	h: { get: function(){return this.height();}, configurable: false },
@@ -6059,7 +6054,9 @@ $d$.tbl=[
 	['_isObjectCharacter','_objChr'],
 	['_jumpPeak','_jp'],
 ];
-$pppp$.shiftY=$pppp$.isObjectCharacter;
+$pppp$.shiftY=function(){
+	return 6^this.isObjectCharacter();
+};
 $r$=$pppp$.jump;
 ($pppp$.jump=function f(dx,dy){
 	f.ori.call(this,dx,dy);
@@ -6326,7 +6323,7 @@ $d$.tbl=[
 	['_walkAnime','_wa'],
 	['_waitCount','_wc'],
 ];
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	// simply shorten
 	_moveFrequency:{ get:function(){ return this._mvfreq; },set:function(rhs){
 		return this._mvfreq=rhs;
@@ -6466,7 +6463,7 @@ $d$.tbl=[ {x:0,y:0},
 	{x:-1,y:0},	{x:1,y:0},
 		{x:0,y:-1},
 ];
-Object.defineProperties($aaaa$.prototype, {
+Object.defineProperties($pppp$, {
 	frontx: { get: function() { return this.frontPos().x; }, configurable: false },
 	fronty: { get: function() { return this.frontPos().y; }, configurable: false },
 	_dummy:{get:function(){return'';},configurable:false}
@@ -7663,7 +7660,7 @@ $pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=10; // preserve some
 $aaaa$.addEnum=objs._addEnum;
 $aaaa$.addEnum('ABILITY_MUST_ESCAPE');
-Object.defineProperties($aaaa$.prototype, {
+Object.defineProperties($pppp$, {
 	_actors:{ get: function(){
 			debug.warn("get actors");
 			return this._acs;
@@ -8794,7 +8791,7 @@ $pppp$=$aaaa$=undef;
 // - followers
 $aaaa$=Game_Followers;
 $pppp$=$aaaa$.prototype;
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	length:{
 		get:function(){return this._data.length;},
 	},
@@ -8972,7 +8969,7 @@ $pppp$.getRefActor=function(){
 $pppp$.getActor=function(){
 	return this.getAvatarActor()||this.getPartyActor(); // others can use 'pages' to do dmg
 };
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	z2:{
 		get:function(){
 			return isNone(this._z2)?this._priorityType:this._z2; // type=above => default z2=2
@@ -9206,7 +9203,7 @@ $d$.tbl=[
 	['_x','__x'],
 	['_y','__y'],
 ];
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	_eventId:{ get:function(){return this._evtid;},set:function(rhs){
 		this._idd=(this._evtid=rhs).toId();
 		return rhs;
@@ -9983,7 +9980,7 @@ $pppp$=$aaaa$=undef;
 // - item
 $aaaa$=Game_Item;
 $pppp$=$aaaa$.prototype;
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	_dataClass:{get:function(){ return this._dc; },set:function(rhs){
 		return this._dc=rhs;
 	},configurable:false},
@@ -10867,7 +10864,7 @@ $d$.tbl={
 		'later','merge',
 	],
 };
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	addedBuffs:{ get:function(){return this.addBuf;},
 		set:function(rhs){return this.addBuf=rhs;},
 	configurable:false},
@@ -10942,7 +10939,7 @@ $r$=Game_Character.prototype;
 $pppp$._getColorEdt=$r$._getColorEdt;
 $pppp$._getScaleEdt=$r$._getScaleEdt;
 $pppp$._getAnchoryEdt=$r$._getAnchoryEdt;
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	_actionInputIndex:{ get:function(){return this._actInIdx;},
 		set:function(rhs){return this._actInIdx=rhs;},
 	configurable:false},
@@ -12149,7 +12146,7 @@ $r$=Game_Character.prototype;
 $pppp$._getColorEdt=$r$._getColorEdt;
 $pppp$._getScaleEdt=$r$._getScaleEdt;
 $pppp$._getAnchoryEdt=$r$._getAnchoryEdt;
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	_refActor:{
 		get:function(){return this._rActr;},
 		set:function(rhs){
@@ -14373,7 +14370,7 @@ $pppp$.reselIdx=function(noUpdate){
 	if(!noUpdate) this._index=idx;
 	return idx;
 };
-Object.defineProperty($aaaa$.prototype,'_index',{
+Object.defineProperty($pppp$,'_index',{
 	get:function(){return this._idx;},
 	set:function(rhs){
 		if(this._idx===rhs) return rhs;
@@ -14524,7 +14521,7 @@ $pppp$.onTouch=function(triggered){
 	if(this._commandWindow) args.push(this._commandWindow);
 	return this._onTouch_iw(triggered,args);
 };
-Object.defineProperty($aaaa$.prototype,'_index',{
+Object.defineProperty($pppp$,'_index',{
 	get:function(){return this._idx;},
 	set:function(rhs){
 		if(this._idx===rhs) return rhs;
