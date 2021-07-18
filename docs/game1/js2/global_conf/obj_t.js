@@ -1640,16 +1640,17 @@ $d$=$aaaa$.clearTBDCache=function f(){
 	}else this._TBDCache=new Set();
 };
 $d$.forEach=b=>b.clearCache();
-$aaaa$.initChases=function f(){
+$d$=$aaaa$.initChases=function f(){
 	let M=this._chases;
 	if(M) M.clear();
 	else M=this._chases=new Map();
-	let arr=Game_BattlerBase.CHASE_FRIENDS,c;
-	M.set($gameParty,c=new Map());	c.byCond=arr.map(_=>new Set());
-	M.set($gameTroop,c=new Map());	c.byCond=arr.map(_=>new Set());
-	M.set(this,c=new Map());	c.byCond=arr.map(_=>new Set());
+	let arr=Game_BattlerBase.CHASE_FRIENDS,c; if(!arr.length) arr.length=1;
+	M.set($gameParty,c=new Map());	c.byCond=arr.map(f.forEach);
+	M.set($gameTroop,c=new Map());	c.byCond=arr.map(f.forEach);
+	M.set(this,c=new Map());	c.byCond=arr.map(f.forEach);
 	// btlr -> traitCodeSet according to friend or opponent or all
 };
+$d$.forEach=_=>new Set();
 $k$='initMembers';
 $r$=$aaaa$[$k$];
 $d$=$aaaa$[$k$]=function f(){
@@ -1865,7 +1866,10 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		if(cf && cf.size){
 			fu.set(btlr,gbb.CHASE_FRIENDS);
 			if(isRemoved) cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].delete(btlr));
-			else cf.forEach((v,k)=>fu.byCond[k]&&fu.byCond[k].add(btlr));
+			else for(let x=1,arr=fu.byCond;x!==arr.length;++x){
+				if(cf.has(x)) arr[x].add(btlr);
+				else arr[x].delete(btlr);
+			}
 		}else{
 			fu.delete(btlr);
 			fu.byCond.forEach(s=>s.delete(btlr));
@@ -1875,7 +1879,10 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		if(co && co.size){
 			ou.set(btlr,gbb.CHASE_OPPONENTS);
 			if(isRemoved) co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].delete(btlr));
-			else co.forEach((v,k)=>ou.byCond[k]&&ou.byCond[k].add(btlr));
+			else for(let x=1,arr=ou.byCond;x!==arr.length;++x){
+				if(co.has(x)) arr[x].add(btlr);
+				else arr[x].delete(btlr);
+			}
 		}else{
 			ou.delete(btlr);
 			ou.byCond.forEach(s=>s.delete(btlr));
@@ -1885,7 +1892,10 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		if(ca && ca.size){
 			au.set(btlr,gbb.CHASE_ALLBATTLERS);
 			if(isRemoved) ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].delete(btlr));
-			ca.forEach((v,k)=>au.byCond[k]&&au.byCond[k].add(btlr));
+			else for(let x=1,arr=au.byCond;x!==arr.length;++x){
+				if(ca.has(x)) arr[x].add(btlr);
+				else arr[x].delete(btlr);
+			}
 		}else{
 			au.delete(btlr);
 			au.byCond.forEach(s=>s.delete(btlr));
@@ -5154,7 +5164,12 @@ $r$=$pppp$[$k$];
 	// this._buffs must be Array so that any other members appear on it will not be saved to game saves
 	this._buffs.set=new Set();
 }).ori=$r$;
-
+$pppp$.updateChase=function(o,n){ // if no args, update!
+	if(SceneManager.isBattle()){
+		const k=arguments.length&&Game_BattlerBase.CHASES.kb;
+		if(!k||(o&&o.tmapS.has(k))||(n&&n.tmapS.has(k))) BattleManager.updateChase(this);
+	}
+};
 $pppp$.isMaxBuffAffected=none; // 2 ?
 $pppp$.isMaxDebuffAffected=none; // this._buffs[paramId]===-2 ?
 $d$=$pppp$.updateStateTurns=function f(){
@@ -5174,9 +5189,11 @@ $d$=$pppp$.clearStates=function f(ignoreBuff){
 				arr[newidx++]=arr[x];
 			}
 		}
-		this._states.length=newidx;
-		this._overall_delCache();
-		if(SceneManager.isBattle()) BattleManager.updateChase(this);
+		if(this._states.length!==newidx){
+			this._states.length=newidx;
+			this._overall_delCache();
+			this.updateChase();
+		}
 	}else this._states=[];
 };
 $pppp$.eraseState=function(stateId){
@@ -5184,16 +5201,15 @@ $pppp$.eraseState=function(stateId){
 	const rtv=index>=0;
 	if(rtv){
 		this._states.splice(index, 1);
-		const stat=this._states_getCache();
+		const data=$dataStates[stateId],stat=this._states_getCache();
 		if(stat){
 			stat.splice(index, 1);
 			stat.a.delete(stateId);
-			const data=$dataStates[stateId];
 			stat.s.byKey2_del_sum(data.tmapS);
 			stat.m.byKey2_del_mul(data.tmapP);
 		}
 		this._overall_delCache();
-		if(SceneManager.isBattle()) BattleManager.updateChase(this);
+		this.updateChase(data);
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
@@ -5235,7 +5251,7 @@ $pppp$._addNewState_updateCache=function(stateId){
 		stat.m.byKey2_mul(data.tmapP);
 	}
 	this._overall_delCache();
-	if(SceneManager.isBattle()) BattleManager.updateChase(this);
+	this.updateChase(data);
 };
 $pppp$.addNewState=function(stateId){
 	let cancel=false;
@@ -11149,7 +11165,7 @@ $pppp$.initEquips=function(equips){
 	}
 	this._equips_delCache();
 	this.releaseUnequippableItems(true);
-	this.refresh();
+	this.refresh(true);
 };
 $d$=$pppp$.changeExp=function f(exp, show){
 	this._exp[this._classId] = Math.max(exp, 0);
@@ -11202,6 +11218,12 @@ $d$=$pppp$.displayLevelUp=function f(newSkills){
 		$gameMessage.popup(text,true);
 		newSkills.forEach(f.forEach[1]);
 	}
+	if(this.constructor===Game_Actor && SceneManager.isBattle()) for(let x=0;x!==newSkills.length;++x){
+		if($dataSkills[newSkills[x]].tmapS.has(Game_BattlerBase.CHASES.kb)){
+			BattleManager.updateChase(this);
+			break;
+		}
+	}
 };
 $d$.forEach=[
 	id=>$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name)),
@@ -11220,6 +11242,7 @@ $pppp$.changeClass=function(classId, keepExp){
 	this.clearCache();
 	this.changeExp(this._exp[this._classId=classId] = keepExp&&this._exp[oldCid]||0, false);
 	this.refresh();
+	this.updateChase($dataClasses[oldCid],$dataClasses[classId]);
 };
 $pppp$.changeLevel=function(level,show){
 	if(level<1) level=1;
@@ -11372,7 +11395,8 @@ $pppp$._equips_slotChanged=function(lastSlots){
 			this.changeEquip(x,null,~0,false); // addState will refresh
 		}
 	} }
-	this._overall_delCache(); // clear cache for calling equipSlots
+	// done in cache_add/del
+	//this._overall_delCache(); // clear cache for calling equipSlots
 };
 $pppp$.equips=function(refresh){ // called every time when a trait info is needed. e.g. 'this.equipSlots'
 	return this._equips_getCache()||this._equips_updateCache();
@@ -11438,49 +11462,64 @@ $pppp$._equipR_ch=function(slotId,slotIdExt,ori,item){
 	}
 	this._equips_editCache_add(item);
 };
-$pppp$.changeEquip=function(slotId,item,slotIdExt,noRefresh){
+$pppp$.changeEquip=function(slotId,item,slotIdExt,noRefresh,noUpdateChase){
 	//debug.log('Game_Actor.prototype.changeEquip');
 	if(!(slotId>=0)) return null;
-	let ori;
+	let ori,ch=false;
 	$gameTemp.____byChEqu=true;
 	if(slotIdExt>=0){
 		ori=this._equips[slotId][slotIdExt].object();
-		if (this.tradeItemWithParty(item, ori) &&
-			(!item || this.equipSlots()[slotId] === item.etypeId)) {
+		if(ori!==item && this.tradeItemWithParty(item, ori) &&
+			(!item || this.equipSlots()[slotId] === item.etypeId)
+		){
 			this._equipR_ch(slotId,slotIdExt,ori,item);
 			if(!noRefresh) this.refresh();
+			ch=true;
 		}
 	}else{
 		ori=this._equips[slotId].object();
-		if (this.tradeItemWithParty(item, ori) &&
-			(!item || this.equipSlots()[slotId] === item.etypeId)) {
+		if(ori!==item && this.tradeItemWithParty(item, ori) &&
+			(!item || this.equipSlots()[slotId] === item.etypeId)
+		){
 			const c=this._equips_getCache(); if(c) c[slotId]=item;
 			this._equips_editCache_del(ori);
 			this._equips[slotId].setObject(item);
 			this._equips_editCache_add(item);
 			if(!noRefresh) this.refresh();
+			ch=true;
 		}
 	}
 	$gameTemp.____byChEqu=false;
 	//this._equips_delCache();
+	if(!noUpdateChase) this.updateChase(ori,item);
 	return ori;
 };
 $pppp$.forceChangeEquip=function(slotId, item, slotIdExt){
 	if(!(slotId>=0)) return;
+	let ch=false,ori;
 	if(slotIdExt>=0){
 		const arr=this._equips[slotId];
-		const ori=arr[slotIdExt].object();
-		this._equipR_ch(slotId,slotIdExt,ori,item);
+		ori=arr[slotIdExt].object();
+		if(ori!==item){
+			this._equipR_ch(slotId,slotIdExt,ori,item);
+			ch=true;
+		}
 	}else{
 		const c=this._equips_getCache(); if(c) c[slotId]=item;
-		const ori=this._equips[slotId].object();
-		this._equips_editCache_del(ori);
-		this._equips[slotId].setObject(item);
-		this._equips_editCache_add(item);
+		ori=this._equips[slotId].object();
+		if(ori!==item){
+			this._equips_editCache_del(ori);
+			this._equips[slotId].setObject(item);
+			this._equips_editCache_add(item);
+			ch=true;
+		}
 	}
-	//this._equips_delCache();
-	this.releaseUnequippableItems(true);
-	this.refresh();
+	if(ch){
+		//this._equips_delCache();
+		this.releaseUnequippableItems(true);
+		this.refresh(true);
+		this.updateChase(ori,item);
+	}
 };
 $pppp$.changeEquipById=function(etypeId, itemId, slotIdExt) {
 	const slotId = etypeId - 1;
@@ -11499,25 +11538,31 @@ $pppp$.hasWeapon = $d$; // change logic: search in equipped weapons -> search in
 $pppp$.hasArmor = $d$; // change logic: search in equipped armors -> search in all equipments
 $pppp$.discardEquip = function(item){
 	if(!item) return;
+	let ch=false;
 	if($dataSystem.equipTypes.meta.repeat[item.etypeId]){
 		const slots=this.equipSlots();
 		const slotId = slots.indexOf(item.etypeId);
 		const slotIdExt=this.equips()[slotId].lastIndexOf(item);
 		if(slotIdExt!==-1){
 			const arr=this._equips[slotId];
-			const ori=arr[slotIdExt].object();
+			const ori=arr[slotIdExt].object(); // ===item
 			this._equipR_ch(slotId,slotIdExt,ori,null);
 			//this._equips_delCache();
+			ch=true;
 		}
 	}else{
 		const c=this.equips();
 		const slotId = c.indexOf(item); // consider dual wield and more fleible methods (edit function 'equipSlots'), not using item.etypeId-1
 		if(slotId!==-1){
 			c[slotId]=null;
-			const ori=this._equips[slotId].object();
+			const ori=this._equips[slotId].object(); /// item
 			this._equips_editCache_del(ori);
 			this._equips[slotId].setObject(null);
+			ch=true;
 		}
+	}
+	if(ch){
+		this.updateChase(item);
 	}
 };
 $pppp$._releaseUnequippableItems_item=function(forcing_i,slots,i,e,ext){
@@ -11554,20 +11599,22 @@ $pppp$.releaseUnequippableItems=function(forcing){ // forcing: do not put back e
 		//if(changed) this._equips_delCache(); // 'equipSlots' use 'isDualWield'
 	}
 };
-$pppp$.clearEquipments=function(kargs){
-	kargs=kargs||{};
+$d$=$pppp$.clearEquipments=function f(kargs){
+	kargs=kargs||f.tbl;
 	const repeats=$dataSystem.equipTypes.meta.repeat;
 	const slots=this.equipSlots();
-	for (let i=slots.length;i--;){
+	for(let i=slots.length;i--;){
 		if(this.isEquipChangeOk(i)){
 			if(repeats[slots[i]]){ if(kargs.preserveRepeats) continue;
 				let arr=this._equips[i];
-				while(arr.length>1) this.changeEquip(i, null, arr.length-2, true);
-			}else this.changeEquip(i, null, undefined, true);
+				while(arr.length>1) this.changeEquip(i, null, arr.length-2, true,true);
+			}else this.changeEquip(i, null, undefined, true,true);
 		}
 	}
-	this.refresh();
+	this.refresh(true);
+	this.updateChase();
 };
+$d$.tbl={preserveRepeats:false};
 $d$=$pppp$.optimizeEquipments=function f(){
 	const slots=this.equipSlots();
 	const maxSlotTypes = slots.length,repeats=$dataSystem.equipTypes.meta.repeat;
@@ -11581,7 +11628,7 @@ $d$=$pppp$.optimizeEquipments=function f(){
 			if(f.tbl.preserveRepeats){ // only last slot
 				const x=recnt[i]-1;
 				if(this.isEquipChangeOk(i,x)){ const top=h.top; if(top){
-					this.changeEquip(i,top[0],x);
+					this.changeEquip(i,top[0],x,true,true);
 					if(--top[2]===0) h.pop();
 				} }
 				continue;
@@ -11589,12 +11636,14 @@ $d$=$pppp$.optimizeEquipments=function f(){
 			for(let x=0,xs=recnt[i];x!==xs;++x){ if(this.isEquipChangeOk(i,x)){
 				//this.changeEquip(i, this.bestEquipItem(i),x);
 				const top=h.top; if(top){
-					this.changeEquip(i,top[0],x);
+					this.changeEquip(i,top[0],x,true,true);
 					if(--top[2]===0) h.pop();
 				}
 			} }
 		}
 	}
+	this.refresh(true);
+	this.updateChase();
 };
 $d$.cmp=(a,b)=>a[1]-b[1];
 $d$.tbl={preserveRepeats:true};
@@ -11681,11 +11730,11 @@ $d$.map=id=>$dataSkills[id];
 $pppp$.learnSkill=function(skillId,arrangeLater){
 	if(!this.isLearnedSkill(skillId)){ // will create cache
 		this._skills.push(skillId);
+		const item=$dataSkills[skillId];
 		if(arrangeLater){
 			const c=this._skills_getCache();
 			c.needArrange=true;
 			c.add(skillId);
-			const item=$dataSkills[skillId];
 			c.s.byKey2_sum(item.tmapS);
 			c.m.byKey2_mul(item.tmapP);
 			if(!c.pendLearns) c.pendLearns=[];
@@ -11694,6 +11743,7 @@ $pppp$.learnSkill=function(skillId,arrangeLater){
 		}else{
 			this._overall_delCache();
 			this._skills_updateCache(); // maintain sorted
+			this.updateChase(item);
 		}
 	}
 };
@@ -11701,13 +11751,12 @@ $pppp$.forgetSkill=function(skillId){
 	const index = this._skills.indexOf(skillId);
 	if(index >= 0){
 		this._skills.splice(index, 1);
-		const c=this._skills_getCache();
+		const item=$dataSkills[skillId],c=this._skills_getCache();
 		if(c){
 			c.delete(skillId);
 			if(c.all && c.all[index] && c.all[index].id===skillId){ // this._skills first then added skills
 				c.all.splice(index,1);
 			}
-			const item=$dataSkills[skillId];
 			c.s.byKey2_del_sum(item.tmapS);
 			c.m.byKey2_del_mul(item.tmapP);
 			if(c.added && !c.added.has(skillId)){
@@ -11716,6 +11765,7 @@ $pppp$.forgetSkill=function(skillId){
 			}
 		}
 		this._overall_delCache();
+		this.updateChase(item);
 	}
 };
 $d$=$pppp$._getTraits_native=function f(){
