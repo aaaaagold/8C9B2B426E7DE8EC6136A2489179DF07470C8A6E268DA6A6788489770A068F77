@@ -598,6 +598,7 @@ $dddd$.note2traits=x=>{
 			const chaseSkill=chase[2];
 			const chaseMore=(chase[3]|0)||1;
 			
+			x.traits.push({code:gbb[gbb.CHASES.kb] , dataId:0 , value:1 , comment:gbb.CHASES.kb});
 			x.traits.push({code:gbb[gbb.CHASES[chtype]] , dataId:chaseIdx , value:1 , comment:gbb.CHASES[chtype]+" - "+chaseKey});
 			x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
 		}
@@ -776,6 +777,7 @@ gbb._initChase=function f(){
 	if(f.inited) return;
 	f.inited=true;
 	gbb.CHASES=["",]; // 1-indexed
+	const kb=gbb.CHASES.kb="TRAIT_CHASE"; gbb.addEnum(kb);
 	gbb.CHASES.toIdx=new Map();
 	[
 		[gbb.CHASE_FRIENDS=[],"FRIEND"],
@@ -783,7 +785,7 @@ gbb._initChase=function f(){
 		[gbb.CHASE_ALLBATTLERS=[],"ALLBATTLER"],
 	].forEach(info=>{
 		const arr=info[0]; arr.toKey=new Map(); arr.toIdx=new Map();
-		const p="TRAIT_CHASE_"+info[1];
+		const p=kb+"_"+info[1];
 		gbb.CHASES.push(p);
 		gbb.addEnum(p);
 		const prefix = p+"_" , toIdx = !gbb.CHASES.toIdx.size && gbb.CHASES.toIdx ;
