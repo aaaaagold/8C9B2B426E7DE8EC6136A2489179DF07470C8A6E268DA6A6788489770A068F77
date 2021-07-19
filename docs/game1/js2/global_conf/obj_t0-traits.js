@@ -236,7 +236,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.ord=ord;
 	}); }
 	
-	// make traits map
+	// make traits map // must be trait-last
 	f.doForEach($dataActors,f.makeTraitsMap);
 	f.doForEach($dataArmors,f.makeTraitsMap);
 	f.doForEach($dataClasses,f.makeTraitsMap);
@@ -248,6 +248,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	// needStates
 	f.doForEach($dataItems,f.makeNeedStates);
 	f.doForEach($dataSkills,f.makeNeedStates);
+	
+	// additional crit. rate / fixed crit. rate
+	f.doForEach($dataItems,f.makeAdditionalCrit);
+	f.doForEach($dataSkills,f.makeAdditionalCrit);
 	
 	// effect, func && code
 	f.doForEach($dataItems,f.makeEffectFuncCode);
@@ -299,7 +303,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.extendRepeats);
 	f.doForEach($dataSkills,f.extendRepeats);
 	
-	// extend description
+	// extend description // must be ability-last
 	f.doForEach($dataItems,f.extendDescription_i);
 	f.doForEach($dataSkills,f.extendDescription_i);
 	f.doForEach($dataArmors,f.extendDescription_e);
@@ -393,10 +397,27 @@ $dddd$.extendDescription_i=dataobj=>{
 		k='dmgFormula';	tmpkeys.push(k);	dataobj[k]=dmg.formula;	infos.push(k);
 	} }
 	infos.forEach(k=>{ if(k && k[0]!=="_"){
-		if(k==='dmgEle'){ const eid=dmg.elementId;
+		switch(k){
+		default:{
+			if(ie[k].constructor!==String) ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]]+']';
+			else ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
+		}break;
+		case 'dmgCrit':{
+			if(dataobj.critF<=0) dataobj[k]=0;
+			ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]];
+			if(dataobj[k]){
+				if(dataobj.critF===undefined){
+					if(dataobj.critA) ext+=','+ie.critA+dataobj.critA;
+				}else{
+					if(dataobj.critF) ext+=','+ie.critF+dataobj.critF;
+				}
+			}
+			ext+=']';
+		}break;
+		case 'dmgEle':{ const eid=dmg.elementId;
 			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid])+']';
-		}else if(ie[k].constructor!==String) ext+='['+ie[k+"_txt"]+ie[k][dataobj[k]]+']';
-		else ext+='['+ie[k].replace(ie._placeholder,dataobj[k])+']';
+		}break;
+		}
 	} });
 	if(ext){
 		let tmp=dataobj.description.match(/\n/g); tmp=tmp&&tmp.length;
@@ -409,6 +430,11 @@ $dddd$.extendRepeats=dataobj=>{
 	const n=Number(dataobj.meta.repeat_mul);
 	if(!isNaN(n)) dataobj.repeats *= n;
 };
+$dddd$.makeAdditionalCrit=dataobj=>{
+	dataobj.critA=Number(dataobj.meta.critA)||0;
+	const n=Number(dataobj.meta.critF);
+	dataobj.critF=isNaN(n)?undefined:n;
+}
 { const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
 $dddd$.makeEffectFuncCode=dataobj=>{
 	const effs=dataobj.effects;

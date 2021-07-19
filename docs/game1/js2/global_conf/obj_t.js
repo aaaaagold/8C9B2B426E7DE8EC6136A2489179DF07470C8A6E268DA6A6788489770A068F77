@@ -10478,7 +10478,13 @@ $pppp$.itemEva=function(t){
 	}
 };
 $pppp$.itemCri=function(t){
-	return this.item().damage.critical ? (this.isUsePreload()?this.getPreload_s():this.subject()).cri * (1 - (this.isUsePreload()?this.getPreload_t():t).cev) : 0;
+	const item=this.item();
+	return item.damage.critical ? 
+		(item.critF===undefined ? 
+			item.critA + (this.isUsePreload()?this.getPreload_s():this.subject()).cri : 
+			item.critF
+		) * (1 - (this.isUsePreload()?this.getPreload_t():t).cev ) : 
+		0 ;
 };
 $pppp$.getSelfItemObj=function(obj){
 	const item=arguments.length?obj:this.item();
