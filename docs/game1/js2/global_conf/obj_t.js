@@ -1182,7 +1182,7 @@ $pppp$.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendere
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
 		for(let i=0,cache=f.cache,texPerChild=isWebGL?tm.lowerLayer.texPerChild:0,len=tilesetNames.length;i!==len;++i){
 			let x=i,curr=tm.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
-			if(isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
+			if(!objs.test_webglTilemapAlpha && isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
 				let fname=bitmap._fname; if(!fname){ tm.bitmaps[x+len]=ImageManager.loadEmptyBitmap(); return; }
 				let i=x+len,alpha=0.25*(~~(i/len));
 				let cacheKey=fname+"-"+alpha;
