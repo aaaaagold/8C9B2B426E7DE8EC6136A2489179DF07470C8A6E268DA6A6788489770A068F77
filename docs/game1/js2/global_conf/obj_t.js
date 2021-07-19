@@ -6986,6 +6986,11 @@ $d$=$pppp$[$k$]=function f(goalx,goaly){
 //$d$=$pppp$[$k$]=function(){ // overwrite
 //}; $d$.ori=$r$;
 $pppp$.mvRefChr=function(chr){ this._x=chr._x; this._y=chr._y; };
+$pppp$.mvRefChrR=function(chr){
+	this.mvRefChr(chr);
+	this._realX=chr._realX;
+	this._realY=chr._realY;
+};
 $pppp$.mvAbs=function(x,y){ this._x=x; this._y=y; };
 $pppp$.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
 $pppp$.moveRandom = function() {
