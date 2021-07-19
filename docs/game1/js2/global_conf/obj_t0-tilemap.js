@@ -5,7 +5,7 @@
 
 if(!window.objs) window.objs={};
 objs.test_tilemap=true; // tilemap.children is an array if true
-if(objs.isDev) objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if false
+objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if false
 
 // pixi
 {const tm=PIXI.tilemap,kp='prototype';
@@ -1287,7 +1287,7 @@ $dddd$=$pppp$._limitedView=function f(renderer){
 };
 $dddd$.tbl={
 	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius = u_radius;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
-	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs.isDev?"0.5":"1.0")+");\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
+	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs._isDev?"0.5":"1.0")+");\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
 	shaderV:undefined,
 	shaderF:undefined,
 	idxv:[ 0,1,2, 1,2,3, ],
@@ -1367,7 +1367,7 @@ $dddd$=$pppp$._createLayers=function f(){
 					lv.addChild( t = new PIXI.tilemap.CompositeRectTileLayer(4+x, [], useSquareShader) );
 					t.alpha=0.25;
 				}
-				lv.addChild( lv.children.a1 = new PIXI.tilemap.CompositeRectTileLayer(4, [], useSquareShader) );
+				lv.addChild( lv.children.a1 = new PIXI.tilemap.CompositeRectTileLayer(4+alphaDupCnt, [], useSquareShader) );
 			}
 		}
 		
@@ -1487,7 +1487,7 @@ $pppp$._drawTile_byTp=function(layers,tid,dx,dy,tp){
 	if(!tid) return;
 	tp*=64; tp|=0;
 	//tp=window['/tmp/'].pad^0; // debug
-	if(0>=tp) return this._drawTile(layers.a1||layers[0].children[0],tid,dx,dy);
+	if(0>=tp) return this._drawTile((layers.a1||layers[0]).children[0],tid,dx,dy);
 	else if(tp>=64) return;
 	tp/=64.0;
 	let baseLen=$gameMap.tileset().tilesetNames.length||9,drawCnt=0,mul=1,lastDist=1-tp; lastDist*=lastDist;
@@ -1583,7 +1583,7 @@ $pppp$._drawAutotile = function(layer, tileId, dx, dy , altShift) {
 	let table = autotileTable[shape];
 	let w1 = this._tileWidth_; // 48>>1
 	let h1 = this._tileHeight_; // 48>>1
-	altShift^=0;
+	altShift|=0;
 	if(table){ for(let i=0,bx2=bx<<1,by2=by<<1,h1_=h1>>1;i!==4;++i){
 		let qsx = table[i][0];
 		let qsy = table[i][1];

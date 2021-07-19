@@ -227,6 +227,7 @@ $pppp$._refresh_updateCf_parent=function f(sameStatEvts){
 };
 $r$=$pppp$._refresh;
 $d$=$pppp$._refresh=function f(){
+	if(!this.parent) return;
 	f.ori.call(this);
 	if(this._tileId>0){ let c=this._character; if(c && $gameMap){
 		if(c.parentId) this._refresh_updateCf_child(c.parentId);
