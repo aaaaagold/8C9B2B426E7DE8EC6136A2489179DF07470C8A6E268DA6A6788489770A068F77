@@ -5,6 +5,249 @@
 
 if(!window.objs) window.objs={};
 objs.test_tilemap=true; // tilemap.children is an array if true
+if(objs.isDev) objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if false
+
+// pixi
+{const tm=PIXI.tilemap,kp='prototype';
+// - RectTileShader
+{ const k='RectTileShader',a=function RectTileShader2(gl,maxTextures){
+	const g=tm.shaderGenerator;
+	const _this = tm.TilemapShader.call(this, gl, maxTextures, a.rectShaderVert, g.generateFragmentSrc(maxTextures, a.rectShaderFrag)) || this;
+	_this.vertSize = 11;
+	_this.vertPerQuad = 4;
+	_this.stride = _this.vertSize * 4;
+	g.fillSamplers(_this, _this.maxTextures);
+	return _this;
+};
+const p=a[kp]=Object.create(tm[k][kp]);
+p.constructor=tm[k]=a;
+a.rectShaderVert="\nattribute vec2 aVertexPosition;\nattribute vec2 aTextureCoord;\nattribute vec4 aFrame;\nattribute vec2 aAnim;\nattribute float aTextureId;\n\nuniform mat3 projectionMatrix;\nuniform vec2 animationFrame;\n\nvarying vec2 vTextureCoord;\nvarying float vTextureId;\nvarying vec4 vFrame;\n\nvoid main(void){\n\tgl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n\tvec2 anim = aAnim * animationFrame;\n\tvTextureCoord = aTextureCoord + anim;\n\tvFrame = aFrame + vec4(anim, anim);\n\tvTextureId = aTextureId;\n}\n";
+a.rectShaderFrag="varying vec2 vTextureCoord;\nvarying vec4 vFrame;\nvarying float vTextureId;\nuniform vec4 shadowColor;\nuniform sampler2D uSamplers[%count%];\nuniform vec2 uSamplerSize[%count%];\nuniform float tp;\n\nvoid main(void){\n\tvec2 textureCoord = clamp(vTextureCoord, vFrame.xy, vFrame.zw);\n\tfloat textureId = floor(vTextureId + 0.5);\n\t\n\tvec4 color;\n\t%forloop%\n\tif(tp>0.0 && tp<=1.0 && vTextureId>=0.0) color*=1.0-tp;\n\tgl_FragColor = color;\n\t\n}";
+}
+// - TileRenderer
+{ const TileRenderer=$aaaa$=tm.TileRenderer;
+const p=$aaaa$[kp];
+$d$=p.bindTextures = function f(renderer, shader, textures) {
+	const bounds = this.boundSprites , glts = this.glTextures , len = textures.length , maxTextures = this.maxTextures;
+	if (len > 4 * maxTextures) return;
+	let doClear = TileRenderer.DO_CLEAR;
+	if (doClear && !this._clearBuffer) this._clearBuffer = f._clearBuffer;
+	let i;
+	for(i=0;i!==len;++i){
+		let texture = textures[i];
+		if (!texture || !textures[i].valid) continue;
+		let bs = bounds[i >> 2][i & 3];
+		if (!bs.texture || bs.texture.baseTexture !== texture.baseTexture) {
+			bs.texture = texture;
+			let glt = glts[i >> 2];
+			renderer.bindTexture(glt, 0, true);
+			if (doClear) {
+				f._hackSubImage(glt.baseTexture._glTextures[renderer.CONTEXT_UID], bs, this._clearBuffer, 1024, 1024);
+			}
+			else {
+				f._hackSubImage(glt.baseTexture._glTextures[renderer.CONTEXT_UID], bs);
+			}
+		}
+	}
+	this.texLoc.length = 0;
+	for(i=0;i!==maxTextures;++i){
+		this.texLoc.push(renderer.bindTexture(glts[i], i, true));
+	}
+	shader.uniforms.uSamplers = this.texLoc;
+};
+$d$._clearBuffer=null; // new Uint8Array(1024 * 1024 * 4); // if 'null', fill zero, matching the size
+$d$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth, clearHeight) {
+	let gl = tex.gl;
+	let baseTex = sprite.texture.baseTexture;
+	if (clearBuffer && clearWidth > 0 && clearHeight > 0) {
+		gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, clearWidth, clearHeight, tex.format, tex.type, clearBuffer);
+	}
+	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+	gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, tex.format, tex.type, baseTex.source);
+};
+p.checkLeaks=function(){
+	const now = Date.now() , old = now - 255 , t = this.lastTimeCheck;
+	if(t < old || t > now){
+		this.lastTimeCheck = now;
+		let vbs = this.vbs;
+		for(let key in vbs) if(vbs[key].lastTimeAccess < old) this.removeVb(key);
+	}
+};
+p.getVb=function(id){
+	// 雷ㄛ 變數名稱寫錯是在衝三小
+	this.checkLeaks();
+	let vb=this.vbs[id];
+	if(vb){
+		vb.lastTimeAccess=Date.now();
+		return vb;
+	}
+	return null;
+};
+}
+// - CompositeRectTileLayer
+{ const a=tm.CompositeRectTileLayer;
+const p=a[kp];
+$k$='initialize';
+$r$=p[$k$];
+(p[$k$]=function f(z, bitmaps, useSqr, texPerChild){
+	texPerChild=texPerChild||16; // cannot >16 ?_? // webGL guarentee at least 8 textures ; implementation ususally 16 textures
+	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
+}).ori=$r$;
+}
+// - RectTileLayer
+{ const a=tm.RectTileLayer;
+const p=a[kp];
+$d$=p.renderWebGL = function f(renderer, useSquare){
+	if(useSquare === void 0) useSquare = false;
+	let points = this.pointsBuf;
+	if(points.length === 0) return;
+	let rectsCount = ~~(points.length / 9);
+	let tile = renderer.plugins.tilemap;
+	let gl = renderer.gl;
+	if(!useSquare) tile.checkIndexBuffer(rectsCount);
+	let shader = tile.getShader(useSquare);
+	let textures = this.textures;
+	if(textures.length === 0) return;
+	let len = textures.length;
+	if(this._tempTexSize < shader.maxTextures){
+		this._tempTexSize = shader.maxTextures;
+		this._tempSize = new Float32Array(2 * shader.maxTextures);
+	}
+	for(let i=0;i!==len;++i){
+		if (!textures[i] || !textures[i].valid) return;
+		let texture = textures[i].baseTexture;
+	}
+	tile.bindTextures(renderer, shader, textures);
+	let vb = tile.getVb(this.vbId);
+	if(!vb){
+		vb = tile.createVb(useSquare);
+		this.vbId = vb.id;
+		//this.vbBuffer = null;
+		this.modificationMarker = 0;
+	}
+	let vao = vb.vao;
+	renderer.bindVao(vao);
+	let vertexBuf = vb.vb;
+	vertexBuf.bind();
+	let vertices = rectsCount * shader.vertPerQuad;
+	if(vertices === 0) return;
+	if(this.modificationMarker !== vertices){
+		this.modificationMarker = vertices;
+		let vs = shader.stride * vertices;
+		if(!this.vbBuffer || this.vbBuffer.byteLength < vs){
+			let bk = shader.stride;
+			while (bk < vs) bk<<=1;
+			if(f.buf.byteLength<bk){
+				if(objs.isDev) console.log(bk);
+				f.buf=new ArrayBuffer(bk);
+			}
+			this.vbBuffer = f.buf;
+			//if(!this.vbBuffer||this.vbBuffer.byteLength<bk)
+			//	this.vbBuffer = new ArrayBuffer(bk);
+			//}
+			this.vbArray = new Float32Array(this.vbBuffer);
+			this.vbInts = new Uint32Array(this.vbBuffer);
+			//vertexBuf.upload(this.vbBuffer, 0, true);
+		}
+		let arr = this.vbArray, ints = this.vbInts;
+		let sz = 0;
+		let textureId, shiftU, shiftV;
+		if(useSquare){
+			for(let i=0;i<points.length;i+=9){
+				textureId = (points[i + 8] >> 2);
+				shiftU = (points[i + 8] & 1)<<10;
+				shiftV = ((points[i + 8] >> 1) & 1)<<10;
+				arr[sz++] = points[i + 2];
+				arr[sz++] = points[i + 3];
+				arr[sz++] = points[i + 0] + shiftU;
+				arr[sz++] = points[i + 1] + shiftV;
+				arr[sz++] = points[i + 4];
+				arr[sz++] = points[i + 6];
+				arr[sz++] = points[i + 7];
+				arr[sz++] = textureId;
+			}
+		}else{
+			let tint = -1;
+			for(let i=0;i<points.length;i+=9){
+				let eps = 0.5;
+				textureId = (points[i + 8] >> 2);
+				shiftU = (points[i + 8] & 1)<<10;
+				shiftV = ((points[i + 8] >> 1) & 1)<<10;
+				let x = points[i + 2], y = points[i + 3];
+				let w = points[i + 4], h = points[i + 5];
+				let u = points[i] + shiftU, v = points[i + 1] + shiftV;
+				let animX = points[i + 6], animY = points[i + 7];
+				arr[sz++] = x;
+				arr[sz++] = y;
+				arr[sz++] = u;
+				arr[sz++] = v;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				arr[sz++] = x + w;
+				arr[sz++] = y;
+				arr[sz++] = u + w;
+				arr[sz++] = v;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				arr[sz++] = x + w;
+				arr[sz++] = y + h;
+				arr[sz++] = u + w;
+				arr[sz++] = v + h;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+				arr[sz++] = x;
+				arr[sz++] = y + h;
+				arr[sz++] = u;
+				arr[sz++] = v + h;
+				arr[sz++] = u + eps;
+				arr[sz++] = v + eps;
+				arr[sz++] = u + w - eps;
+				arr[sz++] = v + h - eps;
+				arr[sz++] = animX;
+				arr[sz++] = animY;
+				arr[sz++] = textureId;
+			}
+		}
+		vertexBuf.upload(arr, 0, true);
+	}
+	
+	let drawn=false;
+	if(objs.test_webglTilemapAlpha) // cannot be accomplished: when alpha=0, the image is white out
+	{
+		const loc_tp = gl.getUniformLocation(shader.program, "tp");
+		if(loc_tp!==null){
+			const tp=1-this.alpha*this.parent.alpha,oldTp=gl.getUniform(shader.program, loc_tp);
+			gl.uniform1f(loc_tp, tp );
+			if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
+			else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
+			gl.uniform1f(loc_tp, oldTp); // restore
+			drawn=true;
+		}
+	}
+	if(!drawn){
+		if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
+		else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
+	}
+};
+$d$.buf=new ArrayBuffer(0);
+}
+}
+$pppp$=$aaaa$=undef;
 
 // core
 
@@ -1044,7 +1287,7 @@ $dddd$=$pppp$._limitedView=function f(renderer){
 };
 $dddd$.tbl={
 	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius = u_radius;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
-	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
+	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs.isDev?"0.5":"1.0")+");\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
 	shaderV:undefined,
 	shaderF:undefined,
 	idxv:[ 0,1,2, 1,2,3, ],
@@ -1105,30 +1348,38 @@ $dddd$=$pppp$._createLayers=function f(){
 			// a025 when .z===3
 			let addUppers=JSON.parse(addUpper_str);
 			// this.z2Layers[y]
-			let ys=this.z2Layers_ys,lvs=this.z2Layers;
+			const ys=this.z2Layers_ys,lvs=this.z2Layers,ySet=new Set();
 			for(let x=0,arr=addUppers;x!==arr.length;++x){
-				let y=arr[x].y;
-				if(y===undefined) continue;
+				const y=arr[x].y;
+				if(y===undefined || ySet.has(y)) continue;
+				ySet.add(y);
 				ys.push(y);
 			}
 			ys.sortn();
 			for(let j=0,th=Game_Map.prototype.tileHeight();j!==ys.length;++j){
-				let y=ys[j];
+				const y=ys[j];
 				if(lvs[y]) continue;
-				let lv=lvs[y]=new PIXI.tilemap.ZLayer(this, 3);
-				lv.oy=y*th+1;
+				const lv=lvs[y]=new PIXI.tilemap.ZLayer(this, 3);
+				lv.oy=y*th+((th>>1)|1);
 				lv.z2=4; // same as 'this.upperZLayer'
 				this.addChild(lv);
-				for(let x=0;x!==alphaDupCnt;++x) lv.addChild( new PIXI.tilemap.CompositeRectTileLayer(4+x, [], useSquareShader) );
+				for(let x=0,t;x!==alphaDupCnt;++x){
+					lv.addChild( t = new PIXI.tilemap.CompositeRectTileLayer(4+x, [], useSquareShader) );
+					t.alpha=0.25;
+				}
+				lv.addChild( lv.children.a1 = new PIXI.tilemap.CompositeRectTileLayer(4, [], useSquareShader) );
 			}
 		}
 		
 		this.addChild(this.upperZLayer = new PIXI.tilemap.ZLayer(this, 4));
 		this.upperZLayer.addChild(this.upperLayer = new PIXI.tilemap.CompositeRectTileLayer(4, [], useSquareShader));
 		// upZ a025
-		for(let x=0,arr=this.upperLayer_a025s=[];x!==alphaDupCnt;++x){
+		const arr=this.upperLayer_a025s=[];
+		for(let x=0;x!==alphaDupCnt;++x){
 			this.upperZLayer.addChild(arr[x] = new PIXI.tilemap.CompositeRectTileLayer(5+x, [], useSquareShader));
+			arr[x].alpha=0.25;
 		}
+		arr.a1=this.upperLayer;
 	}
 };
 $rrrr$=$pppp$._updateLayerPositions;
@@ -1149,7 +1400,7 @@ $pppp$._paintAllTiles=function(startX, startY){
 	return Tilemap.prototype._paintAllTiles.call(this,startX,startY); // ShaderTilemap has no 'this._z2Layers'
 	//for(let y=0,ys=this._tileRows,xs=this._tileCols;y!==ys;++y) for(let x=0;x!==xs;++x) this._paintTiles(startX, startY, x, y);
 };
-$pppp$._paintTiles=function(startX, startY, x, y) {
+$d$=$pppp$._paintTiles=function f(startX, startY, x, y){
 	//debug.log('ShaderTilemap.prototype._paintTiles');
 	// startX = $gameMap._displayX_tw/$gameMap.tileWidth()^0
 	// startY = $gameMap._displayY_th/$gameMap.tileHeight()^0
@@ -1218,24 +1469,25 @@ $pppp$._paintTiles=function(startX, startY, x, y) {
 			this._drawTile(lowerLayer, tileId3, dx, dy);
 		}
 	}
+	// from meta
 	if(idx!==undefined){
 		for(let x=0,arr=$dataMap.addLower[idx];x!==arr.length;++x){
-			let curr=arr[x]; if(!curr[3]||curr[3]()) this._drawTile(lowerLayer, curr[0], dx, dy, curr[1]);
+			const curr=arr[x]; if(!curr[3]||curr[3]()) this._drawTile(lowerLayer, curr[0], dx, dy);
 		}
-		for(let x=0,arr=$dataMap.addUpper[idx],tmp={};x!==arr.length;++x){
-			let curr=arr[x];
+		for(let x=0,arr=$dataMap.addUpper[idx];x!==arr.length;++x){
+			const curr=arr[x];
 			if( curr[3] && !curr[3]()) continue;
-			let lvs=(curr[2]===undefined)?layers:(this.z2Layers[curr[2]]||tmp).children;
-			if( lvs ) this._drawTile_byTp(lvs, curr[0], dx, dy , curr[1]);
+			const lvs=(curr[2]===undefined)?layers:(this.z2Layers[curr[2]]||f.tmp).children;
+			if(lvs) this._drawTile_byTp(lvs, curr[0], dx, dy , curr[1]);
 		}
 	}
 };
+$d$.tmp={children:undefined};
 $pppp$._drawTile_byTp=function(layers,tid,dx,dy,tp){
 	if(!tid) return;
-	tp*=64; tp^=0;
-	//let pad=window['/tmp/'].pad^0; // debug
-	//tp+=pad; // debug
-	if(0>=tp) return this._drawTile(layers[0].children[0],tid,dx,dy);
+	tp*=64; tp|=0;
+	//tp=window['/tmp/'].pad^0; // debug
+	if(0>=tp) return this._drawTile(layers.a1||layers[0].children[0],tid,dx,dy);
 	else if(tp>=64) return;
 	tp/=64.0;
 	let baseLen=$gameMap.tileset().tilesetNames.length||9,drawCnt=0,mul=1,lastDist=1-tp; lastDist*=lastDist;
@@ -1247,9 +1499,8 @@ $pppp$._drawTile_byTp=function(layers,tid,dx,dy,tp){
 		++drawCnt;
 	}
 	drawCnt+=drawCnt===0;
-	for(let x=0;x!==drawCnt;++x){
-		this._drawTile(layers[x].children[0],tid,dx,dy,baseLen);
-	}
+	if(objs.test_webglTilemapAlpha) for(let x=0;x!==drawCnt;++x) this._drawTile(layers[x].children[0],tid,dx,dy);
+	else for(let x=0;x!==drawCnt;++x) this._drawTile(layers[x].children[0],tid,dx,dy,baseLen);
 };
 $rrrr$=$pppp$._drawTile;
 $dddd$=$pppp$._drawTile=function f(layer, tileId, dx, dy , altShift){ // polling very fast (frequent)

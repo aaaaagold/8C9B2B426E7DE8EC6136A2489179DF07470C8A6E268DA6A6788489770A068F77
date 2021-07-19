@@ -385,7 +385,7 @@ $d$=$pppp$._arrowsFloating=function f(){
 	}
 };
 $d$.rad1=PI_64;
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	fontSize:{
 		get:function(){return this._fontSize;},
 		set:function(rhs){
@@ -620,7 +620,7 @@ $pppp$=$aaaa$=undef;
 // - Texture
 $aaaa$=PIXI.Texture;
 $pppp$=$aaaa$.prototype;
-$r$=Object.getOwnPropertyDescriptor($aaaa$.prototype,'frame').get;
+$r$=Object.getOwnPropertyDescriptor($pppp$,'frame').get;
 $d$=function set(frame){ // rewrite: much useful debug info
 	this._frame = frame;
 	this.noFrame = false;
@@ -637,214 +637,7 @@ $d$=function set(frame){ // rewrite: much useful debug info
 		this._updateUvs();
 	}
 };
-Object.defineProperty($aaaa$.prototype,'frame',{get:$r$,set:$d$});
-$pppp$=$aaaa$=undef;
-// - TileRenderer
-$aaaa$=PIXI.tilemap.TileRenderer;
-$pppp$=$aaaa$.prototype;
-{ const TileRenderer=$aaaa$;
-$d$=$pppp$.bindTextures = function f(renderer, shader, textures) {
-	const bounds = this.boundSprites , glts = this.glTextures , len = textures.length , maxTextures = this.maxTextures;
-	if (len > 4 * maxTextures) return;
-	let doClear = TileRenderer.DO_CLEAR;
-	if (doClear && !this._clearBuffer) this._clearBuffer = f._clearBuffer;
-	let i;
-	for(i=0;i!==len;++i){
-		let texture = textures[i];
-		if (!texture || !textures[i].valid) continue;
-		let bs = bounds[i >> 2][i & 3];
-		if (!bs.texture || bs.texture.baseTexture !== texture.baseTexture) {
-			bs.texture = texture;
-			let glt = glts[i >> 2];
-			renderer.bindTexture(glt, 0, true);
-			if (doClear) {
-				f._hackSubImage(glt.baseTexture._glTextures[renderer.CONTEXT_UID], bs, this._clearBuffer, 1024, 1024);
-			}
-			else {
-				f._hackSubImage(glt.baseTexture._glTextures[renderer.CONTEXT_UID], bs);
-			}
-		}
-	}
-	this.texLoc.length = 0;
-	for(i=0;i!==maxTextures;++i){
-		this.texLoc.push(renderer.bindTexture(glts[i], i, true));
-	}
-	shader.uniforms.uSamplers = this.texLoc;
-};
-}
-$d$.DO_CLEAR=$aaaa$.DO_CLEAR;
-$d$._clearBuffer=null; // new Uint8Array(1024 * 1024 * 4); // if 'null', fill zero, matching the size
-$d$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth, clearHeight) {
-	let gl = tex.gl;
-	let baseTex = sprite.texture.baseTexture;
-	if (clearBuffer && clearWidth > 0 && clearHeight > 0) {
-		gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, clearWidth, clearHeight, tex.format, tex.type, clearBuffer);
-	}
-	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-	gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, tex.format, tex.type, baseTex.source);
-};
-$pppp$.checkLeaks=function () {
-	const now = Date.now() , old = now - 255 , t = this.lastTimeCheck;
-	if(t < old || t > now){
-		this.lastTimeCheck = now;
-		let vbs = this.vbs;
-		for(let key in vbs) if(vbs[key].lastTimeAccess < old) this.removeVb(key);
-	}
-};
-$pppp$.getVb = function (id) {
-	// 雷ㄛ 變數名稱寫錯是在衝三小
-	this.checkLeaks();
-	let vb=this.vbs[id];
-	if(vb){
-		vb.lastTimeAccess=Date.now();
-		return vb;
-	}
-	return null;
-};
-$pppp$=$aaaa$=undef;
-// - CompositeRectTileLayer
-$aaaa$=PIXI.tilemap.CompositeRectTileLayer;
-$pppp$=$aaaa$.prototype;
-$r$=$pppp$.initialize;
-$d$=$pppp$.initialize=function f(z, bitmaps, useSqr, texPerChild){
-	texPerChild=texPerChild||16; // cannot >16 ?_? // webGL guarentee at least 8 textures ; implementation ususally 16 textures
-	return f.ori.call(this,z,bitmaps,useSqr,texPerChild);
-}; $d$.ori=$r$;
-// - RectTileLayer
-$aaaa$=PIXI.tilemap.RectTileLayer;
-$pppp$=$aaaa$.prototype;
-$d$=$pppp$.renderWebGL = function f(renderer, useSquare){
-	if(useSquare === void 0) useSquare = false;
-	let points = this.pointsBuf;
-	if(points.length === 0) return;
-	let rectsCount = ~~(points.length / 9);
-	let tile = renderer.plugins.tilemap;
-	let gl = renderer.gl;
-	if(!useSquare) tile.checkIndexBuffer(rectsCount);
-	let shader = tile.getShader(useSquare);
-	let textures = this.textures;
-	if(textures.length === 0) return;
-	let len = textures.length;
-	if(this._tempTexSize < shader.maxTextures){
-		this._tempTexSize = shader.maxTextures;
-		this._tempSize = new Float32Array(2 * shader.maxTextures);
-	}
-	for(let i=0;i!==len;++i){
-		if (!textures[i] || !textures[i].valid) return;
-		let texture = textures[i].baseTexture;
-	}
-	tile.bindTextures(renderer, shader, textures);
-	let vb = tile.getVb(this.vbId);
-	if(!vb){
-		vb = tile.createVb(useSquare);
-		this.vbId = vb.id;
-		//this.vbBuffer = null;
-		this.modificationMarker = 0;
-	}
-	let vao = vb.vao;
-	renderer.bindVao(vao);
-	let vertexBuf = vb.vb;
-	vertexBuf.bind();
-	let vertices = rectsCount * shader.vertPerQuad;
-	if(vertices === 0) return;
-	if(this.modificationMarker != vertices){
-		this.modificationMarker = vertices;
-		let vs = shader.stride * vertices;
-		if(!this.vbBuffer || this.vbBuffer.byteLength < vs){
-			let bk = shader.stride;
-			while (bk < vs) bk<<=1;
-			if(f.buf.byteLength<bk){
-				if(objs.isDev) console.log(bk);
-				f.buf=new ArrayBuffer(bk);
-			}
-			this.vbBuffer = f.buf;
-			//if(!this.vbBuffer||this.vbBuffer.byteLength<bk)
-			//	this.vbBuffer = new ArrayBuffer(bk);
-			//}
-			this.vbArray = new Float32Array(this.vbBuffer);
-			this.vbInts = new Uint32Array(this.vbBuffer);
-			//vertexBuf.upload(this.vbBuffer, 0, true);
-		}
-		let arr = this.vbArray, ints = this.vbInts;
-		let sz = 0;
-		let textureId, shiftU, shiftV;
-		if(useSquare){
-			for(let i=0;i<points.length;i+=9){
-				textureId = (points[i + 8] >> 2);
-				shiftU = (points[i + 8] & 1)<<10;
-				shiftV = ((points[i + 8] >> 1) & 1)<<10;
-				arr[sz++] = points[i + 2];
-				arr[sz++] = points[i + 3];
-				arr[sz++] = points[i + 0] + shiftU;
-				arr[sz++] = points[i + 1] + shiftV;
-				arr[sz++] = points[i + 4];
-				arr[sz++] = points[i + 6];
-				arr[sz++] = points[i + 7];
-				arr[sz++] = textureId;
-			}
-		}else{
-			let tint = -1;
-			for(let i=0;i<points.length;i+=9){
-				let eps = 0.5;
-				textureId = (points[i + 8] >> 2);
-				shiftU = (points[i + 8] & 1)<<10;
-				shiftV = ((points[i + 8] >> 1) & 1)<<10;
-				let x = points[i + 2], y = points[i + 3];
-				let w = points[i + 4], h = points[i + 5];
-				let u = points[i] + shiftU, v = points[i + 1] + shiftV;
-				let animX = points[i + 6], animY = points[i + 7];
-				arr[sz++] = x;
-				arr[sz++] = y;
-				arr[sz++] = u;
-				arr[sz++] = v;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				arr[sz++] = x + w;
-				arr[sz++] = y;
-				arr[sz++] = u + w;
-				arr[sz++] = v;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				arr[sz++] = x + w;
-				arr[sz++] = y + h;
-				arr[sz++] = u + w;
-				arr[sz++] = v + h;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-				arr[sz++] = x;
-				arr[sz++] = y + h;
-				arr[sz++] = u;
-				arr[sz++] = v + h;
-				arr[sz++] = u + eps;
-				arr[sz++] = v + eps;
-				arr[sz++] = u + w - eps;
-				arr[sz++] = v + h - eps;
-				arr[sz++] = animX;
-				arr[sz++] = animY;
-				arr[sz++] = textureId;
-			}
-		}
-		vertexBuf.upload(arr, 0, true);
-	}
-	if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
-	else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
-};
-$d$.buf=new ArrayBuffer(0);
+Object.defineProperty($pppp$,'frame',{get:$r$,set:$d$});
 $pppp$=$aaaa$=undef;
 
 $tttt$={};
@@ -1129,7 +922,7 @@ Decrypter.extToEncryptExt = function(url) {
 // - WebAudio
 $aaaa$=WebAudio;
 $pppp$=$aaaa$.prototype;
-Object.defineProperty($aaaa$.prototype, 'pitch', {
+Object.defineProperty($pppp$, 'pitch', {
 	get: function() {
 		return this._pitch;
 	},
@@ -2116,7 +1909,7 @@ $pppp$.remove=function(){
 			return this.parent.waitRemove(this);
 		}else this.parent.removeChild(this);
 };
-if(0) Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
+if(0) Object.defineProperties($pppp$,{ // ?!?!?!?!?
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs^=0; // this.y=rhs;
@@ -2173,7 +1966,7 @@ if(0) Object.defineProperties($aaaa$.prototype,{ // ?!?!?!?!?
 		}else return rhs;
 	},configurable:false},
 });
-else Object.defineProperties($aaaa$.prototype,{
+else Object.defineProperties($pppp$,{
 	y:{get:function(){
 		return this.position.y;
 	},set:function(rhs){ rhs|=0; // this.y=rhs;
@@ -2189,7 +1982,7 @@ else Object.defineProperties($aaaa$.prototype,{
 		set:function(rhs){return this._z2=rhs|0;},
 	},
 });
-Object.defineProperty($aaaa$.prototype, 'opacity', {
+Object.defineProperty($pppp$, 'opacity', {
 	get:function(){ const rtv=this.alpha; return rtv?rtv*256+1:0; },
 	set:function(val){ this.alpha = (val>0?val+1:0) / 256; },
 	configurable:true,
