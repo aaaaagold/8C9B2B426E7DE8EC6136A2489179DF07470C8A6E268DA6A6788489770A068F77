@@ -7,6 +7,7 @@
 $aaaa$=Scene_Boot;
 $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
+	
 	// == tune consts ==
 	if(undefined===$dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
 	
@@ -253,6 +254,18 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeAdditionalCrit);
 	f.doForEach($dataSkills,f.makeAdditionalCrit);
 	
+	// surehit
+	f.doForEach($dataItems,f.makeSureHit);
+	f.doForEach($dataSkills,f.makeSureHit);
+	
+	// relfectedless
+	f.doForEach($dataItems,f.makeReflectedless);
+	f.doForEach($dataSkills,f.makeReflectedless);
+	
+	// uncounterable
+	f.doForEach($dataItems,f.makeUncounterable);
+	f.doForEach($dataSkills,f.makeUncounterable);
+	
 	// effect, func && code
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
@@ -303,11 +316,15 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.extendRepeats);
 	f.doForEach($dataSkills,f.extendRepeats);
 	
-	// extend description // must be ability-last
+	// extend description (ability->desp) // must be ability-last
 	f.doForEach($dataItems,f.extendDescription_i);
 	f.doForEach($dataSkills,f.extendDescription_i);
 	f.doForEach($dataArmors,f.extendDescription_e);
 	f.doForEach($dataWeapons,f.extendDescription_e);
+	
+	// precal (ability->scaled or something) // do not removed, must be ability-last
+	f.doForEach($dataItems,f.precal);
+	f.doForEach($dataSkills,f.precal);
 	
 	// == build search tables for non-traits ==
 	
@@ -387,9 +404,14 @@ $dddd$.extendDescription_i=dataobj=>{
 	k='consumable';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
 	k='isNormalAtk';	if(dataobj.scope) infos.push(k);
 	k='repeats';	if(dataobj.scope) infos.push(k);
-	k='tpGain';	if(dataobj[k]!==0) infos.push(k);
-	k='speed';	if(dataobj[k]!==0) infos.push(k);
-	k='scope';	if(dataobj[k]!==0) infos.push(k);
+	[
+		'tpGain',
+		'speed',
+		'scope',
+		'surehit',
+		'uncounterable',
+		'reflectedless',
+	].forEach(k=>dataobj[k]&&infos.push(k));
 	if(dataobj.scope){ k='hitType'; infos.push(k); if(dataobj.damage.type){
 		k='dmgEle';	tmpkeys.push(k);	dataobj[k]=dmg.elementId;	infos.push(k);
 		k='dmgType';	tmpkeys.push(k);	dataobj[k]=dmg.type;	infos.push(k);
@@ -434,7 +456,7 @@ $dddd$.makeAdditionalCrit=dataobj=>{
 	dataobj.critA=Number(dataobj.meta.critA)||0;
 	const n=Number(dataobj.meta.critF);
 	dataobj.critF=isNaN(n)?undefined:n;
-}
+};
 { const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
 $dddd$.makeEffectFuncCode=dataobj=>{
 	const effs=dataobj.effects;
@@ -469,6 +491,8 @@ $dddd$.makeNeedStates=dataobj=>{
 		else dataobj.needStates=undefined;
 	}
 };
+$dddd$.makeReflectedless=dataobj=>dataobj.reflectedless=dataobj.meta.reflectedless!==undefined;
+$dddd$.makeSureHit=dataobj=>dataobj.surehit=dataobj.meta.surehit!==undefined;
 $dddd$.makeTraitsMap=dataobj=>{
 	const tarr=dataobj.traits;
 	if(!tarr) return;
@@ -508,6 +532,7 @@ $dddd$.makeTraitsMap=dataobj=>{
 		if(tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) dataobj.params.push(tmp.v*1e6); // +act times
 	}
 };
+$dddd$.makeUncounterable=dataobj=>dataobj.uncounterable=dataobj.meta.uncounterable!==undefined;
 $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
 	if(u) dataobj.unionCnt=JSON.parse(u);
@@ -643,6 +668,12 @@ $dddd$.note2traits=x=>{
 		if(n<0) n=0;
 		x.traits.push({code:tc,dataId:enums.MPSubstitute,value:n});
 	}
+};
+$dddd$.precal=dataobj=>{
+	// pre-cal. something always being like that
+	dataobj.successRate/=100;
+	dataobj.reflectable=!dataobj.reflectedless;
+	dataobj.counterable=!dataobj.uncounterable;
 };
 $rrrr$=$pppp$.start;
 $dddd$=$pppp$.start=function f(){ // this only exec. once

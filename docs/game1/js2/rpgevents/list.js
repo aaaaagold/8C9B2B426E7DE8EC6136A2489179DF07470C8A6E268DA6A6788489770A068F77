@@ -318,6 +318,39 @@ list.rfl_moveAnt=(self,argv)=>{
 	else self.moveRandom();
 };
 list.rfl_mv2evts_fortask=list.rfl_mv2evts_fortask_bfs;
+list.rfl_mimicPlayer_init=(evt,dx,dy)=>{
+	dx|=0; dy|=0;
+	evt._moveSpeed=$gamePlayer.realMoveSpeed();
+	evt._color=$gamePlayer._getColorEdt();
+	evt._scale=$gamePlayer._getScaleEdt();
+	[
+		'_characterIndex','_characterName','_pattern',
+		'_realX','_realY','_x','_y',
+	].forEach(k=>evt[k]=$gamePlayer[k]);
+	evt._x+=dx; evt._realX+=dx;
+	evt._y+=dy; evt._realY+=dy;
+};
+list.rfl_mimicPlayer=(evt,dx,dy)=>{
+	dx|=0; dy|=0;
+	[
+		'_pattern',
+		'_realX','_realY','_x','_y',
+	].forEach(k=>evt[k]=$gamePlayer[k]);
+	evt._x+=dx; evt._realX+=dx;
+	evt._y+=dy; evt._realY+=dy;
+};
+list.rfl_mimicPlayer_rflX=(evt,cx)=>{
+	list.rfl_mimicPlayer(evt,0,0);
+	const d2=(evt._x-cx)*2;
+	evt._x-=d2;
+	evt._realX-=d2;
+};
+list.rfl_mimicPlayer_rflY=(evt,cy)=>{
+	list.rfl_mimicPlayer(evt,0,0);
+	const d2=(evt._y-cy)*2;
+	evt._y-=d2;
+	evt._realY-=d2;
+};
 
 list.addClone=(self,argv)=>{ // id , use template name , not copy equips , 
 	if(!argv) return;
