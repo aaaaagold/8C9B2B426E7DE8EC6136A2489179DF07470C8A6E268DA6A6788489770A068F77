@@ -639,8 +639,8 @@ $dddd$=$pppp$.updateTransform_tail=function f(){
 $dddd$.forEach=c=>c.visible&&c.updateTransform();
 }
 $pppp$.updateTransform=function(forced){
-	const startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
-	const startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
+	const startX = ((this._lastOx=this.origin.x) - this._margin)/this._tileWidth  ^ 0;
+	const startY = ((this._lastOy=this.origin.y) - this._margin)/this._tileHeight ^ 0;
 	this._updateLayerPositions(startX, startY);
 	if (forced || this._needsRepaint || 
 		this._lastAnimationFrame !== this.animationFrame ||
@@ -763,11 +763,6 @@ $pppp$._paintAllTiles=function(startX, startY){
 		for(let x=0;x!==xs;++x){
 			this._paintTiles(startX, startY, x, y);
 		}
-	}
-	{
-		const o=this.origin;
-		this._lastOx=o.x;
-		this._lastOy=o.y;
 	}
 };
 $pppp$._paintTiles=function f(startX, startY, x, y){

@@ -341,15 +341,13 @@ list.rfl_mimicPlayer=(evt,dx,dy)=>{
 };
 list.rfl_mimicPlayer_rflX=(evt,cx)=>{
 	list.rfl_mimicPlayer(evt,0,0);
-	const d2=(evt._x-cx)*2;
-	evt._x-=d2;
-	evt._realX-=d2;
+	evt._x-=(~~(evt._x-cx))<<1;
+	evt._realX-=(evt._realX-cx)*2;
 };
 list.rfl_mimicPlayer_rflY=(evt,cy)=>{
 	list.rfl_mimicPlayer(evt,0,0);
-	const d2=(evt._y-cy)*2;
-	evt._y-=d2;
-	evt._realY-=d2;
+	evt._y-=(~~(evt._y-cy))<<1;
+	evt._realY-=(evt._realY-cy)*2;
 };
 
 list.addClone=(self,argv)=>{ // id , use template name , not copy equips , 
