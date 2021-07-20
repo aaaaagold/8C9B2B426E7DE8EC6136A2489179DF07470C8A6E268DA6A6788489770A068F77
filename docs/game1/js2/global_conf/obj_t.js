@@ -2178,7 +2178,7 @@ $d$=$pppp$.applyItem=function f(){
 $d$.forEach=function(t){
 	const a=this._action;
 	if(a)for(let i=0,s=a.subject(),r=a.numRepeats();i<r;++i){
-		if(s!==t){ const rnd=Math.random(); if( rnd<a.itemArf(t) || rnd<a.itemPrf(t) || rnd<a.itemMrf(t) ){
+		if(s!==t){ const rnd=Math.random(); if( rnd<a.itemPrf(t) || rnd<a.itemMrf(t) || rnd<a.itemArf(t) ){
 			a._reflected=true;
 			a.apply(s);
 			a._reflected=undefined;
@@ -5176,7 +5176,7 @@ $pppp$.isMaxDebuffAffected=none; // this._buffs[paramId]===-2 ?
 $d$=$pppp$.updateStateTurns=function f(){
 	this._states.forEach(f.forEach, this._stateTurns);
 };
-$d$.forEach=function(stateId) {
+$d$.forEach=function(stateId){
 	this[stateId]>0 && --this[stateId];
 };
 $d$=$pppp$.clearStates=function f(ignoreBuff){
@@ -5918,7 +5918,8 @@ $pppp$.clearActions=function(){
 };
 $pppp$.makeActionTimes=function(){ // change logic: rnd each -> rnd remainder(<1)
 	const rtv=this.traitsSum(Game_BattlerBase.TRAIT_ACTION_PLUS,0)||0; // id應該是0啦。原本的code用actionPlusSet每個算機率決定是否+1，未指定id
-	return (Math.random()<(rtv-~~rtv))+rtv+1;
+	//return (Math.random()<(rtv-~~rtv))+rtv+1;
+	return rtv+1;
 };
 $pppp$.makeActions=function(){
 	this.clearActions(); // reset action input index in Game_Actor
@@ -6996,6 +6997,9 @@ $pppp$.mvDiff=function(dx,dy){ this._x+=dx; this._y+=dy; };
 $pppp$.moveRandom = function() {
 	const d=((Math.random()*4)<<1)+2;
 	if(this.canPass(this.x,this.y,d)) this.moveStraight(d);
+};
+$pppp$.setRndWait=function(n,b){
+	this._waitCount=~~(~~(Math.random()*n)+b);
 };
 // - chr: sprite
 $pppp$.setSprite=function(sp){
@@ -10449,40 +10453,53 @@ $d$.tbl[act.EFFECT_LEARN_SKILL]=function(target,effect){
 };
 } // Game_Action.prototype.testItemEffect.tbl
 $pppp$.itemAcnt=function(target){
-	target.canMove();
-	return target.canMove() && target.counterARate() || 0;
+	return this.item().counterable && target.canMove() ? target.counterARate() : 0;
 };
-$pppp$.itemPcnt=$pppp$.itemCnt;
+$pppp$.itemPcnt=$pppp$.itemCnt=function(target) {
+	return this.item().counterable && this.isPhysical() && target.canMove() ? target.counterPRate() : 0;
+};
 $pppp$.itemMcnt=function(target){
-	return this.isMagical() && target.canMove() && target.counterMRate() || 0;
+	return this.item().counterable && this.isMagical() && target.canMove() ? target.counterMRate() : 0;
 };
 $pppp$.itemArf=function(target){
-	return target.reflectARate();
+	return this.item().reflectable ? target.reflectARate() : 0;
 };
 $pppp$.itemPrf=function(target){
-	return (this.isPhysical()) ? target.reflectPRate() : 0 ;
+	return this.item().reflectable && this.isPhysical() ? target.reflectPRate() : 0 ;
+};
+$pppp$.itemMrf=function(target){
+	return this.item().reflectable && this.isMagical() ? target.reflectMRate() : 0 ;
 };
 $pppp$.itemHit=function(t,s){
-	return this.item().successRate * 0.01 * (this.isPhysical()?( (this.isUsePreload()?this.getPreload_s():(s||this.subject())) ).hit:1);
+	const item=this.item();
+	return item.surehit?1:(item.successRate*(
+		this.isPhysical() ? 
+			(
+				this.isUsePreload()?this.getPreload_s():(s||this.subject())
+			).hit : 
+			1
+	));
 };
 $pppp$.itemEva=function(t){
-	t=(this.isUsePreload()?this.getPreload_t():t);
-	switch(this.item().hitType){
+	const item=this.item();
+	if(item.surehit) return 0;
+	else switch(item.hitType){
 	default:
 	case Game_Action.HITTYPE_CERTAIN:
 		return 0;
 	case Game_Action.HITTYPE_PHYSICAL:
-		return t.eva;
+		return (this.isUsePreload()?this.getPreload_t():t).eva;
 	case Game_Action.HITTYPE_MAGICAL:
-		return t.mev;
+		return (this.isUsePreload()?this.getPreload_t():t).mev;
 	}
 };
 $pppp$.itemCri=function(t){
 	const item=this.item();
 	return item.damage.critical ? 
-		(item.critF===undefined ? 
-			item.critA + (this.isUsePreload()?this.getPreload_s():this.subject()).cri : 
-			item.critF
+		(
+			item.critF===undefined ? 
+				item.critA + (this.isUsePreload()?this.getPreload_s():this.subject()).cri : 
+				item.critF
 		) * (1 - (this.isUsePreload()?this.getPreload_t():t).cev ) : 
 		0 ;
 };
@@ -11943,14 +11960,20 @@ $pppp$.onPlayerWalk=function(){
 	this.checkFloorEffect();
 	if($gamePlayer.isNormal()){
 		this.turnEndOnMap();
-		this._states.forEach(this.updateStateSteps, this);
+		this.updateStatesSteps();
 		this.showAddedStates();
 		this.showRemovedStates();
 	}
 };
-$pppp$.updateStateSteps = function(stateId){
-	if($dataStates[stateId].removeByWalking && !(--this._stateSteps[stateId]>0)){
-		this.removeState(stateId);
+($pppp$.updateStatesSteps=function f(){
+	for(let x=0,arr=this._states;x!==arr.length;++x) this.updateStateSteps(arr[x],f.tbl);
+	for(let x=f.tbl.length;x--;) this.removeState(f.tbl[x]);
+	f.tbl.length=0;
+}).tbl=[];
+$pppp$.updateStateSteps=function(stateId,laterStore){
+	const s=$dataStates[stateId];
+	if( (s.removeByWalking&&!(--this._stateSteps[stateId]>0)) || (s.autoRemovalTiming&&this.isStateExpired(stateId)) ){
+		laterStore?laterStore.push(stateId):this.removeState(stateId);
 	}
 };
 $d$=$pppp$.showAddedStates=function f(){

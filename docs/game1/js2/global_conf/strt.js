@@ -77,7 +77,17 @@ if(typeof objs!=="undefined" && objs.isDev){
 }
 if(typeof objs!=='undefined' && objs.isDev) console.log("strt");
 
-// dev shortcuts
 if(objs.isDev){ const w=window;
+// add debug info
+{ const p=WebGLRenderingContext.prototype;
+const gl_attachShader=p.attachShader; p.attachShader=function(prog,shader){
+	if(!prog._shaders) prog._shaders=[];
+	prog._shaders.push(shader);
+	return gl_attachShader.apply(this,arguments);
+};
+}
+// dev shortcuts
 	w.bm=BattleManager;
+	w.sm=SceneManager;
+	w.loadjson=u=>_global_conf.jurl(u,"GET",0,0,0,t=>w.data=JSON.parse(t));
 }

@@ -1134,7 +1134,7 @@ $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 $aaaa$=ShaderTilemap;
 $pppp$=$aaaa$.prototype;
 if(0){ // debugging an array usage
-Object.defineProperties($aaaa$.prototype,{
+Object.defineProperties($pppp$,{
 	bitmaps:{ get:function(){debugger;return this._bms;},
 		set:function(_rhs){
 			debugger;
