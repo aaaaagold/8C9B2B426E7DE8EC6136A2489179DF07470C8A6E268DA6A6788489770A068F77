@@ -356,6 +356,14 @@ $dddd$=$pppp$.arrangeData=function f(){
 		});
 	});
 	
+	// == build non-ability related ==
+	
+	// condColor
+	f.doForEach($dataItems,f.makeCondColor);
+	f.doForEach($dataSkills,f.makeCondColor);
+	f.doForEach($dataArmors,f.makeCondColor);
+	f.doForEach($dataWeapons,f.makeCondColor);
+	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -456,6 +464,10 @@ $dddd$.makeAdditionalCrit=dataobj=>{
 	dataobj.critA=Number(dataobj.meta.critA)||0;
 	const n=Number(dataobj.meta.critF);
 	dataobj.critF=isNaN(n)?undefined:n;
+};
+$dddd$.makeCondColor=dataobj=>{
+	const cc=dataobj.meta.condColor;
+	dataobj.condColor=cc?objs._getObj.call(none,cc):undefined;
 };
 { const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
 $dddd$.makeEffectFuncCode=dataobj=>{
