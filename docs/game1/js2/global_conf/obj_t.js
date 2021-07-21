@@ -12424,7 +12424,9 @@ $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(x,y,w,h){
-	this.fontSize=this.standardFontSize(); // create obj key
+	// create obj key
+	if(!this._actor) this._actor=undefined;
+	this.fontSize=this.standardFontSize();
 	
 	const noRefreshArrows=this._noRefreshArrows||undefined;
 	this._noRefreshArrows=true;
@@ -12591,6 +12593,17 @@ $pppp$.drawActorSimpleStatus=function(actor, x, y, width) {
 		this.drawActorHp (actor, x2,              lineHeight     + y, w);
 		this.drawActorMp (actor, x2 + width2 - w, lineHeight     + y, w);
 		this.drawActorExp(actor, x2,             (lineHeight<<1) + y, width2);
+	}
+};
+$pppp$.drawItemName=function(item, x, y, width){
+	width = width || 312;
+	if(item){
+		const iconBoxWidth = Window_Base._iconWidth + 4;
+		const clr = this._actor && item.condColor && item.condColor.call(none,this._actor,item);
+		if(clr) this.changeTextColor(clr);
+		else this.resetTextColor();
+		this.drawIcon(item.iconIndex, x + 2, y + 2);
+		this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
 	}
 };
 $pppp$.textWidth=function f(txt,ende){ // TODO: aligned tab width
