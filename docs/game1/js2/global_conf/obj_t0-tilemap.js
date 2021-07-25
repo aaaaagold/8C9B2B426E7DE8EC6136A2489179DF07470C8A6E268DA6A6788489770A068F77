@@ -5,7 +5,7 @@
 
 if(!window.objs) window.objs={};
 objs.test_tilemap=true; // tilemap.children is an array if true
-objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if false
+objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if true
 
 // pixi
 {const tm=PIXI.tilemap,kp='prototype';
