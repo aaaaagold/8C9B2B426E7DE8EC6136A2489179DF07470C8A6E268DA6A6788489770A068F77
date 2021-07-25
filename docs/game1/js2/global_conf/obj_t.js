@@ -1183,20 +1183,7 @@ $pppp$.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendere
 		let tilesetNames = this._tileset.tilesetNames , isWebGL=Graphics.isWebGL() , tm=this._tilemap;
 		for(let i=0,cache=f.cache,texPerChild=isWebGL?tm.lowerLayer.texPerChild:0,len=tilesetNames.length;i!==len;++i){
 			let x=i,curr=tm.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
-			if(!objs.test_webglTilemapAlpha && isWebGL && i+len<texPerChild) curr.addLoadListener((bitmap)=>{
-				let fname=bitmap._fname; if(!fname){ tm.bitmaps[x+len]=ImageManager.loadEmptyBitmap(); return; }
-				let i=x+len,alpha=0.25*(~~(i/len));
-				let cacheKey=fname+"-"+alpha;
-				let b2=cache.get(cacheKey); if(b2){ tm.bitmaps[i]=b2; return; }
-				let newBitmap=tm.bitmaps[i]=ImageManager.loadTileset(tilesetNames[x],undefined,{rnd:alpha,});
-				let src=bitmap._baseTexture.source;
-				let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
-				let ctx=c.getContext('2d'); // ctx.clearRect(0,0,c.width,c.height);
-				ctx.globalAlpha=alpha;
-				ctx.drawImage(src,0,0);
-				newBitmap._image_ori=newBitmap._image_ori||newBitmap._image;
-				newBitmap._baseTexture.source=newBitmap._image=c;
-			});
+			// !objs.test_webglTilemapAlpha
 		}
 		let newTilesetFlags=$gameMap.tilesetFlags();
 		if(!tm.flags.equals(newTilesetFlags)){

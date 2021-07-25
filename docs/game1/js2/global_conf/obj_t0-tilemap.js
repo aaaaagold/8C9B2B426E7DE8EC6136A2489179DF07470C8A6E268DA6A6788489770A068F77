@@ -226,9 +226,9 @@ $d$=p.renderWebGL = function f(renderer, useSquare){
 		vertexBuf.upload(arr, 0, true);
 	}
 	
-	let drawn=false;
-	if(objs.test_webglTilemapAlpha) // cannot be accomplished: when alpha=0, the image is white out
 	{
+		// objs.test_webglTilemapAlpha
+		let drawn=false;
 		const loc_tp = gl.getUniformLocation(shader.program, "tp");
 		if(loc_tp!==null){
 			const tp=1-this.alpha*this.parent.alpha,oldTp=gl.getUniform(shader.program, loc_tp);
@@ -238,10 +238,10 @@ $d$=p.renderWebGL = function f(renderer, useSquare){
 			gl.uniform1f(loc_tp, oldTp); // restore
 			drawn=true;
 		}
-	}
-	if(!drawn){
-		if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
-		else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
+		if(!drawn){
+			if(useSquare) gl.drawArrays(gl.POINTS, 0, vertices);
+			else gl.drawElements(gl.TRIANGLES, rectsCount * 6, gl.UNSIGNED_SHORT, 0);
+		}
 	}
 };
 $d$.buf=new ArrayBuffer(0);
@@ -1494,8 +1494,8 @@ $pppp$._drawTile_byTp=function(layers,tid,dx,dy,tp){
 		++drawCnt;
 	}
 	drawCnt+=drawCnt===0;
-	if(objs.test_webglTilemapAlpha) for(let x=0;x!==drawCnt;++x) this._drawTile(layers[x].children[0],tid,dx,dy);
-	else for(let x=0;x!==drawCnt;++x) this._drawTile(layers[x].children[0],tid,dx,dy,baseLen);
+	// objs.test_webglTilemapAlpha
+	for(let x=0;x!==drawCnt;++x) this._drawTile(layers[x].children[0],tid,dx,dy);
 };
 $rrrr$=$pppp$._drawTile;
 $dddd$=$pppp$._drawTile=function f(layer, tileId, dx, dy , altShift){ // polling very fast (frequent)
