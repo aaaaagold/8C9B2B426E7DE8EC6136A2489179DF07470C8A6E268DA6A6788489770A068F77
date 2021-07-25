@@ -345,12 +345,16 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.ses=[];
 		// .timing
 		const ts=x.timings; if(!ts) return;
-		const m=ts.byFrmIdx=new Map();
+		//const m=ts.byFrmIdx=new Map();
+		const m=ts.byFrmIdx=[]; for(let i=0,sz=x.frames.length;i!==sz;++i) m[i]=undefined; // faster if has key
 		ts.forEach(t=>{
 			// tbl
-			const tmp=m.get(t.frame);
+			//const tmp=m.get(t.frame);
+			//if(tmp) tmp.push(t);
+			//else m.set(t.frame,[t]);
+			const tmp=m[t.frame];
 			if(tmp) tmp.push(t);
-			else m.set(t.frame,[t]);
+			else m[t.frame]=[t];
 		// se
 			t.se && t.se.name && x.ses.push(t.se.name);
 		});

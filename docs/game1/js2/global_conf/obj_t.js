@@ -900,10 +900,10 @@ $pppp$.updatePosition = function() {
 	}
 };
 $d$=$pppp$.updateFrame=function f(){
-	if(this._duration > 0){
-		let frameIndex = this.currentFrameIndex();
+	if(this._duration){
+		const frameIndex = this.currentFrameIndex();
 		this.updateAllCellSprites(this._animation.frames[frameIndex]);
-		const arr=this._animation.timings.byFrmIdx.get(frameIndex);
+		const arr=this._animation.timings.byFrmIdx[frameIndex];
 		if(arr) arr.forEach(f.forEach,this);
 	}
 };
@@ -7309,11 +7309,12 @@ $pppp$.canMove=function(d){ // discard '$gameMap.isEventRunning()'
 $pppp$.executeMove=function(direction){ // redraw last and next standing tile
 	let last_x=this.x,last_y=this.y;
 	this.canDiag?this.moveDiagonally_d8(direction):this.moveStraight(direction);
-	let sc=SceneManager._scene;
+	const sc=SceneManager._scene;
 	if(sc.constructor===Scene_Map){
 		if(Graphics.isWebGL()){
 			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
-			sc._spriteset._tilemap._paintAllTiles(sx^0,sy^0); // drawing flow: addRect , sent vertices to webgl => remove rect or totally re-draw
+			//sc._spriteset._tilemap._paintAllTiles(sx^0,sy^0); // drawing flow: addRect , sent vertices to webgl => remove rect or totally re-draw
+			sc._spriteset._tilemap._needsRepaint=true;
 		}else{
 			let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
 			let scx=$gamePlayer.scrolledX(),scy=$gamePlayer.scrolledY();
