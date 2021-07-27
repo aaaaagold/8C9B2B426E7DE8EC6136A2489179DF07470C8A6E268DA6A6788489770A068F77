@@ -639,8 +639,8 @@ $dddd$=$pppp$.updateTransform_tail=function f(){
 $dddd$.forEach=c=>c.visible&&c.updateTransform();
 }
 $pppp$.updateTransform=function(forced){
-	const startX = ((this._lastOx=this.origin.x) - this._margin)/this._tileWidth  ^ 0;
-	const startY = ((this._lastOy=this.origin.y) - this._margin)/this._tileHeight ^ 0;
+	const startX = Math.floor( ((this._lastOx=this.origin.x) - this._margin)/this._tileWidth  )^ 0;
+	const startY = Math.floor( ((this._lastOy=this.origin.y) - this._margin)/this._tileHeight )^ 0;
 	this._updateLayerPositions(startX, startY);
 	if (forced || this._needsRepaint || 
 		this._lastAnimationFrame !== this.animationFrame ||
@@ -661,11 +661,10 @@ $dddd$=$pppp$._createLayers=function f(){ // re-write: psuedo layer
 	let margin = this._margin;
 	//let tileCols = Math.ceil(width / this._tileWidth) + 1;
 	//let tileRows = Math.ceil(height / this._tileHeight) + 1;
-	let layerWidth = this._tileCols * this._tileWidth;
-	let layerHeight = this._tileRows * this._tileHeight;
+	const layerWidth = this._tileCols * this._tileWidth , layerHeight = this._tileRows * this._tileHeight;
 	this._layerWidth = layerWidth;
 	this._layerHeight = layerHeight;
-	let dup=4;
+	const dup=4; // frame frag4
 
 	/*
 	 * Z coordinate:
@@ -685,43 +684,55 @@ $dddd$=$pppp$._createLayers=function f(){ // re-write: psuedo layer
 	this._lowerLayer = new Sprite();
 	this._lowerLayer.move(-margin, -margin, width, height);
 	this._lowerLayer.z = 0;
+	this._lowerLayer._limitRect=undefined; // gen property
 	this._lowerBitmap = new Bitmap(layerWidth, layerHeight);
+	this._lowerBitmap._spriteP=undefined; // gen property
 	for(let _=dup;_--;) this._lowerLayer.addChild(new Sprite(this._lowerBitmap));
 	
-if(1){
+{ // z2Layers
 	this._z2Layers={};
 	this._z2Layers_ys=[];
 	this._z2Layers_bitmaps={};
-	let addUpper_str=$dataMap.meta.addUpper;
+	const addUpper_str=$dataMap.meta.addUpper;
 	if(addUpper_str!==true && addUpper_str){
-		let addUppers=JSON.parse(addUpper_str);
-		let ys=this._z2Layers_ys,lvs=this._z2Layers;
-		for(let x=0,arr=addUppers,tmpSet=new Set([undefined]);x!==arr.length;++x){
-			let y=arr[x].y;
-			if(tmpSet.has(y)) continue;
-			tmpSet.add(y);
-			ys.push(y);
+		const addUppers=JSON.parse(addUpper_str);
+		const ys=this._z2Layers_ys,lvs=this._z2Layers,rects={};
+		if(objs.isDev) this._z2Layers_rects=rects;
+		for(let x=0;x!==addUppers.length;++x){
+			const y=addUppers[x].y; if(y===undefined) continue;
+			if(rects[y]){
+				const rect=rects[y],newRect=addUppers[x].loc;
+				if(rect[0]>newRect[0]) rect[0]=newRect[0];
+				if(rect[1]>newRect[1]) rect[1]=newRect[1];
+				if(rect[2]<newRect[2]) rect[2]=newRect[2];
+				if(rect[3]<newRect[3]) rect[3]=newRect[3];
+			}else{ rects[y]=addUppers[x].loc.slice(); ys.push(y); }
 		}
 		ys.sortn();
-		for(let j=0,th=Game_Map.prototype.tileHeight();j!==ys.length;++j){
-			let y=ys[j];
+		for(let j=0,th=this._tileHeight;j!==ys.length;++j){
+			const y=ys[j];
 			if(lvs[y]) continue;
-			let lv=lvs[y] = new Sprite();
+			const lv = lvs[y] = new Sprite();
+			const rect=lv._limitRect=rects[y].map((x,i)=>(i&1?th:this._tileWidth)*x);
 			lv.oy=y*th+((th>>1)|1);
 			lv.z2=4; // same as 'this._upperLayer'
 			lv.move(-margin, -margin, width, height);
 			lv.z=3;
-			let bitmap=new Bitmap(layerWidth, layerHeight);
+			//const bitmap = new Bitmap(rect[2]-rect[0], rect[3]-rect[1]);
+			const bitmap = new Bitmap(layerWidth, layerHeight);
+			bitmap._spriteP=lv;
 			this._z2Layers_bitmaps[y]=bitmap;
 			for(let _=dup;_--;) lv.addChild(new Sprite(bitmap));
 		}
 	}
-}
+} // z2Layers
 	
 	this._upperLayer = new Sprite();
 	this._upperLayer.move(-margin, -margin, width, height);
 	this._upperLayer.z = 4;
+	this._upperLayer._limitRect=undefined; // gen property
 	this._upperBitmap = new Bitmap(layerWidth, layerHeight);
+	this._upperBitmap._spriteP=undefined; // gen property
 	for(let _=dup;_--;) this._upperLayer.addChild(new Sprite(this._upperBitmap));
 	
 	this.addChild(this._lowerLayer);
@@ -731,31 +742,66 @@ if(1){
 	this.addChild(this._upperLayer);
 };
 $pppp$._updateLayerPositions=function(){
-	let m = this._margin;
-	let ox = Math.floor(this.origin.x);
-	let oy = Math.floor(this.origin.y);
-	let x2 = (ox - m).mod(this._layerWidth);
-	let y2 = (oy - m).mod(this._layerHeight);
-	let w1 = this._layerWidth - x2;
-	let h1 = this._layerHeight - y2;
-	let w2 = this._width - w1;
-	let h2 = this._height - h1;
+	const m = this._margin;
+	const ox = this.origin.x-m , oy = this.origin.y-m;
+	const x2 = ox.mod(this._layerWidth) , y2 = oy.mod(this._layerHeight);
+	const w1 = this._layerWidth - x2 , h1 = this._layerHeight - y2;
+	const w2 = this._width - w1 , h2 = this._height - h1;
 	
-	let childrens=[this._lowerLayer.children];
+	const spritePs=[this._lowerLayer];
 	if(this._z2Layers){ for(let x=0,idx=this._z2Layers_ys,arr=this._z2Layers;x!==idx.length;++x){
-		childrens.push(arr[idx[x]].children);
+		spritePs.push(arr[idx[x]]);
 	} }
-	childrens.push(this._upperLayer.children);
-	for (let i = 0; i!==childrens.length; ++i) {
-		let children = childrens[i];
-		children[0].move(0, 0, w1, h1);
-		children[0].setFrame(x2, y2, w1, h1);
-		children[1].move(w1, 0, w2, h1);
-		children[1].setFrame(0, y2, w2, h1);
-		children[2].move(0, h1, w1, h2);
-		children[2].setFrame(x2, 0, w1, h2);
-		children[3].move(w1, h1, w2, h2);
-		children[3].setFrame(0, 0, w2, h2);
+	spritePs.push(this._upperLayer);
+	for(let i = 0; i!==spritePs.length; ++i){
+		const children = spritePs[i].children , limitRect = spritePs[i]._limitRect;
+		if(limitRect){
+			if(limitRect[0]>=ox+this._width || limitRect[1]>=oy+this._height || ox>=limitRect[2] || oy>=limitRect[3]) continue;
+			const dx=limitRect[0]-ox , dy=limitRect[1]-oy , dw=limitRect[2]-limitRect[0] , dh=limitRect[3]-limitRect[1]; // actually drawn 
+			const dxe=dx+dw , dye=dy+dh;
+			let mvx0,mvy0,xs0,ys0,xe0,ye0,mvx3,mvy3,xs3,ys3,xe3,ye3;
+			// (in bitmap)
+			// 3 2
+			// 1 0
+			
+			if(0<dx){ mvx0=dx; xs0=x2+dx; }
+			else{ mvx0=0; xs0=x2; }
+			if(0<dy){ mvy0=dy; ys0=y2+dy; }
+			else{ mvy0=0; ys0=y2; }
+			xe0=x2+dxe; // out of bitmap is ok
+			ye0=y2+dye; // out of bitmap is ok
+			
+			if(w1<dx){ mvx3=dx; xs3=dx-w1; }
+			else{ mvx3=w1; xs3=0; }
+			if(h1<dy){ mvy3=dy; ys3=dy-h1; }
+			else{ mvy3=h1; ys3=0; }
+			if(dxe<this._width){ xe3=dxe-w1; }
+			else{ xe3=w2; }
+			if(dye<this._height){ ye3=dye-h1; }
+			else{ ye3=h2; }
+			
+			children[0].move(mvx0, mvy0);
+			children[0].setFrameB(xs0, ys0, xe0, ye0);
+			
+			children[1].move(mvx3, mvy0);
+			children[1].setFrameB(xs3, ys0, xe3, ye0);
+			
+			children[2].move(mvx0, mvy3);
+			children[2].setFrameB(xs0, ys3, xe0, ye3);
+			
+			children[3].move(mvx3, mvy3);
+			children[3].setFrameB(xs3, ys3, xe3, ye3);
+			
+		}else{
+			children[0].move(0 , 0);
+			children[0].setFrame(x2, y2, w1, h1);
+			children[1].move(w1, 0);
+			children[1].setFrame(0, y2, w2, h1);
+			children[2].move(0 ,h1);
+			children[2].setFrame(x2, 0, w1, h2);
+			children[3].move(w1,h1);
+			children[3].setFrame(0, 0, w2, h2);
+		}
 	}
 };
 $pppp$._paintAllTiles=function(startX, startY){
@@ -912,6 +958,8 @@ $pppp$._drawTile=function(bitmap, tileId, dx, dy , tp){ // polling very slow (sp
 	// debug code to find out tiles drawn counts:
 	// rrrr=Tilemap.prototype._drawTile; dddd=Tilemap.prototype._drawTile=function f(b,t,x,y,p){if(!window['/tmp/'].cnt)window['/tmp/'].cnt={};cnt=window['/tmp/'].cnt; cnt[t]^=0;++cnt[t]; return f.ori.call(this,b,t,x,y,p);}; dddd.ori=rrrr;
 	if(Tilemap.isVisibleTile(tileId)){
+		//const limitRect=bitmap._spriteP&&bitmap._spriteP._limitRect;
+		//if(limitRect){ dx-=limitRect[0]; dy-=limitRect[1]; }
 		if(tp!==undefined){ // transparent
 			let ga=bitmap._context.globalAlpha;
 			bitmap._context.globalAlpha=1-tp;
@@ -931,7 +979,7 @@ $pppp$._drawNormalTile=function(bitmap, tileId, dx, dy){
 	//let sx = ( ((tileId>>4)&8)+(tileId&7) )*w;
 	//let sy = ((tileId>>3)&15)*h;
 	//let setNumber = Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8));
-	let source = this.bitmaps[ Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8)) ];
+	const source = this.bitmaps[ Tilemap.tileAn[tileId]===5 ? 4 : (5+(tileId>>8)) ];
 	if(source){
 		let w = this._tileWidth;
 		let h = this._tileHeight;
@@ -960,18 +1008,12 @@ $dddd$=$pppp$._drawAutotile=function f(bitmap, tileId, dx, dy){
 	f.an[setNumber]();
 	setNumber-=setNumber!==0;
 	
-	let table = f.autotileTable[shape];
-	let source = this.bitmaps[setNumber];
-	
+	const table = f.autotileTable[shape] , source = this.bitmaps[setNumber];
 	if(table && source){
-		let w1 = this._tileWidth_;
-		let h1 = this._tileHeight_;
-		for (let i=0,bx2=f.bx<<1,by2=f.by<<1,h1_=h1>>1,isTable=f.isTable;i!==4;++i) {
-			let qsx = table[i][0];
-			let qsy = table[i][1];
-			let sx1 = (bx2 + qsx) * w1;
-			let sy1 = (by2 + qsy) * h1;
-			let dx1 = dx + (i&1) * w1;
+		const w1 = this._tileWidth_ , h1 = this._tileHeight_ , bx2=f.bx<<1 , by2=f.by<<1 , h1_=h1>>1 , isTable=f.isTable;
+		for (let i=0;i!==4;++i) {
+			const qsx = table[i][0] , qsy = table[i][1];
+			const sx1 = (bx2 + qsx) * w1 , sy1 = (by2 + qsy) * h1 , dx1 = dx + (i&1) * w1 ;
 			let dy1 = dy + (i>>1) * h1;
 			if(isTable && (qsy === 1 || qsy === 5)){
 				let qsx2 = (qsy === 1)?(4-qsx)&3:qsx; // if qsy===1: qsx2 = [0, 3, 2, 1][qsx];
@@ -1305,8 +1347,8 @@ $dddd$=$pppp$.refreshTileset=function f(){
 };
 $dddd$.toPIXI=bitmap=>bitmap._baseTexture?new PIXI.Texture(bitmap._baseTexture):bitmap;
 $pppp$.updateTransform=function() {
-	const startX = (this.origin.x - this._margin)/this._tileWidth  ^ 0;
-	const startY = (this.origin.y - this._margin)/this._tileHeight ^ 0;
+	const startX = (this.origin.x - this._margin)/this._tileWidth  ^0;
+	const startY = (this.origin.y - this._margin)/this._tileHeight ^0;
 	this._updateLayerPositions(startX, startY);
 	if (this._needsRepaint ||
 		this._lastStartX !== startX || this._lastStartY !== startY) {

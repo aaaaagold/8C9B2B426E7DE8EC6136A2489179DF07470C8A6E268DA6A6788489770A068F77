@@ -437,6 +437,8 @@ $dddd$=$aaaa$.onKeyDown=function f(event){
 			let q=$gameMap.eventsXyRef();
 			$gameMessage.popup("evtqueue.length : "+q.length);
 			$gameMessage.popup("first id : "+(q.front&&q.front._eventId));
+			window.q=q;
+			window.evt=$gameMap._events[(q.front&&q.front._eventId)];
 			console.log(q);
 		}break;
 		case "E".charCodeAt(): if($gameMap){ // _events.length

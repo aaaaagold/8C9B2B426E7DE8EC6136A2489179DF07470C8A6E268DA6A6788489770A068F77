@@ -656,18 +656,34 @@ $dddd$.note2traits=x=>{
 				chaseWith=gbb.CHASE_ALLBATTLERS;
 			}break;
 			}
-			if(!chaseWith) continue;
+			if(!chtype) continue;
 			
-			const chaseIdx=gbb.cond2idx(chase[1]); // make tbl
-			const chaseKey=chaseWith[chaseIdx]; // preserve this var pointer for debug
-			const chaseCode=gbb[chaseKey];
-			if(!chaseCode) continue;
-			const chaseSkill=chase[2];
-			const chaseMore=(chase[3]|0)||1;
-			
-			x.traits.push({code:gbb[gbb.CHASES.kb] , dataId:0 , value:1 , comment:gbb.CHASES.kb});
-			x.traits.push({code:gbb[gbb.CHASES[chtype]] , dataId:chaseIdx , value:1 , comment:gbb.CHASES[chtype]+" - "+chaseKey});
-			x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
+			if(chtype===3){
+				const chtypes=[1,2],chaseWiths=[gbb.CHASE_FRIENDS,gbb.CHASE_OPPONENTS];
+				const chaseIdx=gbb.cond2idx(chase[1]);
+				for(let c=0;c!=chtypes.length;++c){
+					const chaseKey=chaseWiths[c][chaseIdx]; // preserve this var pointer for debug
+					const chaseCode=gbb[chaseKey];
+					if(!chaseCode) continue;
+					const chaseSkill=chase[2];
+					const chaseMore=(chase[3]|0)||1;
+					
+					x.traits.push({code:gbb[gbb.CHASES.kb] , dataId:0 , value:1 , comment:gbb.CHASES.kb});
+					x.traits.push({code:gbb[gbb.CHASES[chtypes[c]]] , dataId:chaseIdx , value:1 , comment:gbb.CHASES[chtypes[c]]+" - "+chaseKey});
+					x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
+				}
+			}else{
+				const chaseIdx=gbb.cond2idx(chase[1]); // make tbl
+				const chaseKey=chaseWith[chaseIdx]; // preserve this var pointer for debug
+				const chaseCode=gbb[chaseKey];
+				if(!chaseCode) continue;
+				const chaseSkill=chase[2];
+				const chaseMore=(chase[3]|0)||1;
+				
+				x.traits.push({code:gbb[gbb.CHASES.kb] , dataId:0 , value:1 , comment:gbb.CHASES.kb});
+				x.traits.push({code:gbb[gbb.CHASES[chtype]] , dataId:chaseIdx , value:1 , comment:gbb.CHASES[chtype]+" - "+chaseKey});
+				x.traits.push({code:chaseCode,dataId:chaseSkill,value:chaseMore,comment:chaseKey});
+			}
 		}
 	}
 	if(meta.hcr){ // *
