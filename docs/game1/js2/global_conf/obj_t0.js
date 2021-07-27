@@ -1801,6 +1801,12 @@ $pppp$=$aaaa$=undef;
 // - ScreenSprite
 $aaaa$=ScreenSprite;
 $pppp$=$aaaa$.prototype;
+$k$='initialize';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(){
+	f.ori.apply(this,arguments);
+	this.oy=undefined;
+	this._z2=0;
+}).ori=$r$;
 $pppp$.setColor=function(r, g, b){
 	//debug.log('ScreenSprite.prototype.setColor');
 		r &= 0xFF;
@@ -1992,20 +1998,22 @@ $pppp$.update=function f(){ // overwrite, forEach is slowwwwwwwwww
 		child && child.update && child.update();
 	}
 };
+$pppp$.setFrameB=function(x,y,xe,ye){
+	// set by bound;
+	this.setFrame(x,y,(x<xe)*(xe-x),(y<ye)*(ye-y));
+};
 $pppp$._refresh=function(){
 	//debug.log2("Sprite.prototype._refresh");
 	let tmp;
 	const frameX = ~~this._frame.x;
 	const frameY = ~~this._frame.y;
-	const frameW = ~~this._frame.width;
-	const frameH = ~~this._frame.height;
 	const bitmapW = this._bitmap ? this._bitmap.width : 0;
 	const bitmapH = this._bitmap ? this._bitmap.height : 0;
 	const realX = frameX<bitmapW?frameX<0?0:frameX:bitmapW;
 	const realY = frameY<bitmapH?frameY<0?0:frameY:bitmapH;
-	let realW = frameW - realX + frameX;
+	let realW = (~~this._frame.width ) - realX + frameX;
 	if(realW<0) realW=0; else{ tmp = bitmapW - realX; if(realW>tmp) realW=tmp; }
-	let realH = frameH - realY + frameY;
+	let realH = (~~this._frame.height) - realY + frameY;
 	if(realH<0) realH=0; else{ tmp = bitmapH - realY; if(realH>tmp) realH=tmp; }
 	
 	this._realFrame.x = realX;

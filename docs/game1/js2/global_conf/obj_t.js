@@ -10047,6 +10047,7 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 $d$=$pppp$[$k$]=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
+	this._dmgRate=1;
 	this.initMeta();
 }; $d$.ori=$r$;
 $pppp$.initMeta=function(){
@@ -10611,6 +10612,7 @@ $pppp$.makeDamageValue=function(target,isCri){
 	if(item.damage.variance) value = this.applyVariance(value, item.damage.variance);
 	value = this.applyGuard(value, target);
 	value-=decDmg;
+	value*=this._dmgRate;
 	return ~~value;
 };
 $d$=$pppp$.evalDamageFormula=function f(target){
