@@ -5154,7 +5154,8 @@ $r$=$pppp$[$k$];
 }).ori=$r$;
 $pppp$.updateChase=function(o,n){ // if no args, update!
 	if(SceneManager.isBattle()){
-		const k=arguments.length&&Game_BattlerBase.CHASES.kb;
+		const gbb=Game_BattlerBase;
+		const k=gbb[arguments.length&&gbb.CHASES.kb];
 		if(!k||(o&&o.tmapS.has(k))||(n&&n.tmapS.has(k))) BattleManager.updateChase(this);
 	}
 };
@@ -5736,8 +5737,8 @@ $pppp$.meetNeedStates=function(dataobj){
 };
 $pppp$.canUse=function(dataItem){
 	const meta=dataItem && dataItem.meta; if(!meta) return false;
-	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(meta.cond));
-	if(cond && !cond()) return false;
+	{ const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj(none,meta.cond));
+	if(cond && !cond(this)) return false;
 	}
 	// when use an item via press 'ok' without release, 'meta' has chance to become 'undefined'
 	if(SceneManager._scene.constructor===Scene_Item && meta && (meta.code||meta.func) && $gameParty.hasItem(dataItem)) return true;
@@ -5839,6 +5840,17 @@ $pppp$.weapon2ImageId=function(){
 $pppp$.startWeapon2Animation=function(weaponImageId) {
 	this._weapon2ImageId = weaponImageId;
 };
+$k$='isStateAddable';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(stateId){
+	{
+		const dataItem=$dataStates[stateId];
+		const meta=dataItem && dataItem.meta; if(!meta) return false;
+		const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj.call(none,meta.cond));
+		if(cond && !cond(this)) return false;
+	}
+	return f.ori.call(this,stateId);
+}).ori=$r$;
 $d$=$pppp$.removeStatesAuto=function f(timing){
 	f.tbl[0].length=0; f.tbl._=this; f.tbl.t=timing;
 	this._states.forEach(f.tbl[1],f.tbl);
@@ -10387,6 +10399,12 @@ $pppp$.itemTargetCandidates = function() {
 	break;
 	}
 };
+$pppp$.getItemFilter=function(item){
+	item=item||this.item();
+	if(!item) return false;
+	const meta=item.meta;
+	return item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
+};
 $r$=$pppp$.testApply;
 $d$=$pppp$.testApply=function f(target){
 	this.meta.deadNotMatch=undefined;
@@ -10394,8 +10412,7 @@ $d$=$pppp$.testApply=function f(target){
 	const item=this.item();
 	if(!item) return false;
 	const meta=item.meta;
-	const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
-	//const filter=item.filter||(item.filter=(meta.filter=meta.filter)&&eval('objs.'+meta.filter));
+	const filter=this.getItemFilter();
 	if(filter) return filter(target,this.subject());
 	return (
 		!(this.meta.deadNotMatch=!( this.isDeadNotMatter() || this.isForDeadFriend() === target.isDead() )) &&
@@ -11237,12 +11254,7 @@ $d$=$pppp$.displayLevelUp=function f(newSkills){
 		$gameMessage.popup(text,true);
 		newSkills.forEach(f.forEach[1]);
 	}
-	if(this.constructor===Game_Actor && SceneManager.isBattle()) for(let x=0;x!==newSkills.length;++x){
-		if($dataSkills[newSkills[x]].tmapS.has(Game_BattlerBase.CHASES.kb)){
-			BattleManager.updateChase(this);
-			break;
-		}
-	}
+	if(SceneManager.isBattle()) for(let x=0;x!==newSkills.length;++x) this.updateChase($dataSkills[newSkills[x]]);
 };
 $d$.forEach=[
 	id=>$gameMessage.add(TextManager.obtainSkill.format($dataSkills[id].name)),
@@ -12638,6 +12650,7 @@ $d$=$pppp$.convertEscapeCharacters=function f(text) {
 	text = text.replace(f.re_txtin, f.f_txtin);
 	text = text.replace(f.re_txtarea, f.f_txtarea.bind(this));
 	text = text.replace(f.re_actor, f.f_actor);
+	text = text.replace(f.re_enemy, f.f_enemy);
 	text = text.replace(f.re_armor, f.f_armor);
 	text = text.replace(f.re_weapon, f.f_weapon);
 	text = text.replace(f.re_skill, f.f_skill);
@@ -12713,6 +12726,8 @@ $d$.f_txtarea=function(){
 };
 $d$.re_actor=/\x1bactor\[(\d+)\]/g;
 $d$.f_actor=function(){ return "\x1bRGB["+$dataCustom.textcolor.actor+"]"+$dataActors[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
+$d$.re_enemy=/\x1benemy\[(\d+)\]/g;
+$d$.f_enemy=function(){ return "\x1bRGB["+$dataCustom.textcolor.actor+"]"+$dataEnemies[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $d$.re_armor=/\x1barmor\[(\d+)\]/g;
 $d$.f_armor=function(){ return "\x1bRGB["+$dataCustom.textcolor.armor+"]"+$dataArmors[arguments[1]].name+"\x1bRGB["+$dataCustom.textcolor.default+"]"; };
 $d$.re_weapon=/\x1bweapon\[(\d+)\]/g;
@@ -13851,7 +13866,12 @@ $pppp$.refresh=function(){
 $pppp$.isCurrentItemEnabled=function(idx){
 	const i=idx===undefined?this._index:idx;
 	// for skills affecting dead enemies in future 
-	return this._enemies && this._enemies[i] && !this._enemies[i].isHidden() && !this._enemies[i].isDeathStateAffected();
+	const trgt=this._enemies && this._enemies[i];
+	{ const act=BattleManager.inputtingAction(); if(act){
+		const filter=act.getItemFilter();
+		if(filter) return filter(trgt,act.subject());
+	} }
+	return trgt && !trgt.isHidden() && !trgt.isDeathStateAffected();
 };
 $pppp$.drawItem=function(index){
 	this.changePaintOpacity(this.isCurrentItemEnabled(index));
@@ -14037,11 +14057,10 @@ $d$=$pppp$.drawItem=function f(idx){
 }; $d$.ori=$r$;
 $pppp$.isCurrentItemEnabled=function(){
 	if(this._mode!=='s'){ const act=BattleManager.inputtingAction();
-	if(act){ const item=act.item(); if(item){
-		const filter=item.filter||(item.filter=(item.meta.filter=item.meta.filter)&&objs._getObj(item.meta.filter));
-		//const filter=item.filter||(item.filter=(item.meta.filter=item.meta.filter)&&eval('objs.'+item.meta.filter));
+	if(act){
+		const filter=act.getItemFilter();
 		if(filter) return filter(this.actor(),act.subject());
-	} }
+	}
 	} // swap party actors mode
 	return true;
 };

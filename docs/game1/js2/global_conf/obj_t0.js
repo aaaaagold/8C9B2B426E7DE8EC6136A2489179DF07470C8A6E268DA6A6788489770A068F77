@@ -1801,12 +1801,6 @@ $pppp$=$aaaa$=undef;
 // - ScreenSprite
 $aaaa$=ScreenSprite;
 $pppp$=$aaaa$.prototype;
-$k$='initialize';
-$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(){
-	f.ori.apply(this,arguments);
-	this.oy=undefined;
-	this._z2=0;
-}).ori=$r$;
 $pppp$.setColor=function(r, g, b){
 	//debug.log('ScreenSprite.prototype.setColor');
 		r &= 0xFF;
@@ -1906,6 +1900,12 @@ $pppp$=$aaaa$=undef;
 // - sprite
 $aaaa$=Sprite;
 $pppp$=$aaaa$.prototype;
+$k$='initialize';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(){
+	f.ori.apply(this,arguments);
+	this.oy=undefined;
+	this._z2=0;
+}).ori=$r$;
 // notify parent:Tilemap
 //
 $pppp$.remove=function(){

@@ -744,7 +744,6 @@ $dddd$=$pppp$._createLayers=function f(){ // re-write: psuedo layer
 $pppp$._updateLayerPositions=function(){
 	const m = this._margin;
 	const ox = this.origin.x-m , oy = this.origin.y-m;
-	const oxr = this._tileWidth*(~~((ox+(ox<0))/this._tileWidth)-(ox<0)) , oyr = this._tileHeight*(~~((oy+(oy<0))/this._tileHeight)-(oy<0));
 	const x2 = ox.mod(this._layerWidth) , y2 = oy.mod(this._layerHeight);
 	const w1 = this._layerWidth - x2 , h1 = this._layerHeight - y2;
 	const w2 = this._width - w1 , h2 = this._height - h1;
@@ -758,107 +757,41 @@ $pppp$._updateLayerPositions=function(){
 		const children = spritePs[i].children , limitRect = spritePs[i]._limitRect;
 		if(limitRect){
 			if(limitRect[0]>=ox+this._width || limitRect[1]>=oy+this._height || ox>=limitRect[2] || oy>=limitRect[3]) continue;
-			const dx=limitRect[0]-oxr , dy=limitRect[1]-oyr , dw=limitRect[2]-limitRect[0] , dh=limitRect[3]-limitRect[1]; // actually drawn 
+			const dx=limitRect[0]-ox , dy=limitRect[1]-oy , dw=limitRect[2]-limitRect[0] , dh=limitRect[3]-limitRect[1]; // actually drawn 
 			const dxe=dx+dw , dye=dy+dh;
-			let mvx,mvy,xs,ys,xe,ye;
+			let mvx0,mvy0,xs0,ys0,xe0,ye0,mvx3,mvy3,xs3,ys3,xe3,ye3;
 			// (in bitmap)
 			// 3 2
 			// 1 0
 			
-			if(0<dx){ mvx=dx; xs=x2+dx; }
-			else{ mvx=0; xs=x2; }
-			xe=x2+dxe; // out of bitmap is ok
-			if(0<dy){ mvy=dy; ys=y2+dy; }
-			else{ mvy=0; ys=y2; }
-			ye=y2+dye; // out of bitmap is ok
-			children[0].move(mvx, mvy);
-			children[0].setFrameB(xs, ys, xe, ye);
+			if(0<dx){ mvx0=dx; xs0=x2+dx; }
+			else{ mvx0=0; xs0=x2; }
+			if(0<dy){ mvy0=dy; ys0=y2+dy; }
+			else{ mvy0=0; ys0=y2; }
+			xe0=x2+dxe; // out of bitmap is ok
+			ye0=y2+dye; // out of bitmap is ok
 			
-			if(w1<dx){ mvx=w1+dx; xs=dx-w1; }
-			else{ mvx=w1; xs=0; }
-			if(dxe<this._width){ xe=dxe-w1; }
-			else{ xe=w2; }
-			if(0<dy){ mvy=dy; ys=y2+dy; }
-			else{ mvy=0; ys=y2; }
-			ye=y2+dye; // out of bitmap is ok
-			children[1].move(mvx, mvy);
-			children[1].setFrameB(xs, ys, xe, ye);
+			if(w1<dx){ mvx3=dx; xs3=dx-w1; }
+			else{ mvx3=w1; xs3=0; }
+			if(h1<dy){ mvy3=dy; ys3=dy-h1; }
+			else{ mvy3=h1; ys3=0; }
+			if(dxe<this._width){ xe3=dxe-w1; }
+			else{ xe3=w2; }
+			if(dye<this._height){ ye3=dye-h1; }
+			else{ ye3=h2; }
 			
-			if(0<dx){ mvx=dx; xs=x2+dx; }
-			else{ mvx=0; xs=x2; }
-			xe=x2+dxe; // out of bitmap is ok
-			if(h1<dy){ mvy=h1+dy; ys=dy-h1; }
-			else{ mvy=h1; ys=0; }
-			if(dye<this._height){ ye=dye-h1; }
-			else{ ye=h2; }
-			children[2].move(mvx, mvy);
-			children[2].setFrameB(xs, ys, xe, ye);
+			children[0].move(mvx0, mvy0);
+			children[0].setFrameB(xs0, ys0, xe0, ye0);
 			
-			if(w1<dx){ mvx=w1+dx; xs=dx-w1; }
-			else{ mvx=w1; xs=0; }
-			if(dxe<this._width){ xe=dxe-w1; }
-			else{ xe=w2; }
-			if(h1<dy){ mvy=h1+dy; ys=dy-h1; }
-			else{ mvy=h1; ys=0; }
-			if(dye<this._height){ ye=dye-h1; }
-			else{ ye=h2; }
-			children[3].move(mvx, mvy);
-			children[3].setFrameB(xs, ys, xe, ye);
+			children[1].move(mvx3, mvy0);
+			children[1].setFrameB(xs3, ys0, xe3, ye0);
 			
-		}else{
-			children[0].move(0 , 0);
-			children[0].setFrame(x2, y2, w1, h1);
-			children[1].move(w1, 0);
-			children[1].setFrame(0, y2, w2, h1);
-			children[2].move(0 ,h1);
-			children[2].setFrame(x2, 0, w1, h2);
-			children[3].move(w1,h1);
-			children[3].setFrame(0, 0, w2, h2);
-		}continue;
-		if(0 && limitRect && ox+this._width>=limitRect[0] && oy+this._height>=limitRect[1] && ox<limitRect[2] && oy<limitRect[3]){
-			// TODO
-			// offset: (x2,y2) , rotate
-			const dxs=limitRect[0]-oxr , dys=limitRect[1]-oyr , dw=limitRect[2]-limitRect[0] , dh=limitRect[3]-limitRect[1]; // actually drawn 
-			let mvx,mvy,xs,ys,xe,ye;
+			children[2].move(mvx0, mvy3);
+			children[2].setFrameB(xs0, ys3, xe0, ye3);
 			
-			if(0<dx){ mvx=0; xs=x2; }
-			else{ mvx=dx; xs=dx; }
-			xe=dxe;
-			if(0<dy){ mvy=0; ys=y2; }
-			else{ mvy=dy; ys=dy; }
-			ye=dye;
-			children[0].move(mvx, mvy);
-			children[0].setFrameB(xs, ys, xe, ye);
-			children[1].move(w1, 0);
-			children[1].setFrameB(0, y2, w2, this._layerHeight);
-			children[2].setFrameB(x2, 0, this._layerWidth, h2);
-			children[3].setFrameB(0, 0, w2, h2);
-			continue;
-			children[0].setFrameB(x2, y2, this._layerWidth, this._layerHeight);
-			children[1].setFrameB(0, y2, w2, this._layerHeight);
-			children[2].setFrameB(x2, 0, this._layerWidth, h2);
-			children[3].setFrameB(0, 0, w2, h2);
-			continue;
+			children[3].move(mvx3, mvy3);
+			children[3].setFrameB(xs3, ys3, xe3, ye3);
 			
-			
-			const we1=Math.min(w1-dxs,dw) , he1=Math.min(h1-dys,dh);
-			const we2=Math.min(this._width-dxs,dw) , he2=Math.min(this._height-dys,dh);
-			
-			children[0].move(dxs, dys);
-			children[0].setFrame(x2+dxs, y2+dys, we1, he1);
-			children[1].move(w1+dxs, dys);
-			// -w1 .. -w1+this._width 
-			children[1].setFrame(-w1+dxs, y2+dys, we2, he1);
-			children[2].move(0+dxs, h1+dys);
-			// -h1 .. -h1+this._height
-			children[2].setFrame(x2+dxs, -h1+dys, we1, he2);
-			children[3].move(w1+dxs, h1+dys);
-			children[3].setFrame(-w1, -h1, we2, he2);
-			
-			//children[0].setFrame(x2, y2, w1, h1);
-			//children[1].setFrame(0, y2, w2, h1);
-			//children[2].setFrame(x2, 0, w1, h2);
-			//children[3].setFrame(0, 0, w2, h2);
 		}else{
 			children[0].move(0 , 0);
 			children[0].setFrame(x2, y2, w1, h1);
