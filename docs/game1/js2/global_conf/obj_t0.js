@@ -2584,10 +2584,26 @@ $d$=$pppp$.deadMembers=function f(){
     return this.members().filter(f.forEach);
 };
 $d$.forEach=m=>m.isDead();
-$d$=$pppp$.isAllDead=function f(){
-	return !this.members().some(f.some);
+$d$=$pppp$.randomTarget=function f(n){
+	const tgrvp=[],actrv=[];
+	for(let x=0,arr=this.members(),s=0,isAilve=Game_Unit.isAilve;x!==arr.length;++x){
+		if(!f.forEach(arr[x])) continue;
+		actrv.push(arr[x]);
+		tgrvp.push(s+=arr[x].tgr);
+	}
+	if(n===undefined) return actrv.length?actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]:null;
+	else{
+		n|=0;
+		const rtv=[];
+		if(actrv.length) while(n--) rtv.push(actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]);
+		return rtv;
+	}
 };
-$d$.some=$aaaa$.isAlive;
+$d$.forEach=$aaaa$.isAlive;
+$d$=$pppp$.isAllDead=function f(){
+	return !this.members().some(f.forEach);
+};
+$d$.forEach=$aaaa$.isAlive;
 $pppp$.alwaysSubstitute=function(){
 	const members = this.members();
 	for(let i=0;i!==members.length;++i)

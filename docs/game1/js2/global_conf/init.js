@@ -353,13 +353,13 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 	});
 	
 	Object.defineProperties(w.Object.prototype,{
-	//	hasKey: { // it's slow, still need to copy keys to an array (or something like that)
-	//		// seems this is the only way
-	//		get:function(){
-	//			//debug.warn("Obj.hasKey is slow, still need to copy keys to an array (or something like that). And also 'for(let i in Obj)' is too.");
-	//			for(let i in this){if(w.Object.prototype.hasOwnProperty.call(this,i)) return true;} return false;
-	//		},
-	//	configurable: true},
+		hasKey: { // it's slow, still need to copy keys to an array (or something like that)
+			// seems this is the only way
+			get:function(){
+				//debug.warn("Obj.hasKey is slow, still need to copy keys to an array (or something like that). And also 'for(let i in Obj)' is too.");
+				for(let i in this){if(w.Object.prototype.hasOwnProperty.call(this,i)) return true;} return false;
+			},
+		configurable: true},
 		hasOwnKey: {
 			get:_=>w.Object.prototype.hasOwnProperty,
 		configurable: true},
@@ -428,10 +428,11 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 	w.Array.prototype.join.tbl=new Set([null,undefined,]);
 	w.Array.prototype.count=function(x){let rtv=0;this.forEach((v)=>{rtv+=(x===v);});return rtv;};
 	w.Array.prototype.getnth=function(n){return this[n];};
+	{ const _getval=_=>_;
 	w.Array.prototype.lower_bound=function(val,getval,strt,ende){
 		// if found, return idx
 		// if not found, return upper bound
-		if(!getval||getval.constructor!==Function) getval=_=>_;
+		if(!getval||getval.constructor!==Function) getval=_getval;
 		if(ende===undef) ende=this.length;
 		strt^=0;
 		while(strt<ende){
@@ -444,10 +445,11 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 		return strt;
 	};
 	w.Array.prototype.binary_search=function(val,getval,strt,ende){
-		if(!getval||getval.constructor!==Function) getval=_=>_;
+		if(!getval||getval.constructor!==Function) getval=_getval;
 		let idx=this.lower_bound(val,getval,strt,ende);
 		return getval(this.getnth(idx))===val && idx;
 	};
+	}
 	w.Array.prototype.rnd=function(n,inPlace,rndCnt){
 		if(this.length===0) return undef;
 		if(n===undefined) return this[parseInt(Math.random()*this.length)];

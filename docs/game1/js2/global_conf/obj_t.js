@@ -10305,9 +10305,7 @@ $pppp$.targetsForOpponents=function(){ // scope: [1..6]
 	case 4:
 	case 5:
 	case 6:{ // this.isForRandom
-		const rtv=[];
-		for(let i=0,sz=this.numTargets();i!==sz;++i) rtv.push(unit.randomTarget());
-		return rtv;
+		return unit.randomTarget(this.numTargets());
 	}break;
 	}
 	return [];
