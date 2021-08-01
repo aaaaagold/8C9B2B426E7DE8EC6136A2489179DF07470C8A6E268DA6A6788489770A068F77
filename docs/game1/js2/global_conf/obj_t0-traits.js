@@ -519,9 +519,9 @@ $dddd$.makeReflectedless=dataobj=>dataobj.reflectedless=dataobj.meta.reflectedle
 $dddd$.makeSureHit=dataobj=>dataobj.surehit=dataobj.meta.surehit!==undefined;
 $dddd$.makeTraitsMap=dataobj=>{
 	const tarr=dataobj.traits;
-	if(!tarr) return;
 	const tmapS=dataobj.tmapS=new Map();
 	const tmapP=dataobj.tmapP=new Map();
+	if(!tarr) return;
 	let tmp;
 	// same type(code) most likely calculated in the same
 	for(let x=0;x!==tarr.length;++x){
