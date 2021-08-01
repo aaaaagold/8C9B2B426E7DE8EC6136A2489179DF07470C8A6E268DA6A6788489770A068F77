@@ -1616,19 +1616,18 @@ $pppp$=$aaaa$=undef;
 // - BattleManager
 $aaaa$=BattleManager;
 $r$=$aaaa$. setup ;
-$d$=$aaaa$. setup =function f(troopId, canEscape, canLose){
+($aaaa$. setup =function f(troopId, canEscape, canLose){
 	f.ori.call(this, troopId, canEscape, canLose);
 	this._turnCtr=0;
 	this.clearTBDCache();
-}; $d$.ori=$r$;
-$d$=$aaaa$.clearTBDCache=function f(){
+}).ori=$r$;
+($aaaa$.clearTBDCache=function f(){
 	if(this._TBDCache){
 		this._TBDCache.forEach(f.forEach);
 		this._TBDCache.clear();
 	}else this._TBDCache=new Set();
-};
-$d$.forEach=b=>b.clearCache();
-$d$=$aaaa$.initChases=function f(){
+}).forEach=b=>b.clearCache();
+($aaaa$.initChases=function f(){
 	let M=this._chases;
 	if(M) M.clear();
 	else M=this._chases=new Map();
@@ -1637,11 +1636,10 @@ $d$=$aaaa$.initChases=function f(){
 	M.set($gameTroop,c=new Map());	c.byCond=arr.map(f.forEach);
 	M.set(this,c=new Map());	c.byCond=arr.map(f.forEach);
 	// btlr -> traitCodeSet according to friend or opponent or all
-};
-$d$.forEach=_=>new Set();
+}).forEach=_=>new Set();
 $k$='initMembers';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
 	f.ori.call(this);
 	let tmp;
 	
@@ -1664,10 +1662,10 @@ $d$=$aaaa$[$k$]=function f(){
 	this._actionNoEffect=false;
 	
 	this.initChases();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='saveBgmAndBgs';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
 	f.ori.call(this);
 	if(AudioManager._pitchesBgm_data){
 		AudioManager._pitchesBgm_data.pos=AudioManager._pitchesBgm_pos;
@@ -1677,38 +1675,44 @@ $d$=$aaaa$[$k$]=function f(){
 		AudioManager._pitchesBgs_data.pos=AudioManager._pitchesBgs_pos;
 		this._mapBgs=AudioManager._pitchesBgs_data;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='makeEscapeRatio';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
 	if($gameTroop._trueEscape || $gameParty.mustEscape()) this._escapeRatio = 1;
 	else f.ori.call(this);
-}; $d$.ori=$r$;
-$r$=$aaaa$. update ;
-$d$=$aaaa$. update =function f(){ // prepare
+}).ori=$r$;
+$r$=$aaaa$.update;
+($aaaa$.update=function f(){ // prepare
 	//console.log(' update ',this._actorIndex);
 	//return f.ori.call(this);
 	do{
 		this._actionNoEffect=false;
 		f.ori.call(this);
 	}while(this._actionNoEffect);
-}; $d$.ori=$r$;
-$k$='startInput';
-$r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){ // prepare
-	if(objs.isDev) console.log(' startInput ',this._actorIndex);
-	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
+$aaaa$.startInput=function f(){ // prepare
+	if(objs.isDev) console.log(' startInput ','actor id',this._actorIndex);
+	//return f.ori.call(this);
+	this._phase = 'input';
+	$gameParty.makeActions();
+	//$gameTroop.makeActions(); // moved to startTurn
+	this.clearActor();
+	if( this._surprise || !$gameParty.canInput() ){
+		this.startTurn();
+	}
+};
 $aaaa$.inputtingAction=function(){
 	const actor=this.actor();
 	return actor ? actor.inputtingAction() : null;
 };
 $r$=$aaaa$.startTurn;
-$d$=$aaaa$.startTurn=function f(){
+($aaaa$.startTurn=function f(){
 	if(objs.isDev) console.log(' startTurn ',this._actorIndex);
+	$gameTroop.makeActions();
 	++this._turnCtr;
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='updateTurn';
 $r$=$aaaa$[$k$];
 $d$=$aaaa$[$k$]=function f(){ // prepare
@@ -10066,6 +10070,7 @@ $pppp$.initMeta=function(){
 	this.meta={
 		preload:false, // preload btlr attrs for not evaluated again
 		deadNotMatch:undefined, // used in testApply. true if failure reason is death/live state
+		targets:undefined, // idxs of targets in opponent unit for enemy.ai @ Game_Enemy.prototype.selectAllActions
 	};
 };
 $pppp$.clearPreloadFlag=function(){
@@ -10268,7 +10273,7 @@ $pppp$.makeTargets=function(dontTestConfused,toWrongTarget){
 	case 4:
 	case 5:
 	case 6: // this.isForOpponent
-		targets = toWrongTarget ? this.targetsForFriends() : this.targetsForOpponents();
+		targets = toWrongTarget ? this.targetsForFriends(this.opponentsUnit()) : this.targetsForOpponents();
 	break;
 	case 7:
 	case 8:
@@ -10277,7 +10282,7 @@ $pppp$.makeTargets=function(dontTestConfused,toWrongTarget){
 	case 11:
 	case 12: // this.isForFriends // all, dead not matter
 	case 16: { // this.isForFriend // 1, dead not matter
-		targets = toWrongTarget ? this.targetsForOpponents() : this.targetsForFriends();
+		targets = toWrongTarget ? this.targetsForOpponents(this.friendsUnit()) : this.targetsForFriends();
 	}break;
 	case 13:
 	case 14:
@@ -10296,35 +10301,43 @@ $pppp$.confusionTarget=function(){
 		return this.makeTargets(true,true);
 	}
 };
-$pppp$.targetsForOpponents=function(){ // scope: [1..6]
-	const unit = this.opponentsUnit();
+$pppp$.targetsForOpponents=function(U){ // scope: [1..6]
+	const unit = U||this.opponentsUnit();
 	switch(this.item().scope){
-	case 1: return [ this._targetIndex<0 ? unit.randomTarget() : unit.smoothTarget(this._targetIndex) ] ; // this.isForOne
+	case 1: {
+		let idx=this.meta.targets;
+		if(!idx||!idx.length) idx=this._targetIndex;
+		return [ idx<0 ? unit.randomTarget() : unit.smoothTarget(idx) ] ; // this.isForOne
+	}break;
 	case 2: return unit.aliveMembers();
 	case 3:
 	case 4:
 	case 5:
 	case 6:{ // this.isForRandom
-		return unit.randomTarget(this.numTargets());
+		return unit.randomTarget(this.numTargets(),this.meta.targets);
 	}break;
 	}
 	return [];
 };
-$pppp$.targetsForFriends=function(){ // scope: [7..12]
-	const unit = this.friendsUnit();
+$pppp$.targetsForFriends=function(U){ // scope: [7..12]
+	const unit = U||this.friendsUnit();
+	let idx=this.meta.targets;
 	switch(this.item().scope){
-	case  7: return [ (this._targetIndex < 0) ? unit.randomTarget() : unit.smoothTarget(this._targetIndex) ]; // isForFriend (1)
+	case  7:{
+		if(!idx||!idx.length) idx=this._targetIndex;
+		return [ idx<0 ? unit.randomTarget() : unit.smoothTarget(idx) ]; // isForFriend (1)
+	}break;
 	case  8: return unit.aliveMembers(); // isForFriend (all)
-	case  9: return [unit.smoothDeadTarget(this._targetIndex)]; // this.isForDeadFriend (1)
-	case 10: return unit.deadMembers(); // this.isForDeadFriend (all)
+	case  9:{
+		if(!idx||!idx.length) idx=this._targetIndex;
+		return [unit.smoothDeadTarget(idx)]; // this.isForDeadFriend (1)
+	}case 10: return unit.deadMembers(); // this.isForDeadFriend (all)
 	case 11: return [this.subject()]; // this.isForUser
 	case 12: return unit.members(); // this.isForAllFriends // all, dead not matter
 	case 16: { // this.isForAllFriend // 1, dead not matter
-		if(this._targetIndex>=0){
-			const m=unit.members()[this._targetIndex];
-			if(m) return [m];
-		}
-		return [ unit.randomTarget() ];
+		if(idx&&idx.length) idx=idx[0];
+		else idx=this._targetIndex;
+		return [ idx>=0 ? unit.members()[idx] : unit.randomTarget() ];
 	}break;
 	}
 	return [];
@@ -12334,6 +12347,15 @@ $pppp$.performDamage=function(){
 	SoundManager.playEnemyDamage();
 	//this.requestEffect('blink');
 };
+$k$='selectAllActions';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(actionList){
+	if(this.getData().ai){
+		const res=this.getData().ai.call(none,this,actionList);
+		if(res){ for(let x=0,xs=this._actions.length;x!==xs;++x){
+			this._actions.getnth(x).meta.targets=res[x];
+		} }
+	}else f.ori.call(this,actionList);
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - Game_Troop

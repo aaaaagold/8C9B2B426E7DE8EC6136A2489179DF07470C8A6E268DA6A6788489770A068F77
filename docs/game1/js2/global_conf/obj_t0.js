@@ -2584,22 +2584,55 @@ $d$=$pppp$.deadMembers=function f(){
     return this.members().filter(f.forEach);
 };
 $d$.forEach=m=>m.isDead();
-$d$=$pppp$.randomTarget=function f(n){
+$d$=$pppp$.randomTarget=function f(n,candi){
 	const tgrvp=[],actrv=[];
-	for(let x=0,arr=this.members(),s=0,isAilve=Game_Unit.isAilve;x!==arr.length;++x){
+	for(let x=0,arr=this.members(),s=0;x!==arr.length;++x){
 		if(!f.forEach(arr[x])) continue;
 		actrv.push(arr[x]);
 		tgrvp.push(s+=arr[x].tgr);
 	}
-	if(n===undefined) return actrv.length?actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]:null;
-	else{
+	if(n===undefined){
+		return actrv.length?(candi&&candi.length?actrv[candi[0]]:actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]):null;
+	}else{
 		n|=0;
 		const rtv=[];
-		if(actrv.length) while(n--) rtv.push(actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]);
+		if(candi&&candi.length){
+			for(let x=0;n--;){
+				rtv.push(candi[x]);
+				if(++x===candi.length) x=0;
+			}
+		}else if(actrv.length) while(n--) rtv.push(actrv[tgrvp.lower_bound( Math.random()*tgrvp.back )]);
 		return rtv;
 	}
 };
 $d$.forEach=$aaaa$.isAlive;
+$pppp$._smoothTarget=function(idx,filter){
+	if(idx&&idx.length){
+		for(let x=0,ms=this.members(),m;x!==idx.length;++x){
+			m=ms[idx[x]];
+			if(filter(m)) return m;
+		}
+		return this.smoothTarget(idx[0]);
+	}else{
+		if(!(idx>=0)) idx=0;
+		const ms=this.members();
+		let m=ms[idx];
+		if(filter(m)) return m;
+		else{ for(let i=m-1,j=m+1,x=0;!(filter(m)) && (i>=0||j<ms.length);x^=1){
+			if(i<0) while(j<ms.length){ m=ms[j++]; if(filter(m)) return m; }
+			if(j>=ms.length) while(i>=0){ m=ms[i--]; if(filter(m)) return m; }
+			if(x) m=ms[i--];
+			else m=ms[j++];
+		} }
+		return m;
+	}
+};
+($pppp$.smoothTarget=function f(idx){
+	return this._smoothTarget(idx,f.forEach);
+}).forEach=m=>m&&m.isAlive();
+($pppp$.smoothDeadTarget=function f(idx){
+	this._smoothTarget(idx,f.forEach);
+}).forEach=m=>m&&m.isDead();
 $d$=$pppp$.isAllDead=function f(){
 	return !this.members().some(f.forEach);
 };

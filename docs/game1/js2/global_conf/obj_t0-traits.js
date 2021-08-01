@@ -12,10 +12,18 @@ $dddd$=$pppp$.arrangeData=function f(){
 	if(undefined===$dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
 	
 	// == not abilities ==
+	
+	// enemy skill ai
+	f.doForEach($dataEnemies,x=>{
+		const ai=x.meta.ai;
+		x.ai=ai?objs._getObj.call(none,ai):undefined;
+	});
+	
 	//  damaged img
 	f.doForEach($dataActors,x=>{
 		x.dmgimg=x.meta.dmgimg?JSON.parse(x.meta.dmgimg):undefined;
 	});
+	
 	// comment in first non-runable page as note
 	f.doForEach($dataTroops,x=>{
 		const pg0=x.pages[0]; if(pg0){
