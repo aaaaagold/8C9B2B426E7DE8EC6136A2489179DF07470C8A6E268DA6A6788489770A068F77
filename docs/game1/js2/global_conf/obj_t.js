@@ -14,13 +14,13 @@ Input.keyMapper[68]="right";
 Input.keyMapper[83]="down";
 Input.keyMapper[87]="up";
 $r$=Input.clear;
-$d$=Input.clear=function f(keyOnly){
+(Input.clear=function f(keyOnly){
 	//debug.log('Input.clear');
 	if(!keyOnly) TouchInput.clear();
 	if(this.kstat){ this.kstat.length=0; this.kstat.length=256; }
 	else this.kstat=[];
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 Input._skip=0;
 Input.skip=function(n){
 	if(n>0) this._skip+=n;
@@ -58,7 +58,7 @@ Input.secret=[
 Input.secret_it=0;
 Input.secret_input=[];
 $r$=Input._onKeyUp;
-$d$=Input._onKeyUp=function f(e){
+(Input._onKeyUp=function f(e){
 	let h=sha256(''+e.keyCode);
 	if(h===this.secret[this.secret_input.length]){
 		this.secret_input.push(e.keyCode);
@@ -73,7 +73,7 @@ $d$=Input._onKeyUp=function f(e){
 	}
 	this.kstat[e.keyCode]=false;
 	return f.ori.call(this,e);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 // - TouchInput
 $aaaa$=TouchInput;
@@ -85,11 +85,11 @@ $aaaa$.calDeltaToPlayer=function(){ // return true if cond. not sufficient
 	this._dy=$gamePlayer.scrolledY_th()+(rf.height>>1)-this.y;
 };
 $r$=$aaaa$.clear;
-$d$=$aaaa$.clear=function f(){
+($aaaa$.clear=function f(){
 	this._dx=undefined;
 	this._dy=undefined;
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $aaaa$._setupEventHandlers=function(){
 	const isSupportPassive = Utils.isSupportPassiveEvent();
 	const opt=isSupportPassive ? {passive: false} : false;
@@ -137,7 +137,7 @@ $aaaa$._onTouchStart = function(event) {
 };
 $k$='_onTouchMove';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function(event) {
+($aaaa$[$k$]=function(event) {
 	let arr=event.changedTouches,avgx=0,avgy=0;
 	for(let i=0;i!==arr.length;++i) {
 		let touch = arr[i];
@@ -155,14 +155,14 @@ $d$=$aaaa$[$k$]=function(event) {
 	}
 	this._lastAvgX=avgx;
 	this._lastAvgY=avgy;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='_onTouchEnd';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(evt){
+($aaaa$[$k$]=function f(evt){
 	f.ori.call(this,evt);
 	this._lastAvgX=undef;
 	this._lastAvgY=undef;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 
@@ -171,7 +171,7 @@ $pppp$=$aaaa$=undef;
 // - Sprite_Base
 $aaaa$=Sprite_Base;
 $pppp$=$aaaa$.prototype;
-$d$=$pppp$.updateAnimationSprites=function f(){
+($pppp$.updateAnimationSprites=function f(){
 	if(this._animationSprites.length){
 		const sprites = this._animationSprites; // 原版是在clone三小
 		(this._animationSprites = f.tmp).length=0;
@@ -182,8 +182,7 @@ $d$=$pppp$.updateAnimationSprites=function f(){
 		}
 		(f.tmp = sprites).length=0;
 	}
-};
-$d$.tmp=[];
+}).tmp=[];
 $pppp$=$aaaa$=undef;
 // - Sprite_Character
 $aaaa$=Sprite_Character;
@@ -226,14 +225,14 @@ $pppp$._refresh_updateCf_parent=function f(sameStatEvts){
 	this._extendFrame_recal();
 };
 $r$=$pppp$._refresh;
-$d$=$pppp$._refresh=function f(){
+($pppp$._refresh=function f(){
 	if(!this.parent) return;
 	f.ori.call(this);
 	if(this._tileId>0){ let c=this._character; if(c && $gameMap){
 		if(c.parentId) this._refresh_updateCf_child(c.parentId);
 		else if(c._sameStatEvts) this._refresh_updateCf_parent(c._sameStatEvts);
 	} }
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._extendFrame_recal=function(){
 	let cfMap=this._cfMap,cf=this._cf,tmp;
 	//this._character.imgModded=true; // no needed
@@ -286,7 +285,7 @@ $pppp$.setText=function(txt){
 };
 $k$='setCharacter';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(chr){
+($pppp$[$k$]=function f(chr){
 	chr.setSprite(this);
 	f.ori.call(this,chr);
 	this._scnt=~0;
@@ -311,7 +310,7 @@ $d$=$pppp$[$k$]=function f(chr){
 			}
 		}
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.isInView_inScreen=function(){
 	return (~~((Graphics._boxWidth_pad6+this.x)/Graphics._boxWidth_pad4))===1 && (~~((Graphics._boxHeight_pad5+this.y)/Graphics._boxHeight_pad4))===1;
 //	const bm=this.bitmap; if(!bm||!bm.isReady()) return true; // not inited yet
@@ -426,7 +425,7 @@ $pppp$.updateCharacterFrame_sit=function(){
 };
 $k$='updateCharacterFrame'
 $r$=$pppp$[$k$]; // e.g. walking frames
-$d$=$pppp$[$k$]=function f(){ // add on chair facing up
+($pppp$[$k$]=function f(){ // add on chair facing up
 	//debug.log('Sprite_Character.prototype.updateCharacterFrame');
 	if(this._characterName){ // not tiles
 		let c=this._character;
@@ -448,7 +447,7 @@ $d$=$pppp$[$k$]=function f(){ // add on chair facing up
 		} // else maybe it is a vehicle
 	}
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updateTextFrame=function(){
 	if(this._txtSprite){
 		const sp=this._txtSprite;
@@ -476,10 +475,10 @@ $pppp$.patternHeight=function(){ // overwrite: ori use '/' , '%'
 };
 $k$='updatePosition';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.z2=this._character.screenZ2();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.tilesetBitmap=function(tileId,args) {
 	return ImageManager.loadTileset($gameMap.tileset().tilesetNames[(tileId>>8)+5],undefined,args);
 };
@@ -494,11 +493,11 @@ $pppp$.startAnimation=function(animation, mirror, delay){ // rewrite: discard ar
 $pppp$.isAnimationPlaying=none; // no Array.push , no 'Array.length>0'
 $k$='startBalloon';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._balloonSprite.ref=this;
 	this._balloonSprite=false;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updateBalloon=$pppp$.setupBalloon; // following will not exec
 $pppp$.endBalloon=none; // will not exec 'if' block
 $pppp$.isBalloonPlaying=none; // always false
@@ -519,10 +518,10 @@ $aaaa$=Sprite_Battler;
 $pppp$=$aaaa$.prototype;
 $k$='initMembers';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._damages=new Queue();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setBattler=function(btlr){
 	if(this._battler) this._battler.removeSprite(this);
 	if(this._battler=btlr) btlr.setSprite(this);
@@ -613,13 +612,13 @@ $pppp$.setActorHome=function(idx){ // battler position'
 };
 $k$='setupWeaponAnimation';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	if(this._actor.isWeapon2AnimationRequested()){
 		this._weapon2Sprite.setup(this._actor.weapon2ImageId());
 		this._actor.clearWeapon2Animation();
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updateBitmap=function() {
 	Sprite_Battler.prototype.updateBitmap.call(this);
 	let name = this._actor.battlerName(); // (this._actor instanceof Game_Actor)
@@ -702,11 +701,11 @@ $pppp$.createStateIconSprite=function(){
 };
 $k$='setBattler';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(battler){
+($pppp$[$k$]=function f(battler){
 	f.ori.call(this,battler);
 	this._meta = battler.getData();
 	this._meta = this._meta&&this._meta.meta||{};
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createHpMpSprite=function(){
 	let sp;
 	this.addChild( sp = this._hpMpSprite = new Sprite() );
@@ -788,7 +787,7 @@ $pppp$.updateStateSprite=function(){
 		}
 	}
 };
-$d$=$pppp$.updateHpMpSprite=function f(forced){
+($pppp$.updateHpMpSprite=function f(forced){
 	
 	const scale=this.scale,sp=this._hpMpSprite; if(!sp) return;
 	const sx=scale.x,sy=scale.y,bm=sp.bitmap;
@@ -832,14 +831,13 @@ $d$=$pppp$.updateHpMpSprite=function f(forced){
 		const my=Graphics.height-sp.height;
 		if(y>my) sp.y=my/sy;
 	}
-};
-$d$.tbl=["rgba()"];
+}).tbl=["rgba()"];
 $pppp$=$aaaa$=undef;
 // - Sprite_Animation
 $aaaa$=Sprite_Animation;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.setup;
-$d$=$pppp$.setup=function f(){
+($pppp$.setup=function f(){
 	// f(target, animation, mirror, delay)
 	f.ori.apply(this,arguments);
 	// used in 'updateAllCellSprites'
@@ -851,15 +849,15 @@ $d$=$pppp$.setup=function f(){
 		this.z=t.z;
 	}
 	return this;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.remove;
-$d$=$pppp$.remove=function f(){
+($pppp$.remove=function f(){
 	if(this.parent){
 		f.ori.call(this);
 		this._target.setBlendColor([0, 0, 0, 0]);
 		this._target.show();
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setupDuration=function(){
 	this._durFloor=this._animation.frames.length * this._rate;
 	this._duration=this._durFloor+1;
@@ -899,15 +897,14 @@ $pppp$.updatePosition = function() {
 		this.x=x; this.y=y;
 	}
 };
-$d$=$pppp$.updateFrame=function f(){
+($pppp$.updateFrame=function f(){
 	if(this._duration){
 		const frameIndex = this.currentFrameIndex();
 		this.updateAllCellSprites(this._animation.frames[frameIndex]);
 		const arr=this._animation.timings.byFrmIdx[frameIndex];
 		if(arr) arr.forEach(f.forEach,this);
 	}
-};
-$d$.forEach=function(t){ this.processTimingData(t); };
+}).forEach=function(t){ this.processTimingData(t); };
 $pppp$.currentFrameIndex=function(){
 	return this._animation.frames.length - ~~((this._duration + this._rate - 1) / this._rate);
 };
@@ -983,10 +980,10 @@ $aaaa$=Sprite_StateIcon;
 $pppp$=$aaaa$.prototype;
 $k$='initMembers';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.createIconTurnSprite();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$=$pppp$.createIconTurnSprite=function f(){
 	if(this[f.tbl]) return;
 	const sp=this[f.tbl]=new Sprite();
@@ -1055,11 +1052,11 @@ $pppp$=$aaaa$.prototype;
 $aaaa$.width=96;
 $aaaa$.height=64;
 $r$=$pppp$.setup;
-$d$=$pppp$.setup=function f(wImgId){
+($pppp$.setup=function f(wImgId){
 	f.ori.call(this,wImgId);
 	this._lastPatternWaitCnt=0;
 	this._lastPatternWaitMax=4;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.animationWait=function(){
 	return this.parent&&this.parent.motionSpeed?this.parent.motionSpeed():1;
 };
@@ -1093,7 +1090,7 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Sprite_Balloon;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	f.ori.call(this);
 	if(this._duration===0) this.remove();
 	else if(this.ref){
@@ -1101,16 +1098,16 @@ $d$=$pppp$.update=function f(){
 		this.x = ref.x;
 		this.y = ref.y - ref.height;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 // - Sprite_Picture
 $aaaa$=Sprite_Picture;
 $pppp$=$aaaa$.prototype;
 $k$='loadBitmap';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(_global_conf.isDataURI(this._pictureName)) this.bitmap=ImageManager.loadNormalBitmap(this._pictureName);
 	else f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 // - Sprite_Timer
 $aaaa$=Sprite_Timer;
 $pppp$=$aaaa$.prototype;
@@ -1171,12 +1168,12 @@ $aaaa$=Spriteset_Map;
 $pppp$=$aaaa$.prototype;
 $k$='createTimer';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this.addChild(this._timerBackground = new Window_Base(0,0,96,48));
 	f.ori.call(this);
 	this._timerSprite._background=this._timerBackground;
 	this._timerSprite.updatePosition(true);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.loadTileset=function f(){ // re-write: fix bug: shadertimemap not rendered (not correctly set 'newTilesetFlags' before rendering)
 	if(!f.cache) f.cache=new CacheSystem(1);
 	if(this._tileset=$gameMap.tileset()){
@@ -1229,27 +1226,26 @@ $aaaa$=Spriteset_Battle;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(scene){
+($pppp$[$k$]=function f(scene){
 	this._scene=scene;
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='createBattleField';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	const bf=this._battleField;
 	const dmgs=bf._dmgs=new Spriteset_BattleFieldDamages();
 	dmgs.y=dmgs.x=0;
 	bf.addChild(dmgs);
-}; $d$.ori=$r$;
-$d$=$pppp$._sortE=function f(forced){
+}).ori=$r$;
+($d$=$pppp$._sortE=function f(forced){
 	const bfc=this._battleField.children;
 	if(forced||this._lastBfcLen!==bfc.length){
 		this._lastBfcLen=bfc.length;
 		bfc.sort(f.cmp);
 	}
-};
-$d$.cmp=function f(a,b){
+}).cmp=function f(a,b){
 	const aa=(f.tbl.get(a.constructor)|0)^3,bb=(f.tbl.get(b.constructor)|0)^3;
 	return (aa-bb)||(aa===1)&&f.cmp(a,b);
 };
@@ -1261,10 +1257,10 @@ $d$.cmp.tbl=new Map([
 ]);
 $k$='updateTransform';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this._sortE();
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createActors=function(){
 	this._actorSprites = [];
 	for (let i=0,sz=$gameParty.battleMembers().length;i!==sz;++i) this._battleField.addChild( this._actorSprites[i] = new Sprite_Actor() );
@@ -1529,7 +1525,7 @@ $aaaa$.playPitch_bgs=function(p){
 	this._playPitch_x(p,AudioManager.playBgs.ori,AudioManager.fadeOutBgs);
 };
 $r$=$aaaa$.playBgm;
-$d$=$aaaa$.playBgm=function f(bgm,pos){
+($aaaa$.playBgm=function f(bgm,pos){
 	if(bgm&&bgm.constructor===Array){
 		if(this.isCurrentBgm(bgm)) return this._pitchesBgm_pos=pos;
 		if(this._pitchesBgm_itvl) this.stopPitch_bgm();
@@ -1545,16 +1541,16 @@ $d$=$aaaa$.playBgm=function f(bgm,pos){
 		this.stopPitch_bgm();
 		f.ori.call(this,bgm,pos);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$aaaa$.playBgs;
-$d$=$aaaa$.playBgs=function f(bgs,pos){
+($aaaa$.playBgs=function f(bgs,pos){
 	f.ori.call(this,bgs,pos);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='isCurrentBgm';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(bgm){
+($aaaa$[$k$]=function f(bgm){
 	return (bgm.constructor===Array)?this._pitchesBgm_data===bgm||bgm.equals(this._pitchesBgm_data):f.ori.call(this,bgm);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $aaaa$.stopPitch_bgm=function(){
 	this.clearPitch_bgm()&&this.stopBgm();
 };
@@ -1578,10 +1574,10 @@ $aaaa$.savePitch_bgs=function(){
 	}
 };
 $r$=$aaaa$.stopAll;
-$d$=$aaaa$.stopAll=function f(){
+($aaaa$.stopAll=function f(){
 	this.stopPitch_bgm();
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $aaaa$._saveBgX=function(rtv,curr,buffer,p){
 	// rtv must be an object
 	if(curr){
@@ -1600,17 +1596,17 @@ $aaaa$._saveBgX=function(rtv,curr,buffer,p){
 	return rtv;
 };
 $r$=$aaaa$.saveBgm;
-$d$=$aaaa$.saveBgm=function f(rtv){
+($aaaa$.saveBgm=function f(rtv){
 	// rtv is obj or "sth that is false"
 	if(!rtv) return f.ori.call(this);
 	return this._saveBgX(rtv,this._currentBgm,this._bgmBuffer,p);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$aaaa$.saveBgs;
-$d$=$aaaa$.saveBgs=function f(rtv){
+($aaaa$.saveBgs=function f(rtv){
 	// rtv is obj or "sth that is false"
 	if(!rtv) return f.ori.call(this);
 	return this._saveBgX(rtv,this._currentBgs,this._bgsBuffer,p);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - BattleManager
@@ -1661,6 +1657,9 @@ $r$=$aaaa$[$k$];
 	
 	this._actionNoEffect=false;
 	
+	if(this._actLog_turn) this._actLog_turn.length=0; else this._actLog_turn=[];
+	if(this._actLog_all ) this._actLog_all .length=0; else this._actLog_all =[];
+	
 	this.initChases();
 }).ori=$r$;
 $k$='saveBgmAndBgs';
@@ -1710,19 +1709,20 @@ $r$=$aaaa$.startTurn;
 ($aaaa$.startTurn=function f(){
 	if(objs.isDev) console.log(' startTurn ',this._actorIndex);
 	$gameTroop.makeActions();
+	this._actLog_turn.length=0;
 	++this._turnCtr;
 	return f.ori.call(this);
 }).ori=$r$;
 $k$='updateTurn';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){ // prepare
-	//console.log(' updateTurn ',this._actorIndex);
+($aaaa$[$k$]=function f(){ // prepare
+	//if(objs.isDev) console.log('updateTurn',this._actorIndex);
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='processTurn';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){ // prepare
-	//console.log(' processTurn ',this._actorIndex);
+($aaaa$[$k$]=function f(){
+	//if(objs.isDev) console.log('processTurn',this._actorIndex);
 	//return f.ori.call(this);
 	const subject = this._subject;
 	let action = subject.currentAction();
@@ -1732,11 +1732,9 @@ $d$=$aaaa$[$k$]=function f(){ // prepare
 	}
 	if(action){
 		action.prepare();
-		if (action.isValid()) {
-			this.startAction();
-		}
+		if(action.isValid()) this.startAction();
 		subject.removeCurrentAction();
-	} else {
+	}else{
 		subject.onAllActionsEnd();
 		this.refreshStatus();
 		this._logWindow.displayAutoAffectedStatus(subject);
@@ -1744,35 +1742,38 @@ $d$=$aaaa$[$k$]=function f(){ // prepare
 		this._logWindow.displayRegeneration(subject);
 		this._subject = this.getNextSubject();
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$aaaa$. endTurn ;
-$d$=$aaaa$. endTurn =function f(){ // prepare
+($aaaa$. endTurn =function f(){
 	if(objs.isDev) console.log(' endTurn ',this._actorIndex);
-	return f.ori.call(this);
-}; $d$.ori=$r$;
+	this._actLog_all.concat_inplaceThis(this._actLog_turn);
+	f.ori.call(this);
+}).ori=$r$;
 $k$='updateTurnEnd';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){ // prepare
-	if(objs.isDev) console.log(' updateTurnEnd ',this._actorIndex);
+($aaaa$[$k$]=function f(){ // prepare
+	// execed after interpreter
+	if(objs.isDev) console.log('updateTurnEnd',this._actorIndex);
 	// only 'this.startInput();'
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='makeActionOrders';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($d$=$aaaa$[$k$]=function f(){
 	f.ori.call(this);
 	this._actionBattlers_obj2id=new Map(this._actionBattlers.map(f.forEach));
 	this._actionBattlers=new Queue(this._actionBattlers);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.forEach=(e,i)=>[e,i];
 $k$='startAction';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
+	if(objs.isDev) console.log('startAction',this._actorIndex);
 	this._subject.reserveActResQ().clear();
 	this._dmgSum=0;
 	f.ori.call(this);
-}; $d$.ori=$r$;
-$d$=$aaaa$.updateAction=function f(instPopDmg){
+}).ori=$r$;
+($aaaa$.updateAction=function f(instPopDmg){
 	const target = this._targets.pop(); // reverse order
 	if(target){
 		//let tmp;
@@ -1824,11 +1825,13 @@ $d$=$aaaa$.updateAction=function f(instPopDmg){
 		}
 		this.endAction();
 	}
-};
-$d$.tmp=new Set();
-$r$=$aaaa$.endAction;
-($aaaa$.endAction=function f(){
-	if(objs.isDev) console.log('dmg',this._dmgSum,'by',this._subject);
+}).tmp=new Set();
+$r$=$aaaa$. endAction ;
+($aaaa$. endAction =function f(){
+	if(objs.isDev){
+		console.log(' endAction ',this._actorIndex);
+		console.log('dmg',this._dmgSum,'by',this._subject);
+	}
 	f.ori.call(this);
 }).ori=$r$;
 $aaaa$.invokeAction=function(s,t){ // subject , target
@@ -1894,7 +1897,7 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		}
 	} }
 };
-$d$=$aaaa$.invokeChaseAction=function f(act,s,t){
+(($d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	if(!s||!t) return;
 	const M=this._chases , fu=s.friendsUnit() ;
 	const btlrs=M&&M.get(fu);
@@ -1925,8 +1928,7 @@ $d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	}
 	// all
 	f.doChase(this,btlrs, 'all' ,s,t,item,preloads);
-};
-$d$.doChase=function f(self,btlrs,cond,s,t,item,preloads){
+}).doChase=function f(self,btlrs,cond,s,t,item,preloads){
 	const idx=Game_BattlerBase.cond2idx(cond);
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
@@ -1939,8 +1941,7 @@ $d$.doChase=function f(self,btlrs,cond,s,t,item,preloads){
 		}else set.forEach(btlr=>!btlr.isDeathStateAffected()&&f.forEach(self,notExists,btlrs,btlr,idx,s,t,item,preloads));
 		for(let x=notExists.length;x--;) set.delete(notExists[x]);
 	}
-};
-$d$.doChase.forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item,preloads){
+}).forEach=function f(self,notExists,btlrs,btlr,chaseIdx,s,t,item,preloads){
 	const codes=btlrs.get(btlr);
 	if(!codes) return notExists.push(btlr);
 	const code=Game_BattlerBase[codes[chaseIdx]];
@@ -2048,7 +2049,7 @@ $aaaa$.forceAction=function(battler){
 	if(index) this._actionBattlers._data[index]=Queue.empty;
 };
 $r$=$aaaa$.endBattle;
-$d$=$aaaa$.endBattle=function f(res){
+($d$=$aaaa$.endBattle=function f(res){
 	f.ori.call(this,res);
 	// 'meta.leaveAtBattleEnd' actors
 	const delList=[],txts=[];
@@ -2069,7 +2070,7 @@ $d$=$aaaa$.endBattle=function f(res){
 	delList.forEach(f.forEach,this);
 	
 	this._chases=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.forEach=function(info){
 	const actor=info[0] , i=info[1];
 	this._TBDCache.add(actor);
@@ -2080,9 +2081,9 @@ $d$.forEach=function(info){
 $d$.re=/\\/g;
 $k$='updateBattleEnd';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $aaaa$.displayRewards=function(){
 	this.displayExp();
 	//this.displayGold();
@@ -2090,7 +2091,7 @@ $aaaa$.displayRewards=function(){
 };
 $k$='gainRewards';
 $r$=$aaaa$[$k$];
-$d$=$aaaa$[$k$]=function f(){
+($aaaa$[$k$]=function f(){
 	$gameTemp.gainMsgConfigs_push();
 	$gameSystem._usr._noGainMsg=0;
 	$gameTemp._otherGainMsg=true;
@@ -2098,7 +2099,7 @@ $d$=$aaaa$[$k$]=function f(){
 	$gameTemp._otherGainMsg=false;
 	$gameTemp.gainMsgConfigs_pop();
 	$gameMessage.add("\\MINOR");
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // scene
@@ -2109,11 +2110,11 @@ $pppp$=$aaaa$.prototype;
 $pppp$.updateChildren=Sprite.prototype.update;
 $k$='detachReservation';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	debug.log('Scene_Base.prototype.detachReservation');
 	let wl=this._windowLayer; if(wl) wl.destructor();
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.terminate=function(){
 	const t=$gameScreen.tone() , satur=(255-t[3])/256;
 	const c=d.ge("GameCanvas") , css=c&&c.style;
@@ -2154,19 +2155,17 @@ $pppp$.createActorWindow=function f(){ // rewrite: actorWindow on top with semi-
 };
 $k$='showSubWindow';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(w){
+($pppp$[$k$]=function f(w){
 	f.ori.call(this,w);
 	w.refresh();
-}; $d$.ori=$r$;
-$r$=$pppp$.applyItem;
-$d$=$pppp$.applyItem=function f(){
+}).ori=$r$;
+($pppp$.applyItem=function f(){
 	const action = new Game_Action(this.user());
 	action.setItemObject(this.item());
 	this._action=action;
 	this.itemTargetActors().forEach(f.forEach,this);
 	action.applyGlobal();
-};
-$d$.forEach=function(t){
+}).forEach=function(t){
 	const a=this._action;
 	if(a)for(let i=0,s=a.subject(),r=a.numRepeats();i<r;++i){
 		if(s!==t){ const rnd=Math.random(); if( rnd<a.itemPrf(t) || rnd<a.itemMrf(t) || rnd<a.itemArf(t) ){
@@ -2201,7 +2200,7 @@ $pppp$=$aaaa$=undef; // END Scene_Skill
 $aaaa$=Scene_Equip;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.create;
-$d$=$pppp$.create=function f(){
+($pppp$.create=function f(){
 	f.ori.call(this);
 /*
 	==== help ====
@@ -2313,7 +2312,7 @@ $d$=$pppp$.create=function f(){
 	const iw=this._itemWindow;
 	iw._logIdx=this._onItem_logIdx.bind(this);
 	iw._putIdx=this._onItem_putIdx.bind(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.refreshActor=function(){
 	const actor = this.actor();
 	this._statusWindow.setActor(actor);
@@ -2347,7 +2346,7 @@ $pppp$.commandOptimize=function f(){
 };
 $k$='commandClear';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	const slw=this._slotWindow;
 	slw._setSlotIdTbl();
@@ -2355,7 +2354,7 @@ $d$=$pppp$[$k$]=function f(){
 	const iw=this._itemWindow;
 	iw._data.s=-1;
 	iw.refresh();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.onSlotOk=function(){
 	const iw=this._itemWindow;
 	iw._putIdx();
@@ -2425,26 +2424,26 @@ $aaaa$=Scene_Save;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._oriSwitchVal=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='onSavefileOk';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if($gameTemp._switchTrue_if_saved_id){
 		this._oriSwitchVal=$gameSwitches.value($gameTemp._switchTrue_if_saved_id,true);
 		$gameSwitches.setValue($gameTemp._switchTrue_if_saved_id,true);
 	}
 	f.ori.call(this);
 	if(!$gameTemp._switchTrue_if_saved_preserveId) $gameTemp._switchTrue_if_saved_id=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='onSaveFailure';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	if($gameTemp._switchTrue_if_saved_id) $gameSwitches.setValue($gameTemp._switchTrue_if_saved_id,this._oriSwitchVal);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - title
@@ -2590,7 +2589,7 @@ $pppp$._edt=function f(){
 	if($gameTemp) $gameTemp.clearCacheAll();
 };
 $r$=$pppp$.create;
-$d$=$pppp$.create=function f(){
+($pppp$.create=function f(){
 	debug.log('Scene_Title.prototype.create');
 	this._edt();
 	f.ori.call(this);
@@ -2599,7 +2598,7 @@ $d$=$pppp$.create=function f(){
 	let refreshes=objs._refreshVars;
 	for(let i in refreshes) refreshes[i]();
 	$gameSystem._usr=0;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.start=function(){
 	Scene_Base.prototype.start.call(this);
 	SceneManager.clearStack();
@@ -2609,10 +2608,10 @@ $pppp$.start=function(){
 	this.startFadeIn(this.fadeSpeed(), false);
 };
 $r$=$pppp$.terminate;
-$d$=$pppp$.terminate=function f(){
+($pppp$.terminate=function f(){
 	f.ori.call(this);
 	if(this._cursorDiv) this._cursorDiv.parentNode.removeChild(this._cursorDiv);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createBackground=function(){
 	let t;
 	
@@ -2919,12 +2918,12 @@ $d$.flwing=function(pannel){
 };
 $k$='checkGameover';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	return !$gameMap._interpreter.isRunning()&&f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='onMapLoaded';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($d$=$pppp$[$k$]=function f(){
 	//debug.log('Scene_Map.prototype.onMapLoaded');
 	//debug.log('!$dataMap',!$dataMap);
 	Sprite._counter&=0; // reset Sprite.spriteId counter // sprites will be in 'SceneManager._scene._spriteset._tilemap.children'
@@ -3005,7 +3004,7 @@ $d$=$pppp$[$k$]=function f(){
 		let j=$dataMap.meta.weather_cond;
 		if(j?objs._getObj(j):true) $gameScreen.changeWeather.apply($gameScreen,JSON.parse($dataMap.meta.weather));
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.fastSearchTbl=function(){
 	// fast search table
 	// - $dataMap.coordTbl : (x,y)=>events
@@ -3226,7 +3225,7 @@ $d$.genRandMaze=function f(){
 	}
 };
 $r$=$pppp$.start;
-$d$=$pppp$.start=function f(){
+($pppp$.start=function f(){
 	//debug.log('Scene_Map.prototype.start');
 	
 	//f.ori.call(this);
@@ -3246,7 +3245,7 @@ $d$=$pppp$.start=function f(){
 	
 	this._spriteset._tilemap.refreshTileset();
 	return this._mapNameWindow.open();
-}; $d$.ori=$r$;
+}).ori=$r$;
 Scene_Map.prototype.updateMain=function(){
 	if(!this._justStarted){
 		const active = this.isActive();
@@ -3280,7 +3279,7 @@ $pppp$.reloadMapIfUpdated=function() {
 $aaaa$=Scene_Shop;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.create;
-$d$=$pppp$.create=function f(){
+($pppp$.create=function f(){
 	f.ori.call(this);
 	$gameTemp._scShop_balance=0; // seller gainGold
 	$gameTemp._scShop_buySth=false; // player buy
@@ -3341,7 +3340,7 @@ $d$=$pppp$.create=function f(){
 	this.createDummyWindow();
 	(w=this._dummyWindow).width-=tmp;
 	w.active=false;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createDummyWindow = function() {
 	let wy = this._commandWindow.y + this._commandWindow.height;
 	let wh = Graphics.boxHeight - wy;
@@ -3349,19 +3348,19 @@ $pppp$.createDummyWindow = function() {
 	this.addWindow(this._dummyWindow);
 };
 $r$=$pppp$.doBuy;
-$d$=$pppp$.doBuy=function f(n){
+($pppp$.doBuy=function f(n){
 	$gameTemp._scShop_balance+=$gameParty._gold;
 	f.ori.call(this,n);
 	$gameTemp._scShop_balance-=$gameParty._gold;
 	$gameTemp._scShop_buySth=true;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.doSell;
-$d$=$pppp$.doSell=function f(n){
+($pppp$.doSell=function f(n){
 	$gameTemp._scShop_balance+=$gameParty._gold;
 	f.ori.call(this,n);
 	$gameTemp._scShop_balance-=$gameParty._gold;
 	$gameTemp._scShop_sellSth=true;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.maxBuy=function(){
 	const max=$gameParty.maxItems(this._item)-$gameParty.unionCnt(this._item);
 	const price=this.buyingPrice();
@@ -3382,11 +3381,11 @@ $pppp$.changeInputWindow=function(){
 	}else this.endCommandSelection();
 };
 $r$=$pppp$.terminate;
-$d$=$pppp$.terminate=function f(){
+($d$=$pppp$.terminate=function f(){
 	f.ori.call(this);
 	BattleManager.clearTBDCache();
 	$gameTroop.members().forEach(f.forEach);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.forEach=b=>b.clearCache();
 $pppp$.createSpriteset=function(){
 	this._chr2sp=new Map();
@@ -3395,15 +3394,15 @@ $pppp$.createSpriteset=function(){
 };
 $k$='createAllWindows';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.createSwapActorWindow();
 	// trim
 	this._actorWindow.y=0;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='createPartyCommandWindow';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	const w=this._partyCommandWindow;
 	w.setHandler('swap',    	this.commandSwap.bind(this));
@@ -3412,7 +3411,7 @@ $d$=$pppp$[$k$]=function f(){
 	w.setHandler('allGuard',	this.commandGuardAll.bind(this));
 	w.setHandler('allSpaceout',	this.commandSpaceoutAll.bind(this));
 	w.setHandler('viewLog', 	this.commandViewLog.bind(this));
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createSwapActorWindow=function(){
 	let w;
 	//this.addWindow( w = this._swapActorWindow = new Window_BattleStatus() );
@@ -3420,10 +3419,10 @@ $pppp$.createSwapActorWindow=function(){
 };
 $k$='createActorCommandWindow';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._actorCommandWindow.setHandler('spaceout',   this.commandSpaceout.bind(this));
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.createHelpWindow=function(){
 	Scene_MenuBase.prototype.createHelpWindow.call(this);
 	this._helpWindow.visible=false;
@@ -3576,7 +3575,7 @@ $pppp$.selectNextCommand=function(){
 	this.changeInputWindow();
 };
 $r$=$pppp$.onActorOk;
-$d$=$pppp$.onActorOk=function f(){
+($pppp$.onActorOk=function f(){
 	const w=this._swapActorWindow;
 	switch(w._mode){
 	default: return f.ori.call(this);
@@ -3595,10 +3594,10 @@ $d$=$pppp$.onActorOk=function f(){
 		w.activate();
 	break;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='onActorCancel';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	const w=this._swapActorWindow;
 	switch(w._mode){
 	default: return f.ori.call(this);
@@ -3617,7 +3616,7 @@ $d$=$pppp$[$k$]=function f(){
 		}
 	}break;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.selectEnemySelection=function(){
 	this._enemyWindow.refresh();
 	this._enemyWindow.show();
@@ -3652,7 +3651,7 @@ $pppp$.onEnemyOk=function(){
 };
 $k$='onEnemyCancel';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	switch(this._allSpecific){
 	default: return f.ori.call(this);
 	case 1:{
@@ -3661,7 +3660,7 @@ $d$=$pppp$[$k$]=function f(){
 		//this._partyCommandWindow.activate();
 	}break;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.onSelectAction=function(){
 	this.clearInstLog();
 	const action = BattleManager.inputtingAction();
@@ -3702,12 +3701,12 @@ $pppp$.clearDestination = function(forced) {
 };
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._data=new Map();
 	this._$gameObjs_tmp=new Map(); // take advantage of re-new of game objs are at the same time
 	//this._ssSets=[];
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.get=function(key){ return this._data.get(key); };
 $pppp$.set=function(key,val){ return this._data.set(key,val); };
 $pppp$.getCache=function(obj,key){
@@ -3852,7 +3851,7 @@ Object.defineProperties($pppp$, {
 });
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this._parallaxX_tw^=0;
 	this._parallaxY_th^=0;
 	this._displayX_tw^=0;
@@ -3861,7 +3860,7 @@ $d$=$pppp$[$k$]=function f(){
 	this._hth^=0;
 	f.ori.call(this);
 	this._itrpv=undefined; // []; // construct @ 'Game_Map.prototype.updateInterpreter' , @ 'Game_Map.prototype.setupStartingMapEvent'
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.zaWarudo=function(){ return this._zaWarudo; };
 $pppp$.zaWarudo_waitToStart=function(evtid){
 	if(!this._zaWarudo_waits) this._zaWarudo_waits=[];
@@ -4084,7 +4083,7 @@ $pppp$.canvasToMapY=function(y){
 	return this.roundY(rtv);
 };
 $r$=$pppp$.setup;
-$d$=$pppp$.setup=function f(){ // exec when 1. change map ; or 2. $dataMap version updated
+($pppp$.setup=function f(){ // exec when 1. change map ; or 2. $dataMap version updated
 	debug.log('Game_Map.prototype.setup');
 	// $dataMap is updated
 	this._wtw=this.width ()*this.tileWidth ();
@@ -4114,8 +4113,8 @@ $d$=$pppp$.setup=function f(){ // exec when 1. change map ; or 2. $dataMap versi
 	this.loadDynamicEvents();
 	// load 'meta.recordLoc' s
 	this.load_recordLoc();
-}; $d$.ori=$r$;
-$d$=$pppp$.setupEvents=function f(){
+}).ori=$r$;
+($pppp$.setupEvents=function f(){
 	$gameTemp.poolEvt_newMap();
 	this._events = [];
 	for(let i=0,arr=$dataMap.events;i!==arr.length;++i){
@@ -4123,8 +4122,7 @@ $d$=$pppp$.setupEvents=function f(){
 	}
 	this._commonEvents = this.parallelCommonEvents().map(f.forEach);
 	this.refreshTileEvents();
-};
-$d$.forEach=commonEvent=>new Game_CommonEvent(commonEvent.id);
+}).forEach=commonEvent=>new Game_CommonEvent(commonEvent.id);
 $pppp$.save_recordLoc=function(){
 	// save 'meta.recordLoc' s
 	debug.log('Game_Map.prototype.save_recordLoc');
@@ -4156,7 +4154,7 @@ $pppp$.load_recordLoc=function(){
 		delete mc.recordLoc;
 	}
 };
-$d$=$pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
+($pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
 	debug.log('Game_Map.prototype.loadDynamicEvents');
 	debug.log($dataMap,$gameMap&&$gameMap._mapId);
 	let childssarr=[];
@@ -4223,8 +4221,7 @@ $d$=$pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
 	}
 	if(!noUpdate) $gameSelfSwitches.onChange();
 	for(let x=0,evts=this._events;x!==evts.length;++x) evts[x]&&f.trim(evts[x]);
-};
-$d$.trim=evt=>{ // - - event
+}).trim=evt=>{ // - - event
 	// queues
 	if(evt._queues){ for(let qi=0,qs=evt._queues;qi!==qs.length;++qi){ if(qs[qi]){ const data=qs[qi]; if(data&&data.constructor!==Queue){
 		qs[qi]=Object.toType(data,Queue);
@@ -4307,14 +4304,13 @@ $pppp$.checkPassage=function(x,y,bit){
 	//return debug.isdebug();
 	return false; // No effect ALL
 };
-$d$=$pppp$.layeredTiles=function f(x,y){ // rewrite for efficiency
+($pppp$.layeredTiles=function f(x,y){ // rewrite for efficiency
 	//let idx=this.width()*y+x;
 	//let rtv=$dataMap.data3d[idx];
 	//if(rtv.length!==4) DataManager.resetData3d(idx); // for future use: reduce mem usage
 	//return rtv;
 	return $dataMap.data3d[$dataMap.width*y+x]||f._dummy;
-};
-$d$._dummy=[];
+})._dummy=[];
 $pppp$.hasTile_bak=function(x,y,tiles){
 	// use tiles.contains, speedup yourself
 	const sz=$dataMap.width*$dataMap.height;
@@ -4332,7 +4328,7 @@ $pppp$.isPassable=function(x,y,d){
 };
 $k$='isDamageFloor';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(X,Y){
+($pppp$[$k$]=function f(X,Y){
 	let rtv=f.ori.call(this,X,Y);
 	if(rtv){
 		if(!$dataMap.preventDamageFloor) $dataMap.preventDamageFloor=JSON.parse($dataMap.meta.preventDamageFloor||"[]");
@@ -4355,22 +4351,21 @@ $d$=$pppp$[$k$]=function f(X,Y){
 		} }
 	}
 	return rtv;
-}; $d$.ori=$r$;
-$d$=$pppp$.isChair=function f(x,y){
+}).ori=$r$;
+($pppp$.isChair=function f(x,y){
 	if(parseInt(x)!==x||parseInt(y)!==y) return false;
 	return $dataMap.isChair[y*$dataMap.width+x];
-};
-$d$.tbl=[];
+}).tbl=[];
 $k$='displayName';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Map.prototype.displayName');
 	const pt=$gameParty && $gameParty.mapChanges,id=$gameMap._mapId;
 	const evalName = $dataMap.evalName===undefined ? ($dataMap.evalName=objs._getObj($dataMap.meta.evalName)) : $dataMap.evalName ;
 	return pt && pt[id] && pt[id].name && evalName || f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.data;
-$d$=$pppp$.data=function f(idx){
+($d$=$pppp$.data=function f(idx){
 	//debug.log('Game_Map.prototype.data');
 	let tmp=$gameParty.mapChanges,id=$gameMap._mapId;
 	let delta=tmp&&tmp[id];
@@ -4428,7 +4423,7 @@ $d$=$pppp$.data=function f(idx){
 		DataManager.resetData3d(idx%this.size);
 		return rtv;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.forEach=v=>DataManager.resetData3d(v);
 $pppp$.toBroken=function(permanent){
 	let sz=$gameMap.size;
@@ -4624,7 +4619,7 @@ $pppp$.updateEvents=function(){ // overwrite. forEach is slowwwwwwwwww
 	}
 	for(let x=0,arr=this._commonEvents;x!==arr.length;++x) arr[x].update();
 };
-$d$=$pppp$.updateInterpreter=function f(){
+($pppp$.updateInterpreter=function f(){
 	// parallel map evts which exec only once
 	if(!this._itrpv) this._itrpv=[];
 	f.tmp.length=0;
@@ -4650,14 +4645,13 @@ $d$=$pppp$.updateInterpreter=function f(){
 			return;
 		}
 	}
-};
-$d$.tmp=[];
+}).tmp=[];
 $k$='setupStartingEvent';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Map.prototype.setupStartingEvent'); // this is polling
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setupStartingMapEvent=function f(){ // overwrite. looking through everything is slowwwwwwwwww
 	//debug.log('Game_Map.prototype.setupStartingMapEvent'); // this is polling
 	// 'Game_Map.prototype.setupStartingEvent' is polling => 'Game_Map.prototype.setupStartingMapEvent' becomes polling
@@ -4688,22 +4682,22 @@ $pppp$.setupStartingMapEvent=function f(){ // overwrite. looking through everyth
 	return rtv;
 };
 $r$=$pppp$.autoplay;
-$d$=$pppp$.autoplay=function f(){
+($pppp$.autoplay=function f(){
 	f.ori.call(this);
 	if($dataMap.meta.rndmusic) AudioManager.playBgm(objs.rndmusic());
 	else AudioManager.stopPitch_bgm();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.refresh;
-$d$=$pppp$.refresh=function f(){
+($pppp$.refresh=function f(){
 	f.ori.call(this);
 	let tm=SceneManager.getTilemap();
 	if(tm && tm.constructor===ShaderTilemap){
 		let sx=$gameMap._displayX_tw/$gameMap.tileWidth(),sy=$gameMap._displayY_th/$gameMap.tileHeight();
 		tm._paintAllTiles(sx^0,sy^0);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.refresh;
-$d$=$pppp$.refresh=function f(){ // reduce refresh calls
+($d$=$pppp$.refresh=function f(){ // reduce refresh calls
 	//debug.log('Game_Map.prototype.refresh');
 	if(SceneManager._nextScene!==null) return;
 	let curr=Date.now();
@@ -4721,15 +4715,15 @@ $d$=$pppp$.refresh=function f(){ // reduce refresh calls
 		},f.itvl);
 		f.lastTmout=tmout;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.itvl=16; $d$.lastTime=0;
 $k$='requestRefresh';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Map.prototype.requestRefresh');
 	return f.ori.call(this);
-}; $d$.ori=$r$;
-$pppp$.requestRefresh=$r$; // not changed
+}).ori=$r$;
+$pppp$[$k$]=$r$; // not changed
 $d$={};
 // $d$.ori=$r$;
 $aaaa$.e=Math.max($pppp$.tileWidth(),$pppp$.tileHeight());
@@ -4741,14 +4735,14 @@ $pppp$=$aaaa$.prototype;
 $aaaa$.EMPTY={code:0,indent:0,parameters:[]};
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this._strtMeta=this._chrParam=null;
 	return f.ori.call(this,arguments[0]);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.character;
-$d$=$pppp$.character=function f(param){
+($pppp$.character=function f(param){
 	return f.ori.call(this,this._chrParam=param);
-}; $d$.ori=$r$;
+}).ori=$r$;
 Object.defineProperty($pppp$,'_character',{
 	get:function(){ return this.character(this._chrParam); },
 	set:function(rhs){
@@ -4799,13 +4793,13 @@ $pppp$.makeLabelTbl=function(){
 	}else this._segtree_indent=undefined;
 };
 $r$=$pppp$.setup;
-$d$=$pppp$.setup=function f(list,evtId,strtMeta){
+($pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
 	this.makeLabelTbl();
 	this._strtMeta=strtMeta;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.clear;
-$d$=$pppp$.clear=function f(){
+($pppp$.clear=function f(){
 	// flow: '.terminate' , '.clear'
 	this._strtMeta=undefined;
 	this._segtree_indent=undefined;
@@ -4814,7 +4808,7 @@ $d$=$pppp$.clear=function f(){
 	if(this._loop) this._loop.length=0;
 	else this._loop=[];
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.getStrtMeta=function(key){
 	const meta=this._strtMeta;
 	return meta&&meta[key];
@@ -5783,17 +5777,17 @@ $aaaa$=Game_Battler;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._animations=new Queue();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='initMembers';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
+($pppp$[$k$]=function f(){ // 'initMembers' then 'Sprite.setBattler(this)'
 	f.ori.call(this);
 	this._actions=new Queue(2);
 	this._weapon2ImageId = 0;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.refresh=function(_,only){
 	Game_BattlerBase.prototype.refresh.call(this,0,only); // ensure hp non-neg.
 	if(this.hp === 0) this.addState(this.deathStateId());
@@ -5952,7 +5946,7 @@ $pppp$.removeCurrentAction=function(){
 };
 $k$='forceAction';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(skillId, targetIndex){
+($pppp$[$k$]=function f(skillId, targetIndex){
 	f.ori.call(this,skillId, targetIndex);
 	if(BattleManager._isGuardWaiting && skillId===this.guardSkillId()){
 		const n=BattleManager._isGuardWaiting.get(this)|0;
@@ -5963,7 +5957,7 @@ $d$=$pppp$[$k$]=function f(skillId, targetIndex){
 		const n=BattleManager._isChanting.get(this)|0;
 		BattleManager._isChanting.set(this,n+1);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.useItem = function(item) {
 	switch(item&&item.itemType){
 	case 's': this.paySkillCost(item);
@@ -6012,11 +6006,11 @@ $pppp$.clearChase=function(){
 };
 $k$='onBattleEnd';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.gainSilentTp(this.TPRegenAtBattleEnd());
 	this.clearChase();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.isChanting=function(){
 	return this.isWaiting()&&BattleManager._isChanting&&BattleManager._isChanting.get(this);
 };
@@ -6188,18 +6182,17 @@ $d$=$pppp$.moveDiagonally=function f(horz, vert) {
 $d$.dirbit=[0,0,1,0,2,0,1,0,2,0]; // none:0 +:1 -:2
 $k$='moveDiagonally';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(dh,dv){
+($pppp$[$k$]=function f(dh,dv){
 	f.ori.call(this,dh,dv);
 	if(this.isMovementSucceeded()) this.moveSpeedBuff_ctr();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='moveStraight';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(dir){
+($pppp$[$k$]=function f(dir){
 	f.ori.call(this,dir);
 	if(this.isMovementSucceeded()) this.moveSpeedBuff_ctr();
-}; $d$.ori=$r$;
-$d$=$pppp$.d8to4=function f(d){ return f.tbl[d]|0; };
-$d$.tbl=[0x00,0x24,0x20,0x26,0x04,0x00,0x06,0x84,0x80,0x86]; /* Y(8,2),X(4,6) numpad */
+}).ori=$r$;
+($pppp$.d8to4=function f(d){ return f.tbl[d]|0; }).tbl=[0x00,0x24,0x20,0x26,0x04,0x00,0x06,0x84,0x80,0x86]; /* Y(8,2),X(4,6) numpad */
 $pppp$.moveDiagonally_d8=function(d8) {
 	let dirxy=this.d8to4(d8);
 	let dirx=dirxy&0xF,diry=dirxy>>4;
@@ -6263,9 +6256,9 @@ $pppp$.realMoveSpeed=function f(){
 	return (this.speedup^0)/2.0+this._moveSpeed+this.moveSpeedBuff_cal()+(this.isDashing()^0);
 };
 $r$=$pppp$.jump;
-$d$=$pppp$.jump=function f(dx,dy){
+($pppp$.jump=function f(dx,dy){
 	return f.ori.call(this,dx|0,dy|0);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.jumpAbs=function(x,y){
 	if(isNaN(x)||isNaN(y)) ; else{
 		let dx=Number(x)-this.x,dy=Number(y)-this.y;
@@ -6300,9 +6293,9 @@ $pppp$.genBlood=function(permanent){ // tile
 };
 $k$='requestAnimation';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(id){
+($pppp$[$k$]=function f(id){
 	if(!this._erased) f.ori.call(this,_global_conf.noAnimation?0:id);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - chr
@@ -6311,23 +6304,21 @@ $pppp$=$aaaa$.prototype;
 $aaaa$.currMaxEnum=45;
 $aaaa$.addEnum=objs._addEnum; // moveroute
 // - chr: getData
-$d$=$pppp$.getData=function f(){
+($d$=$pppp$.getData=function f(){
 	return f.obj;
-};
-$d$.obj={};
+}).obj={};
 Object.defineProperty($d$.obj,'meta',{get:none,set:none,configurable:false});
 $pppp$.getActor=none;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._tmp=[];
-}; $d$.ori=$r$;
-$d$=$pppp$._deleteOldDataMember=function f(){
+}).ori=$r$;
+($pppp$._deleteOldDataMember=function f(){
 	Game_CharacterBase.prototype._deleteOldDataMember.call(this);
 	this._deleteOldDataMemberByTbl(f.tbl);
-};
-$d$.tbl=[
+}).tbl=[
 	['_characterIndex','_chrIdx'],
 	['_characterName','_chrName'],
 	['_direction','_dir'],
@@ -6401,7 +6392,7 @@ Object.defineProperties($pppp$,{
 		return rhs;
 	},configurable:false},
 });
-$d$=$pppp$._getColorEdt=function f(){
+($pppp$._getColorEdt=function f(){
 	let rtv;
 	{
 		const meta=this.getData().meta;
@@ -6412,9 +6403,8 @@ $d$=$pppp$._getColorEdt=function f(){
 	}
 	if(!rtv) rtv=this._color;
 	return rtv;
-};
-$d$.toJson=x=>x&&JSON.stringify(x)||undefined;
-$d$=$pppp$._getScaleEdt=function f(){
+}).toJson=x=>x&&JSON.stringify(x)||undefined;
+($pppp$._getScaleEdt=function f(){
 	let rtv;
 	{
 		const meta=this.getData().meta;
@@ -6425,8 +6415,7 @@ $d$=$pppp$._getScaleEdt=function f(){
 	}
 	if(!rtv) rtv=this._scale;
 	return rtv;
-};
-$d$.toJson=$pppp$._getColorEdt.toJson;
+}).toJson=$pppp$._getColorEdt.toJson;
 $pppp$._getAnchoryEdt=function f(){
 	let meta=this.getData().meta;
 	if(meta.anchorys){
@@ -6470,11 +6459,10 @@ $pppp$.dist2=function(chr,real){
 };
 $pppp$.dist2_r=function(chr){ return this.dist2(chr,1); };
 $pppp$.xy2idx=function f(lv){ return $gameMap.xy2idx(this.x,this.y,lv); };
-$d$=$pppp$.frontPos=function f(){
+($pppp$.frontPos=function f(){
 	let delta=f.tbl[(this._direction>>1)];
 	return {x:this._x+delta.x,y:this._y+delta.y};
-};
-$d$.tbl=[ {x:0,y:0},
+}).tbl=[ {x:0,y:0},
 	/*
 		2,+y
 	4,-x		6,+x
@@ -6494,12 +6482,12 @@ $pppp$.isInLoc=function(xL,yL,xH,yH){
 	return xL<=this.x&&this.x<=xH&&yL<=this.y&&this.y<=yH;
 };
 // movecmd
-$d$=$pppp$.processMoveCommand=function f(command){
+($d$=$pppp$.processMoveCommand=function f(command){
 	//debug.log('Game_Character.prototype.processMoveCommand');
 	let foo=f.tbl[command.code];
 	return foo&&foo.call(this,command.parameters);
-};
-$d$.tbl=[]; { $d$.tbl.length=46; let gc=$aaaa$;
+}).tbl=[];
+{ $d$.tbl.length=46; const gc=$aaaa$;
 $d$.tbl[gc.ROUTE_END]=function(params){
 	this.processRouteEnd();
 };
@@ -6687,7 +6675,7 @@ $aaaa$.addEnum("ROUTE_PLAY_PITCH",$d$.tbl,function(params){
 const er=gc.EMPTY_ROUTE={list:[{code:0},],repeat:false,skippable:false,wait:false,};
 $pppp$.setEmptyMoveRoute=function(){ this.setMoveRoute(er); };
 } //
-$d$=$pppp$.playSheet=function f(arr){
+($d$=$pppp$.playSheet=function f(arr){
 	if(!arr||!arr.length) return;
 	const list=[];
 	{ const enum_wait=Game_Character.ROUTE_WAIT,enum_pitch=Game_Character.ROUTE_PLAY_PITCH;
@@ -6699,8 +6687,7 @@ $d$=$pppp$.playSheet=function f(arr){
 	list.push(f.EMPTY);
 	this._moveType=3;
 	this.setMoveRoute({list:list,repeat:false,skippable:false,wait:false,});
-};
-$d$.EMPTY={code:0};
+}).EMPTY={code:0};
 $d$.fadeout={code:Game_Character.ROUTE_PLAY_PITCH,indent:null,parameters:['']};//{code:Game_Character.ROUTE_SCRIPT,indent:null,parameters:['AudioManager.fadeOutBgs(0.5);']};
 $d$.wait   ={code:Game_Character.ROUTE_WAIT      ,indent:null,parameters:[11]};
 // - chr: move
@@ -6727,15 +6714,14 @@ $pppp$.moveToChr_bfs=function(chr,mvRndIfNotFound){
 		else this.moveToChr(chr);
 	}
 };
-$d$=$pppp$.moveToChrs_bfs=function f(chrs,fullSearch,mvRndIfNotFound){
+($d$=$pppp$.moveToChrs_bfs=function f(chrs,fullSearch,mvRndIfNotFound){
 	let dir=this.findDirTo(chrs.map(f.map),undefined,{fullSearch:fullSearch});
 	if(dir) this.moveDiagonally_d8(dir);
 	else if(chrs.length){
 		if(mvRndIfNotFound) this.moveRandom();
 		else this.moveToChr(chrs[~~(Math.random()*chrs.length)]);
 	}
-};
-$d$.map=chr=>[chr.x,chr.y];
+}).map=chr=>[chr.x,chr.y];
 if(0)$d$.map=chrs=>{
 	let rtv=[];
 	for(let x=0;x!==chrs.length;++x){
@@ -6744,7 +6730,7 @@ if(0)$d$.map=chrs=>{
 	}
 	return rtv;
 };
-$d$=$pppp$.moveAwayChr_bfs=function f(chr,fullSearch){
+($pppp$.moveAwayChr_bfs=function f(chr,fullSearch){
 	let list=[],disables=[];
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y+1)]);
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y-1)]);
@@ -6773,8 +6759,7 @@ $d$=$pppp$.moveAwayChr_bfs=function f(chr,fullSearch){
 	let dir=this.findDirTo(list,disables,{fullSearch:fullSearch});
 	if(dir) this.moveDiagonally_d8(dir);
 	else if(chr) this.moveAwayFromCharacter(chr);
-};
-$d$.map=$pppp$.moveToChrs_bfs;
+}).map=$pppp$.moveToChrs_bfs.map;
 $pppp$.moveAwayFromCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
 	let sy=this.deltaYFrom(chr.y);
@@ -6798,7 +6783,7 @@ $pppp$.turnAwayFromCharacter=function(chr){
 	if(Math.abs(sy)<Math.abs(sx)) this.setDirection(0<sx?6:4);
 	else if(sy!==0) this.setDirection(0<sy?2:8);
 };
-$d$=$pppp$.findDirTo=function f(goals,disables,kargs){
+($pppp$.findDirTo=function f(goals,disables,kargs){
 	// goals = [ [x,y,costAdd] , ... ]
 	// kargs:
 	// 	tileOnly: check pass only on tiles = '$gameMap.isPassable', not 'chr.canPass'
@@ -6939,8 +6924,7 @@ $d$=$pppp$.findDirTo=function f(goals,disables,kargs){
 	}
 	return c_and_dir.dir;
 	
-};
-$d$.forEach=function f(v,k,m){ let a=f.c[v[2]]; v.pop(); if(a) a.push(v); };
+}).forEach=function f(v,k,m){ let a=f.c[v[2]]; v.pop(); if(a) a.push(v); };
 $pppp$.findDirectionTo_simple=function(goalx,goaly,preferdx,preferdy){
 	// moveDiagonally.dirbit
 	let pdx2=preferdx*preferdx;
@@ -6977,14 +6961,14 @@ $pppp$.findDirectionTo_simple=function(goalx,goaly,preferdx,preferdy){
 };
 $k$='findDirectionTo';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(goalx,goaly){
+($pppp$[$k$]=function f(goalx,goaly){
 	//debug.log('Game_Character.prototype.findDirectionTo');
 	//a; // debug - cracking
 		// when called by $gamePlayer
 			// Game_Player.prototype.update
 				// Game_Player.prototype.moveByInput
 	return this.findDirTo([[goalx,goaly]]);
-}; $d$.ori=$r$;
+}).ori=$r$;
 //$k$='isCollidedWithCharacters';
 //$r$=$pppp$[$k$];
 //$d$=$pppp$[$k$]=function(){ // overwrite
@@ -7029,7 +7013,7 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Game_Message;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.clear;
-$d$=$pppp$.clear=function f(){
+($pppp$.clear=function f(){
 	f.ori.call(this);
 	this._txt2=[];
 	this._evtName=undef;
@@ -7037,15 +7021,15 @@ $d$=$pppp$.clear=function f(){
 	this._lastMsgType=undef;
 	this._lastFinish=undef;
 	this._lastGain=undef;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setFaceImage = function(faceName, faceIndex, faceColor) {
 	this._faceName = faceName;
 	this._faceIndex = faceIndex;
 };
 $r$=$pppp$.isBusy;
-$d$=$pppp$.isBusy=function f(){
+($pppp$.isBusy=function f(){
 	return this._windowCnt||f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.add=function(txt,toTxt2){
 	(toTxt2?this._txt2:this._texts).push(txt);
 };
@@ -7084,12 +7068,12 @@ $pppp$.addWindow=function(w){
 	w.setHandler('cancel',()=>{ --this._windowCnt; w.destructor(); if(w.parent) w.parent.removeChild(w); });
 	SceneManager._scene.addWindow(w);
 };
-$d$=$pppp$.addGameoverMsg=(txt,kargs)=>{
+($pppp$.addGameoverMsg=(txt,kargs)=>{
 	if(!$dataMap.gameoverMsgs) $dataMap.gameoverMsgs=[];
 	kargs=kargs||{};
 	if(!kargs.align) kargs.align='center';
 	$dataMap.gameoverMsgs.push([txt,kargs]);
-}; $d$.clear=()=>{if(!$dataMap.gameoverMsgs) $dataMap.gameoverMsgs=[];$dataMap.gameoverMsgs.length=0;};
+}).clear=()=>{if(!$dataMap.gameoverMsgs) $dataMap.gameoverMsgs=[];$dataMap.gameoverMsgs.length=0;};
 $pppp$.popup=function(txt,top,kargs){
 	//debug.log('Game_Message.prototype.popup');
 	let wl=SceneManager._scene._windowLayer;
@@ -7120,15 +7104,14 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Game_Player;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.getData;
-$d$=$pppp$.getData=function f(){
+($pppp$.getData=function f(){
 	const actor=$gameParty.allMembers()[0];
 	return actor?actor.getData():f.ori.call(this);
-}; $d$.ori=$r$;
-$d$=$pppp$._deleteOldDataMember=function f(){
+}).ori=$r$;
+($pppp$._deleteOldDataMember=function f(){
 	Game_Character.prototype._deleteOldDataMember.call(this);
 	this._deleteOldDataMemberByTbl(f.tbl);
-};
-$d$.tbl=[
+}).tbl=[
 	['_blendMode','_bm'],
 	['_directionFix','_dirfx'],
 	['_moveSpeed','_mvsp'],
@@ -7224,18 +7207,18 @@ Object.defineProperties($pppp$, {
 });
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.maxSavefiles=DataManager.maxSavefiles();
 	this._rndid=Date.now()+''+Math.random();
 	if(this.canDiag===undefined) this.canDiag=true;
 	this.viewRadius=Game_Map.e*3;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='isTransparent';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	return f.ori.call(this) || $dataMap && $dataMap.meta.hidePlayer;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.maxFollowers=function(){
 	return _global_conf["default maxFollowers"]||4040;
 };
@@ -7246,7 +7229,7 @@ $pppp$.refresh=function(){
 	this.setImage(characterName,characterIndex);
 	this._followers.refresh();
 };
-$d$=$pppp$.moveByInput=function f(){
+($pppp$.moveByInput=function f(){
 	if(!this.isMoving() && this.canMove()){
 		let direction = this.getInputDirection();
 		if(direction > 0){ // keyboard
@@ -7279,8 +7262,7 @@ $d$=$pppp$.moveByInput=function f(){
 		}
 		//if(direction > 0)this.executeMove(direction);
 	}
-};
-$d$.tbl=[0];
+}).tbl=[0];
 $pppp$.getInputDirection = function() {
 	return this.canDiag?Input.dir8:Input.dir4;
 };
@@ -7388,26 +7370,26 @@ $pppp$.centerY_th=function(){
 
 $k$='gatherFollowers';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(viaJump=_global_conf["isGatherFollowersViaJump"]){
+($pppp$[$k$]=function f(viaJump=_global_conf["isGatherFollowersViaJump"]){
 	return viaJump?this.jump():f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='areFollowersGathering';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	return this.isJumping()||f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='areFollowersGathered';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	return !this.isJumping()&&f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='startMapEvent';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x,y,trigger,normal){
+($pppp$[$k$]=function f(x,y,trigger,normal){
 	//debug.keydown('Game_Player.prototype.startMapEvent');
 	// triggered when: move, pressOk @ Scene_Map
 	return f.ori.call(this,x,y,trigger,normal);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.isRangedBurnSwitched=function(){
 	return (Input.isPressed('control') || $dataMap && $dataMap.triggerHere0touch) && ($gameParty.burnrange===404||$gameParty.leader().mp>=$gameParty.burnmpcost);
 };
@@ -7572,7 +7554,7 @@ $pppp$.customEvtStrt=function(){
 	// finally no triggered
 	return rtv;
 };
-$d$=$pppp$.updateNonmoving=function f(wasMoving) {
+($pppp$.updateNonmoving=function f(wasMoving) {
 	const noEvtRun=!$gameMap.isEventRunning();
 		if(wasMoving){
 			if(noEvtRun) $gameParty.onPlayerWalk();
@@ -7586,11 +7568,10 @@ $d$=$pppp$.updateNonmoving=function f(wasMoving) {
 	}else{ // not sure
 		if(this.triggerAction()) return;
 	}
-};
-$d$.tbl=[1,2];
+}).tbl=[1,2];
 $k$='triggerAction';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Player.prototype.triggerAction'); // this is polling
 	let rtv=$gameTemp._pl_customEvtStrt=false;
 	// customEvtStrt
@@ -7600,10 +7581,10 @@ $d$=$pppp$[$k$]=function f(){
 	$dataMap.lastPlayerDir=this._direction;
 	$dataMap.triggerHere0touch=false;
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='checkEventTriggerHere';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(triggers){ // discard so-long-call and '$gameMap._interpreter.isRunning()' check
+($pppp$[$k$]=function f(triggers){ // discard so-long-call and '$gameMap._interpreter.isRunning()' check
 	//debug.log('Game_Player.prototype.checkEventTriggerHere');
 	// check and start
 	//debug.log($gamePlayer.x,$gamePlayer.y);
@@ -7617,10 +7598,10 @@ $d$=$pppp$[$k$]=function f(triggers){ // discard so-long-call and '$gameMap._int
 			}
 		});
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='checkEventTriggerThere';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	debug.log('Game_Player.prototype.checkEventTriggerThere');
 	debug.log($gamePlayer.x,$gamePlayer.y);
 	debug.log(arguments[0]);
@@ -7628,11 +7609,11 @@ $d$=$pppp$[$k$]=function f(){
 	//   triggered before step on the location when using click
 	//if(this.customEvtStrt(none)) return;
 	if($dataMap.lastPlayerDir===this._direction) f.ori.call(this,arguments[0]);
-}; $d$.ori=$r$;
+}).ori=$r$;
 //$pppp$.checkEventTriggerThere=$r$; // currently no needed
 $k$='reserveTransfer';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Player.prototype.reserveTransfer');
 	$gameMap.setZaWarudo(0); // clear waits
 	f.ori.apply(this,arguments); // it just do preparation for new map
@@ -7648,7 +7629,7 @@ $d$=$pppp$[$k$]=function f(){
 	// save 'meta.recordLoc' s
 	$gameMap.save_recordLoc();
 	
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.adjDecRate=function(what,rate,useMax){
 	// what: HP,MP,TP
 	let act="";
@@ -7785,7 +7766,7 @@ Object.defineProperties($pppp$, {
 });
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Party.prototype.initialize');
 	let rtv=f.ori.apply(this,arguments);
 	this._extStores=[]; // [[],[{t:type,i:id,a:amount}],[],...]
@@ -7801,7 +7782,7 @@ $d$=$pppp$[$k$]=function f(){
 		}
 	}
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._tbl_resetValues=function(d,needRefresh){
 	// d: container ; needRefresh: refresh values for keys in cache
 	
@@ -8130,7 +8111,7 @@ $pppp$.gainAllItems=function(cnt){
 	$dataItems.filter(x=>x&&x.name).map(x=>$gameParty.gainItem(x,cnt));
 };
 $pppp$.__gainAllItems=$pppp$.gainAllItems;
-$d$=$pppp$.items=function f(){
+($pppp$.items=function f(){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -8138,9 +8119,8 @@ $d$=$pppp$.items=function f(){
 		$gameTemp.updateCache(this,f.key,rtv);
 	}
 	return rtv.sort(DataManager.sortCmp);
-}; $d$.ori=$r$;
-$d$.key='item';
-$d$=$pppp$.weapons=function f(includeEquip){
+}).key='item';
+($pppp$.weapons=function f(includeEquip){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -8149,9 +8129,8 @@ $d$=$pppp$.weapons=function f(includeEquip){
 	}
 	if(includeEquip) rtv=Array.fastConcat(this.members().map(x=>x.weapons()).flat(),rtv);
 	return rtv.sort(DataManager.sortCmp);
-};
-$d$.key='weapon';
-$d$=$pppp$.armors=function f(includeEquip){
+}).key='weapon';
+($pppp$.armors=function f(includeEquip){
 	let rtv;
 	if( !(rtv=$gameTemp.getCache(this,f.key)) ){
 		rtv=[];
@@ -8160,8 +8139,7 @@ $d$=$pppp$.armors=function f(includeEquip){
 	}
 	if(includeEquip) rtv=Array.fastConcat(this.members().map(x=>x.armors()).flat(),rtv);
 	return rtv.sort(DataManager.sortCmp);
-}; $d$.ori=$r$;
-$d$.key='armor';
+}).key='armor';
 $pppp$.menuActor = function() {
 	let actor=$gameActors.actor(this._menuActorId);
 	if(!this.members().contains(actor)) actor=this.members()[0];
@@ -8280,7 +8258,7 @@ $pppp$.mch=function(mapid){
 	if(mchs[mapid]===undefined) mchs[mapid]={};
 	return mchs[mapid];
 };
-$d$=$pppp$.changeMap=function f(type,data,mapid,noupdate){
+($pppp$.changeMap=function f(type,data,mapid,noupdate){
 	debug.log('$gameParty.prototype.changeMap');
 	let target=this.mch(mapid);
 	switch(type){
@@ -8303,8 +8281,7 @@ $d$=$pppp$.changeMap=function f(type,data,mapid,noupdate){
 			idxset.forEach(f.forEach);
 		}break;
 	}
-};
-$d$.forEach=v=>DataManager.resetData3d(v);
+}).forEach=v=>DataManager.resetData3d(v);
 $pppp$.saveDynamicEvents=function(fromTransfer){
 	let evts=$gameMap._events;
 	let mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef
@@ -8410,7 +8387,7 @@ $pppp$.gainGold=function f(amount,noSound){
 $pppp$.maxGold=()=>99999999;
 $k$='consumeItem';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(item,forced){
+($pppp$[$k$]=function f(item,forced){
 	debug.log('Game_Party.prototype.consumeItem');
 	$gameTemp.gainMsgConfigs_push();
 	$gameTemp.gainMsgConfigs_mute();
@@ -8420,7 +8397,7 @@ $d$=$pppp$[$k$]=function f(item,forced){
 	}else if(DataManager.isItem(item) && item.consumable) this.loseItem(item, 1);
 	$gameTemp.____byConsume=false;
 	$gameTemp.gainMsgConfigs_pop();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.hasItem=function(item,includeEquip){
 	return this.numItems(item)>0 || (includeEquip && this.isAnyMemberEquipped(item)) || false;
 };
@@ -8717,10 +8694,10 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Game_Follower;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.getData;
-$d$=$pppp$.getData=function f(){
+($pppp$.getData=function f(){
 	const actor=this.actor();
 	return actor?actor.getData():f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.getActor=function(){ return this.actor(); };
 $pppp$.resetWalkAni=function(){
 	this._stopCount=0;
@@ -8745,14 +8722,14 @@ $pppp$.updateAppearance=function(){
 };
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(idx){
+($pppp$[$k$]=function f(idx){
 	f.ori.call(this,idx);
 	//if(!this._tmp) this._tmp=[]; // Game_Character
 	// special settings:
 	//this.resetWalkAni();
 	//this.updateAppearance(); // done @setFollowers
 	this._dir2=0; // propergate dir when dirfx
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.refresh=function(){
 	if(this.isVisible()){
 		const a=this.actor();
@@ -8793,11 +8770,11 @@ $pppp$.setFollowers=function(flrs,fromLoad){
 	}
 };
 $r$=$pppp$.locate;
-$d$=$pppp$.locate=function f(x,y){
+($pppp$.locate=function f(x,y){
 	f.ori.call(this,x,y);
 	if(this._tmp&&this._tmp._followers&&!$gamePlayer._newMapId) this._tmp._followers.updateTbl(this);
 	return this;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$=$pppp$.chaseCharacter=function f(character){
 	let sx=this.deltaXFrom(character.x); // int
 	let sy=this.deltaYFrom(character.y); // int
@@ -9010,7 +8987,7 @@ Object.defineProperties($pppp$,{
 });
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(mapId,evtId){
+($pppp$[$k$]=function f(mapId,evtId){
 	//debug.log2('Game_Event.prototype.initialize');
 	this.imgModded=true;
 this.refresh=none;
@@ -9140,7 +9117,7 @@ delete this.refresh;
 	delete this._sameStatEvts;
 	delete this.parentId;
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._rmFromCoordTbl=function(){
 	if(this._rmFromCoordTbl_1()!==undefined){ // valid rm
 		if(!this._through){
@@ -9192,7 +9169,7 @@ $pppp$._addToCoordTbl_1=function(tbl){
 };
 $k$='isCollidedWithEvents';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(posx,posy){
+($pppp$[$k$]=function f(posx,posy){
 	if(this._asPlayer) return Game_Player.prototype.isCollidedWithEvents.call(this,posx,posy);
 	let rtv=f.ori.call(this,posx,posy);
 	if(rtv&&this._passSelf){
@@ -9200,7 +9177,7 @@ $d$=$pppp$[$k$]=function f(posx,posy){
 		rtv=$dataMap.coordTblNt[$gameMap.xy2idx(posx,posy)].some(evt=>evt._eventId.toId()!==id);
 	}
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.turnTowardStartee=function(){
 	const m=this._tmp&&this._tmp._strtMeta;
 	if(m){
@@ -9411,7 +9388,7 @@ $pppp$.resetDir=function(alsoSetupPage){
 };
 $k$='moveStraight';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(d){ // .strtByAny
+($pppp$[$k$]=function f(d){ // .strtByAny
 	f.ori.call(this,d);
 	if(!this.isMovementSucceeded()) return; // handled by this.checkEventTriggerTouch
 	const idx=this.xy2idx();
@@ -9421,10 +9398,10 @@ $d$=$pppp$[$k$]=function f(d){ // .strtByAny
 		const flr=$gamePlayer._followers.getFlrAtTblIdx(idx)[0];
 		if( flr && !this.isJumping() && this.isNormalPriority() ) return this.start(undefined,{btlr:flr.actor()._actorId,flrIdx:flr._memberIndex-1});
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='checkEventTriggerTouch';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x,y){ // .strtByAny
+($pppp$[$k$]=function f(x,y){ // .strtByAny
 	// see also Game_Event.prototype.moveStraight
 	//debug.log('Game_Event.prototype.checkEventTriggerTouch');
 	let strtByAny;
@@ -9440,9 +9417,9 @@ $d$=$pppp$[$k$]=function f(x,y){ // .strtByAny
 		if( flr && !this.isJumping() && this.isNormalPriority() ) return this.start(undefined,{btlr:flr.actor()._actorId,flrIdx:flr._memberIndex-1});
 	}
 	f.ori.call(this,x,y);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	//if(this._player>=0)
 	{
 		const a=this.getActor();
@@ -9492,7 +9469,7 @@ $d$=$pppp$.update=function f(){
 		}
 	}
 	if(this.canUpdate()) return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._initItrpQIfNeeded=function(){
 	if(!this._itrpQ) this._itrpQ=new Queue();
 	else if(this._itrpQ.constructor!==Queue) this._itrpQ=Object.toType(this._itrpQ,Queue);
@@ -9551,7 +9528,7 @@ $pppp$.addStrtType=function(key){
 	this.strt[key]=1;
 };
 $r$=$pppp$.start;
-$d$=$pppp$.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.strtEvts
+($pppp$.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.strtEvts
 	// isFromPlayerCustom: no condition checks (in this func.) if true
 	// * 'strtMeta' and 'this.strt' have chance to be edited if ''!isFromPlayerCustom'
 	//debug.log2('Game_Event.prototype.start');
@@ -9624,10 +9601,10 @@ $d$=$pppp$.start=function f(isFromPlayerCustom,strtMeta){ // fit $dataMap.strtEv
 		}
 		return;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='clearStartingFlag';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){ // overwrite to fit $dataMap.strtEvts
+($pppp$[$k$]=function f(){ // overwrite to fit $dataMap.strtEvts
 	//debug.log2('Game_Event.prototype.clearStartingFlag'); // annoying
 	//debug.log2('',this._eventId);
 	//debug.log2('',this._trigger);
@@ -9636,7 +9613,7 @@ $d$=$pppp$[$k$]=function f(){ // overwrite to fit $dataMap.strtEvts
 	f.ori.call(this);
 	this._addedCnt_strtEvts-=0<this._addedCnt_strtEvts;
 	delete this.strt;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.erase_inv=function(){
 	let arr=this._sameStatEvts;
 	if(arr&&0<arr.length){
@@ -9657,7 +9634,7 @@ $pppp$.erase_inv=function(){
 	return rtv;
 };
 $r$=$pppp$.erase;
-$d$=$pppp$.erase=function f(by){
+($pppp$.erase=function f(by){
 	//debug.log('Game_Event.prototype.erase');
 	let arr=this._sameStatEvts;
 	if(arr&&0<arr.length){
@@ -9681,7 +9658,7 @@ $d$=$pppp$.erase=function f(by){
 		}
 	}
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 // <erasedBy:{"key":evtid}> ; when 'by' provided to 'Game_Event.erase(by)' exists in 'erasedBy', corresponding event will start
 $pppp$.parent=function(){
 	return (this.parentId)?$gameMap._events[this.parentId]:this;
@@ -9746,21 +9723,21 @@ $pppp$.findProperPageIndex=function f(){
 };
 $k$='clearPageSettings';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this._light=undefined;
 	this.imgModded=true;
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='setupPageSettings';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	let evtd=this.event();
 	const sp=this.getSprite();
 	sp && sp.setText(this.getText());
 	if(evtd.meta.colors || evtd.meta.scales) this.imgModded=true;
 	if(evtd.light && evtd.light.constructor===Array) this._light=evtd.light[this._pageIndex]^0;
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.refresh=function(forced){
 	//if(this.imgModded===undefined) return; // constructing...
 	let newPageIndex=this._erased?-1:this.findProperPageIndex();
@@ -9771,7 +9748,7 @@ $pppp$.refresh=function(forced){
 	return this;
 };
 $r$=$pppp$.list;
-$d$=$pppp$.list=function f(){
+($pppp$.list=function f(){
 	let olist=f.ori.call(this),rtv=[];
 	for(let x=0;x!==olist.length;++x){
 		let curr=olist[x];
@@ -9826,7 +9803,7 @@ $d$=$pppp$.list=function f(){
 	let tmp=rtv.back;
 	rtv.push(Game_Interpreter.EMPTY);
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
@@ -9844,7 +9821,7 @@ $pppp$._genFaceData=function(c){
 	]; rtv.ref=c;
 	return rtv;
 };
-$d$=$pppp$.setFace=function f(idx){
+$pppp$.setFace=function(idx){
 	//debug.log('Game_Event.prototype.setFace');
 	if(this._isObjectCharacter){
 		$gameMessage.setFaceImage(this._genFaceData(),"data");
@@ -9879,13 +9856,12 @@ $pppp$.playerJumpToMy=function(dx,dy){
 	dy+=this.y-$gamePlayer.y;
 	return $gamePlayer.jump(dx,dy);
 };
-$d$=$pppp$.canEdited_auth=function f(parents){
+($pppp$.canEdited_auth=function f(parents){
 	if(this.getData().meta.noAuth) return true;
 	parents=new Set(parents||$gameMap.parents());
 	return parents.has($gameParty.burnAuth) || parents.intersect(f.tbl).size!==0;
 	//return !(parents.indexOf(13)===-1 && parents.indexOf(90)===-1 && parents.indexOf($gameParty.burnAuth)===-1);
-};
-$d$.tbl=new Set([13,157,159,173,55]); // 13:forest 157:sky 159:noob 173:zone1 176:拉起封鎖線-遊樂場
+}).tbl=new Set([13,157,159,173,55]); // 13:forest 157:sky 159:noob 173:zone1 176:拉起封鎖線-遊樂場
 $pppp$.canBurned_auth=function(parents){
 	if($gameParty.burnrange===404) return true;
 	return this.canEdited_auth(parents);
@@ -10061,11 +10037,11 @@ $aaaa$.currMaxEnum=50;
 $aaaa$.addEnum=objs._addEnum;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(subject,forcing){
+($pppp$[$k$]=function f(subject,forcing){
 	f.ori.call(this,subject,forcing);
 	this._dmgRate=1;
 	this.initMeta();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.initMeta=function(){
 	this.meta={
 		preload:false, // preload btlr attrs for not evaluated again
@@ -10417,7 +10393,7 @@ $pppp$.getItemFilter=function(item){
 	return item.filter||(item.filter=(meta.filter=meta.filter)&&objs._getObj(meta.filter));
 };
 $r$=$pppp$.testApply;
-$d$=$pppp$.testApply=function f(target){
+($pppp$.testApply=function f(target){
 	this.meta.deadNotMatch=undefined;
 	if(!target) return false;
 	const item=this.item();
@@ -10435,12 +10411,12 @@ $d$=$pppp$.testApply=function f(target){
 			this.hasItemAnyValidEffects(target)
 		)
 	);
-}; $d$.ori=$r$;
-$d$=$pppp$.testItemEffect=function f(target,effect){
+}).ori=$r$;
+($d$=$pppp$.testItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
 	return !func||func.call(this,target,effect); // default true
-};
-$d$.tbl=[]; { $d$.tbl.length=52; const act=$aaaa$;
+}).tbl=[];
+{ $d$.tbl.length=52; const act=$aaaa$;
 $d$.tbl[act.EFFECT_RECOVER_HP]=function(target,effect){
         return target.hp < target.mhp || effect.value1 < 0 || effect.value2 < 0;
 };
@@ -10678,7 +10654,7 @@ $pppp$.applyGuard=function(damage,target){
 };
 $k$='executeDamage';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(trgt,val,used){
+($pppp$[$k$]=function f(trgt,val,used){
 	const s=!this.isRecover()&&this.subject();
 	if(s){
 		const ss=(this.isUsePreload()?this.getPreload_s():s);
@@ -10703,7 +10679,7 @@ $d$=$pppp$[$k$]=function f(trgt,val,used){
 		if(this.isHpEffect()) this.executeHpDamage(trgt,val);
 		if(this.isMpEffect()) this.executeMpDamage(trgt,val);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.executeHpDamage=function(target,value){
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
@@ -10756,11 +10732,11 @@ $pppp$.gainDrainedMp=function(val){
 		s._result=orires;
 	}
 };
-$d$=$pppp$.applyItemEffect=function f(target,effect){
+($d$=$pppp$.applyItemEffect=function f(target,effect){
 	const func=f.tbl[effect.code];
 	if(func) func.call(this,target,effect);
-};
-$d$.tbl=[]; { $d$.tbl.length=52; const act=$aaaa$;
+}).tbl=[];
+{ $d$.tbl.length=52; const act=$aaaa$;
 $d$.tbl[act.EFFECT_RECOVER_HP]=function(target,effect){
 	this.itemEffectRecoverHp(target, effect);
 };
@@ -10839,7 +10815,7 @@ $pppp$.itemEffectAddNormalState=function(target, effect){
 };
 $k$='applyGlobal';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	//debug.log('Game_Action.prototype.applyGlobal');
 	const dataItem=this.item();
 	if(dataItem.effects) dataItem.effects.forEach(ef=>ef.code===Game_Action.EFFECT_COMMON_EVENT&&$gameTemp.reserveCommonEvent(ef.dataId)); // f.ori.call(this);
@@ -10867,7 +10843,7 @@ $d$=$pppp$[$k$]=function f(){
 	const code=dataItem.code||( dataItem.code=meta&&(meta.code=meta.code) && objs._doFlow.call(this,meta.code) );
 	if(code) code(this);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.itemEffectAddAttackState=function(target, effect){
 	this.subject().attackStates().forEach((_,stateId)=>{
 		let chance = effect.value1;
@@ -10911,13 +10887,12 @@ $pppp$.clear=function(){
 	this.removedBuffs.length = this.addedDebuffs.length = this.addedBuffs.length = this.removedStates.length = this.addedStates.length = 0;
 	this.merge=this.later=false;
 };
-$d$=$pppp$.copy=function f(){
+($pppp$.copy=function f(){
 	const rtv=new this.constructor();
 	for(let x=0,arr=f.tbl.arr;x!==arr.length;++x) rtv[arr[x]] = this[arr[x]].slice();
 	for(let x=0,arr=f.tbl.val;x!==arr.length;++x) rtv[arr[x]] = this[arr[x]];
 	return rtv;
-};
-$d$.tbl={
+}).tbl={
 	arr:['addedStates','removedStates','addedBuffs','addedDebuffs','removedBuffs',],
 	val:[
 		'used','missed','evaded','success',
@@ -11136,14 +11111,14 @@ $pppp$._toSaveData=function(){
 
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(actorId){
+($pppp$[$k$]=function f(actorId){
 	f.ori.call(this,actorId);
 	this._plan=[];
 	this._meta={};
 	if(!this.getData().meta.noHunger&&objs.confs.useStp){
 		this._stp=500;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.actor=function(){
 	return $dataActors[this._actorId.toId()];
 };
@@ -12261,7 +12236,7 @@ Object.defineProperties($pppp$,{
 });
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(eid,x,y){
+($pppp$[$k$]=function f(eid,x,y){
 	f.ori.call(this,eid,x,y);
 	delete this._mimic;
 	delete this._refActor;
@@ -12287,8 +12262,8 @@ $d$=$pppp$[$k$]=function f(eid,x,y){
 		}
 		this._refActor=refActor;
 	}
-}; $d$.ori=$r$;
-$d$=$pppp$._getTraits_native=function f(){
+}).ori=$r$;
+($pppp$._getTraits_native=function f(){
 	const d=this.getData();
 	let rtv=$gameTemp.getCache(this,f.key);
 	if(!rtv || rtv.d!==d){
@@ -12300,8 +12275,7 @@ $d$=$pppp$._getTraits_native=function f(){
 		rtv.d=d;
 	}
 	return rtv;
-};
-$d$.key=Game_BattlerBase.CACHEKEY_NATIVE;
+}).key=Game_BattlerBase.CACHEKEY_NATIVE;
 $pppp$.getTraits_native_s=function f(code,id){
 	const rtv=this._getTraits_native().s.get(code);
 	return rtv&&id!==undefined?rtv.get(id):rtv;
@@ -12322,11 +12296,10 @@ $pppp$.getTraits_custom_m=function f(code,id){
 		if(a) return a.getTraits_overall_m(code,id);
 	}
 };
-$d$=$pppp$.makeDropItems=function f(){
+($pppp$.makeDropItems=function f(){
 	const rtv=[]; rtv.self=this;
 	return this.enemy().dropItems.reduce(f.reduce,rtv);
-};
-$d$.reduce=(r,di)=>{ // TODO: merge same item, add amount info
+}).reduce=(r,di)=>{ // TODO: merge same item, add amount info
 	if (di.kind > 0 && Math.random() * di.denominator < r.self.dropItemRate()) {
 		r.push(r.self.itemObject(di.kind, di.dataId));
 	}
@@ -12445,7 +12418,7 @@ $aaaa$=Window_Base;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x,y,w,h){
+($pppp$[$k$]=function f(x,y,w,h){
 	// create obj key
 	if(!this._actor) this._actor=undefined;
 	this.fontSize=this.standardFontSize();
@@ -12462,9 +12435,9 @@ $d$=$pppp$[$k$]=function f(x,y,w,h){
 	
 	this.adjLrArrows=undefined;
 	this._iconloop=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($d$=$pppp$.update=function f(){
 	//this._rmAllIconSprite(); // TODO: use sprites to draw icons
 	++this._updateCtr; this._updateCtr&=0x3FFFFFFF;
 	if(this._iconloop){
@@ -12473,7 +12446,7 @@ $d$=$pppp$.update=function f(){
 		}
 	}
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.forEach=function(info,index){
 	const icons=info[0];
 	if(!(--info[4]>0)){
@@ -12483,19 +12456,17 @@ $d$.forEach=function(info,index){
 		this.drawLoopIcon(index);
 	}
 };
-$d$=$pppp$.clearLoopIcon=function f(){
+($pppp$.clearLoopIcon=function f(){
 	const ws=this.subWindows();
 	if(ws) ws.forEach(f.forEach);
 	f.forEach(this);
-};
-$d$.forEach=w=>w._iconloop && (w._iconloop.length=0);
-$d$=$pppp$.drawLoopIcon=function f(idx){
+}).forEach=w=>w._iconloop && (w._iconloop.length=0);
+($d$=$pppp$.drawLoopIcon=function f(idx){
 	if(this._iconloop && this._iconloop.length){
 		if(idx===undefined) this._iconloop.forEach(f.forEach,this);
 		else f.forEach.call(this,this._iconloop[idx]);
 	}
-};
-$d$.forEach=function f(info){
+}).forEach=function f(info){
 	const icons=info[0] , idx=info[3];
 	f.tbl.x=info[1];
 	f.tbl.y=info[2];
@@ -12906,12 +12877,12 @@ $pppp$.standardFontSize=function(){
 };
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x,y,w,h){
+($pppp$[$k$]=function f(x,y,w,h){
 	f.ori.call(this,x,y,w,h);
 	// create member
 	if(this._maxCols===undefined) this._maxCols=undefined;
 	if(this._drawingIdx===undefined) this._drawingIdx=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.maxCols=function(){
 	return this._maxCols===undefined?1:this._maxCols;
 };
@@ -12989,14 +12960,14 @@ $pppp$.processTouch = function() {
 };
 $k$='updateArrows';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	const maxItems=this.maxItems();
 	if(this._lastScrollY===this._scrollY && this._lastLineHeight===this._lineHeight && this._lastMaxItems===maxItems) return;
 	this._lastScrollY=this._scrollY;
 	this._lastLineHeight=this._lineHeight; // ignore case: device changed during the game
 	this._lastMaxItems=maxItems;
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.processCursorMove=function(){ // overwrite for efficiency
 	if (!this._cursorFixed && !this._cursorAll && this.maxItems() > 0) {
 		let lastIndex = this.index();
@@ -13067,7 +13038,7 @@ $pppp$.processCancel = function(noSound) {
 };
 $pppp$.touchOutsideFrame=none;
 $r$=$pppp$.onTouch;
-$d$=$pppp$.onTouch=$pppp$._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
+($pppp$.onTouch=$pppp$._onTouch_iw=function f(triggered,iw){ // "interact window" is a selectable
 	if(!this.parent) return;
 	if(!iw) return f.ori.call(this,triggered);
 	let lastIndex = this.index();
@@ -13084,7 +13055,7 @@ $d$=$pppp$.onTouch=$pppp$._onTouch_iw=function f(triggered,iw){ // "interact win
 		else if(y >= this.height - this.padding) this.cursorDown();
 	}
 	if(this.index() !== lastIndex) SoundManager.playCursor();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.processTouchOutsideFrame=none;
 $pppp$.refresh_do=function(){
 	if(this.clearContents()) this.drawAllItems();
@@ -13105,14 +13076,14 @@ $aaaa$=Window_ItemCategory;
 $pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true,true);
 $r$=$pppp$.processOk;
-$d$=$pppp$.processOk=function f(){
+($pppp$.processOk=function f(){
 	if(this._lastScrollYs) this._itemWindow._scrollY=this._lastScrollYs[this._index]^0;
 	if(this._lastIdxs){
 		this._itemWindow.trimSel(this._lastIdxs[this._index]^0);
 		this._itemWindow.refresh();
 	}
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.processTouch=function(){
 	if(this.isOpenAndActive()){
 		if(TouchInput.isTriggered()){
@@ -13160,7 +13131,7 @@ $aaaa$=Window_ItemList;
 $pppp$=$aaaa$.prototype;
 $k$='processCancel';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(noSound){
+($pppp$[$k$]=function f(noSound){
 	if(!f.inited){
 		f.recIdxTypes=new Set([Scene_Item,Scene_ExtStore]);
 	}
@@ -13178,7 +13149,7 @@ $d$=$pppp$[$k$]=function f(noSound){
 	f.ori.call(this,noSound);
 	this._scrollY=lastScrollY;
 	this.refresh(); // TODO: reduce this 'this.refresh'
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.processTouch=Window_ItemCategory.prototype.processTouch;
 $pppp$.processTouchOutsideFrame=function(triggered,x,y,iw){
 	if( triggered && this.isTouchOkEnabled() && iw.isTouchedInsideFrame() ){
@@ -13190,7 +13161,7 @@ $pppp$.processTouchOutsideFrame=function(triggered,x,y,iw){
 $pppp$.onTouch=function(triggered){
 	return this._onTouch_iw(triggered,this.parent.parent._categoryWindow);
 };
-$d$=$pppp$.setCategory=function f(catKey){ // rewrite: return true if updated else false; use last scrollY;
+($pppp$.setCategory=function f(catKey){ // rewrite: return true if updated else false; use last scrollY;
 	if (this._category !== catKey){
 		this._category = catKey;
 		this._scrollY=0;
@@ -13207,13 +13178,12 @@ $d$=$pppp$.setCategory=function f(catKey){ // rewrite: return true if updated el
 		return true;
 	}
 	return false;
-};
-$d$.tbl=new Set([Scene_Item]);
+}).tbl=new Set([Scene_Item]);
 $k$='selectLast';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(this._index>=0) ; else f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.numberWidth=function(n){
 	return this.textWidth('0')*(n===undefined?7:n);
 };
@@ -13332,7 +13302,7 @@ $pppp$.subWindows=function f(){
 };
 $k$='createSubWindows';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this._msg2=new Window_Message2();
 	this._subWindows=[
@@ -13342,29 +13312,29 @@ $d$=$pppp$[$k$]=function f(){
 		this._itemWindow, 
 		this._msg2, 
 	];
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='onEndOfText';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	this.inaline=false;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.newPage;
-$d$=$pppp$.newPage=function f(txtstat){
+($pppp$.newPage=function f(txtstat){
 	this.clearLoopIcon();
 	f.ori.call(this,txtstat);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	let fr=this.faceRef;
 	if(fr && this.faceRef_updateID!==fr.texture._updateID){
 		if(fr._character) this._drawFaceFromData(fr._character._genFaceData(fr));
 	}
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='startMessage';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(!isNone($gameMessage._evtName)) this._evtName=$gameMessage._evtName;
 	if(!isNone($gameMessage._nameField)){
 		let w=this.textWidth($gameMessage._nameField);
@@ -13384,7 +13354,7 @@ $d$=$pppp$[$k$]=function f(){
 		//this._moveTxtInput(); // not yet added to 'SceneManager._scene._windowLayer'
 	}else if(this._nameField) this._nameField.enabled=this._nameField.alpha=0;
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$._moveTxtInput=function(){ // if 'this._nameField' is presented
 	let wl=SceneManager._scene._windowLayer;
 	if(wl){
@@ -13403,7 +13373,7 @@ $pppp$._moveTxtInput=function(){ // if 'this._nameField' is presented
 };
 $k$='updateOpen';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	let op=this._opening;
 	f.ori.call(this);
 	if(this._opening===false && this._nameField && this._nameField.enabled){
@@ -13411,17 +13381,17 @@ $d$=$pppp$[$k$]=function f(){
 		if(op) this._moveTxtInput();
 	}
 	return this._opening;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='updateClose';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(this._closing && this._nameField) this._nameField.alpha=0;
 	f.ori.call(this);
 	return this._closing;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='terminateMessage';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(this._nameField!==undefined){
 		//this.removeChild(this._nameField);
 		//this._nameField.contents.clear();
@@ -13429,7 +13399,7 @@ $d$=$pppp$[$k$]=function f(){
 	}
 	return f.ori.call(this);
 	//delete Input._currentState['ok'];
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updateWait=function(){
 	if(this._waitCount>0){
 		const delta=Graphics.frameCount-this._lastFrameCnt;
@@ -13509,10 +13479,10 @@ $d$=$pppp$.loadFace=function f(fn){
 $d$.tbl=$r$;
 $k$='drawMessageFace';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if($gameMessage.faceIndex()==="data") return; // ensurance
 	return f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.startWait=function(cnt){
 	this._waitCount    = cnt;
 	this._lastFrameCnt = Graphics.frameCount;
@@ -13524,7 +13494,7 @@ $aaaa$=Window_BattleLog;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this._historyLines=[];
 	this._lines=[];
 	f.ori.call(this);
@@ -13534,7 +13504,7 @@ $d$=$pppp$[$k$]=function f(){
 	this._lastNumLines=undefined;
 	this._maxLines=this.maxLines();
 	this._mode=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.maxLines=function(){
 	return this._maxLines===undefined?10:this._maxLines;
 };
@@ -13564,7 +13534,7 @@ $pppp$.numLines=function(){
 };
 $pppp$.messageSpeed=()=>0; // ori:16
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	if(this._mode==='h'){
 		this._historyNumLines.clear();
 		Window_Selectable.prototype.update.call(this);
@@ -13576,7 +13546,7 @@ $d$=$pppp$.update=function f(){
 			this.refresh();
 		}
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.skipMeta=function(){
 	//let rtv=0;
 	for(let q=this._methods,c,n;q.length&&(n=(c=q.front).name)[0]==="-";q.shift()){
@@ -13610,10 +13580,10 @@ $pppp$.callNextMethod=function(){
 };
 $pppp$.none=none;
 $r$=$pppp$.addText;
-$d$=$pppp$.addText=function f(txt){
+($pppp$.addText=function f(txt){
 	this._historyLines.push(txt);
 	f.ori.call(this,txt);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.popBaseLine=function(){
 	const baseLine = this._baseLineStack.pop();
 	if(this._lines.length>baseLine) this._lines.length=baseLine;
@@ -13621,7 +13591,7 @@ $pppp$.popBaseLine=function(){
 // Window_BattleLog.prototype.popupDamage
 $k$='showAnimation';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(subject, targets, animationId, item){
+($pppp$[$k$]=function f(subject, targets, animationId, item){
 	if(_global_conf.noAnimation) return;
 	const p=Game_Action.prototype;
 	const item2=p.getSelfItemObj(item);
@@ -13630,8 +13600,8 @@ $d$=$pppp$[$k$]=function f(subject, targets, animationId, item){
 		this._aniSelfAniId = p.canForSelf(item2) ? item2.animationId : undefined;
 	}else this._aniSubject=undefined;
 	f.ori.call(this, subject, targets, animationId);
-}; $d$.ori=$r$;
-$d$=$pppp$.showNormalAnimation=function f(targets, animationId, mirror) {
+}).ori=$r$;
+($pppp$.showNormalAnimation=function f(targets, animationId, mirror) {
 	if($dataAnimations[animationId]){
 		let delay = this.animationBaseDelay();
 		let nextDelay = this.animationNextDelay();
@@ -13640,7 +13610,8 @@ $d$=$pppp$.showNormalAnimation=function f(targets, animationId, mirror) {
 				if(this._aniSelfAniId<0){
 					if(target.isActor()){ let aniId;
 						f.tbl.forEach(k=>{ aniId=target[k](); if($dataAnimations[aniId]) target.startAnimation( aniId , mirror , delay ); });
-					}else{ }
+					}else{ // TODO: when refActor
+					}
 				}else{
 					if($dataAnimations[this._aniSelfAniId]) target.startAnimation( this._aniSelfAniId , mirror, delay);
 				}
@@ -13648,8 +13619,7 @@ $d$=$pppp$.showNormalAnimation=function f(targets, animationId, mirror) {
 			delay += nextDelay;
 		});
 	}
-};
-$d$.tbl=[1,2].map(v=>'attackAnimationId'+v);
+}).tbl=[1,2].map(v=>'attackAnimationId'+v);
 $pppp$.animationNextDelay=()=>2; // ori:12
 $pppp$.clearLine=function(index){
 	const rect = this.itemRectForText(index);
@@ -13836,7 +13806,7 @@ $aaaa$=Window_PartyCommand;
 $pppp$=$aaaa$.prototype;
 $k$='makeCommandList';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	this.addCommand(TextManager.fight,	'fight');
 	this.addCommand(TextManager.formation,	'swap');
 	this.addCommand($dataCustom.plan.use,	'usePlan');
@@ -13845,7 +13815,7 @@ $d$=$pppp$[$k$]=function f(){
 	this.addCommand($dataCustom.battle.allSpaceout,	'allSpaceout');
 	this.addCommand($dataCustom.battle.viewLog,	'viewLog');
 	this.addCommand(TextManager.escape,	'escape', BattleManager.canEscape());
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setup=function(){
 	this.clearCommandList();
 	this.makeCommandList();
@@ -13911,10 +13881,10 @@ $aaaa$=Window_Command;
 $pppp$=$aaaa$.prototype;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x, y, kargs) {
+($pppp$[$k$]=function f(x, y, kargs) {
 	for(let i in kargs) this[i]=kargs[i];
 	return f.ori.call(this,x,y);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.windowWidth=function(){
 	if(this._windowWidth===undefined){
 		let defaultVal=240;
@@ -13955,12 +13925,12 @@ $pppp$=$aaaa$.prototype;
 makeDummyWindowProto($aaaa$,true);
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(ln){
+($pppp$[$k$]=function f(ln){
 	f.ori.call(this,ln);
 	this._forceRefresh=false;
 	this.resetStrtLoc();
 	this._lastText='';
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.setText=function(txt){
 	if(this._text !== txt){
 		this._text=txt;
@@ -13974,7 +13944,7 @@ $pppp$.resetStrtLoc=function(){
 	this._txtfc2=this._txtfc=Graphics.frameCount;
 };
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	f.ori.call(this);
 	{ const wait=120,pad=this.textPadding(),endx=this.contentsWidth()-pad,fc=Graphics.frameCount;
 		const dfc=this._txtfc+wait-fc;
@@ -13994,7 +13964,7 @@ $d$=$pppp$.update=function f(){
 			}
 		}
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.redrawtxt=function(){
 	if(this.contents){
 		this.createContents();
@@ -14055,26 +14025,27 @@ $pppp$.refresh=function f(){
 };
 $k$='drawBasicArea';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(r,a){
+($pppp$[$k$]=function f(r,a){
 	if(a.stp!==undefined){
 		const w=r.width>>2;
 		r.width-=w;
 		this.drawActorStp(a, r.x+r.width, r.y, w);
 	}
 	f.ori.call(this,r,a);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
+// - Window_BattleActor
 $aaaa$=Window_BattleActor;
 $pppp$=$aaaa$.prototype;
 $pppp$.numVisibleRows=function(){
 	return ~~((Graphics.boxHeight - (this.standardPadding()<<1)) / this.lineHeight());
 };
 $r$=$pppp$.drawItem;
-$d$=$pppp$.drawItem=function f(idx){
+($pppp$.drawItem=function f(idx){
 	Window_MenuActor.prototype.drawItemBackground.call(this,idx);
 	f.ori.call(this,idx);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.isCurrentItemEnabled=function(){
 	if(this._mode!=='s'){ const act=BattleManager.inputtingAction();
 	if(act){
@@ -14131,7 +14102,7 @@ $pppp$.addCustomCommands=function(){
 };
 $k$='addSaveCommand';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){ // overwrite for efficiency
+($pppp$[$k$]=function f(){ // overwrite for efficiency
 	if ($dataSystem.menuCommands[5]) {
 		let enabled = this.isSaveEnabled();
 		this.addCommand(TextManager.save, 'save', enabled);
@@ -14139,7 +14110,7 @@ $d$=$pppp$[$k$]=function f(){ // overwrite for efficiency
 		this.addCommand($dataCustom.optSave.name, 'saveOpts',  enabled);
 	//	this.addCommand($dataCustom.saveOnline,   'saveOnline', enabled);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.addOnceCommand=function(){
 	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED"){
 		this.addCommand('Visit It', 'gifts');
@@ -14210,7 +14181,7 @@ $r$=$pppp$.refresh;
 	f.ori.call(this);
 }).ori=$r$;
 $r$=$pppp$.drawItem;
-$d$=$pppp$.drawItem=function f(idx){
+($pppp$.drawItem=function f(idx){ // Window_MenuStatus
 	const rect = this.itemRect(idx);
 	const actor = $gameParty.members()[idx];
 //	this.drawItemBackground(idx);
@@ -14233,7 +14204,7 @@ $d$=$pppp$.drawItem=function f(idx){
 	this.changeTextColor("rgba(234,234,234,0.5)");
 	this.drawText((idx+1)+'.',rect.x,y);
 	this.resetTextColor();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - Window_SkillStatus
@@ -14307,7 +14278,7 @@ $aaaa$=Window_EquipStatus;
 $pppp$=$aaaa$.prototype;
 $k$='drawActorName';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(actor,x,y,width){
+($pppp$[$k$]=function f(actor,x,y,width){
 	const cw=this.contentsWidth()-this.textPadding();
 	width=width||cw>>1;
 	{
@@ -14317,10 +14288,10 @@ $d$=$pppp$[$k$]=function f(actor,x,y,width){
 	}
 	this.changeTextColor("rgba(234,234,234,0.5)");
 	this.drawText(($gameParty._menuActorIdx||0)+1, cw-width, y-(this.textPadding()>>1), width, 'right');
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(x,y){
+($pppp$[$k$]=function f(x,y){
 	this._noRefreshArrows=true;
 	f.ori.call(this,x,y);
 	this._page=0;
@@ -14333,12 +14304,12 @@ $d$=$pppp$[$k$]=function f(x,y){
 	this.rightArrowVisible = this.leftArrowVisible = true;
 	
 	this._itemOld=this._itemNew=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	f.ori.call(this);
 	if(this._commandWindow.active) this._arrowsFloating();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.drawAllVal=function(x,oy){
 	const h=this.lineHeight()-((this.fontSize>>2)+1),txtpad=this.textPadding(),strt=this._page*this._rows-2,sz=Math.min(strt+this._rows,$dataSystem.terms.params.length);
 	const x1=x+txtpad,x2=x+140,x3=x+189,x4=x+222,vals=[];
@@ -14475,10 +14446,10 @@ $pppp$.onTouch=function(triggered){
 };
 $k$='deactivate';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(this._scrollYM) this._scrollYM.set(this._actor,this._scrollY);
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.reselIdx=function(noUpdate){
 	const lastSel=this._lastSelM.get(this._actor);
 	let idx;
@@ -14763,13 +14734,13 @@ $tttt$={};
 $aaaa$=Window_Status;
 $pppp$=$aaaa$.prototype;
 $r$=$pppp$.onTouch;
-$d$=$pppp$.onTouch=function f(triggered){
+($pppp$.onTouch=function f(triggered){
 	this.touchUpDnArrowsPgUpDn(triggered,this);
 	return f.ori.call(this,triggered);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='initialize';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
 	if(this._arrows_actor = $gameParty.members().length>1){
 		this.downArrowVisible = this.upArrowVisible = true;
@@ -14779,18 +14750,18 @@ $d$=$pppp$[$k$]=function f(){
 		this.addChild(this._downArrowSprite);
 		this.addChild(this._upArrowSprite);
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updateArrows=function(){
 	this.downArrowVisible = this.upArrowVisible =  this._arrows_actor;
 };
 $r$=$pppp$.update;
-$d$=$pppp$.update=function f(){
+($pppp$.update=function f(){
 	f.ori.call(this);
 	this._arrowsFloating();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $k$='drawBlock1';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(y){
+($pppp$[$k$]=function f(y){
 	f.ori.call(this,y);
 	const cw=this.contentsWidth()-this.textPadding();
 	const w=cw>>2;
@@ -14803,7 +14774,7 @@ $d$=$pppp$[$k$]=function f(y){
 	this.changeTextColor("rgba(234,234,234,0.5)");
 	this.drawText(''+($gameParty._menuActorIdx||0), cw-w_8, y-this.textPadding(), w_8, 'right');
 	this.resetTextColor();
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.drawExpInfo=function(x,y){
 	const expTotal = TextManager.expTotal.format(TextManager.exp);
 	const expNext = TextManager.expNext.format(TextManager.level);
@@ -14867,7 +14838,7 @@ $pppp$.volumeOffset=function(){
 };
 $k$='updateArrows';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($d$=$pppp$[$k$]=function f(){
 	f.ori.call(this);
 	let la=this._leftArrowSprite,ra=this._rightArrowSprite;
 	if(this._lastIdx!==this._index){
@@ -14889,19 +14860,19 @@ $d$=$pppp$[$k$]=function f(){
 		la.anchor._x=0.5-s;
 		ra.anchor._x=0.5+s;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $d$.rad1=PI_64;
 $k$='processTouch';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	f.ori.call(this);
-}; $d$.ori=$r$;
+}).ori=$r$;
 $r$=$pppp$.onTouch;
-$d$=$pppp$.onTouch=function f(triggered){
+($pppp$.onTouch=function f(triggered){
 	this._onTouch_ing=true;
 	f.ori.call(this,triggered);
 	this._onTouch_ing=undefined;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - choicelist
@@ -14941,13 +14912,13 @@ $pppp$._moveTxtInput=function(){
 };
 $k$='updateOpen';
 $r$=$pppp$[$k$];
-$d$=$pppp$[$k$]=function f(){
+($pppp$[$k$]=function f(){
 	if(this._opening){
 		f.ori.call(this); // return undefined
 		let txtIn=this._moveTxtInput();
 		if(this._opening===false && txtIn && txtIn.y>=0) txtIn.y=this.y-txtIn.height;
 	}
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$.updatePlacement = function() { // called in 'this.start' ; then no called
 	let positionType = $gameMessage.choicePositionType();
 	let messageY = this._messageWindow.y;
@@ -14988,7 +14959,7 @@ $pppp$.updatePlacement = function() { // called in 'this.start' ; then no called
 	}
 };
 $r$=$pppp$.start;
-$d$=$pppp$.start=function f(){
+($pppp$.start=function f(){
 	let rtv=f.ori.call(this),nf=SceneManager._scene._messageWindow._nameField;
 	if(nf&&nf.enabled){
 		if((this.y-=nf.height)<0){
@@ -14997,7 +14968,7 @@ $d$=$pppp$.start=function f(){
 		}
 	}
 	return rtv;
-}; $d$.ori=$r$;
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 // - savefilelist

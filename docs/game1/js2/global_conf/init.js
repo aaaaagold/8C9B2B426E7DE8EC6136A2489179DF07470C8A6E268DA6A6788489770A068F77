@@ -483,6 +483,10 @@ let $aaaa$,$pppp$,$kkkk$,$k$,$dddd$,$d$,$rrrr$,$r$,$tttt$,$t$,setShorthand = (w)
 		}
 		return rtv;
 	};
+	w.Array.prototype.concat_inplaceThis=function(arr){
+		for(let x=0;x!==arr.length;++x) this.push(arr[x]);
+		return this;
+	};
 	
 	w.Date.prototype.toLocalISO=function(){
 		let delta=this.getTimezoneOffset()*60*1000;
