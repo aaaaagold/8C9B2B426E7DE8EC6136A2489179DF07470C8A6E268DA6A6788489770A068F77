@@ -2,7 +2,8 @@
 
 if(!window.objs) window.objs={};
 
-(()=>{ let list=objs.rpgskills.filter;
+(()=>{ const list=objs.rpgskills.filter;
+const chase=list.chase={}; // chaseCond
 
 list.isRoadblock=actor=>{
 	if(!actor) return false;
@@ -17,5 +18,15 @@ list.isSummoned=actor=>{
 	const ad=actor.getData();
 	return ad && Object.hasOwnProperty.call(ad.meta,'summoned');
 };
+list.isSummoned_dead=actor=>list.isSummoned(actor)&&actor.isDeathStateAffected();
+list.isSummoned_alive=actor=>list.isSummoned(actor)&&!actor.isDeathStateAffected();
+
+chase.subjectIsMe=(b,s,t)=>b===s;
+chase.subjectIsMeNotTarget=(b,s,t)=>b===s&&b!==t;
+chase.targetIsMe=(b,s,t)=>b===t;
+chase.targetIsMeNotSubject=(b,s,t)=>b===t&&b!==s;
+chase.subjectIsTarget=(b,s,t)=>s===t;
+chase.subjectIsTargetNotMe=(b,s,t)=>b!==s&&s===t;
+chase.allSame=(b,s,t)=>b===s&&b===t;
 
 })();

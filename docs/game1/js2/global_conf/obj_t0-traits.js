@@ -46,26 +46,29 @@ $dddd$=$pppp$.arrangeData=function f(){
 		$dataSystem.terms.extended=true;
 		const isMul=$dataSystem.terms.isMul=[];
 		const arr=$dataSystem.terms.params,texts=$dataCustom.params;
+		arr[""]="";
 		arr[-2]=texts.exr;
 		isMul[-2]=true;
 		arr[-1]=texts.act;
+		arr.push(texts.mev);
 		arr.push(texts.cri);
 		arr.push(texts.cev);
-		arr.push(texts.mev);
+		// 13
 		arr.push(texts.mec);
-		arr.push(texts.tbe);
+		arr.push(texts.msb);
+		isMul[arr.length]=true; arr.push(texts.tgr);
+		isMul[arr.length]=true; arr.push(texts.grd);
+		isMul[arr.length]=true; arr.push(texts.pdr);
+		isMul[arr.length]=true; arr.push(texts.mdr);
+		isMul[arr.length]=true; arr.push(texts.rec);
+		isMul[arr.length]=true; arr.push(texts.pha);
+		isMul[arr.length]=true; arr.push(texts.hcr);
+		isMul[arr.length]=true; arr.push(texts.mcr);
 		arr.push(texts.hrg);
 		arr.push(texts.mrg);
 		arr.push(texts.trg);
-		isMul[arr.length]=true; arr.push(texts.tgr);
-		isMul[arr.length]=true; arr.push(texts.grd);
-		isMul[arr.length]=true; arr.push(texts.rec);
-		isMul[arr.length]=true; arr.push(texts.hcr);
-		isMul[arr.length]=true; arr.push(texts.mcr);
-		isMul[arr.length]=true; arr.push(texts.tcr);
-		isMul[arr.length]=true; arr.push(texts.pdr);
-		isMul[arr.length]=true; arr.push(texts.mdr);
-		arr.push(texts.ata); // 26 // page2
+		// 26
+		arr.push(texts.ata);
 		isMul[arr.length]=true; arr.push(texts.akr);
 		isMul[arr.length]=true; arr.push(texts.rhp);
 		isMul[arr.length]=true; arr.push(texts.rmp);
@@ -75,18 +78,27 @@ $dddd$=$pppp$.arrangeData=function f(){
 		isMul[arr.length]=true; arr.push(texts.rdm);
 		isMul[arr.length]=true; arr.push(texts.rag);
 		isMul[arr.length]=true; arr.push(texts.rlu);
-		arr.push(texts.pdv);
-		arr.push(texts.mdv);
-		arr.push(texts.mps);
 		arr.push(texts.prf);
 		arr.push(texts.mrf);
 		arr.push(texts.pcnt);
 		arr.push(texts.mcnt);
-		isMul[arr.length]=true; arr.push(texts.pha);
+		arr.push("");
 		arr.push(texts.arhr);
 		arr.push(texts.arhv);
 		arr.push(texts.armr);
 		arr.push(texts.armv);
+		arr.push(texts.pdv);
+		arr.push(texts.mdv);
+		arr.push(texts.mps);
+		arr.push("");
+		arr.push(texts.tbe);
+		isMul[arr.length]=true; arr.push(texts.tcr);
+		arr.push(texts.hrgv);
+		arr.push(texts.mrgv);
+		arr.push(texts.trgv);
+		// 54
+		
+		//if(objs.isDev) arr.forEach((x,i,a)=>a[i]=i+". "+x);
 	}
 	
 	// == abilities ==
@@ -254,6 +266,9 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataStates,f.makeTraitsMap);
 	f.doForEach($dataWeapons,f.makeTraitsMap);
 	
+	// dmgViaSkill_* // TODO
+	//f.doForEach($dataStates,f.dmgViaSkill);
+	
 	// needStates
 	f.doForEach($dataItems,f.makeNeedStates);
 	f.doForEach($dataSkills,f.makeNeedStates);
@@ -262,7 +277,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeAdditionalCrit);
 	f.doForEach($dataSkills,f.makeAdditionalCrit);
 	
-	// surehit
+	// surehit // for non-certains
 	f.doForEach($dataItems,f.makeSureHit);
 	f.doForEach($dataSkills,f.makeSureHit);
 	
@@ -274,9 +289,16 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeUncounterable);
 	f.doForEach($dataSkills,f.makeUncounterable);
 	
+	// defpenetrate
+	f.doForEach($dataItems,f.makeDefPenetrate);
+	f.doForEach($dataSkills,f.makeDefPenetrate);
+	
 	// effect, func && code
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
+	
+	// chaseCond // race condition when loading
+	//f.doForEach($dataSkills,s=>s.chaseCond=s.meta.chaseCond&&objs._getObj.call(none,s.meta.chaseCond));
 	
 	// custom speed
 	f.doForEach($dataItems,f.changeSpeed);
@@ -394,16 +416,20 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.itemType='a';
 	});
 	
-	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(x=>{ if(!x) return; // ????
-		x.arrangeStart=x.length;
-		//if(!x.tmapS) x.tmapS=new Map(); // ???
-		//if(!x.tmapP) x.tmapP=new Map(); // ???
-	});
+	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(x=>x&&(x.arrangeStart=x.length));
 };
 $dddd$.changeSpeed=dataobj=>{
 	const n=Number(dataobj.meta.speed);
 	if(!isNaN(n)) dataobj.speed=n;
 };
+{ const keys=['_turnStart','_turnEnd','_actStart','_actEnd'].map(s=>'dmgViaSkill_'+s),gt0=_=>_>0;
+$dddd$.dmgViaSkill=dataobj=>{
+	if(dataobj.dmgViaSkill=keys.map(k=>dataobj[k]=Number(dataobj.meta[k])).some(gt0)){
+		dataobj.removeByWalking=dataobj.removeAtBattleEnd=true;
+		dataobj.stepsToRemove=1;
+	}
+};
+}
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
 $dddd$.extendDescription_e=dataobj=>{
 	const arr=dataobj.params , txt=$dataSystem.terms.params;
@@ -429,6 +455,7 @@ $dddd$.extendDescription_i=dataobj=>{
 		'speed',
 		'scope',
 		'surehit',
+		'defpenetrate',
 		'uncounterable',
 		'reflectedless',
 	].forEach(k=>dataobj[k]&&infos.push(k));
@@ -481,6 +508,7 @@ $dddd$.makeCondColor=dataobj=>{
 	const cc=dataobj.meta.condColor;
 	dataobj.condColor=cc?objs._getObj.call(none,cc):undefined;
 };
+$dddd$.makeDefPenetrate=dataobj=>dataobj.defpenetrate=dataobj.meta.defpenetrate!==undefined;
 { const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
 $dddd$.makeEffectFuncCode=dataobj=>{
 	const effs=dataobj.effects;
@@ -635,6 +663,18 @@ $dddd$.note2traits=x=>{
 	if(meta.hitRecMpV){ // +
 		const n=Number(meta.hitRecMpV)-0;
 		if(n) x.traits.push({code:tc,dataId:enums.HitRecMpV,value:n});
+	}
+	if(meta.hrgv){ // +
+		const n=Number(meta.hrgv)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.HpRegenV,value:n});
+	}
+	if(meta.mrgv){ // +
+		const n=Number(meta.mrgv)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.MpRegenV,value:n});
+	}
+	if(meta.trgv){ // +
+		const n=Number(meta.trgv)-0;
+		if(n) x.traits.push({code:tc,dataId:enums.TpRegenV,value:n});
 	}
 	if(meta.chases){ // +
 		// chase with: friend/opponent/both
@@ -803,6 +843,9 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("HitRecHpV").
 	addEnum("HitRecMpR").
 	addEnum("HitRecMpV").
+	addEnum("HpRegenV").
+	addEnum("MpRegenV").
+	addEnum("TpRegenV").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.
 	addEnum("TRAITS_CUSTOM").
 	addEnum("__DUMMY") ;
@@ -869,6 +912,15 @@ $pppp$.hitRecMpR=function(){
 };
 $pppp$.hitRecMpV=function(){
 	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.HitRecMpV);
+};
+$pppp$.regenHpV=function(){
+	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.HpRegenV);
+};
+$pppp$.regenMpV=function(){
+	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.MpRegenV);
+};
+$pppp$.regenTpV=function(){
+	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.TpRegenV);
 };
 gbb._initChase=function f(){
 	if(f.inited) return;

@@ -1657,8 +1657,8 @@ $r$=$aaaa$[$k$];
 	
 	this._actionNoEffect=false;
 	
-	if(this._actLog_turn) this._actLog_turn.length=0; else this._actLog_turn=[];
-	if(this._actLog_all ) this._actLog_all .length=0; else this._actLog_all =[];
+	if(this._actLog_turn) this._actLog_turn.clear(); else this._actLog_turn=new Map();
+	if(this._actLog_all ) this._actLog_all .clear(); else this._actLog_all =new Map();
 	
 	this.initChases();
 }).ori=$r$;
@@ -1681,6 +1681,31 @@ $r$=$aaaa$[$k$];
 	if($gameTroop._trueEscape || $gameParty.mustEscape()) this._escapeRatio = 1;
 	else f.ori.call(this);
 }).ori=$r$;
+$aaaa$._logItemUsed=function(container,item,s){
+	// s' use
+	{
+	let m=container.get(s);
+	if(!m) container.set(s,m=new Map());
+	m.set(item,(m.get(item)|0)+1);
+	}
+	// overall item used
+	if(s) this._logItemUsed(container,item);
+}
+$aaaa$.logItemUsed=function(item,s){
+	this._logItemUsed(this._actLog_turn,item,s);
+	this._logItemUsed(this._actLog_all ,item,s);
+};
+$aaaa$._getItemUsedCount=function(container,item,s){
+	let rtv=container.get(s);
+	if(!rtv) return 0;
+	return rtv.get(item)|0;
+};
+$aaaa$.getItemUsedCount_turn=function(item,s){
+	return this._getItemUsedCount(this._actLog_trun,item,s);
+};
+$aaaa$.getItemUsedCount_all=function(item,s){
+	return this._getItemUsedCount(this._actLog_all ,item,s);
+};
 $r$=$aaaa$.update;
 ($aaaa$.update=function f(){ // prepare
 	//console.log(' update ',this._actorIndex);
@@ -1709,7 +1734,7 @@ $r$=$aaaa$.startTurn;
 ($aaaa$.startTurn=function f(){
 	if(objs.isDev) console.log(' startTurn ',this._actorIndex);
 	$gameTroop.makeActions();
-	this._actLog_turn.length=0;
+	this._actLog_turn.clear();
 	++this._turnCtr;
 	return f.ori.call(this);
 }).ori=$r$;
@@ -1744,10 +1769,10 @@ $r$=$aaaa$[$k$];
 	}
 }).ori=$r$;
 $r$=$aaaa$. endTurn ;
-($aaaa$. endTurn =function f(){
+($aaaa$. endTurn =function f(){ // prepare
 	if(objs.isDev) console.log(' endTurn ',this._actorIndex);
-	this._actLog_all.concat_inplaceThis(this._actLog_turn);
 	f.ori.call(this);
+	// execd before interpreter
 }).ori=$r$;
 $k$='updateTurnEnd';
 $r$=$aaaa$[$k$];
@@ -1771,7 +1796,9 @@ $r$=$aaaa$[$k$];
 	if(objs.isDev) console.log('startAction',this._actorIndex);
 	this._subject.reserveActResQ().clear();
 	this._dmgSum=0;
+	const s=this._subject;
 	f.ori.call(this);
+	this.logItemUsed(this._action.item(),s);
 }).ori=$r$;
 ($aaaa$.updateAction=function f(instPopDmg){
 	const target = this._targets.pop(); // reverse order
@@ -1907,6 +1934,7 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		s:new Map(),
 		ts:undefined,
 		tt:undefined,
+		trgt:undefined,
 	};
 	// allow to be same skills, mostly are different though
 	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item,preloads);
@@ -1961,39 +1989,43 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		const ncpaf=preloads.ncpaf;
 		skills.forEach((v,k)=>{ if(!k) return;
 			const repeat=f.setAction(item,a,s,t,k,preloads);
+			{ const item=a.item();
+			const chaseCond=item.chaseCond||(item.chaseCond=(item.meta.chaseCond=item.meta.chaseCond)&&objs._getObj.call(none,item.meta.chaseCond));
+			if(chaseCond && !chaseCond(btlr,s,t)) return;
+			}
 			for(let x=repeat*~~v;x-->0;){
-				a.apply(t,ncpaf);
-				self._logWindow.displayActionChaseResults(btlr,t,a);
+				a.apply(preloads.trgt,ncpaf);
+				self._logWindow.displayActionChaseResults(btlr,preloads.trgt,a);
 			}
 		});
 	}
 };
 $d$.doChase.forEach.tbl=undefined;
 $d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
-	let rfl,skill,trgt,pk,repeat=0;
+	let rfl,skill,pk,p,repeat=0;
 	switch(k){
 	case "r-":
-		rfl=1; trgt=s; pk='ts';
+		rfl=1; preloads.trgt=s; pk='ts';p=preloads.ts;
 	break;
 	case "r+":
-		rfl=1; trgt=t; pk='tt';
+		rfl=1; preloads.trgt=t; pk='tt';p=preloads.tt;
 	break;
 	default:
 		if(k<0){
-			trgt=s; pk='ts';
+			preloads.trgt=s; pk='ts';p=preloads.ts;
 			k=-k;
 		}else{
-			trgt=t; pk='tt';
+			preloads.trgt=t; pk='tt';p=preloads.tt;
 		}
 		skill=$dataSkills[k];
 	break;
 	}
 	if(rfl||skill){
-		if(!preloads[pk]){
-			act.setPreload_t(trgt);
-			preloads[pk]=act.copyPreload_t();
+		if(!p){
+			act.setPreload_t(preloads.trgt);
+			p=preloads[pk]=act.copyPreload_t();
 		}
-		act.refPreload_t(preloads[pk]);
+		act.refPreload_t(p);
 		act.setItemObject(rfl?item:skill);
 		repeat=act.numRepeats(rfl);
 	}
@@ -5537,7 +5569,71 @@ $pppp$.paramMax=function(paramId){
 $pppp$.param=function(paramId){
 	
 	// Window_EquipStatus.prototype.drawNewParam use '-', so String(s) are casted to Number
-	switch(~~((paramId+12)/10)){
+	if(1) switch(paramId){
+	default: return 0;
+	case -2: return this.sparam(9).toExponential(2);
+	case -1: return this.makeActionTimes();
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	break;
+	case 8:
+	case 9:
+	case 10: return this.mev.toFixed(2);
+	case 11: // cri
+	case 12: return this.xparam(paramId-9).toFixed(2);
+	case 13: return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
+	case 14: return this.isAlwaysSubstitute();
+	case 15: // tgr
+	case 16: return this.sparam(paramId-15).toExponential(2);
+	case 17: // pdr
+	case 18: return this.sparam(paramId-11).toExponential(2);
+	case 19: // pha
+	case 20: return this.sparam(paramId-17).toExponential(2);
+	case 21: return this.hpCostRate().toExponential(2);
+	case 22: return this.mcr.toExponential(2);
+	case 23: // hrg
+	case 24:
+	case 25: return this.xparam(paramId-16).toFixed(2);
+	break;
+	case 26: return this.attackTimesAdd(); // page2
+	case 27: return this.attackTimesMul().toFixed(3);
+	case 28:
+	case 29:
+	case 30:
+	case 31:
+	case 32:
+	case 33:
+	case 34:
+	case 35: {
+		const id=paramId-28;
+		return (this.paramRate(id)*this.paramBuffRate(id)).toExponential(2);
+	}break;
+	case 36: return this.reflectPRate().toFixed(2);
+	case 37: return this.reflectMRate().toFixed(2);
+	case 38: return this.counterPRate().toFixed(2);
+	case 39: return this.counterMRate().toFixed(2);
+	case 40: return "";
+	case 41: return this.hitRecHpR().toFixed(2);
+	case 42: return this.hitRecHpV();
+	case 43: return this.hitRecMpR().toFixed(2);
+	case 44: return this.hitRecMpV();
+	case 45: return this.decreaseDamageP();
+	case 46: return this.decreaseDamageM();
+	case 47: return this.MPSubstituteRate().toFixed(3);
+	case 48: return "";
+	case 49: return this.TPRegenAtBattleEnd();
+	case 50: return this.tcr.toExponential(2);
+	case 51: return this.regenHpV();
+	case 52: return this.regenMpV();
+	case 53: return this.regenTpV();
+	}
+	else switch(~~((paramId+12)/10)){
 	default: return 0;
 	case 1:
 		switch(paramId){
@@ -5548,12 +5644,13 @@ $pppp$.param=function(paramId){
 	case 2:
 		switch(paramId){
 		case 13: return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
-		case 14: return this.TPRegenAtBattleEnd();
+		case 14: return this.tgr.toExponential(2);
 		}
 		return this.xparam(paramId-8).toFixed(2);
 	break;
 	case 3:
 		switch(paramId){
+		case 18: return this.TPRegenAtBattleEnd();
 		case 21: return this.hpCostRate().toExponential(2);
 		case 26: return this.attackTimesAdd(); // page2
 		case 27: return this.attackTimesMul().toFixed(3);
@@ -5575,13 +5672,29 @@ $pppp$.param=function(paramId){
 		case 40: return this.reflectMRate().toFixed(2);
 		case 41: return this.counterPRate().toFixed(2);
 		case 42: return this.counterMRate().toFixed(2);
-		case 43: return this.pha.toExponential(2);
-		case 44: return this.hitRecHpR().toFixed(2);
-		case 45: return this.hitRecHpV();
-		case 46: return this.hitRecMpR().toFixed(2);
-		case 47: return this.hitRecMpV();
+		case 43: return this.regenHpV();
+		case 44: return this.regenMpV();
+		case 45: return this.regenTpV();
+		case 46: return "";
+		case 47: return "";
 		}
 		return this.param(); // nothing
+	break;
+	case 6:
+		switch(paramId){
+		case 48: return this.pha.toExponential(2);
+		case 49: return "";
+		case 50: return this.hitRecHpR().toFixed(2);
+		case 51: return this.hitRecHpV();
+		case 52: return this.hitRecMpR().toFixed(2);
+		case 53: return this.hitRecMpV();
+		case 54: return "";
+		case 55: return "";
+		case 56: return "";
+		case 57: return "";
+		}
+		return this.param(); // nothing
+	break;
 	}
 	
 	let value = this.paramBase(paramId) + this.paramPlus(paramId);
@@ -5973,6 +6086,17 @@ $pppp$.gainStp = function(value){
 };
 $pppp$.friendsUnit=none;
 $pppp$.opponentsUnit=none;
+$pppp$.regenerateHp=function() {
+	const value = Math.max(this.regenHpV()+~~(this.mhp * this.hrg),-this.maxSlipDamage());
+	if(value) this.gainHp(value);
+};
+$pppp$.regenerateMp=function(){
+    const value=this.regenMpV()+~~(this.mmp * this.mrg);
+    if(value) this.gainMp(value);
+};
+$pppp$.regenerateTp=function(){
+	this.gainSilentTp(this.regenTpV()+~~(this.mtp * this.trg));
+};
 $pppp$.registChase=function(){
 	BattleManager.updateChase(this);
 };
@@ -6008,7 +6132,9 @@ $k$='onBattleEnd';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
 	f.ori.call(this);
-	this.gainSilentTp(this.TPRegenAtBattleEnd());
+	let v=this.TPRegenAtBattleEnd();
+	if(v) v*=this.tcr;
+	this.gainSilentTp(~~v);
 	this.clearChase();
 }).ori=$r$;
 $pppp$.isChanting=function(){
@@ -10649,7 +10775,7 @@ $pppp$.elementsMaxRate=function(target,map_ele){
 	}else return 1;
 };
 $pppp$.applyGuard=function(damage,target){
-	const r=damage>0 && target.isGuard() && 2*target.grd;
+	const r=damage>0 && !this.item().defpenetrate && target.isGuard() && 2*target.grd;
 	return r>1?damage/r:damage;
 };
 $k$='executeDamage';
@@ -10666,8 +10792,8 @@ $r$=$pppp$[$k$];
 				const orires=s&&s.result();
 				const r2=s._result=new Game_ActionResult();
 				r2.later=true;
-				s.gainHp(gainHp);
-				s.gainMp(gainMp);
+				if(gainHp) s.gainHp(gainHp);
+				if(gainMp) s.gainMp(gainMp);
 				if(used && SceneManager.isBattle()) s.pushActResQ(r2); // not to be displayed in logs
 				s._result=orires;
 			}
@@ -14323,7 +14449,10 @@ $pppp$.drawAllVal=function(x,oy){
 	
 	// → 
 	this.changeTextColor(this.systemColor());
-	for(let i=strt,y=oy;i<sz;++i) this.drawText('\u2192', x3, y+=h, 32, 'center');
+	for(let i=strt,y=oy;i<sz;++i){
+		y+=h;
+		if(vals[i]!=="") this.drawText('\u2192', x3, y, 32, 'center');
+	}
 	
 	const item=this._itemNew;
 	if(item!==undefined && this._actor){
@@ -14332,6 +14461,7 @@ $pppp$.drawAllVal=function(x,oy){
 		this._actor._equips_editCache_del(ori);
 		this._actor._equips_editCache_add(item);
 		for(let i=strt,y=oy;i<sz;++i){
+			if(vals[i]==="") continue;
 			const val=this._actor.param(i);
 			this.changeTextColor(this.paramchangeTextColor(val-vals[i]));
 			this.drawText(val, x4, y+=h, 48, 'right');
