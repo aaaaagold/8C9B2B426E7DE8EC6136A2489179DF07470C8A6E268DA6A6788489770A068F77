@@ -198,7 +198,8 @@ $dddd$=$pppp$.arrangeData=function f(){
 	}
 	
 	// sorting order
-	{ const arr=$dataCustom.stateOrder.filter(x=>x&&x.constructor===Array).flat(),c2=arr.length.ceilPow2();
+	{ const arr=$dataCustom.stateOrder.filter(x=>x&&x.constructor===Array).flat();
+	const c2=arr.length.ceilPow2();
 	f.doForEach($dataStates,x=>{ if(!x) return;
 		const meta=x.meta;
 		if(!meta) return x.ord=-1;
@@ -214,12 +215,18 @@ $dddd$=$pppp$.arrangeData=function f(){
 		let ord=0;
 		ord<<=1; ord|=!!(meta.passive);
 		ord<<=1; ord|=!!(meta.switch);
+		if(meta.tpCost!==undefined) x.tpCost=Number(meta.tpCost)|0; // overwite
 		if(meta.mpCost!==undefined) x.mpCost=Number(meta.mpCost)|0; // overwite
-		x.hpCost   =Number(meta.hpCost   ) | 0;
-		x.mpCostMR =Number(meta.mpCostMR ) ||0;
-		x.hpCostMR =Number(meta.hpCostMR ) ||0;
-		x.mpCostCR =Number(meta.mpCostCR ) ||0;
-		x.hpCostCR =Number(meta.hpCostCR ) ||0;
+		x.hpCost    =Number(meta.hpCost   ) | 0;
+		x.tpCostMR  =Number(meta.tpCostMR ) ||0;
+		x.mpCostMR  =Number(meta.mpCostMR ) ||0;
+		x.hpCostMR  =Number(meta.hpCostMR ) ||0;
+		x.tpCostCR  =Number(meta.tpCostCR ) ||0;
+		x.mpCostCR  =Number(meta.mpCostCR ) ||0;
+		x.hpCostCR  =Number(meta.hpCostCR ) ||0;
+		x.tpCostMin =Number(meta.tpCostMin) ||undefined;
+		x.mpCostMin =Number(meta.mpCostMin) ||undefined;
+		x.hpCostMin =Number(meta.hpCostMin) ||undefined;
 		x.ord=ord*c2;
 	});
 	arr.forEach((x,i)=>$dataSkills[x]&&($dataSkills[x].ord|=i)); }
@@ -448,6 +455,9 @@ $dddd$.extendDescription_i=dataobj=>{
 	const infos=[],tmpkeys=[];
 	let k,ext='';
 	k='consumable';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
+	k='hpCostMin';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
+	k='mpCostMin';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
+	k='tpCostMin';	if(dataobj[k]!==undefined){ dataobj[k]|=0; infos.push(k); }
 	k='isNormalAtk';	if(dataobj.scope) infos.push(k);
 	k='repeats';	if(dataobj.scope) infos.push(k);
 	[

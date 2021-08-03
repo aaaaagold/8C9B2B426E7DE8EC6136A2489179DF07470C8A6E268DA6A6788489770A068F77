@@ -5793,32 +5793,37 @@ $pppp$.isHungry=function(){
 	return this.stpRate()<0.1;
 };
 $pppp$.skillHpCost=function(skill){
-	//return skill.hpCost|0; // Math.floor((skill.hpCost|0) * this.hcr);
 	return ~~((~~( (skill.hpCostMR&&skill.hpCostMR*this.mhp) + this.hp*skill.hpCostCR + skill.hpCost + 0.5 ))*this.hcr);
 };
 $pppp$.skillMpCost=function(skill){
-	//(skill.mpCost * this.mcr)
-	//return skill.mpCost+~~(skill.mpCost * this.mcr);
 	return ~~((~~( (skill.mpCostMR&&skill.mpCostMR*this.mmp) + this.mp*skill.mpCostCR + skill.mpCost + 0.5 ))*this.mcr);
 };
-$pppp$.canPaySkillCost=function(skill){
-	const hpCost=this.skillHpCost(skill);
-	return this._tp >= this.skillTpCost(skill) && this._mp >= this.skillMpCost(skill) && (hpCost<=0 || this._hp > hpCost);
+$pppp$.skillTpCost=function(skill){
+	return ~~((~~( (skill.tpCostMR&&skill.tpCostMR*this.mtp) + this.tp*skill.tpCostCR + skill.tpCost + 0.5 )) );
 };
-$d$=$pppp$.paySkillCost=function f(skill){
+$pppp$.canPaySkillCost=function(skill){
+	const hpCost=skill.hpCostMin<=0?this.skillHpCost(skill):0;
+	return  (this._tp >= skill.tpCostMin || this._tp >= this.skillTpCost(skill)) && 
+		(this._mp >= skill.mpCostMin || this._mp >= this.skillMpCost(skill)) && 
+		(hpCost<=0 || this._hp > skill.hpCostMin || this._hp > hpCost)
+	;
+};
+($pppp$.paySkillCost=function f(skill){
 	const payhp=this.skillHpCost(skill);
 	const paymp=this.skillMpCost(skill);
 	const paytp=this.skillTpCost(skill);
-	$gameTemp.updateCache(this,f.key,{hp:payhp,mp:paymp,tp:paytp});
+	$gameTemp.updateCache(this,f.key,{
+		hp:this._hp<payhp?this._hp:payhp,
+		mp:this._mp<paymp?this._mp:paymp,
+		tp:this._tp<paytp?this._tp:paytp,
+	});
 	this._hp -= payhp;
 	this._mp -= paymp;
 	this._tp -= paytp;
-};
-$tttt$=$d$.key=Game_BattlerBase.CACHEKEY_LASTPAY;
-$d$=$pppp$.lastPay=function f(){
+}).key=$tttt$=Game_BattlerBase.CACHEKEY_LASTPAY;
+($d$=$pppp$.lastPay=function f(){
 	return $gameTemp.getCache(this,f.key)||f.tbl;
-};
-$d$.key=$tttt$;
+}).key=$tttt$;
 $tttt$=undef;
 $d$.tbl={};
 $pppp$.isOccasionOk=function(item){
@@ -10745,23 +10750,23 @@ $pppp$.makeDamageValue=function(target,isCri){
 	value*=this._dmgRate;
 	return ~~value;
 };
-$d$=$pppp$.evalDamageFormula=function f(target){
+$d$=$pppp$.evalDamageFormula=function f(target,allowNeg){
+	const item=this.item(); if(!item) return 0;
+	const dmg=item.damage;
+	if(!dmg.formula) return 0;
+	
 	try{
-		const item = this.item(); if(!item) return 0;
-		const dmg=item.damage;
-		if(!dmg.formula) return 0;
-		
 		//let a = this.subject() , b = target;
 		if(dmg.formula.constructor!==Function){
 			f.tbl[3]="return "+(dmg.formula_txt=dmg.formula);
 			dmg.formula=Function.apply(null,f.tbl);
 		}
-		let value = dmg.formula.call(none,undefined,this.subject(),target);
-		
-		value*=value>0;
-		if(this.isRecover(item)) value=-value;
-		return value||0; // prevent NaN
 	}catch(e){ return 0; } // only handling function creation failure
+	
+	let val=dmg.formula.call(none,undefined,this.subject(),target);
+	val*=!!allowNeg||val>0;
+	if(this.isRecover(item)) val=-val;
+	return val||0; // prevent NaN , reserve fractions
 };
 $d$.tbl=['window','a','b',]; // def func args
 $pppp$.elementsMaxRate=function(target,map_ele){
@@ -14053,55 +14058,74 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(ln){
 	f.ori.call(this,ln);
+	// options
+	this._shwait1=60; // >=0
+	this._shwait2=120; // >=0
+	this._shspeed=1; // >=0
+	// gen property
+	this._shM=0;
+	this._shbfc=0;
+	this._shwait2ed=false;
 	this._forceRefresh=false;
-	this.resetStrtLoc();
-	this._lastText='';
 }).ori=$r$;
 $pppp$.setText=function(txt){
 	if(this._text !== txt){
 		this._text=txt;
 		this.clearLoopIcon();
+		this._shM=0;
+		this._shbfc=0;
+		this._shwait2ed=false;
+		this._forceRefresh=true;
 		this.refresh();
 	}
-};
-$pppp$.resetStrtLoc=function(){
-	this._txtw=0;
-	this._strtx=this.textPadding();
-	this._txtfc2=this._txtfc=Graphics.frameCount;
 };
 $r$=$pppp$.update;
 ($pppp$.update=function f(){
 	f.ori.call(this);
-	{ const wait=120,pad=this.textPadding(),endx=this.contentsWidth()-pad,fc=Graphics.frameCount;
-		const dfc=this._txtfc+wait-fc;
-		if(dfc<0 && this._txtw>endx){
-			if(this._txtw+this._strtx>endx){
-				this._txtfc2=fc;
-				this._strtx=pad+dfc;
+	if(this._shM>0){
+		const fc=Graphics.frameCount;
+		if(fc!==this._lastfc){
+			this._shbfc=fc-this._strtfc-this._shwait1;
+			if( this._shbfc>0 && (!this._shwait2ed || (this._shbfc-this._shwait2)*this._shspeed>=this._shM) ){
 				this._forceRefresh=true;
 				this.refresh();
-			}else{
-				if(this._txtfc2+wait-fc<0){
-					this._txtfc=fc;
-					this._strtx=pad;
-					this._forceRefresh=true;
-					this.refresh();
-				}
 			}
 		}
 	}
 }).ori=$r$;
 $pppp$.redrawtxt=function(){
-	if(this.contents){
-		this.createContents();
-		const res={};
-		this.drawTextEx(this._lastText=this._text,this._strtx,0,undefined,undefined,res);
-		if(res.stat) this._txtw=(res.stat.maxX||0)-this._strtx;
+	if(!this.contents) return;
+	this.createContents();
+	const fc=Graphics.frameCount;
+	let reset=false;
+	if(this._shM>0){
+		let shx=this._shbfc;
+		if(shx>0) shx*=this._shspeed;
+		else shx=0;
+		if(this._shM<shx){
+			if(this._shwait2ed){
+				if(this._shwait2*this._shspeed+this._shM<=shx){
+					this._shwait2ed=false;
+					reset=true;
+				}
+				shx=0;
+			}else{
+				this._shwait2ed=true;
+				shx=this._shM+1;
+			}
+		}
+		if(shx>0) this.drawTextEx(this._text, this.textPadding()-~~shx, 0);
+	}else reset=true;
+	if(reset){
+		const pad=this.textPadding();
+		this._measuredWidth=pad+~~this.drawTextEx(this._text, pad, 0);
+		this._shM=this._measuredWidth-this.contentsWidth();
+		this._strtfc=fc;
 	}
+	this._lastfc=fc;
 };
 $pppp$.refresh_do=function(){
-	if(!this.visible || !this._forceRefresh && this._lastText===this._text) return;
-	if(this._lastText!==this._text) this.resetStrtLoc();
+	if(!this.visible || !this._forceRefresh) return;
 	this._forceRefresh=false;
 	this.redrawtxt();
 };
