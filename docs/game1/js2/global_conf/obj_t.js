@@ -1924,22 +1924,28 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		}
 	} }
 };
-(($d$=$aaaa$.invokeChaseAction=function f(act,s,t){
+($d$=$aaaa$.invokeChaseAction=function f(act,s,t){
 	if(!s||!t) return;
 	const M=this._chases , fu=s.friendsUnit() ;
 	const btlrs=M&&M.get(fu);
 	if(!btlrs || !btlrs.size) return;
 	const item=act.item(),preloads={
 		ncpaf:!_global_conf.chasePopAfterFrame,
-		s:new Map(),
+		s:f.tbl[0],
+		t:f.tbl[1], // there're skill that might change party members. DON'T USE ARRAY
 		ts:undefined,
 		tt:undefined,
 		trgt:undefined,
 	};
-	// allow to be same skills, mostly are different though
-	if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item,preloads);
-	if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item,preloads);
-	if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t,item,preloads);
+	preloads.s.clear();
+	preloads.t.clear();
+	if(item.itemType==='i') f.doChase(this,btlrs, 'item' ,s,t,item,preloads);
+	else{
+		// allow to be same skills, mostly are different though
+		if(act.isAttack(s)) f.doChase(this,btlrs, 'attack' ,s,t,item,preloads);
+		if(act.isGuard(s)) f.doChase(this,btlrs, 'guard' ,s,t,item,preloads);
+		if(act.isSpaceout(s)) f.doChase(this,btlrs, 'spaceout' ,s,t,item,preloads);
+	}
 	// is dmg/rcvr
 	if(item.damage.type){
 		if(act.isRecover()) f.doChase(this,btlrs, 'heal' ,s,t,item,preloads);
@@ -1956,7 +1962,8 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 	}
 	// all
 	f.doChase(this,btlrs, 'all' ,s,t,item,preloads);
-}).doChase=function f(self,btlrs,cond,s,t,item,preloads){
+}).tbl=[new Map(),new Map(),];
+($d$.doChase=function f(self,btlrs,cond,s,t,item,preloads){
 	const idx=Game_BattlerBase.cond2idx(cond);
 	const set=btlrs.byCond[idx];
 	if(set && set.size){
@@ -1980,23 +1987,53 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 		else f.tbl=new Game_Action(btlr);
 		const a=f.tbl;
 		a.setPreloadFlag();
-		let ps=preloads.s.get(btlr);
-		if(!ps){
-			a.setPreload_s();
+		{ let ps=preloads.s.get(btlr);
+		if(!ps){ a.refPreload_s(btlr);
 			preloads.s.set(btlr,ps=a.copyPreload_s());
-		}
+			}
 		a.refPreload_s(ps);
+		}
 		const ncpaf=preloads.ncpaf;
 		skills.forEach((v,k)=>{ if(!k) return;
-			const repeat=f.setAction(item,a,s,t,k,preloads);
-			{ const item=a.item();
-			const chaseCond=item.chaseCond||(item.chaseCond=(item.meta.chaseCond=item.meta.chaseCond)&&objs._getObj.call(none,item.meta.chaseCond));
+			const repeat=f.setAction(item,a,s,t,k,preloads)*~~v; if(!(repeat>0)||!preloads.trgt) return;
+			const aitem=a.item();
+			{ const chaseCond=aitem.chaseCond||(aitem.chaseCond=aitem.meta.chaseCond&&objs._getObj.call(none,aitem.meta.chaseCond));
 			if(chaseCond && !chaseCond(btlr,s,t)) return;
 			}
-			for(let x=repeat*~~v;x-->0;){
-				a.apply(preloads.trgt,ncpaf);
-				self._logWindow.displayActionChaseResults(btlr,preloads.trgt,a);
+			
+			const orit=a.getPreload_t(),trgts=[];
+			
+			if(!(aitem.chaseApply&1)){
+				if(!preloads.t.get(preloads.trgt)) preloads.t.set(preloads.trgt,a.copyPreload_t());
+				trgts.push(preloads.trgt);
 			}
+			if(aitem.chaseApply&2){
+				for(let i=0,mem=preloads.trgt.friendsUnit().members();i!==mem.length;++i){
+					if(mem[i]===preloads.trgt) continue;
+					trgts.push(mem[i]);
+					if(preloads.t.get(mem[i])) continue;
+					a.refPreload_t(mem[i]);
+					preloads.t.set(mem[i],a.copyPreload_t());
+				}
+			}
+			if(aitem.chaseApply&4){
+				for(let i=0,mem=preloads.trgt.opponentsUnit().members();i!==mem.length;++i){
+					trgts.push(mem[i]);
+					if(preloads.t.get(mem[i])) continue;
+					a.refPreload_t(mem[i]);
+					preloads.t.set(mem[i],a.copyPreload_t());
+				}
+			}
+			for(let x=repeat,m=preloads.t,tmp;x-->0;){
+				for(let i=0;i!==trgts.length;++i){
+					tmp=m.get(trgts[i]); if(!tmp) continue;
+					a.refPreload_t(tmp);
+					a.apply(trgts[i],ncpaf);
+					self._logWindow.displayActionChaseResults(btlr,trgts[i],a);
+				}
+			}
+			
+			a.refPreload_t(orit); // restore
 		});
 	}
 };
@@ -2006,9 +2043,11 @@ $d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
 	switch(k){
 	case "r-":
 		rfl=1; preloads.trgt=s; pk='ts';p=preloads.ts;
+		skill=item;
 	break;
 	case "r+":
 		rfl=1; preloads.trgt=t; pk='tt';p=preloads.tt;
+		skill=item;
 	break;
 	default:
 		if(k<0){
@@ -2020,13 +2059,13 @@ $d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
 		skill=$dataSkills[k];
 	break;
 	}
-	if(rfl||skill){
+	if(skill){
 		if(!p){
-			act.setPreload_t(preloads.trgt);
+			act.refPreload_t(preloads.trgt);
 			p=preloads[pk]=act.copyPreload_t();
 		}
 		act.refPreload_t(p);
-		act.setItemObject(rfl?item:skill);
+		act.setItemObject(skill);
 		repeat=act.numRepeats(rfl);
 	}
 	return repeat;

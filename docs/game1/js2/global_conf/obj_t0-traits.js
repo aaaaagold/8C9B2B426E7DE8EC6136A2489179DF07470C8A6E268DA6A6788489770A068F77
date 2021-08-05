@@ -304,8 +304,9 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
 	
-	// chaseCond // race condition when loading
-	//f.doForEach($dataSkills,s=>s.chaseCond=s.meta.chaseCond&&objs._getObj.call(none,s.meta.chaseCond));
+	// chaseOptions
+	f.doForEach($dataItems,f.makeChaseOptions);
+	f.doForEach($dataSkills,f.makeChaseOptions);
 	
 	// custom speed
 	f.doForEach($dataItems,f.changeSpeed);
@@ -514,6 +515,14 @@ $dddd$.makeAdditionalCrit=dataobj=>{
 	const n=Number(dataobj.meta.critF);
 	dataobj.critF=isNaN(n)?undefined:n;
 };
+$dddd$.makeChaseOptions=dataobj=>{
+	const meta=dataobj.meta;
+	dataobj.chaseApply	= Number(meta.chaseApply)&7;
+	// race condition, just add property
+	if(!meta.chaseCond) meta.chaseCond=undefined;
+	dataobj.chaseCond	= undefined;
+	//dataobj.chaseCond	= meta.chaseCond&&objs._getObj.call(none,meta.chaseCond);
+};
 $dddd$.makeCondColor=dataobj=>{
 	const cc=dataobj.meta.condColor;
 	dataobj.condColor=cc?objs._getObj.call(none,cc):undefined;
@@ -711,7 +720,7 @@ $dddd$.note2traits=x=>{
 			case "all":
 			case 3: {
 				chtype=3;
-				chaseWith=gbb.CHASE_ALLBATTLERS;
+				// chaseWith=gbb.CHASE_ALLBATTLERS; // deprecated: merged to aboves (1 and 2)
 			}break;
 			}
 			if(!chtype) continue;
@@ -941,7 +950,7 @@ gbb._initChase=function f(){
 	[
 		[gbb.CHASE_FRIENDS=[],"FRIEND"],
 		[gbb.CHASE_OPPONENTS=[],"OPPONENT"],
-		[gbb.CHASE_ALLBATTLERS=[],"ALLBATTLER"],
+		// [gbb.CHASE_ALLBATTLERS=[],"ALLBATTLER"], // deprecated: merged to aboves
 	].forEach(info=>{
 		const arr=info[0]; arr.toKey=new Map(); arr.toIdx=new Map();
 		const p=kb+"_"+info[1];
@@ -949,7 +958,7 @@ gbb._initChase=function f(){
 		gbb.addEnum(p);
 		const prefix = p+"_" , toIdx = !gbb.CHASES.toIdx.size && gbb.CHASES.toIdx ;
 		$dataSystem.elements.forEach( (x,i)=>i&&gbb.addEnum(arr[i]=prefix+"ATK_"+x) );
-		['ATK_PHYSICAL','ATK_MAGICAL','HEAL','ALL','ANYATK','ATTACK','GUARD','SPACEOUT',].forEach(x=>{
+		['ATK_PHYSICAL','ATK_MAGICAL','ALL','ITEM','HEAL','ANYATK','ATTACK','GUARD','SPACEOUT'].forEach(x=>{
 			const k=prefix+x , xLower=x.toLowerCase();
 			if(toIdx) toIdx.set(xLower,arr.length);
 			arr.toKey.set(xLower,k);
