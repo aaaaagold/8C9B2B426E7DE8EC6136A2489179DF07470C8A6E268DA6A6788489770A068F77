@@ -10789,7 +10789,7 @@ $pppp$.makeDamageValue=function(target,isCri){
 	value*=this._dmgRate;
 	return ~~value;
 };
-$d$=$pppp$.evalDamageFormula=function f(target,allowNeg){
+($pppp$.evalDamageFormula=function f(target,allowNeg){
 	const item=this.item(); if(!item) return 0;
 	const dmg=item.damage;
 	if(!dmg.formula) return 0;
@@ -10806,17 +10806,41 @@ $d$=$pppp$.evalDamageFormula=function f(target,allowNeg){
 	val*=!!allowNeg||val>0;
 	if(this.isRecover(item)) val=-val;
 	return val||0; // prevent NaN , reserve fractions
+}).tbl=['window','a','b',]; // def func args
+($pppp$.calcElementRate=function f(target){
+	const item=this.item();
+	if(item.damage.elementId<0) return this.elementsMaxRate(target, this.subject().attackElements(), item.addEleU);
+	else{
+		const arr_added=item.addEleU,tmp={};
+		const rtv=tmp[item.damage.elementId]=target.elementRate(item.damage.elementId);
+		return this._elementsMaxRate_ae(rtv,target,arr_added,tmp);
+	}
+}).tbl=new Map();
+$pppp$._elementsMaxRate_ae=function(rtv,target,arr_added,tbl){
+	if(arr_added){ for(let x=0;x!==arr_added.length;++x) if(tbl[arr_added[x]]===undefined){
+		const r=tbl[arr_added[x]]=target.elementRate(arr_added[x]);
+		if(rtv<r) rtv=r;
+	} }
+	return rtv;
 };
-$d$.tbl=['window','a','b',]; // def func args
-$pppp$.elementsMaxRate=function(target,map_ele){
+$pppp$.elementsMaxRate=function(target,map_ele,arr_added){
+	let rtv=!map_ele.size,tmp={};
 	if(map_ele.size){
-		let rtv=0;
 		map_ele.forEach((v,k)=>{
-			const r=target.elementRate(k);
+			const r=tmp[k]=target.elementRate(k);
 			if(rtv<r) rtv=r;
 		});
-		return rtv;
-	}else return 1;
+	}
+	return this._elementsMaxRate_ae(rtv,target,arr_added,tmp);
+};
+$pppp$._elementsAllRatePi_ae=function(rtv,target,arr_added,tbl){
+	if(arr_added) for(let x=0;x!==arr_added.length;++x) rtv*=tbl[arr_added[x]]===undefined?(tbl[arr_added[x]]=target.elementRate(arr_added[x])):tbl[arr_added[x]];
+	return rtv;
+};
+$pppp$.elementsAllRatePi=function(target,map_ele,arr_added){
+	let rtv=1,tmp={};
+	map_ele.forEach((v,k)=>rtv*=tmp[k]=target.elementRate(k));
+	return this._elementsAllRatePi_ae(rtv,target,arr_added,tmp);
 };
 $pppp$.applyGuard=function(damage,target){
 	const r=damage>0 && !this.item().defpenetrate && target.isGuard() && 2*target.grd;
