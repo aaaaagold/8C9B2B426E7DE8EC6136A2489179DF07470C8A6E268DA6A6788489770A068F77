@@ -300,6 +300,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataItems,f.makeDefPenetrate);
 	f.doForEach($dataSkills,f.makeDefPenetrate);
 	
+	// makeAddedElements
+	f.doForEach($dataItems,f.makeAddElements);
+	f.doForEach($dataSkills,f.makeAddElements);
+	
 	// effect, func && code
 	f.doForEach($dataItems,f.makeEffectFuncCode);
 	f.doForEach($dataSkills,f.makeEffectFuncCode);
@@ -494,8 +498,10 @@ $dddd$.extendDescription_i=dataobj=>{
 			}
 			ext+=']';
 		}break;
-		case 'dmgEle':{ const eid=dmg.elementId;
-			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid])+']';
+		case 'dmgEle':{ const eid=dmg.elementId,arr=dataobj.addEle;
+			ext+='['+ie[k+'_txt']+(eid>0?$dataSystem.elements[eid]:ie[k+'Special'][-eid]);
+			if(arr) for(let x=0;x!==arr.length;++x) ext+=','+(arr[x]>0?$dataSystem.elements[arr[x]]:ie[k+'Special'][-arr[x]]);
+			ext+=']';
 		}break;
 		}
 	} });
@@ -509,6 +515,14 @@ $dddd$.extendDescription_i=dataobj=>{
 $dddd$.extendRepeats=dataobj=>{
 	const n=Number(dataobj.meta.repeat_mul);
 	if(!isNaN(n)) dataobj.repeats *= n;
+};
+$dddd$.makeAddElements=dataobj=>{
+	const meta=dataobj.meta;
+	if(meta.addEle){
+		dataobj.addEle=meta.addEle.split(',').map(x=>Number(x)).filter(x=>x>=0);
+		const tmp=new Set();
+		dataobj.addEleU=dataobj.addEle.filter(x=>!tmp.has(x)&&tmp.add(x));
+	}else dataobj.addEleU=dataobj.addEle=undefined;
 };
 $dddd$.makeAdditionalCrit=dataobj=>{
 	dataobj.critA=Number(dataobj.meta.critA)||0;

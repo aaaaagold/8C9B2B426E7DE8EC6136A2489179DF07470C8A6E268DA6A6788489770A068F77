@@ -1786,7 +1786,7 @@ $d$=$pppp$._requestImage=function f(url){
 		}
 	}
 };
-$d$.baseTimeout=location.protocol==="https:"?8763:4876;
+$d$.baseTimeout=location.protocol==="https:"?8763:487;
 $d$.onerr=function f(){ this.onerror=null;
 	let src=this.src; this.src='';
 	debug.warn("err:","loading",src);
