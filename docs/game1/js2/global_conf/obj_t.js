@@ -1749,6 +1749,22 @@ $r$=$aaaa$.update;
 		f.ori.call(this);
 	}while(this._actionNoEffect);
 }).ori=$r$;
+$aaaa$.updateEvent=function f(){
+	switch(this._phase){
+		case 'start':
+		case 'turn':
+		case 'turnEnd':
+			if(this.isActionForced()){
+				this.processForcedAction();
+				return true;
+			}else return this.updateEventMain();
+		case 'battleEnd':
+			$gameTroop.setupBattleEvent();
+			$gameTroop.updateInterpreter();
+			return $gameTroop.isEventRunning();
+	}
+	return this.checkAbort();
+};
 $aaaa$.startInput=function f(){ // prepare
 	if(objs.isDev) console.log(' startInput ','actor id',this._actorIndex);
 	//return f.ori.call(this);
@@ -12668,7 +12684,7 @@ $pppp$.remove=function(e){
 $k$='meetsConditions';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(page,c){
-	if((c||page.conditions).btlEnd && BattleManager.isBattleEnd()) return true;
+	if(BattleManager.isBattleEnd()) return (c||page.conditions).btlEnd;
 	return f.ori.call(this,page,c);
 }).ori=$r$;
 $pppp$=$aaaa$=undef;

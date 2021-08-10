@@ -420,10 +420,10 @@ $dddd$=$pppp$.arrangeData=function f(){
 	// troop cond: battle end
 	f.doForEach($dataTroops,dataobj=>{
 		for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
-			pgs[p].conditions.bltEnd=false;
+			pgs[p].conditions.btlEnd=false;
 			for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
 				if(cmds[c].code===108 && cmds[c].parameters[0]==="@END"){
-					pgs[p].conditions.bltEnd=true;
+					pgs[p].conditions.btlEnd=true;
 					break;
 				}
 			}
