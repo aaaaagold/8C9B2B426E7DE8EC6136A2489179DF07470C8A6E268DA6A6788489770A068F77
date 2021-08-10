@@ -9,7 +9,14 @@ $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
 	
 	// == tune consts ==
-	if(undefined===$dataSystem.elements.barehand) $dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
+	if(undefined===$dataSystem.elements.barehand){
+		$dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
+		{ const k = 'emptyTemplateId' , n = "== empty template ==";
+		[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(arr=>{
+			for(let x=0;x!==arr.length;++x) if(arr[x] && arr[x].name===n){ arr[k]=x; break; }
+		});
+		}
+	}
 	
 	// == not abilities ==
 	
@@ -410,6 +417,19 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataArmors,f.makeCondColor);
 	f.doForEach($dataWeapons,f.makeCondColor);
 	
+	// troop cond: battle end
+	f.doForEach($dataTroops,dataobj=>{
+		for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
+			pgs[p].conditions.bltEnd=false;
+			for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
+				if(cmds[c].code===108 && cmds[c].parameters[0]==="@END"){
+					pgs[p].conditions.bltEnd=true;
+					break;
+				}
+			}
+		}
+	});
+	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -442,6 +462,7 @@ $dddd$.dmgViaSkill=dataobj=>{
 	}
 };
 }
+// 'empty' will be omitted by .forEach
 $dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
 $dddd$.extendDescription_e=dataobj=>{
 	const arr=dataobj.params , txt=$dataSystem.terms.params;
@@ -781,6 +802,21 @@ $dddd$.note2traits=x=>{
 		if(n<0) n=0;
 		x.traits.push({code:tc,dataId:enums.MPSubstitute,value:n});
 	}
+	if(meta.loopAni){ // forEach dataId
+		const n=Number(meta.loopAni);
+		if(n){
+			x.traits.push({code:gbb.TRAIT_LOOP_ANI_B,dataId:n,value:1});
+			x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:n,value:1});
+		}
+	}
+	if(meta.loopAniB){ // forEach dataId
+		const n=Number(meta.loopAniB);
+		if(n) x.traits.push({code:gbb.TRAIT_LOOP_ANI_B,dataId:n,value:1});
+	}
+	if(meta.loopAniM){ // forEach dataId
+		const n=Number(meta.loopAniM);
+		if(n) x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:n,value:1});
+	}
 };
 $dddd$.precal=dataobj=>{
 	// pre-cal. something always being like that
@@ -881,6 +917,8 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("TpRegenV").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.
 	addEnum("TRAITS_CUSTOM").
+	addEnum("TRAIT_LOOP_ANI_B").
+	addEnum("TRAIT_LOOP_ANI_M").
 	addEnum("__DUMMY") ;
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);

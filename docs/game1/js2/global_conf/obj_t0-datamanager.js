@@ -870,6 +870,9 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 		tmp._data=data;
 	}
 	tmp.updateTbl_all();
+	// - sys
+	tmp=content.system;
+	tmp.database_putAll();
 	
 	f.ori.call(this,content);
 	

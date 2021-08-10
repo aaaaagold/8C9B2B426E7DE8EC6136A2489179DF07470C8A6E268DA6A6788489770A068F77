@@ -487,8 +487,10 @@ $pppp$.startAnimation=function(animation, mirror, delay){ // rewrite: discard ar
 	//let sprite = new Sprite_Animation();
 	//sprite.setup(this._effectTarget, animation, mirror, delay);
 	//this.parent.addChild(sprite);
-	this.parent.addChild( new Sprite_Animation().setup(this._effectTarget, animation, mirror, delay) );
+	const rtv=new Sprite_Animation().setup(this._effectTarget, animation, mirror, delay);
+	this.parent.addChild(rtv);
 	//this._animationSprites.push(sprite);
+	return rtv;
 };
 $pppp$.isAnimationPlaying=none; // no Array.push , no 'Array.length>0'
 $k$='startBalloon';
@@ -497,6 +499,22 @@ $r$=$pppp$[$k$];
 	f.ori.call(this);
 	this._balloonSprite.ref=this;
 	this._balloonSprite=false;
+}).ori=$r$;
+$k$='setupAnimation';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(){
+	f.ori.call(this);
+	const actor=this._character.getActor(); if(!actor) return;
+	if(!this._loopAnis) this._loopAnis=new Map();
+	actor.traitsSet(Game_BattlerBase.TRAIT_LOOP_ANI_M).forEach((v,k)=>{
+		const ani=$dataAnimations[k<0?-k:k];
+		if(!ani) return;
+		const oldAni=this._loopAnis.get(k);
+		if(!oldAni || !oldAni.isPlaying()){
+			const sp=this.startAnimation(ani,k<0,0);
+			sp.z2=this.z2-1;
+			this._loopAnis.set(k,sp);
+		}
+	});
 }).ori=$r$;
 $pppp$.updateBalloon=$pppp$.setupBalloon; // following will not exec
 $pppp$.endBalloon=none; // will not exec 'if' block
@@ -526,7 +544,7 @@ $pppp$.setBattler=function(btlr){
 	if(this._battler) this._battler.removeSprite(this);
 	if(this._battler=btlr) btlr.setSprite(this);
 };
-$d$=$pppp$.updateDamagePopup=function f(){
+($pppp$.updateDamagePopup=function f(){
 	this.setupDamagePopup();
 	if(this._damages.length > 0){
 		this._damages.forEach(f.forEach); // update
@@ -536,8 +554,24 @@ $d$=$pppp$.updateDamagePopup=function f(){
 			dmgs.shift();
 		}
 	}
-};
-$d$.forEach=c=>c.update();
+}).forEach=c=>c.update();
+$k$='setupAnimation';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(){
+	f.ori.call(this);
+	if(!this._loopAnis) this._loopAnis=new Map();
+	this._battler.traitsSet(Game_BattlerBase.TRAIT_LOOP_ANI_B).forEach((v,k)=>{
+		const ani=$dataAnimations[k<0?-k:k];
+		if(!ani) return;
+		const oldAni=this._loopAnis.get(k);
+		if(!oldAni || !oldAni.isPlaying()){
+			this.startAnimation(ani,k<0,0);
+			const arr=this._animationSprites;
+			const sp=arr.pop();
+			sp.z2=this.z2-1; // no use though. sorting order: TilingSprite,Sprite_Enemy,Sprite_Actor, *others*
+			this._loopAnis.set(k,sp);
+		}
+	});
+}).ori=$r$;
 $pppp$._setupDamagePopup1=function(res){
 	const sp = new Sprite_Damage();
 	sp.x = this.x + this.damageOffsetX();
@@ -7278,6 +7312,9 @@ $r$=$pppp$.getData;
 	const actor=$gameParty.allMembers()[0];
 	return actor?actor.getData():f.ori.call(this);
 }).ori=$r$;
+$pppp$.getActor=function(){
+	return $gameParty.allMembers()[0];
+};
 ($pppp$._deleteOldDataMember=function f(){
 	Game_Character.prototype._deleteOldDataMember.call(this);
 	this._deleteOldDataMemberByTbl(f.tbl);
@@ -10807,7 +10844,31 @@ $pppp$.makeDamageValue=function(target,isCri){
 	if(this.isRecover(item)) val=-val;
 	return val||0; // prevent NaN , reserve fractions
 }).tbl=['window','a','b',]; // def func args
-($pppp$.calcElementRate=function f(target){
+($pppp$.calcElementRateAvg=function f(target){
+	const item=this.item() , tmp={};
+	let rtv=0.0,m;
+	if(item.damage.elementId<0) m=this.subject().attackElements();
+	else{
+		m=f.tbl;
+		m.clear();
+		m.add(item.damage.elementId);
+	}
+	m.forEach((v,k)=>{
+		if(tmp[k]===undefined) tmp[k]=target.elementRate(k);
+		rtv+=tmp[k];
+	});
+	let cnt=m.size;
+	if(item.addEle){
+		const arr=item.addEle;
+		cnt+=arr.length;
+		for(let x=0;x!==arr.length;++x){
+			if(tmp[arr[x]]===undefined) tmp[arr[x]]=target.elementRate(arr[x]);
+			rtv+=tmp[arr[x]];
+		}
+	}
+	return cnt?rtv/cnt:1;
+}).tbl=new Set();
+$pppp$.calcElementRateMax=function(target){
 	const item=this.item();
 	if(item.damage.elementId<0) return this.elementsMaxRate(target, this.subject().attackElements(), item.addEleU);
 	else{
@@ -10815,7 +10876,10 @@ $pppp$.makeDamageValue=function(target,isCri){
 		const rtv=tmp[item.damage.elementId]=target.elementRate(item.damage.elementId);
 		return this._elementsMaxRate_ae(rtv,target,arr_added,tmp);
 	}
-}).tbl=new Map();
+};
+$pppp$.calcElementRate=function f(target){
+	return this.calcElementRateAvg(target);
+};
 $pppp$._elementsMaxRate_ae=function(rtv,target,arr_added,tbl){
 	if(arr_added){ for(let x=0;x!==arr_added.length;++x) if(tbl[arr_added[x]]===undefined){
 		const r=tbl[arr_added[x]]=target.elementRate(arr_added[x]);
@@ -12601,6 +12665,12 @@ $pppp$.remove=function(e){
 	BattleManager.updateChase(e,true);
 	e.clearCache();
 };
+$k$='meetsConditions';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(page,c){
+	if((c||page.conditions).btlEnd && BattleManager.isBattleEnd()) return true;
+	return f.ori.call(this,page,c);
+}).ori=$r$;
 $pppp$=$aaaa$=undef;
 
 if(window.Scenen_Debug) window.Scenen_Debug=undefined;

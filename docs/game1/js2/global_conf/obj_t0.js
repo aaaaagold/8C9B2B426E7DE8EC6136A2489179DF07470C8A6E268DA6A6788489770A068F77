@@ -2411,6 +2411,7 @@ $d$=$pppp$.initialize=function f(){
 		if(!(x[0] in ConfigManager)) return;
 		this._usr[x[0]]=x[1]===ConfigManager.readFlag?ConfigManager[x[0]]|0:ConfigManager[x[0]];
 	});
+	this._addedDataobj=[];
 }; $d$.ori=$r$;
 $d$=$aaaa$.Usr=function(){};
 $d$.prototype.contructor=$d$;
@@ -2440,24 +2441,65 @@ $pppp$.playtimeText=function(){
 	let hour =~~(min/60); min%=60;
 	return (hour+'').padZero(2) + ':' + (min+'').padZero(2) + ':' + (sec+'').padZero(2);
 };
+$pppp$.database_typeToArr=function(type){
+	// 1-indexed ; the order is according to MV editor
+	switch(type){
+	case 1: return $dataActors;
+	case 2: return $dataSkills;
+	case 3: return $dataItems;
+	case 4: return $dataWeapons;
+	case 5: return $dataArmors;
+	case 6: return $dataTroops;
+	case 7: return $dataStates;
+	case 8: return $dataAnimations;
+	case 9: return $dataTilesets;
+	}
+};
+$pppp$.database_add=function(type,usedBy,dataobj){
+	// type: type of $data* array. see this.database_typeToArr
+	// usedBy: array of actorId ; -1 === used by some enemies
+	// dataobj: obj to be pushed to $data* array
+	const arr=this.database_typeToArr(type); if(!arr) return;
+	const usedById=usedBy._actorId||-1;
+	let sys=this._addedDataobj[type]; if(!sys) sys=this._addedDataobj[type]={pushed:[],holes:[]};
+	sys.pushed.push({usedBy:usedById,data:dataobj});
+	arr[dataobj.id]=dataobj;
+};
+$pppp$.database_putAll=function(){
+	// used when loadgame
+	const arrs=this._addedDataobj;
+	if(arrs){ for(let a=0;a!==arrs.length;++a){
+		const info=arrs[a],$data=this.database_typeToArr(a);
+		if($data && info){ for(let x=0,arr=info.pushed;x!==arr.length;++x){
+			$data[arr[x].id]=arr[x];
+		} }
+	} }else this._addedDataobj=[];
+};
 
 // - timer
 $aaaa$=Game_Timer;
 $pppp$=$aaaa$.prototype;
 $pppp$.clear=function(){
-	this._working = false;
+	this._working=false;
+	this._paused=false;
 	this._frames=0;
 	this._scale=2;
 	this._alignX="R";
 	this._alignY="T";
-}
+};
 $pppp$.initialize = function() {
 	this.clear();
 };
+$r$=$pppp$.update;
+($pppp$.update=function f(sa){
+	this._paused||f.ori.call(this,sa);
+}).ori=$r$;
 $pppp$.onExpire=function(){
 	BattleManager.abort();
 	this.clear();
 };
+$pppp$.pause=function(){ this._paused=true; };
+$pppp$.resume=function(){ this._paused=false; };
 
 // - screen
 $aaaa$=Game_Screen;
