@@ -14017,6 +14017,10 @@ $pppp$.startAction=function(subject, action, targets){
 	}
 	this.displayAction(subject, item);
 };
+$pppp$.displayRegeneration=function(subject){
+	subject.pushActResQ(subject._result);
+	this.push('popupDamage', subject);
+};
 $pppp$.displayAction=function(subject, item) {
 	const numMethods = this._methods.length;
 	if(DataManager.isSkill(item)){
