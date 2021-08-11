@@ -3507,7 +3507,10 @@ $r$=$pppp$.terminate;
 	BattleManager.clearTBDCache();
 	$gameTroop.members().forEach(f.forEach);
 }).ori=$r$;
-$d$.forEach=b=>b.clearCache();
+$d$.forEach=b=>{
+	b.clearCache();
+	b._databaseDel_state_all();
+};
 $pppp$.createSpriteset=function(){
 	this._chr2sp=new Map();
 	this._chr2actResQ=new Map();
@@ -5291,10 +5294,13 @@ $d$=$pppp$.clearStates=function f(ignoreBuff){
 	this._stateTurns={};
 	if(this._states){
 		let newidx=0;
-		for(let x=0,arr=this._states;x!==arr.length;++x){
+		for(let x=0,arr=this._states,cache=$gameSystem._database_getCache();x!==arr.length;++x){
 			const meta=$dataStates[arr[x]].meta;
 			if(meta.persist || ignoreBuff && meta.buff){
 				arr[newidx++]=arr[x];
+			}else{
+				this._stateDmgVal_del(arr[x]);
+				this._databaseDel_state($dataStates[arr[x]],cache);
 			}
 		}
 		if(this._states.length!==newidx){
@@ -5318,6 +5324,8 @@ $pppp$.eraseState=function(stateId){
 		}
 		this._overall_delCache();
 		this.updateChase(data);
+		this._stateDmgVal_del(data);
+		this._databaseDel_state(data);
 	}
 	delete this._stateTurns[stateId];
 	return rtv;
@@ -5359,6 +5367,8 @@ $pppp$._addNewState_updateCache=function(stateId){
 		stat.m.byKey2_mul(data.tmapP);
 	}
 	this._overall_delCache();
+	this._databaseAdd_state(data);
+	this._stateDmgVal_add(data);
 	this.updateChase(data);
 };
 $pppp$.addNewState=function(stateId){
@@ -6181,15 +6191,15 @@ $pppp$.gainStp = function(value){
 $pppp$.friendsUnit=none;
 $pppp$.opponentsUnit=none;
 $pppp$.regenerateHp=function() {
-	const value = Math.max(this.regenHpV()+~~(this.mhp * this.hrg),-this.maxSlipDamage());
+	const value = Math.max(this.regenHpV()+~~(this.mhp * this.hrg),-this.maxSlipDamage()) - this.stateDmgValHp();
 	if(value) this.gainHp(value);
 };
 $pppp$.regenerateMp=function(){
-    const value=this.regenMpV()+~~(this.mmp * this.mrg);
+    const value=this.regenMpV()+~~(this.mmp * this.mrg) - this.stateDmgValMp();
     if(value) this.gainMp(value);
 };
 $pppp$.regenerateTp=function(){
-	this.gainSilentTp(this.regenTpV()+~~(this.mtp * this.trg));
+	this.gainSilentTp(this.regenTpV()+~~(this.mtp * this.trg) - this.stateDmgValTp() );
 };
 $pppp$.registChase=function(){
 	BattleManager.updateChase(this);
@@ -11060,8 +11070,8 @@ $aaaa$.addEnum("CUSTOM_EFFECT_GAIN_STP",$d$.tbl,function(target,effect){
 	}
 });
 $aaaa$.addEnum("CUSTOM_EFFECT_FUNC",$d$.tbl,function(target,effect){
-	if(!effect.func_txt) effect.func=objs._getObj.call(none,effect.func_txt=effect.func);
-	effect.func(this,target) && this.makeSuccess(target);
+	if(!effect.func_func) effect.func_func=objs._getObj.call(none,effect.func);
+	effect.func_func(this,target) && this.makeSuccess(target);
 });
 $aaaa$.addEnum("CUSTOM_EFFECT_CODE",$d$.tbl,function(target,effect){
 	objs._doFlow.call(target,effect.func);
@@ -11072,7 +11082,15 @@ $aaaa$.addEnum("CUSTOM_EFFECT_REMOVE",$d$.tbl,function(target,effect){
 	this.makeSuccess(target);
 });
 } // Game_Action.prototype.applyItemEffect.tbl
-$pppp$.itemEffectAddNormalState=function(target, effect){
+($pppp$._database_genState_dmgVal=function f(target,ref){
+	const oriDmgVal1=ref.dmgVal[1];
+	f.tbl[2]="return "+oriDmgVal1;
+	ref.dmgVal[1]=Function.apply(null,f.tbl).call(none,undefined,this.subject())+' ';
+	const dataobj=$gameSystem._database_genNewByRef(7,target,ref);
+	ref.dmgVal[1]=oriDmgVal1;
+	return dataobj.id;
+}).tbl=['window','a',];
+($pppp$.itemEffectAddNormalState=function f(target, effect){
 	let chance = effect.value1;
 	if(!this.isCertainHit()){
 		chance *= target.stateRate(effect.dataId);
@@ -11086,10 +11104,18 @@ $pppp$.itemEffectAddNormalState=function(target, effect){
 				if( target.isStateAffected(effect.dataId) ) target.removeState(effect.dataId);
 				else target.addState(effect.dataId);
 			}
-		}else target.addState(effect.dataId);
+		}else{
+			let sid=effect.dataId;
+			if($dataStates[sid].dmgVal && !$dataStates[sid]._base){
+				sid=this._database_genState_dmgVal(target,$dataStates[sid]);
+			}
+			target.addState(sid);
+			// dec. gen. 1
+			if(sid!==effect.dataId) target._databaseDel_state($dataStates[sid]);
+		}
 		this.makeSuccess(target);
 	}
-};
+}).tbl=['window','a',];
 $k$='applyGlobal';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
@@ -11128,7 +11154,13 @@ $pppp$.itemEffectAddAttackState=function(target, effect){
 		chance *= this.subject().attackStatesRate(stateId);
 		chance *= this.lukEffectRate(target);
 		if(Math.random() < chance){
-			target.addState(stateId);
+			let sid=stateId;
+			if($dataStates[stateId].dmgVal && !$dataStates[stateId]._base){
+				sid=this._database_genState_dmgVal(target,$dataStates[stateId]);
+			}
+			target.addState(sid);
+			// dec. gen. 1
+			if(sid!==stateId) target._databaseDel_state($dataStates[sid]);
 			this.makeSuccess(target);
 		}
 	});
@@ -12441,6 +12473,7 @@ $pppp$.destroy=function(actorId){
 		let arr=this._clones[tid],tbl=$gameTemp._acs_holes[tid];
 		if(!arr[sid]) return;
 		arr[sid].clearCache();
+		arr[sid]._databaseDel_state_all();
 		arr[sid]=0;
 		if(!tbl||tbl.length===0){
 			if(sid+1===arr.length) arr.pop();
@@ -12479,7 +12512,11 @@ $pppp$.destroy=function(actorId){
 		else tbl.add(sid,[sid,sid1]);
 		return true;
 	}else{
-		const t=this._data[tid]; if(t) t.clearCache();
+		const t=this._data[tid];
+		if(t){
+			t.clearCache();
+			t._databaseDel_state_all();
+		}
 		this._data[tid]=0;
 	}
 		return true;

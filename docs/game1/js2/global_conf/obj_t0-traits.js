@@ -271,6 +271,12 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.ord=ord;
 	}); }
 	
+	// dmgViaSkill_* // turnEnd|... // TODO
+	//f.doForEach($dataStates,f.dmgViaSkill);
+	
+	// dmgVal. make it traits for fast access
+	f.doForEach($dataStates,f.makeDmgVal);
+	
 	// make traits map // must be trait-last
 	f.doForEach($dataActors,f.makeTraitsMap);
 	f.doForEach($dataArmors,f.makeTraitsMap);
@@ -279,9 +285,6 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataSkills,f.makeTraitsMap);
 	f.doForEach($dataStates,f.makeTraitsMap);
 	f.doForEach($dataWeapons,f.makeTraitsMap);
-	
-	// dmgViaSkill_* // TODO
-	//f.doForEach($dataStates,f.dmgViaSkill);
 	
 	// needStates
 	f.doForEach($dataItems,f.makeNeedStates);
@@ -567,6 +570,11 @@ $dddd$.makeCondColor=dataobj=>{
 	dataobj.condColor=cc?objs._getObj.call(none,cc):undefined;
 };
 $dddd$.makeDefPenetrate=dataobj=>dataobj.defpenetrate=dataobj.meta.defpenetrate!==undefined;
+$dddd$.makeDmgVal=dataobj=>{
+	if(dataobj.dmgVal) return; // virtual
+	const dv=dataobj.meta.dmgVal;
+	dataobj.dmgVal=dv?JSON.parse(dv):undefined;
+};
 { const k='CUSTOM_EFFECT_',kF=k+'FUNC',kC=k+'CODE',m='effect',mF=m+'Func',mC=m+'Code';
 $dddd$.makeEffectFuncCode=dataobj=>{
 	const effs=dataobj.effects;
@@ -821,6 +829,9 @@ $dddd$.note2traits=x=>{
 		const n=Number(meta.loopAniM);
 		if(n) x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:n,value:1});
 	}
+	if(meta.dmgVal){ // forEach dataId
+		// only state can has this, not doing it here
+	}
 };
 $dddd$.precal=dataobj=>{
 	// pre-cal. something always being like that
@@ -847,6 +858,7 @@ $aaaa$.addEnum('CACHEKEY_LASTPAY')
 	.addEnum('CACHEKEY_NATIVE')
 	.addEnum('CACHEKEY_OVERALL_S')
 	.addEnum('CACHEKEY_OVERALL_M')
+	.addEnum('CACHEKEY_STATEDMG')
 	.addEnum('__DUMMY');
 Object.defineProperties($pppp$,{
 	hcr:{ get: function() { return this.hpCostRate(); },configurable: false},
@@ -996,6 +1008,67 @@ $pppp$.regenMpV=function(){
 };
 $pppp$.regenTpV=function(){
 	return ~~this.traitsSum(gbb.TRAITS_CUSTOM,enums.TpRegenV);
+};
+($pppp$._stateDmgVal_updateCache=function f(){
+	let rtv=new Set();
+	$gameTemp.updateCache(this,f.key,rtv);
+	rtv.hp=new Set();
+	rtv.mp=new Set();
+	rtv.tp=new Set();
+	this._states.forEach(id=>this._stateDmgVal_add($dataStates[id],rtv));
+	return rtv;
+}).key=$t$=$aaaa$.CACHEKEY_STATEDMG;
+($pppp$._stateDmgVal_getCache=function f(){
+	let rtv=$gameTemp.getCache(this,f.key);
+	if(!rtv) rtv=this._stateDmgVal_updateCache();
+	return rtv;
+}).key=$t$;
+$t$=undef;
+$pppp$._stateDmgVal_add=function(stat,c){
+	c=c||this._stateDmgVal_getCache();
+	switch(stat&&stat.dmgVal&&stat.dmgVal[0]){
+	case 1: c.add(stat.id); return c.hp.add(stat.id);
+	case 2: c.add(stat.id); return c.mp.add(stat.id);
+	case 3: c.add(stat.id); return c.tp.add(stat.id);
+	}
+};
+$pppp$._stateDmgVal_del=function(stat,c){
+	c=c||this._stateDmgVal_getCache();
+	switch(stat&&stat.dmgVal&&stat.dmgVal[0]){
+	default: c.hp.delete(stat.id); c.mp.delete(stat.id); c.tp.delete(stat.id); return c.delete(stat.id);
+	case 1: c.delete(stat.id); return c.hp.delete(stat.id);
+	case 2: c.delete(stat.id); return c.mp.delete(stat.id);
+	case 3: c.delete(stat.id); return c.tp.delete(stat.id);
+	}
+};
+($pppp$._stateDmgVal_calc=function f(stat){
+	if(!stat.dmgVal_func){
+		f.tbl[2]="return "+stat.dmgVal[1]+stat.dmgVal[2];
+		stat.dmgVal_func=Function.apply(null,f.tbl);
+	}
+	let rtv=stat.dmgVal_func.call(none,undefined,this);
+	return ~~rtv;
+}).tbl=['windiw','b',];
+$pppp$.stateDmgValHp=function(){
+	let rtv=0;
+	this._stateDmgVal_getCache().hp.forEach(id=>{
+		rtv+=this._stateDmgVal_calc($dataStates[id]);
+	});
+	return ~~rtv;
+};
+$pppp$.stateDmgValMp=function(){
+	let rtv=0;
+	this._stateDmgVal_getCache().mp.forEach(id=>{
+		rtv+=this._stateDmgVal_calc($dataStates[id]);
+	});
+	return ~~rtv;
+};
+$pppp$.stateDmgValTp=function(){
+	let rtv=0;
+	this._stateDmgVal_getCache().tp.forEach(id=>{
+		rtv+=this._stateDmgVal_calc($dataStates[id]);
+	});
+	return ~~rtv;
 };
 gbb._initChase=function f(){
 	if(f.inited) return;
