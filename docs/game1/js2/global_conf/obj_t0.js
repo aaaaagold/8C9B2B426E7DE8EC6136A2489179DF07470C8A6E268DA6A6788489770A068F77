@@ -2403,6 +2403,11 @@ $d$=$pppp$.start=function f(){
 // - system
 $aaaa$=Game_System;
 $pppp$=$aaaa$.prototype;
+$aaaa$.currMaxEnum=1;
+$aaaa$.addEnum=objs._addEnum;
+$aaaa$.addEnum("CACHEKEY_DATABASE").
+	addEnum("CACHEKEY_DATABASE_OBJTOMETA").
+	addEnum("__DUMMY");
 $r$=$pppp$.initialize;
 $d$=$pppp$.initialize=function f(){
 	f.ori.call(this);
@@ -2455,25 +2460,167 @@ $pppp$.database_typeToArr=function(type){
 	case 9: return $dataTilesets;
 	}
 };
-$pppp$.database_add=function(type,usedBy,dataobj){
+$pppp$._database_resetLen=function(){
+	for(let t=1;t!==10;++t){
+		const $data=this.database_typeToArr(t);
+		if($data.baselen>=0) $data.length=$data.arrangeStart=$data.baselen;
+	}
+};
+$pppp$._database_setCache_usedBy=function(dataobj,objinfo,type,cache){
+	// objinfo={usedBy:[[usedById,1]],data:};
+	cache=cache||this._database_getCache();
+	cache.set(objinfo,type);
+	cache.set(dataobj,objinfo);
+	const arr=objinfo.usedBy;
+	const m=arr.m=new Map();
+	for(let x=0;x!==arr.length;++x) m.set(arr[x][0],x);
+};
+$pppp$._database_putAll=function(){
+	// used when loadgame
+	this._database_resetLen();
+	const arrs=this._addedDataobj,cache=this._database_getCache();
+	if(arrs){ let something=false; for(let t=0;t!==arrs.length;++t){
+		const info=arrs[t],$data=this.database_typeToArr(t);
+		if($data && info){
+			// put data && set cache
+			const arr=info.pushed;
+			arr.m=new Map();
+			for(let x=0;x!==arr.length;++x){
+				arr.m.set(arr[x],x);
+				const obj=$data[arr[x].data.id]=deepcopy(arr[x].data);
+				obj.virtual=true;
+				this._database_setCache_usedBy(obj,arr[x],t,cache);
+				something=true;
+			}
+		}
+	} if(something) Scene_Boot.prototype.arrangeData(); }else this._addedDataobj=[];
+};
+($pppp$._database_getCache=function f(){
+	// $gameTemp is created each newgame/loadgame and will not be overwritten
+	let rtv=$gameTemp.getCache(this,f.key);
+	if(!rtv) $gameTemp.updateCache(this,f.key,rtv=new Map());
+	// keys:
+	// - dataobj (actual in $data*)
+	// - objinfo = {usedBy:[],data:__template__}
+	return rtv;
+}).key=$aaaa$.CACHEKEY_DATABASE_OBJTOMETA;
+$pppp$._database_encodeUsedBy=function(usedBy){
+	// usedBy: actor , enemy , false-like for party
+	// return (encoded as) actorId , -1 , 0
+	return usedBy?(usedBy._actorId||-1):0;
+};
+$pppp$._database_trimToSave=function(dataobj){
+	// must create new object
+	// TODO
+	let rtv;
+	if(dataobj._arr){
+		const dataArr=dataobj._arr;
+		dataobj._arr=undefined;
+		rtv=deepcopy(dataobj);
+		dataobj._arr=dataArr;
+	}else rtv=deepcopy(dataobj);
+	return rtv;
+};
+$pppp$._database_addUsedBy=function(usedBy,dataobj,cache){
+	cache=cache||this._database_getCache();
+	const objinfo=cache.get(dataobj);
+	const ub=objinfo&&objinfo.usedBy;
+	if(!ub) return -1;
+	const usedById=this._database_encodeUsedBy(usedBy);
+	const idx=ub.m.get(usedById);
+	if(idx>=0){
+		++ub[idx][1];
+		return idx;
+	}else{
+		const rtv=ub.length;
+		ub.m.set(usedById,rtv);
+		ub.push([usedById,1]);
+		return rtv;
+	}
+};
+$pppp$._database_strtIdx=function(arr){
+	return (arr.baselen||arr.length)<<1;
+};
+$pppp$._database_delUsedBy=function(usedBy,dataobj,cache){
+	cache=cache||this._database_getCache();
+	const objinfo=cache.get(dataobj);
+	const ub=objinfo&&objinfo.usedBy;
+	if(!ub) return -1;
+	const usedById=this._database_encodeUsedBy(usedBy);
+	const idx=ub.m.get(usedById);
+	if(idx>=0){
+		if(--ub[idx][1]<=0){
+			if(ub.length===1){
+				cache.delete(dataobj);
+				const type=cache.get(objinfo);
+				cache.delete(objinfo);
+				const sys=this._addedDataobj[type];
+				if(sys){
+					const arr=sys.pushed;
+					const idx=arr.m.get(objinfo);
+					if(idx>=0){
+						arr.m.delete(objinfo);
+						if(idx+1!==arr.length) arr.m.set(arr[idx]=arr.back,idx);
+						arr.pop();
+						const hole=objinfo.data.id;
+						if(this._database_strtIdx(this.database_typeToArr(type))<hole) sys.holes.push(hole);
+					}
+				}
+			}else{
+				ub.m.delete(usedById);
+				if(idx+1!==ub.length) ub.m.set(ub[idx]=ub.back(),idx);
+				ub.pop();
+			}
+			return -1;
+		}else return idx;
+	}
+};
+$pppp$._database_getAddedDataobj=function(type){
+	let arr=this._addedDataobj; if(!arr) arr=this._addedDataobj=[];
+	if(!arguments.length) return arr;
+	let rtv=arr[type];
+	if(!rtv) rtv=this._addedDataobj[type]={pushed:[],holes:[],maxid:this._database_strtIdx( this.database_typeToArr(type) )};
+	return rtv;
+};
+$pppp$._database_genNewByData=function f(type,usedBy,dataobj){
 	// type: type of $data* array. see this.database_typeToArr
-	// usedBy: array of actorId ; -1 === used by some enemies
+	// usedBy: see ._database_encodeUsedBy
 	// dataobj: obj to be pushed to $data* array
 	const arr=this.database_typeToArr(type); if(!arr) return;
-	const usedById=usedBy._actorId||-1;
-	let sys=this._addedDataobj[type]; if(!sys) sys=this._addedDataobj[type]={pushed:[],holes:[]};
-	sys.pushed.push({usedBy:usedById,data:dataobj});
-	arr[dataobj.id]=dataobj;
+	const usedById=this._database_encodeUsedBy(usedBy);
+	const sys=this._database_getAddedDataobj(type);
+	arr[dataobj.id=(sys.holes.length)?sys.holes.pop():++sys.maxid]=dataobj;
+	const objinfo={usedBy:[[usedById,1]],data:this._database_trimToSave(dataobj)};
+	// usedBy: [ [id,count], ... ]
+	{ const m=sys.pushed.m; if(!m) sys.pushed.m=new Map(); }
+	sys.pushed.m.set(objinfo,sys.pushed.length);
+	sys.pushed.push(objinfo);
+	dataobj.virtual=true;
+	this._database_setCache_usedBy(dataobj,objinfo,type);
+	return dataobj;
 };
-$pppp$.database_putAll=function(){
-	// used when loadgame
-	const arrs=this._addedDataobj;
-	if(arrs){ for(let a=0;a!==arrs.length;++a){
-		const info=arrs[a],$data=this.database_typeToArr(a);
-		if($data && info){ for(let x=0,arr=info.pushed;x!==arr.length;++x){
-			$data[arr[x].id]=arr[x];
-		} }
-	} }else this._addedDataobj=[];
+$pppp$._database_setNonJsonables=function(dst,src){
+	for(let x=0,keys=Object.getOwnPropertyNames(src);x!==keys.length;++x){
+		const k=keys[x];
+		if( !Object.hasOwnKey.call(dst,k) || (dst[k] && dst[k].constructor)!==(src[k] && src[k].constructor) ){
+			dst[k]=src[k];
+		}
+	}
+};
+$pppp$._database_genNewByRefId=function(type,usedBy,refId){
+	const arr=this.database_typeToArr(type);
+	const ref=arr&&arr[refId];
+	if(!ref) return;
+	const newobj=this._database_trimToSave(ref); newobj._base=refId;
+	const rtv=this._database_genNewByData(type,usedBy,newobj);
+	this._database_setNonJsonables(rtv,ref);
+	rtv.tmapP=ref.tmapP;
+	rtv.tmapS=ref.tmapS;
+	rtv._base=refId;
+	return rtv;
+};
+$pppp$._database_genNewByRef=function(type,usedBy,ref){
+	return ref && this._database_genNewByRefId(type,usedBy,ref.id);
 };
 
 // - timer

@@ -10843,19 +10843,22 @@ $pppp$.makeDamageValue=function(target,isCri){
 	return ~~value;
 };
 ($pppp$.evalDamageFormula=function f(target,allowNeg){
-	const item=this.item(); if(!item) return 0;
-	const dmg=item.damage;
-	if(!dmg.formula) return 0;
+	const item=this.item(); if(!item || !item.damage.formula) return 0;
 	
 	try{
 		//let a = this.subject() , b = target;
-		if(dmg.formula.constructor!==Function){
-			f.tbl[3]="return "+(dmg.formula_txt=dmg.formula);
-			dmg.formula=Function.apply(null,f.tbl);
+		if(!item.formula_func||item.formula_func.constructor!==Function){
+			f.tbl[3]="return "+item.damage.formula;
+			item.formula_func=Function.apply(null,f.tbl);
 		}
-	}catch(e){ return 0; } // only handling function creation failure
+	}catch(e){
+		// only handling function creation failure
+		if(objs.isDev) console.warn("item.formula_func creation failed",item.id,item);
+		item.damage.formula=undefined;
+		return 0;
+	}
 	
-	let val=dmg.formula.call(none,undefined,this.subject(),target);
+	let val=item.formula_func.call(none,undefined,this.subject(),target);
 	val*=!!allowNeg||val>0;
 	if(this.isRecover(item)) val=-val;
 	return val||0; // prevent NaN , reserve fractions
