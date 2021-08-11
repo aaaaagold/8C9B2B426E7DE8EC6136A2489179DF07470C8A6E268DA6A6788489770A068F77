@@ -648,8 +648,8 @@ $dddd$=$aaaa$.saveGame=function f(sfid){
 		return true;
 	}else return f.ori.call(this,sfid);
 }; $dddd$.ori=$rrrr$;
-$rrrr$=$aaaa$.loadGame;
-$dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
+$r$=$aaaa$.loadGame;
+($d$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 	// kargs:{u8arr:true-like means data is an Uint8Array object}
 	if(f.cache===undefined) f.cache=new CacheSystem();
 	if(sfid==='callback'){
@@ -689,11 +689,17 @@ $dddd$=$aaaa$.loadGame=function f(sfid,onlineId,data,kargs){
 		
 		return this.onlineOk;
 	}else if(f.ori.call(this,sfid)){
-		if($gameTemp) $gameTemp.clearCacheAll();
+		if($gameTemp){
+			const arr=objs._vars_objArg;
+			const caches=arr.map(f.forEach);
+			$gameTemp.clearCacheAll();
+			for(let x=0;x!==arr.length;++x) if(caches[x]) $gameTemp._$gameObjs_tmp.set(arr[x],caches[x]);
+		}
 		if($gamePlayer._currentTitle!==undefined) $dataSystem.gameTitle=$gamePlayer._currentTitle;
 		return true;
 	}else return false;
-}; $dddd$.ori=$rrrr$;
+}).ori=$r$;
+$d$.forEach=x=>$gameTemp._$gameObjs_tmp.get(x);
 $aaaa$.saveGameWithoutRescue = function(savefileId) {
 	let json = JsonEx.stringify(this.makeSaveContents());
 	if(json.length >= 262144 && objs.isDev) setTimeout(()=>console.log('Save data too big!',savefileId,json.length),1);
@@ -870,11 +876,12 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 		tmp._data=data;
 	}
 	tmp.updateTbl_all();
-	// - sys
-	tmp=content.system;
-	tmp.database_putAll();
 	
 	f.ori.call(this,content);
+	
+	// - sys
+	tmp=content.system;
+	tmp._database_putAll();
 	
 	// config apps to party apps
 	if(tmp=ConfigManager._apps){

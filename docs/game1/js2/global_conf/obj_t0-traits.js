@@ -448,7 +448,11 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.itemType='a';
 	});
 	
-	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(x=>x&&(x.arrangeStart=x.length));
+	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(arr=>{ if(!arr) throw new Error('database crached');
+		if(!(arr.baselen>=0)) arr.baselen=arr.length;
+		arr.slice(arr.arrangeStart||1,arr.baselen).forEach(x=>x._base=undefined);
+		arr.arrangeStart=arr.length;
+	});
 };
 $dddd$.changeSpeed=dataobj=>{
 	const n=Number(dataobj.meta.speed);
