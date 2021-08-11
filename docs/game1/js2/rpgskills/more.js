@@ -31,13 +31,19 @@ list.newRoadblock=action=>{
 	$gameMessage.popup($dataCustom.chrRepeatMaxMeet,true);
 };
 
-const newMyself_argv=[0];
+const notiSys_stat=id=>{
+	const stat=$dataStaets[id];
+	if(!stat._base) return;
+	
+},newMyself_argv=[0];
 list.newMyself_actor=(action,leaveAtBattleEnd,equFixed,collar)=>{
 	newMyself_argv.length=1; newMyself_argv[0]=action._subjectActorId;
 	const rtv=rpgevts.list.addClone(false,newMyself_argv);
 	if(rtv){
 		const subject=action.subject();
-		rtv._states=subject._states.slice(0);
+		rtv._states=subject._states.slice();
+		rtv._stateTurns=deepcopy(subject._stateTurns);
+		rtv._databaseAdd_state_all();
 		rtv._states_delCache();
 		rtv._overall_delCache();
 		if(equFixed) rtv.learnSkill(56);

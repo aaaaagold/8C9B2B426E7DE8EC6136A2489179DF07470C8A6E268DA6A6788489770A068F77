@@ -2568,7 +2568,7 @@ $pppp$._database_delUsedBy=function(usedBy,dataobj,cache){
 				}
 			}else{
 				ub.m.delete(usedById);
-				if(idx+1!==ub.length) ub.m.set(ub[idx]=ub.back(),idx);
+				if(idx+1!==ub.length) ub.m.set((ub[idx]=ub.back)[0],idx);
 				ub.pop();
 			}
 			return -1;
@@ -2760,6 +2760,34 @@ $d$=$pppp$.isMpRecover=function f(){
 	return this.checkDamageType(f.tbl);
 };
 $d$.tbl=new Set([4]);
+
+// - btlr
+$aaaa$=Game_BattlerBase;
+$pppp$=$aaaa$.prototype;
+$k$='isStateResist';
+$r$=$pppp$[$k$]; ($pppp$[$k$]=function f(stateId){
+	return f.ori.call(this,$dataStates[stateId]&&$dataStates[stateId]._base||stateId);
+}).ori=$r$;
+$pppp$._databaseAdd_state=function(dataobj,cache){
+	if(!dataobj._base) return;
+	cache=cache||$gameSystem._database_getCache();
+	$gameSystem._database_addUsedBy(this,dataobj,cache);
+};
+$pppp$._databaseAdd_state_all=function(){
+	for(let x=0,arr=this._states,cache=$gameSystem._database_getCache();x!==arr.length;++x){
+		this._databaseAdd_state($dataStates[arr[x]],cache);
+	}
+};
+$pppp$._databaseDel_state=function(dataobj,cache){
+	if(!dataobj._base) return;
+	cache=cache||$gameSystem._database_getCache();
+	$gameSystem._database_delUsedBy(this,dataobj,cache);
+};
+$pppp$._databaseDel_state_all=function(){
+	for(let x=0,arr=this._states,cache=$gameSystem._database_getCache();x!==arr.length;++x){
+		this._databaseDel_state($dataStates[arr[x]],cache);
+	}
+};
 
 // - unit
 $aaaa$=Game_Unit;
