@@ -3485,7 +3485,7 @@ $r$=$pppp$.doSell;
 $pppp$.maxBuy=function(){
 	const max=$gameParty.maxItems(this._item)-$gameParty.unionCnt(this._item);
 	const price=this.buyingPrice();
-	return price>0 ? Math.min(~~(this.money() / price),max) : max;
+	return price>0 ? Math.min(Math.floor(this.money() / price),max) : max;
 };
 $pppp$.terminate=function(){ // originally empty
 	$gameTemp._scShop_negBalance=$gameTemp._scShop_balance<0;
@@ -10850,7 +10850,7 @@ $pppp$.makeDamageValue=function(target,isCri){
 	value = this.applyGuard(value, target);
 	value-=decDmg;
 	value*=this._dmgRate;
-	return ~~value;
+	return Math.abs(value)<=INT_MAX?~~value:Math.round(value);
 };
 ($pppp$.evalDamageFormula=function f(target,allowNeg){
 	const item=this.item(); if(!item || !item.damage.formula) return 0;
@@ -10947,8 +10947,8 @@ $r$=$pppp$[$k$];
 		const ss=(this.isUsePreload()?this.getPreload_s():s);
 		let gainHp = ss.dmgRcvHpR*val+ss.dmgRcvHpV , gainMp = ss.dmgRcvMpR*val+ss.dmgRcvMpV , rec;
 		if((gainHp||gainMp) && (rec=ss.rec)){
-			gainHp*=rec; gainHp|=0;
-			gainMp*=rec; gainMp|=0;
+			gainHp*=rec; gainHp=Math.abs(gainHp)<=INT_MAX?~~gainHp:Math.round(gainHp);
+			gainMp*=rec; gainMp=Math.abs(gainMp)<=INT_MAX?~~gainMp:Math.round(gainMp);
 			if(gainHp||gainMp){
 				const orires=s&&s.result();
 				const r2=s._result=new Game_ActionResult();
@@ -10967,12 +10967,14 @@ $r$=$pppp$[$k$];
 		if(this.isMpEffect()) this.executeMpDamage(trgt,val);
 	}
 }).ori=$r$;
-$pppp$.executeHpDamage=function(target,value){
+$pppp$.executeHpDamage=function f(target,value){
 	if(this.isDrain() && target.hp<value) value=target.hp;
 	this.makeSuccess(target);
 	const mpsubst=value>0 && target.MPSubstituteRate();
 	if(mpsubst){
-		let mpDmg=~~(value*mpsubst); if(!(mpDmg<=target.mp)) mpDmg=target.mp;
+		let mpDmg=value*mpsubst;
+		mpDmg=mpDmg<=INT_MAX?~~mpDmg:Math.round(mpDmg);
+		if(!(mpDmg<=target.mp)) mpDmg=target.mp;
 		target.gainHp(mpDmg-value); // gain<=0
 		if(mpDmg) this.executeMpDamage(target,mpDmg);
 	}else target.gainHp(-value);
@@ -14018,8 +14020,12 @@ $pppp$.startAction=function(subject, action, targets){
 	this.displayAction(subject, item);
 };
 $pppp$.displayRegeneration=function(subject){
-	subject.pushActResQ(subject._result);
-	this.push('popupDamage', subject);
+	const r=subject._result;
+	if(r.hpDamage||r.mpDamage){
+		subject.pushActResQ(r);
+		r.mpDamage=r.hpDamage=0;
+		this.push('popupDamage', subject);
+	}
 };
 $pppp$.displayAction=function(subject, item) {
 	const numMethods = this._methods.length;
@@ -14101,6 +14107,21 @@ $pppp$.displayAddedStates=function(target){
 $pppp$.displayDrained=function(subject,target){
 	// // const res=target.result();
 	//const v=res.hpDamage+res.mpDamage+res.tpDamage+res.stpDamage;
+};
+($pppp$.displayRemovedStates=function f(target){
+	f.forEach.msg4=false;
+	f.forEach._=this;
+	f.forEach.n=target.name();
+	target.result().removedStateObjects().forEach(f.forEach);
+}).forEach=function f(stat){
+	if(stat.message4){
+		if(!f.msg4){
+			f.msg4=true;
+			f._.push('popBaseLine');
+			f._.push('pushBaseLine');
+		}
+		f._.push('addText', f.n + stat.message4);
+	}
 };
 $pppp$.makeHpDamageText=function(target){
 	const res = target.result() , isActor = target.isActor();
