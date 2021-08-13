@@ -11086,12 +11086,12 @@ $aaaa$.addEnum("CUSTOM_EFFECT_REMOVE",$d$.tbl,function(target,effect){
 } // Game_Action.prototype.applyItemEffect.tbl
 ($pppp$._database_genState_dmgVal=function f(target,ref){
 	const oriDmgVal1=ref.dmgVal[1];
-	f.tbl[2]="return "+oriDmgVal1;
-	ref.dmgVal[1]=Function.apply(null,f.tbl).call(none,undefined,this.subject())+' ';
+	f.tbl[3]="return "+oriDmgVal1;
+	ref.dmgVal[1]=Function.apply(null,f.tbl).call(none,undefined,this.subject(),target)+' ';
 	const dataobj=$gameSystem._database_genNewByRef(7,target,ref);
 	ref.dmgVal[1]=oriDmgVal1;
 	return dataobj.id;
-}).tbl=['window','a',];
+}).tbl=['window','a','b'];
 ($pppp$.itemEffectAddNormalState=function f(target, effect){
 	let chance = effect.value1;
 	if(!this.isCertainHit()){
