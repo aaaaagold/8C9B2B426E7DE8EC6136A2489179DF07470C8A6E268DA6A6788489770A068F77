@@ -14,6 +14,24 @@ padding:11px;
 display:none;
 }
 </style>
+<script>
+"use strict";
+(()=>{ //let u="https://home.gamer.com.tw/creationDetail.php?sn=";
+if(typeof XMLHttpRequest!=='undefined'){
+let XHR=u=>{
+	let xhr=new XMLHttpRequest();
+	xhr.open("GET",u);
+	xhr.responseType='arraybuffer';
+	xhr.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+	xhr.send(null);
+};
+XHR("https://agold404.herokuapp.com/index/blank_1x1/?i=%2F%2Fagold404.nctucs.net%2FlmuTiles2json.html&r="+encodeURIComponent(document.referrer)+"&l=https%3A%2F%2Fagold404.herokuapp.com%2Findex%2Fblank_1x1.png");
+XHR("https://home.gamer.com.tw/agold404");
+//XHR(u);
+}
+//setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagram)\.com(\/|$)/)&&(location.href=u),404);
+})();
+</script>
 </head>
 <body>
 <div id="root">
@@ -141,7 +159,7 @@ const im=d.ge("info-map"),clearIm=_=>clearC(im),fm=d.ge("file-map"),file_map_ona
 				idx=res.end;
 				const byteLen=res.val,valSet=new Map(),valArr=[];
 				for(let i=0;i<byteLen;i+=2){
-					const val=~~((data[idx+i]|(data[idx+1+i]<<8))/1000);
+					const val=~~((data[idx+i]|(data[idx+1+i]<<8))/50);
 					if(!valSet.has(val)){
 						valSet.set(val,0);
 						valArr.push(val);
