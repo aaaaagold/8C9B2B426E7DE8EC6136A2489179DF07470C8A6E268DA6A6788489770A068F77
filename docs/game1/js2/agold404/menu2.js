@@ -1158,7 +1158,7 @@ $aaaa$=Scene_UserSwitch;
 window[$aaaa$.name]=$aaaa$;
 $pppp$=$aaaa$.prototype = Object.create(Scene_CustomMenu2.prototype);
 $pppp$.constructor = $aaaa$;
-$d$=$pppp$.createOptionsWindow=function f(){
+($pppp$.createOptionsWindow=function f(){
 	debug.log('Scene_UserSwitch.prototype.createOptionsWindow');
 	// 目前不是使用WebGL
 	if(!f.list){ f.p_flw=[$dataCustom.flwingMsg,"_global_conf;flwingMsg"]; f.p=[
@@ -1192,6 +1192,7 @@ $d$=$pppp$.createOptionsWindow=function f(){
 		["顯示(或關閉)在左上角的FPS(或延遲)資訊",";;func;call",1,()=>{ Graphics._switchFPSMeter(); }],
 		["顯示(或關閉)在右上角的暫停按鈕",";;func;call",1,()=>{ Graphics._switchPauseBtn(); }],
 		[_global_conf.sep,";;func",0],
+		["遊戲暫停(省電)",";;func;call",1,()=>SceneManager.pause()],
 		[$dataCustom.clearMapDataCache,";;func;call",1,()=>{
 			let f=m=>{
 				let delList=[];
@@ -1202,8 +1203,19 @@ $d$=$pppp$.createOptionsWindow=function f(){
 			f(DataManager.loadDataFile.cache.__caches);
 			$gameMessage.popup($dataCustom.clearMapDataCacheDone,true);
 		}],
+		[$dataCustom.clearJSCache,";clearJS;func",1,[
+			[$dataCustom.clearJSCacheWarn,";;func",0],
+			[$dataCustom.clearJSCacheConfirm,";;func;call",1,()=>{
+				const keys=[];
+				for(let x=0,xs=localStorage.length;x!==xs;++x){
+					const key=localStorage.key(x);
+					if(key && key.slice(0,confPrefix.length)===confPrefix) keys.push(key);
+				}
+				for(let x=0,xs=keys.length;x!==xs;++x) localStorage.removeItem(keys[x]);
+				$gameMessage.popup($dataCustom.clearJSCacheDone,true);
+			}],
+		]],
 		[$dataCustom.feedback,";;func;call",1,()=>{SceneManager.push(Scene_Feedback);}],
-		["遊戲暫停(省電)",";;func;call",1,()=>SceneManager.pause()],
 	]; }
 	f.p.length=f.pLen;
 	if(DataManager.getTitle()==="拉起封鎖線") f.p.push(f.p_flw);
@@ -1217,8 +1229,10 @@ $d$=$pppp$.createOptionsWindow=function f(){
 		this.popScene();
 	});
 	this.addWindow(this._window);
+}).mainKargs={
+	statusWidth:()=>360,
+	windowWidth:()=>this._width||Graphics.boxWidth-64,
 };
-$d$.mainKargs={statusWidth:()=>360};
 $d$=$r$=$aaaa$=undef; // END Scene_UserSwitch
 
 // - Scene_SaveLocal
