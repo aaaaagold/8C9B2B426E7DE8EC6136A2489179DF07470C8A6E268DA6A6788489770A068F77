@@ -340,7 +340,7 @@ list.slowingBead=(action)=>{
 		return;
 	}
 	// if 彩蛋 else 一般情況
-	if($gameMap._mapId===103 && $gameMap._events[65].pos(xy.x,xy.y) && !$gameSelfSwitches._data[103]['65,B'] ) $gameMap._events[65].ssStateSet("A");
+	if($gameMap._mapId===103 && $gameMap._events[65].pos(xy.x,xy.y) && !$gameSelfSwitches.value(103,65,B) ) $gameMap._events[65].ssStateSet("A");
 	else $gameMap.cpevt($dataMap.templateStrt_item+5,xy.x,xy.y,1,1,1);
 	$gameParty.consumeItem(dataitem,true);
 	$gameMessage.popup("放置了1顆\\item["+dataitem.id+"]",1);

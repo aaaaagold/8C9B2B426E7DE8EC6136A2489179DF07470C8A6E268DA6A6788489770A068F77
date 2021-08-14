@@ -715,10 +715,12 @@ $dddd$=$aaaa$.makeSaveContents=function f(){
 	debug.log('DataManager.makeSaveContents');
 	$gameParty.saveDynamicEvents();
 	if($dataMap && $gameMap._mapId){ // clean SS
-		let curr=$gameSelfSwitches._data[$gameMap._mapId];
-		curr.tmp=0;
-		rpgevts.list.cleanSs();
-		delete curr.tmp;
+		const curr=$gameSelfSwitches._data[$gameMap._mapId];
+		if(!isNone(curr)){
+			curr.tmp=0;
+			rpgevts.list.cleanSs();
+			delete curr.tmp;
+		}
 	}
 	let rtv=f.ori.call(this);
 	let tmp;

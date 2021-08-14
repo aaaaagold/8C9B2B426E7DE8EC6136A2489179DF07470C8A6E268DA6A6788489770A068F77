@@ -3058,7 +3058,7 @@ $r$=$pppp$[$k$];
 		// reset weather
 		if($gameScreen._weatherPower) $gameScreen.clearWeather();
 	}
-	const lastMapId=$gameMap&&$gameMap._mapId;
+	const lastMapId=$gameMap&&$gameMap._mapId,regenIds=0&&$gameMap._events.filter(f.tbl[0]).map(f.tbl[1]);
 	f.ori.call(this); // update '$gameMap' (and maybe others)
 	$gameTemp.poolEvt_newMap($gameMap._mapId);
 	Graphics._preCalScreenTileCoord(); // pre-cal. $gameMap.screenTileX(); $gameMap.screenTileY();
@@ -3096,10 +3096,10 @@ $r$=$pppp$[$k$];
 		// clear temp:clearedWhenNewMap to '{}'
 		$gameTemp.initClearedWhenNewMap();
 		// active initialization events: turn on its switch "A"
-		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){ let evt=arr[x];
+		for(let x=0,arr=$dataMap.events;x!==arr.length;++x){ const evt=arr[x];
 			if(evt&&evt.note==="init"){
 				$gameMap._events[x]._skipRender=1;
-				$gameSelfSwitches.setValue([$gameMap._mapId,x,"A"],1);
+				$gameSelfSwitches._setValue($gameMap._mapId,x,"A",1);
 			}
 		}
 		// random map
@@ -3109,6 +3109,14 @@ $r$=$pppp$[$k$];
 		}
 		// workers
 		if($gameParty) $gameParty.members().forEach(x=>rpgskills.list.rfl_summonClones_fromActorWorkers(x));
+		// clearLastRegen's selfswitches
+		if(regenIds&&regenIds.length){ const o=$gameSelfSwitches._data[lastMapId]; if(o){
+			for(let x=0,xs=regenIds.length,kv=f.tbl[2],ks=kv.length;x!==xs;++x){
+				for(let ki=0;ki!==ks;++ki){
+					$gameSelfSwitches.setValue_(o,regenIds[x],kv[ki],false,lastMapId);
+				}
+			}
+		} }
 	}
 	if(!$gameTemp.clearedWhenNewMap) $gameTemp.initClearedWhenNewMap(); // for load game
 	
@@ -3126,6 +3134,11 @@ $r$=$pppp$[$k$];
 		if(j?objs._getObj(j):true) $gameScreen.changeWeather.apply($gameScreen,JSON.parse($dataMap.meta.weather));
 	}
 }).ori=$r$;
+$d$.tbl=[
+	x=>x&&x.event().meta.regen,
+	x=>x._eventId,
+	["A","B","C","D","E","knowName"],
+];
 $d$.fastSearchTbl=function(){
 	// fast search table
 	// - $dataMap.coordTbl : (x,y)=>events
@@ -3367,7 +3380,8 @@ $r$=$pppp$.start;
 	this._spriteset._tilemap.refreshTileset();
 	return this._mapNameWindow.open();
 }).ori=$r$;
-Scene_Map.prototype.updateMain=function(){
+$pppp$.updateMain=function(){
+	// Scene_Map.prototype.updateMain
 	if(!this._justStarted){
 		const active = this.isActive();
 		$gameMap.update(active);
@@ -4317,7 +4331,7 @@ $pppp$.load_recordLoc=function(){
 				let evt=evts[i];
 				if(evt._erased){
 					f.relatedSelfSwitches(evt,1);
-					for(let x=0,sss=gss.switches;x!==sss.length;++x) gss.setValue([this._mapId,i,sss[x]],0);
+					for(let x=0,sss=gss.switches;x!==sss.length;++x) gss._setValue(this._mapId,i,sss[x],false);
 					continue;
 				}
 				let newevt=objs.new_Game_Event(this._mapId,i);
@@ -4339,7 +4353,7 @@ $pppp$.load_recordLoc=function(){
 				}
 			}
 			for(let x=0,evts=this._events;x!==delList.length;++x){
-				for(let x=0,sss=gss.switches;x!==sss.length;++x) gss.setValue([this._mapId,delList[x],sss[x]],0);
+				for(let x=0,sss=gss.switches;x!==sss.length;++x) gss._setValue(this._mapId,delList[x],sss[x],false);
 				if(evts[delList[x]]) evts[delList[x]]._erased=true;
 			}
 		}
@@ -4364,11 +4378,11 @@ $pppp$.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
 	
 	// self switches
 	if(evt._sameStatEvts){
-		let obj=objs.$gameSelfSwitches._data[objs.$gameMap._mapId];
-		let svs=objs.$gameSelfSwitches.switches.map((s)=>[ s , !doRemove && obj[([evt._eventId,s])] ]);
+		const obj=objs.$gameSelfSwitches._data[objs.$gameMap._mapId];
+		const sskeys=objs.$gameSelfSwitches.switches;
 		for(let x=0,arr=evt._sameStatEvts;x!==arr.length;++x){ let evtid=arr[x];
-			for(let z=0;z!==svs.length;++z){ let sv=svs[z];
-				objs.$gameSelfSwitches.setValue_(obj,[evtid,sv[0]],sv[1]);
+			for(let z=0;z!==sskeys.length;++z){
+				objs.$gameSelfSwitches.setValue_(obj,evtid,sskeys[z],!doRemove && obj[evt._eventId][s]);
 			}
 		}
 	}
@@ -4589,8 +4603,7 @@ $pppp$.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,constraintFunc
 	ssStates=ssStates||[];
 	let evts=this._events;
 	if(!evts[evtid]) return -1; // no such event
-	let ssobj=evts[evtid].ssState().obj;
-	let marker=[]; if(!overwrite){
+	const marker=[]; if(!overwrite){
 		marker.length=$gameMap.size;
 		for(let i=0;i!==evts.length;++i){ let evt=evts[i];
 			if(evt && evt._erased===false && evt._through===false){
@@ -4599,11 +4612,11 @@ $pppp$.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,constraintFunc
 			}
 		}
 	}
-	let mapid=this._mapId;
-	if(!$gameSelfSwitches._data[mapid]) $gameSelfSwitches._data[mapid]={};
-	let strt=evts.length;
+	const mapid=this._mapId;
+	let ssobj=$gameSelfSwitches._data[mapid]; if(!ssobj) ssobj=$gameSelfSwitches._data[mapid]={};
+	const strt=evts.length;
 	//let tm=(Date.now()-tm2020strt).toHexInt().slice(-4); // int overflow
-	let tm=((Date.now()-tm2020strt)%65536).toHexInt().slice(-4);
+	const tm=((Date.now()-tm2020strt)%65536).toHexInt().slice(-4);
 	for(let ys=y+h;y!==ys;++y){ for(let xs=x+w;x!==xs;++x){
 		if((constraintFunc&&!constraintFunc(x,y))||marker[this.xy2idx(x,y)]) continue;
 		let newid=evtid+'-'+tm+"_"+evts.length;
@@ -4611,7 +4624,7 @@ $pppp$.cpevt=function f(evtid,x,y,w,h,overwrite,ssStates,noUpdate,constraintFunc
 		let obj=objs.new_Game_Event(mapid,newid); // obj._mapId=mapid;
 		obj._realX=obj._x=x; obj._realY=obj._y=y;
 		evts.push(obj); evts[obj._eventId]=obj;
-		for(let i=0;i!==ssStates.length;++i) ssobj[([obj._eventId,ssStates[i]])]=true;
+		for(let i=0;i!==ssStates.length;++i) $gameSelfSwitches.setValue_(ssobj,obj._eventId,ssStates[i],true);
 		obj._constructChildren(tm,ssStates);
 		let meta=obj.event().meta;
 	} x-=w; }
@@ -4669,8 +4682,7 @@ $pppp$.adjMtx=function(strtx,strty,canPassOnEvts){
 	return $dataMap._adjMtx=rtv;
 };
 $pppp$.ss=function(evtid,sname){
-	let res=this._events[evtid].ssState(sname);
-	return res.obj[res.key];
+	return $gameSelfSwitches._value(this._mapId,evtid,sname);
 };
 $pppp$.events=function(){ // overwrite
 	//debug.log('Game_Map.prototype.events');
@@ -5023,8 +5035,7 @@ $d$=$pppp$.command111=function f(){ // cond branch
 	}break;
 	case 2:{ // ss
 		if (this._eventId.toId()>0) {
-			let key=[this._mapId,this._eventId,this._params[1]];
-			result=($gameSelfSwitches.value(key)===(this._params[2]===0));
+			result=($gameSelfSwitches._value(this._mapId,this._eventId,this._params[1])===(this._params[2]===0));
 		}
 	}break;
 	case 3:{ // timer
@@ -5218,8 +5229,7 @@ $d$=$pppp$.command122=function f(){ // ctrl var
 $d$.script=$pppp$.command111.script;
 $pppp$.command123=function(){ // ctrl ss
 	if(this._eventId.toId()>0){
-		let key=[this._mapId,this._eventId,this._params[0]];
-		$gameSelfSwitches.setValue(key, this._params[1] === 0);
+		$gameSelfSwitches._setValue(this._mapId,this._eventId,this._params[0], this._params[1] === 0);
 	}
 	return true;
 };
@@ -8541,7 +8551,7 @@ $pppp$.saveDynamicEvents=function(fromTransfer){
 		
 		// do removal: evt && SelfSwitches
 		for(let x=0,ss=$gameSelfSwitches._data[$gameMap._mapId];x!==delList.length;++x){ let evtid=delList[x];
-			if(ss) for(let s=0,sss=$gameSelfSwitches.switches;s!==sss.length;++s) delete ss[([evtid,sss[s]])];
+			if(ss) delete ss[evtid];
 			delete mc.events[evtid];
 		}
 	}
@@ -9182,6 +9192,44 @@ $pppp$.setValue=function(k,v){
 	let t=this._data[mapid];
 	if(!t) t=this._data[mapid]={};
 	return this.setValue_(t,k,v,mapid);
+};
+$pppp$._value=function(m,e,k){
+	const rtv=this._data[m];
+	return !!(rtv&&rtv[e]&&rtv[e][k]);
+};
+$pppp$.value=function(k){
+	return this._value.apply(this,k);
+};
+$pppp$.setValue_=function(t,eid,key,v,m){
+	let u=t[eid]; if(!u) u=t[eid]={};
+	if(v){
+		u[key] = true;
+		//$gameTemp._ssSets[m].set(k.join()); // 改天
+	}else{
+		delete u[key];
+		//$gameTemp._ssSets[m].delete(k.join()); // 改天
+	}
+	const evt=$gameMap._events[eid];
+	if(this._data[$gameMap._mapId]===t){ // the switch is @ current map
+		if(evt&&evt._sameStatEvts){ for(let x=0,arr=evt._sameStatEvts;x!==arr.length;++x){ // let evtid=arr[x];
+			this.setValue_(t,arr[x],key,v,$gameMap._mapId);
+		} }
+	}
+	if(evt&&!evt.noUpdate) return this.onChange();
+};
+$pppp$._setValue=function(m,e,k,v){
+	let t=this._data[m]; if(!t) t=this._data[m]={};
+	return this.setValue_(t,e,k,v,m);
+};
+$pppp$._setValue_del=function(m,e,k){
+	this._setValue(m,e,k,false);
+};
+$pppp$._setValue_set=function(m,e,k){
+	this._setValue(m,e,k,true);
+};
+$pppp$.setValue=function(k,v){
+	if(v) this._setValue_set.apply(this,k);
+	else this._setValue_del.apply(this,k);
 };
 $pppp$.clear = function(mapid) {
 	if(mapid>0) this._data[n]={};
@@ -9902,9 +9950,9 @@ $pppp$._constructChildren=function(tm,ssStates){
 	let meta=this.event().meta;
 	//debug.log('',meta.child && !this._sameStatEvts);
 	if(meta.child && !this._sameStatEvts){ this._sameStatEvts=[];
-		let self=this,ssobj=this.ssState().obj;
+		const self=this,ssobj=$gameSelfSwitches._data[this._mapId];
 		tm=tm||Date.now();
-		ssStates=ssStates||$gameSelfSwitches.switches.filter(x=>ssobj[([self._eventId,x])]);
+		ssStates=ssStates||$gameSelfSwitches.switches.filter(x=>$gameSelfSwitches._value(this._mapId,this._eventId,x));
 		let mapid=this._mapId,evts=$gameMap._events,obj=this,obj_ori=this,meta_ori=meta,dict={};
 		while(meta.child){
 			if(dict[meta.child]) break; else dict[meta.child]=1; // check cycle
@@ -9914,7 +9962,7 @@ $pppp$._constructChildren=function(tm,ssStates){
 			obj.parentId=this._eventId;
 			evts.push(obj); evts[obj._eventId]=obj;
 			this._sameStatEvts.push(obj._eventId);
-			for(let i=0;i!==ssStates.length;++i) ssobj[([obj._eventId,ssStates[i]])]=true;
+			for(let i=0;i!==ssStates.length;++i) $gameSelfSwitches.setValue_(ssobj,obj._eventId,ssStates[i],true);
 			meta=obj.event().meta;
 		}
 	}
@@ -9924,29 +9972,23 @@ $pppp$.ssState=function(ssname){
 	return {obj:$gameSelfSwitches._data[this._mapId],key:[this._eventId,ssname]};
 };
 $pppp$.ssStateInv=function(ssname){
-	let res=this.ssState(ssname);
-	let v=!res.obj[res.key];
-	$gameSelfSwitches.setValue_(res.obj,res.key,v);
+	const v=!$gameSelfSwitches._value(this._mapId,this._eventId,ssname);
+	$gameSelfSwitches._setValue(this._mapId,this._eventId,ssname,v);
 	return v;
 };
 $pppp$.ssStateSet=function(ssname,toFalse){
-	let res=this.ssState(ssname);
-	//if(!toFalse && !res.obj[res.key]) setTrue
-	//if(toFalse && res.obj[res.key]) setFalse
-	//if(toFalse^1^res.obj[res.key]) set
-	toFalse^=1;
-	if(toFalse^res.obj[res.key]) $gameSelfSwitches.setValue_(res.obj,res.key,toFalse);
+	$gameSelfSwitches._setValue(this._mapId,this._eventId,ssname,toFalse=!toFalse);
 	return toFalse;
 };
 $pppp$.findProperPageIndex=function f(){
-	let pages=this.event().pages;
+	const pages=this.event().pages;
 	for(let x=pages.length;x--;){
-		let c=pages[x].conditions,ss=$gameSelfSwitches._data[this._mapId];
+		const c=pages[x].conditions;
 		if(
 		 (!c.switch1Valid || $gameSwitches.value(c.switch1Id))
 		 && (!c.switch2Valid || $gameSwitches.value(c.switch2Id))
 		 && (!c.variableValid || $gameVariables.value(c.variableId)>=c.variableValue)
-		 && (!c.selfSwitchValid || ( ss && ss[([this._eventId,c.selfSwitchCh])] ) )
+		 && (!c.selfSwitchValid || $gameSelfSwitches._value(this._mapId,this._eventId,c.selfSwitchCh) )
 		 && (!c.itemValid || 0<$gameParty.numItems_i(c.itemId)) // maybe neg? debt?
 		 //&& (!c.actorValid || $gameParty._actors.indexOf(c.actorId)!==-1)
 		 && ( !c.actorValid || $gameTemp._pt_allMembers_idSet.has(c.actorId) )

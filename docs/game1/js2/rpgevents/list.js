@@ -69,7 +69,7 @@ list.getSS=(self,argv)=>{
 };
 list.setSS=(self,argv)=>{
 	if(!argv) return false;
-	return $gameMap._events[argv[0]].ssStateSet(argv[1],!argv[2]);
+	return $gameMap._events[argv[0]].ssStateSet(argv[1],(!argv[2])|0);
 };
 list.popupmsg_u=(self,argv)=>$gameMessage.popup(argv[0],1);
 list.strtEvt=(self,argv)=>{
@@ -190,9 +190,21 @@ list.gotBurnLvOutputGeBurnlv=(self,argv,itrp)=>list.gotBurnLvOutput(self,argv,it
 list.cleanSs=()=>{
 	let data=$gameSelfSwitches._data;
 	for(let x=0;x!==data.length;++x){
-		let d=data[x],hasKey=false;
-		for(let i in d) if(hasKey=d.hasOwnProperty(i)) break;
+		let d=data[x],hasKey=false,iv=[];
+		for(let i in d){
+			if(d.hasOwnProperty(i)){
+				let hasKeyEvt=false;
+				for(let i2 in d[i]){
+					if(hasKeyEvt=d[i].hasOwnProperty(i2)){
+						break;
+					}
+				}
+				if(hasKeyEvt===false) iv.push(i);
+				else hasKey=true;
+			}
+		}
 		if(hasKey===false) data[x]=0;
+		else for(let i=0;i!==iv.length;++i) delete d[iv[i]];
 	}
 	while(data.length&&!data.back) data.pop();
 	for(let x=0;x!==data.length;++x) if(!data[x]) data[x]=0;
