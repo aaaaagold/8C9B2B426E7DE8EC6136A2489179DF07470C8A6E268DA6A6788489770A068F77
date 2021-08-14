@@ -3410,10 +3410,11 @@ $r$=$pppp$.create;
 	let w,tmp;
 	// set help fontsize
 	w=this._helpWindow;
-	tmp=w.standardFontSize();
-	w.setFontsize((tmp>>1)+(tmp>>3));
+	//tmp=w.standardFontSize();
+	//w.setFontsize((tmp>>1)+(tmp>>3));
 	tmp=w.height;
-	w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
+	//w.height=w.fittingHeight(3-!($gameSystem&&$gameSystem._usr._showFullEquipInfo));
+	w.height=w.fittingHeight(3);
 	// extend up(-y) following windows
 	tmp-=w.height;
 	w=this._goldWindow;
@@ -14699,7 +14700,7 @@ $pppp$.drawAllVal=function(x,oy){
 		this._actor._equips_editCache_del(ori);
 		this._actor._equips_editCache_add(item);
 		for(let i=strt,y=oy;i<sz;++i){
-			if(vals[i]==="") continue;
+			if(vals[i]===""){ y+=h; continue; }
 			const val=this._actor.param(i);
 			this.changeTextColor(this.paramchangeTextColor(val-vals[i]));
 			this.drawText(val, x4, y+=h, 48, 'right');
