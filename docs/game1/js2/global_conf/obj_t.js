@@ -320,6 +320,9 @@ $pppp$.isInView_inScreen=function(){
 //	return xaw<Graphics._boxWidth && yah<Graphics._boxHeight && xaw+w>=0 && yah+h>=0;
 };
 $pppp$.isInView=function(){ // can view?
+	if(this._skipRender) return false;
+	else return this.isInView_inScreen();
+/*
 	if($gameScreen.limitedView && !this._character._light){
 		const p=this.parent.player; if(!p) return false;
 		const frm=this._frame,s=this.scale,a=this.anchor;
@@ -333,6 +336,7 @@ $pppp$.isInView=function(){ // can view?
 		return (L<=p.x&&p.x<=R&&U<=p.y&&p.y<=D);
 	}else if(this._skipRender) return false;
 	else return this.isInView_inScreen();
+*/
 };
 $k$='update_doAll';
 $pppp$[$k$]=$pppp$.update;
@@ -3059,7 +3063,7 @@ $r$=$pppp$[$k$];
 		// reset tone and viewRange
 		if($gameScreen._tone){
 			for(let x=0,arr=$gameScreen._tone;x!==arr.length;++x) arr[x]&=0; // reset tone
-			$gameScreen.limitedView=false; // reset viewRange
+			$gameScreen.limitedView=objs._getObj.call(none,$dataMap.meta.limitedView); // reset viewRange
 		}
 		// reset weather
 		if($gameScreen._weatherPower) $gameScreen.clearWeather();
@@ -9339,10 +9343,15 @@ this.refresh=none;
 		let tmp=Number(meta.z2);
 		if(!isNaN(tmp)) this._z2=tmp;
 	}
+	this._lightG=0;
+	if(meta.lightG){
+		const l=Number(meta.lightG);
+		if(0<l) this._lightG=l*Game_Map.e; // no gradient if no lightG
+	}
 	this._light=0;
 	if(meta.light){
-		let tmp=Number(meta.light);
-		if(0<tmp) this._light=tmp; // is light src if > 0
+		const l=Number(meta.light);
+		if(0<l) this._light=l*Game_Map.e;
 	}
 	this._opacity=255;
 	if(meta.opacity){
@@ -9606,6 +9615,24 @@ Object.defineProperties($pppp$,{
 			return this._plyr=rhs;
 		},
 	configurable:false},
+	_light:{
+		get:function(){ return this._viewRadius1; },
+		set:function(rhs){
+			if(!isNaN(rhs) && this._viewRadius1!==rhs){
+				this._viewRadius2=this._vrg+(this._viewRadius1=rhs);
+			}
+			return this._viewRadius1;
+		},
+	configurable:false},
+	_lightG:{
+		get:function(){ return this._vrg; },
+		set:function(rhs){
+			if(!isNaN(rhs) && this._vrg!==rhs){
+				this._viewRadius2=this._viewRadius1+(this._vrg=rhs);
+			}
+			return this._vrg;
+		},
+	configurable:false},
 	// simply shorten (default members)
 	_moveType:{ get:function(){ return this._mvtp; },set:function(rhs){
 		return this._mvtp=rhs;
@@ -9645,6 +9672,9 @@ Object.defineProperties($pppp$,{
 	_triggerFollower:{
 		get:function(){ return this._tf; },
 		set:function(rhs){ return this._tf=rhs; },
+	configurable:false},
+	_light2:{
+		get:function(){ return this._viewRadius2; },
 	configurable:false},
 });
 $pppp$.queuePush=function(qidx,data){ qidx^=0;
@@ -10027,7 +10057,9 @@ $r$=$pppp$[$k$];
 	const sp=this.getSprite();
 	sp && sp.setText(this.getText());
 	if(evtd.meta.colors || evtd.meta.scales) this.imgModded=true;
-	if(evtd.light && evtd.light.constructor===Array) this._light=evtd.light[this._pageIndex]^0;
+	if(evtd.light && evtd.light.constructor===Array){
+		this._light=evtd.light[this._pageIndex]^0;
+	}
 	return f.ori.call(this);
 }).ori=$r$;
 $pppp$.refresh=function(forced){

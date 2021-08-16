@@ -6,6 +6,7 @@
 if(!window.objs) window.objs={};
 objs.test_tilemap=true; // tilemap.children is an array if true
 objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if true
+objs.test_scaledLightCarving=true; // use a scale-down canvas to create source-atop mask
 
 // pixi
 {const tm=PIXI.tilemap,kp='prototype';
@@ -57,8 +58,7 @@ $d$=p.bindTextures = function f(renderer, shader, textures) {
 };
 $d$._clearBuffer=null; // new Uint8Array(1024 * 1024 * 4); // if 'null', fill zero, matching the size
 $d$._hackSubImage=function _hackSubImage(tex, sprite, clearBuffer, clearWidth, clearHeight) {
-	let gl = tex.gl;
-	let baseTex = sprite.texture.baseTexture;
+	const gl = tex.gl , baseTex = sprite.texture.baseTexture;
 	if (clearBuffer && clearWidth > 0 && clearHeight > 0) {
 		gl.texSubImage2D(gl.TEXTURE_2D, 0, sprite.position.x, sprite.position.y, clearWidth, clearHeight, tex.format, tex.type, clearBuffer);
 	}
@@ -1124,7 +1124,7 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 		}
 	}
 };
-$dddd$=$pppp$.renderCanvas=function f(renderer) {
+($pppp$.renderCanvas=function f(renderer) {
 	//debug.log('Tilemap.prototype.renderCanvas');
 	// if not visible or the alpha is 0 then no need to render this
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
@@ -1133,43 +1133,90 @@ $dddd$=$pppp$.renderCanvas=function f(renderer) {
 	if($gameScreen.limitedView){
 		const ctx=renderer.context,p=this.player;
 		ctx.save();
-		const r2=p.viewRadius2();
-		const grd=ctx.createRadialGradient(p.x , p.y, p.viewRadius1(), p.x, p.y, r2);
-		grd.addColorStop(0, '#000000');
-		grd.addColorStop(1, 'rgba(0,0,0,0)');
-		//ctx.fillStyle = '#000000';
-		ctx.fillStyle = grd;
-		ctx.globalCompositeOperation='source-in';
-		ctx.beginPath();
-		ctx.arc(p.x,p.y,r2,0,PI2);
-		ctx.fill();
+		if(objs.test_scaledLightCarving){
+			// objs.test_scaledLightCarving
+			const scale=0.25;
+			
+			const tc=f.tbl[0],c=ctx.canvas;
+			const w=tc.width  =c.width  *scale;
+			const h=tc.height =c.height *scale;
+			const tctx=tc.getContext('2d');
+			tctx.globalCompositeOperation='darken';
+			const r2=p.viewRadius2()*scale,x=p.x*scale,y=p.y*scale;
+			const grd=tctx.createRadialGradient(x , y, p.viewRadius1()*scale, x, y, r2);
+			grd.addColorStop(0, '#000000');
+			grd.addColorStop(1, 'rgba(0,0,0,0)');
+			tctx.fillStyle = grd;
+			tctx.beginPath();
+			tctx.arc(x,y,r2,0,PI2);
+			tctx.fill();
+			
+			tctx.globalCompositeOperation='darken';
+			f.tbl[1].ctx=tctx;
+			f.tbl[1].scale=scale;
+			this.children.forEach(f.tbl[1]);
+			
+			ctx.globalCompositeOperation='copy';
+			ctx.drawImage(f.tbl[0],0,0,c.width,c.height);
+		}else{
+			ctx.globalCompositeOperation='source-in';
+			const r2=p.viewRadius2(),x=p.x,y=p.y;
+			const grd=ctx.createRadialGradient(x , y, p.viewRadius1(), x, y, r2);
+			grd.addColorStop(0, '#000000');
+			grd.addColorStop(1, 'rgba(0,0,0,0)');
+			ctx.fillStyle = grd;
+			ctx.beginPath();
+			ctx.arc(x,y,r2,0,PI2);
+			ctx.fill();
+			
+			ctx.globalCompositeOperation='darken';
+			f.tbl[1].ctx=ctx;
+			f.tbl[1].scale=1;
+			this.children.forEach(f.tbl[1]);
+		}
 		ctx.globalCompositeOperation='source-atop';
 		
-		f.forEach.renderer=renderer;
+		f.tbl[2].renderer=renderer;
 		// do not render if a child is: 'Sprite_Character' and out of screen
-		this.children.forEach(f.forEach,true); // faster // AVLTree.prototype.forEach
+		//this.children.forEach(f.tbl[2],true); // faster // AVLTree.prototype.forEach
+		this.children.forEach(f.tbl[2]);
 		
 		ctx.restore();
 	}else{
-		f.forEach.renderer=renderer;
+		f.tbl[2].renderer=renderer;
 		// do not render if a child is: 'Sprite_Character' and out of screen
-		this.children.forEach(f.forEach,true); // faster // AVLTree.prototype.forEach
+		//this.children.forEach(f.tbl[2],true); // faster // AVLTree.prototype.forEach
+		this.children.forEach(f.tbl[2]);
 	}
 	//if(this._mask) renderer.maskManager.popMask(renderer);
-};
-$dddd$.forEach=function f(c){
-	if(c.constructor===Sprite_Character){
-		if(c._character._light){
-			let ctx=f.renderer.context;
-			let gco=ctx.globalCompositeOperation;
-			ctx.globalCompositeOperation='source-over';
-			c.renderCanvas(f.renderer);
-			ctx.globalCompositeOperation=gco;
-			return;
-		}else if(c.isInView()) return c.renderCanvas(f.renderer);
-	}else return c.renderCanvas(f.renderer);
-	//if(c.constructor!==Sprite_Character || c.isInView()) return c.renderCanvas(f.renderer);
-};
+}).tbl=[
+	d.ce('canvas'),
+	function f(p){
+		if(p.constructor===Sprite_Character && p._character._light2>0 && p.isInView()){
+			const ctx=f.ctx,scale=f.scale;
+			const r2=p.viewRadius2()*scale,x=p.x*scale,y=p.y*scale;
+			const grd=ctx.createRadialGradient(x , y, p.viewRadius1()*scale, x, y, r2);
+			grd.addColorStop(0, '#000000');
+			grd.addColorStop(1, 'rgba(0,0,0,0)');
+			ctx.fillStyle = grd;
+			ctx.beginPath();
+			ctx.arc(x,y,r2,0,PI2);
+			ctx.fill();
+		}
+	},
+	function f(c){
+		if(c.constructor===Sprite_Character){
+			if(c._character._light){
+				const ctx=f.renderer.context;
+				const gco=ctx.globalCompositeOperation;
+				ctx.globalCompositeOperation='source-over';
+				c.renderCanvas(f.renderer);
+				ctx.globalCompositeOperation=gco;
+				return;
+			}else if(c.isInView()) return c.renderCanvas(f.renderer);
+		}else return c.renderCanvas(f.renderer);
+	},
+];
 $rrrr$=$dddd$=$pppp$=$aaaa$=undef;
 
 // - ShaderTilemap
