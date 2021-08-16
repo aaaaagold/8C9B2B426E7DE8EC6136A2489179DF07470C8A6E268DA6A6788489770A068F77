@@ -1133,10 +1133,15 @@ $dddd$=$pppp$.renderCanvas=function f(renderer) {
 	if($gameScreen.limitedView){
 		const ctx=renderer.context,p=this.player;
 		ctx.save();
-		ctx.fillStyle = '#000000';
+		const r2=p.viewRadius2();
+		const grd=ctx.createRadialGradient(p.x , p.y, p.viewRadius1(), p.x, p.y, r2);
+		grd.addColorStop(0, '#000000');
+		grd.addColorStop(1, 'rgba(0,0,0,0)');
+		//ctx.fillStyle = '#000000';
+		ctx.fillStyle = grd;
 		ctx.globalCompositeOperation='source-in';
 		ctx.beginPath();
-		ctx.arc(p.x,p.y,Game_Map.e*3,0,PI2);
+		ctx.arc(p.x,p.y,r2,0,PI2);
 		ctx.fill();
 		ctx.globalCompositeOperation='source-atop';
 		
@@ -1299,10 +1304,12 @@ $dddd$=$pppp$._limitedView=function f(renderer){
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
 	const loc_reso = gl.getUniformLocation(prog, "u_resolution");
 	const loc_cent = gl.getUniformLocation(prog, "u_center");
-	const loc_radi = gl.getUniformLocation(prog, "u_radius");
+	const loc_radi1 = gl.getUniformLocation(prog, "u_radius1");
+	const loc_radi2 = gl.getUniformLocation(prog, "u_radius2");
 	gl.uniform2f(loc_reso, canvas.width, canvas.height);
 	gl.uniform2f(loc_cent, p.x, p.y);
-	gl.uniform1f(loc_radi, p._character.viewRadius||0);
+	gl.uniform1f(loc_radi1, p.viewRadius1()||0);
+	gl.uniform1f(loc_radi2, p.viewRadius2()||0);
 	
 	const loc_posi = gl.getAttribLocation(prog, "a_position");
 	if(!f.tbl.enabled){
@@ -1323,8 +1330,8 @@ $dddd$=$pppp$._limitedView=function f(renderer){
 	gl.vertexAttribPointer(old_attr_idx,old_attr_size,old_attr_type,old_attr_isNorm,old_attr_stride,old_attr_offset);
 };
 $dddd$.tbl={
-	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius = u_radius;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
-	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r2=radius*radius;\n\t\n\tif ( distance2 >= r2 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs._isDev?"0.5":"1.0")+");\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
+	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius1;\nuniform float u_radius2;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius1 = u_radius1;\n\tradius2 = u_radius2;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
+	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r12=radius1*radius1,r22=radius2*radius2;\n\t\n\tif ( distance2 >= r22 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs._isDev?"0.5":"1.0")+");\n\telse if ( distance2 >= r12 ) gl_FragColor = vec4(0.0, 0.0, 0.0, (distance2-r12)/(r22-r12)"+(objs._isDev?"/2.0":"")+" );\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
 	shaderV:undefined,
 	shaderF:undefined,
 	idxv:[ 0,1,2, 1,2,3, ],

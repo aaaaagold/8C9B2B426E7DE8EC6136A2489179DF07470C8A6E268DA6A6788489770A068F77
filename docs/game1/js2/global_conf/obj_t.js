@@ -529,6 +529,12 @@ if(0)Sprite_Character.prototype._renderCanvas=function f(renderer){
 		if(x>=SceneManager._boxWidth || y>=SceneManager._boxHeight || x+w<0 || y+h<0) ; else return Sprite.prototype._renderCanvas.call(this,renderer);
 	}else return Sprite.prototype._renderCanvas.call(this,renderer);
 };
+$pppp$.viewRadius1=function(){
+	return this._character._viewRadius1;
+};
+$pppp$.viewRadius2=function(){
+	return this._character._viewRadius2;
+};
 $pppp$=$aaaa$=undef;
 
 // - Sprite_Battler
@@ -6554,6 +6560,8 @@ $k$='initialize';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
 	f.ori.call(this);
+	this._viewRadius1=0;
+	this._viewRadius2=0;
 	this._tmp=[];
 }).ori=$r$;
 ($pppp$._deleteOldDataMember=function f(){
@@ -6631,6 +6639,12 @@ Object.defineProperties($pppp$,{
 	imgModded:{ get:function(){return this._imgModded;},set:function(rhs){
 		if(this._imgModded=rhs) ;//this._imgModded_timestamp=Date.now();
 		return rhs;
+	},configurable:false},
+	_viewRadius1:{ get:function(){return this._vr1;},set:function(rhs){
+		return  this._vr1=rhs;
+	},configurable:false},
+	_viewRadius2:{ get:function(){return this._vr2;},set:function(rhs){
+		return  this._vr2=rhs;
 	},configurable:false},
 });
 ($pppp$._getColorEdt=function f(){
@@ -7456,7 +7470,9 @@ $r$=$pppp$[$k$];
 	this.maxSavefiles=DataManager.maxSavefiles();
 	this._rndid=Date.now()+''+Math.random();
 	if(this.canDiag===undefined) this.canDiag=true;
-	this.viewRadius=Game_Map.e*3;
+	this._viewRadius1=Game_Map.e<<1;
+	this._viewRadius2=Game_Map.e*3;
+	this.viewRadius=this._viewRadius2;
 }).ori=$r$;
 $k$='isTransparent';
 $r$=$pppp$[$k$];

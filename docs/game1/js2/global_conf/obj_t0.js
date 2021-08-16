@@ -1038,15 +1038,18 @@ $pppp$=$aaaa$=undef;
 $aaaa$=Graphics;
 $pppp$=$aaaa$.prototype;
 $r$=$aaaa$.initialize;
-$d$=$aaaa$.initialize=function f(w,h,type){
+($aaaa$.initialize=function f(w,h,type){
 	f.ori.call(this,w,h,type);
-	this._pad=Game_Map.e*3;
+	this.setPad(Game_Map.e*3);
+}).ori=$r$;
+$aaaa$.setPad=function(pad){
+	this._pad=pad||Game_Map.e*3;
 	const p2=this._pad<<1;
 	this._boxWidth_pad4=(this._boxWidth_pad3=(this._boxWidth_pad2=this._boxWidth+p2)+this._pad)+this._pad;
 	this._boxHeight_pad4=(this._boxHeight_pad3=(this._boxHeight_pad2=this._boxHeight+p2)+this._pad)+this._pad;
 	this._boxWidth_pad6=this._boxWidth_pad4+p2;
 	this._boxHeight_pad6=(this._boxHeight_pad5=this._boxHeight_pad4+this._pad)+this._pad;
-}; $d$.ori=$r$;
+};
 $r$=$aaaa$._onKeyDown;
 $d$=$aaaa$._onKeyDown=function f(){
 	//debug.keydown('Graphics._onKeyDown');
