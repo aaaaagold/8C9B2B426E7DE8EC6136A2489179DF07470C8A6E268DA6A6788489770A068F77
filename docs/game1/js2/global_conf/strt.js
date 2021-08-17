@@ -90,4 +90,10 @@ const gl_attachShader=p.attachShader; p.attachShader=function(prog,shader){
 	w.bm=BattleManager;
 	w.sm=SceneManager;
 	w.loadjson=u=>_global_conf.jurl(u,"GET",0,0,0,t=>w.data=JSON.parse(t));
+	w.glenums=[];
+	for(let i in WebGLRenderingContext.prototype){
+		if(typeof WebGLRenderingContext.prototype[i]==='number'){
+			w.glenums[WebGLRenderingContext.prototype[i]]=i;
+		}
+	}
 }

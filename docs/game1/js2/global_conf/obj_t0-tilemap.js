@@ -6,7 +6,7 @@
 if(!window.objs) window.objs={};
 objs.test_tilemap=true; // tilemap.children is an array if true
 objs.test_webglTilemapAlpha=true; // not using alpha=0.25 re-drawn bitmaps if true
-objs.test_scaledLightCarving=true; // use a scale-down canvas to create source-atop mask
+objs.test_scaledLightCarving=0.25; // when >0, use a scale-down canvas to create source-atop mask
 
 // pixi
 {const tm=PIXI.tilemap,kp='prototype';
@@ -1133,10 +1133,8 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	if($gameScreen.limitedView){
 		const ctx=renderer.context,p=this.player;
 		ctx.save();
-		if(objs.test_scaledLightCarving){
-			// objs.test_scaledLightCarving
-			const scale=0.25;
-			
+		const scale=objs.test_scaledLightCarving;
+		if(scale>0){
 			const tc=f.tbl[0],c=ctx.canvas;
 			const w=tc.width  =c.width  *scale;
 			const h=tc.height =c.height *scale;
@@ -1259,37 +1257,187 @@ $pppp$.renderCanvas=function(renderer){
 	this._hackRenderer(renderer);
 	Tilemap.prototype.renderCanvas.call(this,renderer);
 };
-$dddd$=$pppp$.renderWebGL=function f(renderer) {
+($pppp$.renderWebGL=function f(renderer) {
 	this._hackRenderer(renderer);
 	//PIXI.Container.prototype.renderWebGL.call(this, renderer);
 	// if the object is not visible or the alpha is 0 then no need to render this element
 	if (!(this.visible && 0<this.worldAlpha && this.renderable)) return;
 	// do a quick check to see if this element has a mask or a filter.
-	if (this._mask || this._filters) this.renderAdvancedWebGL(renderer); // not executed
-	else {
+	if(this._mask || this._filters) this.renderAdvancedWebGL(renderer); // not executed
+	else{
 		this._renderWebGL(renderer); // is empty func.
 		
 		// simple render children!
 		f.forEach.renderer=renderer;
 		this.children.forEach(f.forEach,true);
 		
-		if($gameScreen.limitedView) this._limitedView(renderer);
+		if($gameScreen.limitedView) this._limitedView2(renderer);
 	}
-};
-$dddd$.forEach=function f(c){
+}).forEach=function f(c){
 	//if(!c._skipRender) c.renderWebGL(f.renderer); return;
 	if(c.constructor===Sprite_Character){
-		if(0&&c._character._light){
-			let ctx=f.renderer.context;
-			let gco=ctx.globalCompositeOperation;
-			ctx.globalCompositeOperation='source-over';
-			c.renderWebGL(f.renderer);
-			ctx.globalCompositeOperation=gco;
-			return;
-		}else if(c.isInView()) return c.renderWebGL(f.renderer);
+		if(c.isInView()) return c.renderWebGL(f.renderer);
 	}else return c.renderWebGL(f.renderer);
 };
-$dddd$=$pppp$._limitedView=function f(renderer){
+($pppp$._limitedView2=function f(renderer){
+	const gl=renderer.gl; if(!gl) return;
+	const p=this.player;
+	const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+	const old_abi=gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+	const old_prog=gl.getParameter(gl.CURRENT_PROGRAM);
+	// TODO: gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
+	const old_attr_cnt=gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
+	const old_attr=[];
+	const old_attr_idx=[];
+	const old_attr_size=[];
+	const old_attr_type=[];
+	const old_attr_isNorm=[];
+	const old_attr_stride=[];
+	const old_attr_offset=[];
+	for(let i=0;i!==old_attr_cnt;++i){
+		old_attr[i]=gl.getActiveAttrib(old_prog,i);
+		old_attr_idx[i]=gl.getAttribLocation(old_prog,old_attr[i].name);
+		old_attr_size[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_SIZE);
+		old_attr_isNorm[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_NORMALIZED);
+		old_attr_stride[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_STRIDE);
+		old_attr_offset[i]=gl.getVertexAttribOffset(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_POINTER);
+	}
+	
+	if(!f.tbl.prog){
+		const shaderV=f.tbl.shaderV||(f.tbl.shaderV=gl.createShader(gl.VERTEX_SHADER));
+		const shaderF=f.tbl.shaderF||(f.tbl.shaderF=gl.createShader(gl.FRAGMENT_SHADER));
+
+		gl.shaderSource(shaderV, f.tbl.shaderSrcV);
+		gl.shaderSource(shaderF, f.tbl.shaderSrcF);
+
+		gl.compileShader(shaderV);
+		gl.compileShader(shaderF);
+
+		const prog=f.tbl.prog=gl.createProgram();
+		gl.attachShader(prog, shaderV); 
+		gl.attachShader(prog, shaderF);
+		gl.linkProgram(prog);
+
+		gl.deleteShader(shaderV);
+		gl.deleteShader(shaderF);
+
+		if(f.tbl.glbuf){
+		}else{
+			f.tbl.glbuf_i =gl.createBuffer();
+			f.tbl.glbuf   =gl.createBuffer();
+		}
+	}
+	const prog=f.tbl.prog;
+	gl.useProgram(prog);
+	
+	const ATTRIBUTES = 5 , data = [] , eles = [];
+	const canvas=gl.canvas;
+	{ let j = 0 , k = 0 , r1 , r2;
+	
+	eles.push(
+		k,k+1,k+2,
+		k,k+2,k+3,
+		k,k+3,k+4,
+		k,k+4,k+1
+	);
+	r1=p.viewRadius1()||0; r1*=r1;
+	r2=p.viewRadius2()||0; r2*=r2;
+	for(let t=0;t!==5;++t){
+		data[j++]=p.x;
+		data[j++]=p.y;
+		data[j++]=r1;
+		data[j++]=r2;
+		data[j++]=t;
+		++k;
+	}
+	
+	f.tbl.forEach.a=ATTRIBUTES;
+	f.tbl.forEach.eles=eles;
+	f.tbl.forEach.data=data;
+	f.tbl.forEach.j=j;
+	f.tbl.forEach.k=k;
+	this.children.forEach(f.tbl.forEach);
+	}
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, f.tbl.glbuf_i);
+	gl.bindBuffer(gl.ARRAY_BUFFER, f.tbl.glbuf);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(eles), gl.STATIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+	const loc_reso = gl.getUniformLocation(prog, "u_resolution");
+	gl.uniform2f(loc_reso, canvas.width, canvas.height);
+	
+	const loc_cent = gl.getAttribLocation(prog, "a_center");
+	const loc_rad2 = gl.getAttribLocation(prog, "a_radius2");
+	const loc_type = gl.getAttribLocation(prog, "aType");
+	if(!f.tbl.enabled){
+		f.tbl.enabled=true;
+		gl.enableVertexAttribArray(loc_cent);
+		gl.enableVertexAttribArray(loc_rad2);
+		gl.enableVertexAttribArray(loc_type);
+	}
+	gl.vertexAttribPointer(loc_cent, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT,  0);
+	gl.vertexAttribPointer(loc_rad2, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT,  8);
+	gl.vertexAttribPointer(loc_type, 1, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT, 16);
+	
+	gl.blendFunc(gl.ONE,gl.ONE);
+	if(!f.ext) f.ext=gl.getExtension('EXT_blend_minmax'); // https://developer.mozilla.org/en-US/docs/Web/API/EXT_blend_minmax
+	gl.blendEquation(f.ext.MAX_EXT); // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendEquation
+	gl.colorMask(0,0,0,1);
+	gl.clearColor(0.0, 0.0, 0.0, 0.0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	
+	gl.drawElements(gl.TRIANGLES, eles.length, gl.UNSIGNED_SHORT, 0);
+	
+	gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+	gl.blendEquation(gl.FUNC_ADD);
+	gl.colorMask(1,1,1,1);
+	
+	if(objs.isDev && !f.tbl.firstErrPrinted) console.log(gl.getError())||(f.tbl.firstErrPrinted=1);
+	
+	// restore
+	gl.useProgram(old_prog);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
+	// seems not needed
+	if(0)for(let i=0;i!==3;++i){ // only use 3 attributes
+		//gl.vertexAttribPointer( gl.getAttribLocation(old_prog, old_attr.name) , old_attr.size , old_attr.type , false , 0 , 0);
+		gl.vertexAttribPointer(old_attr_idx[i],old_attr_size[i],old_attr_type[i],old_attr_isNorm[i],old_attr_stride[i],old_attr_offset[i]);
+	}
+}).tbl={
+	forEach:function f(p){
+		if(p.constructor===Sprite_Character && p._character._light2>0 && p.isInView()){
+			f.eles.push(
+				f.k,f.k+1,f.k+2,
+				f.k,f.k+2,f.k+3,
+				f.k,f.k+3,f.k+4,
+				f.k,f.k+4,f.k+1
+			);
+			const x=p.x,y=p.y;
+			let r1=p.viewRadius1()||0; r1*=r1;
+			let r2=p.viewRadius2()||0; r2*=r2;
+			for(let t=0,data=f.data;t!==5;++t){
+				data[f.j++]=x;
+				data[f.j++]=y;
+				data[f.j++]=r1;
+				data[f.j++]=r2;
+				data[f.j++]=t;
+				++f.k;
+			}
+		}
+	},
+	shaderSrcV:"precision lowp float;\n\nuniform vec2 u_resolution;\n\nattribute vec2 a_center,a_radius2;\nattribute float aType;\n\nvarying vec2 center;\nvarying float radius12,radius22;\n\nvoid main(){\n\tvec2 xy=vec2(0.0,0.0);\n\tif(aType==0.0) xy=a_center;\n\tif(aType==1.0) xy=u_resolution;\n\tif(aType==2.0) xy=vec2(0.0,u_resolution.y);\n\tif(aType==4.0) xy=vec2(u_resolution.x,0.0);\n\txy=xy/u_resolution*2.0-1.0;\n\t\n\tcenter = a_center;aType;\n\tradius12 = a_radius2[0];\n\tradius22 = a_radius2[1];\n\tgl_Position = vec4(xy*vec2(1, -1),-1,1);\n}",
+	shaderSrcF:"precision lowp float;\n\nvarying vec2 center;\nvarying float radius12,radius22;\n\nvoid main() {\n\tfloat dx = center.x - gl_FragCoord.x;\n\tfloat dy = center.y - gl_FragCoord.y;\n\tfloat d2 = dx*dx + dy*dy;\n\tfloat fc0=gl_FragColor[0],fc1=gl_FragColor[1],fc2=gl_FragColor[2],fc3=gl_FragColor[3];\n\t\n\tfloat a=1.0;\n\tif ( d2 >= radius22 ) a="+(objs._isDev?"0.5":"0.0")+";\n\telse if ( d2 >= radius12 ) a=(radius22-d2)/(radius22-radius12)"+(objs._isDev?"/2.0+0.5":"")+";\n\n\tgl_FragColor = vec4(0.0, 0.0, 0.0, a);\n}",
+	shaderV:undefined,
+	shaderF:undefined,
+	glbuf:undefined,
+	glbuf_i:undefined,
+	ab:undefined,
+	ab_i:undefined,
+	prog:undefined,
+	ext:undefined,
+	firstErrPrinted:false,
+	enabled:false,
+};
+($pppp$._limitedView=function f(renderer){
 	const gl=renderer.gl; if(!gl) return;
 	const p=this.player;
 	const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
@@ -1374,9 +1522,9 @@ $dddd$=$pppp$._limitedView=function f(renderer){
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
 	//gl.vertexAttribPointer( gl.getAttribLocation(old_prog, old_attr.name) , old_attr.size , old_attr.type , false , 0 , 0);
-	gl.vertexAttribPointer(old_attr_idx,old_attr_size,old_attr_type,old_attr_isNorm,old_attr_stride,old_attr_offset);
-};
-$dddd$.tbl={
+	// seems not needed
+	//gl.vertexAttribPointer(old_attr_idx,old_attr_size,old_attr_type,old_attr_isNorm,old_attr_stride,old_attr_offset);
+}).tbl={
 	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius1;\nuniform float u_radius2;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius1 = u_radius1;\n\tradius2 = u_radius2;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
 	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r12=radius1*radius1,r22=radius2*radius2;\n\t\n\tif ( distance2 >= r22 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs._isDev?"0.5":"1.0")+");\n\telse if ( distance2 >= r12 ) gl_FragColor = vec4(0.0, 0.0, 0.0, (distance2-r12)/(r22-r12)"+(objs._isDev?"/2.0":"")+" );\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
 	shaderV:undefined,

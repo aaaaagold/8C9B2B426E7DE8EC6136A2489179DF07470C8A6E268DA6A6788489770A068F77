@@ -1041,6 +1041,8 @@ $r$=$aaaa$.initialize;
 ($aaaa$.initialize=function f(w,h,type){
 	f.ori.call(this,w,h,type);
 	this.setPad(Game_Map.e*3);
+	this._captureThisFrame=false;
+	this._lastCapturedFrame=undefined;
 }).ori=$r$;
 $aaaa$.setPad=function(pad){
 	this._pad=pad||Game_Map.e*3;
@@ -1160,6 +1162,14 @@ $d$=$aaaa$.blurBorder=function f(stage){
 };
 $d$.template=d.ce('canvas');
 $d$.gc2=undefined;
+$aaaa$.setCaptureThisFrame=function(scale){
+	this._captureThisFrame=scale;
+};
+$aaaa$.getLastCapturedFrame=function(){
+	const rtv=this._lastCapturedFrame;
+	this._lastCapturedFrame=undefined;
+	return rtv;
+};
 $aaaa$.render=function f(stage){
 	if(0<this._skipCount) this._skipCount^=0;
 	else this._skipCount&=0;
@@ -1173,6 +1183,9 @@ $aaaa$.render=function f(stage){
 if(0){
 }
 // END test
+			const ctf=this._captureThisFrame;
+			if(ctf>0) this._lastCapturedFrame=d.ge('GameCanvas').scale(ctf).toDataURL();
+			this._captureThisFrame=0;
 		}
 		this._skipCount = Math.min((Date.now()-t0)>>4, this._maxSkip);
 		this._rendered = true;
