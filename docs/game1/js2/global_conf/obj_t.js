@@ -310,7 +310,12 @@ $r$=$pppp$[$k$];
 			}
 		}
 	}
+	this._noUpdatePos=undefined;
 }).ori=$r$;
+$pppp$.isInView_viewRadius=function(){
+	const r=this.viewRadius2()+Graphics._radius;
+	return Graphics.screenDist2(this)<r*r;
+};
 $pppp$.isInView_inScreen=function(){
 	return (~~((Graphics._boxWidth_pad6+this.x)/Graphics._boxWidth_pad4))===1 && (~~((Graphics._boxHeight_pad5+this.y)/Graphics._boxHeight_pad4))===1;
 //	const bm=this.bitmap; if(!bm||!bm.isReady()) return true; // not inited yet
@@ -321,7 +326,7 @@ $pppp$.isInView_inScreen=function(){
 };
 $pppp$.isInView=function(){ // can view?
 	if(this._skipRender) return false;
-	else return this.isInView_inScreen();
+	else return ($gameScreen.limitedView&&this.isInView_viewRadius())||this.isInView_inScreen();
 /*
 	if($gameScreen.limitedView && !this._character._light){
 		const p=this.parent.player; if(!p) return false;
@@ -480,6 +485,7 @@ $pppp$.patternHeight=function(){ // overwrite: ori use '/' , '%'
 $k$='updatePosition';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
+	if(this._noUpdatePos) return;
 	f.ori.call(this);
 	this.z2=this._character.screenZ2();
 }).ori=$r$;
@@ -6645,10 +6651,10 @@ Object.defineProperties($pppp$,{
 		return rhs;
 	},configurable:false},
 	_viewRadius1:{ get:function(){return this._vr1;},set:function(rhs){
-		return  this._vr1=rhs;
+		return  this._vr1=rhs|0;
 	},configurable:false},
 	_viewRadius2:{ get:function(){return this._vr2;},set:function(rhs){
-		return  this._vr2=rhs;
+		return  this._vr2=rhs|0;
 	},configurable:false},
 });
 ($pppp$._getColorEdt=function f(){
