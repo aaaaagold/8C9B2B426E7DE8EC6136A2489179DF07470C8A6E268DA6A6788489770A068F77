@@ -1051,6 +1051,15 @@ $aaaa$.setPad=function(pad){
 	this._boxHeight_pad4=(this._boxHeight_pad3=(this._boxHeight_pad2=this._boxHeight+p2)+this._pad)+this._pad;
 	this._boxWidth_pad6=this._boxWidth_pad4+p2;
 	this._boxHeight_pad6=(this._boxHeight_pad5=this._boxHeight_pad4+this._pad)+this._pad;
+	this._boxWidth_2  =this._boxWidth  >>1;
+	this._boxHeight_2 =this._boxHeight >>1;
+	this._radius=Math.sqrt(this._boxWidth_2*this._boxWidth_2 + this._boxHeight_2*this._boxHeight_2 );
+	this._radius2=Math.ceil(this._radius*this._radius)|0;
+	this._radius=Math.ceil(this._radius)|0;
+};
+$aaaa$.screenDist2=function(spChr){
+	const dx=spChr.x-this._boxWidth_2,dy=spChr.y-this._boxHeight_2;
+	return dx*dx+dy*dy;
 };
 $r$=$aaaa$._onKeyDown;
 $d$=$aaaa$._onKeyDown=function f(){
@@ -2151,6 +2160,7 @@ $pppp$._setBitmap_args=function(){
 	}
 	return hasSth&&rtv;
 };
+$pppp$.viewRadius2=$pppp$.viewRadius1=undefined;
 $pppp$=$aaaa$=undef; // END sprite
 
 // - Spriteset_BattleFieldDamages

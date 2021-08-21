@@ -482,7 +482,9 @@ $pppp$.doUpdateLater=function(){
 	if(this._updateLater_cnt>1){
 		for(let x=0;x!==chr.length;++x){
 			chr[x].update(false,true);
+			chr[x]._noUpdatePos=true;
 			chr[x].update();
+			chr[x]._noUpdatePos=false;
 		}
 	}else{
 		
@@ -1139,23 +1141,16 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 			const w=tc.width  =c.width  *scale;
 			const h=tc.height =c.height *scale;
 			const tctx=tc.getContext('2d');
-			tctx.globalCompositeOperation='darken';
-			const r2=p.viewRadius2()*scale,x=p.x*scale,y=p.y*scale;
-			const grd=tctx.createRadialGradient(x , y, p.viewRadius1()*scale, x, y, r2);
-			grd.addColorStop(0, '#000000');
-			grd.addColorStop(1, 'rgba(0,0,0,0)');
-			tctx.fillStyle = grd;
-			tctx.beginPath();
-			tctx.arc(x,y,r2,0,PI2);
-			tctx.fill();
 			
 			tctx.globalCompositeOperation='darken';
+			tctx.fillStyle="rgba(0,0,0,"+((1-$gameScreen.limitedView)||0)+")";
+			tctx.fillRect(0,0,w,h);
 			f.tbl[1].ctx=tctx;
 			f.tbl[1].scale=scale;
 			this.children.forEach(f.tbl[1]);
 			
 			ctx.globalCompositeOperation='copy';
-			ctx.drawImage(f.tbl[0],0,0,c.width,c.height);
+			ctx.drawImage(tc,0,0,c.width,c.height);
 		}else{
 			ctx.globalCompositeOperation='source-in';
 			const r2=p.viewRadius2(),x=p.x,y=p.y;
@@ -1190,9 +1185,10 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 }).tbl=[
 	d.ce('canvas'),
 	function f(p){
-		if(p.constructor===Sprite_Character && p._character._light2>0 && p.isInView()){
+		if(p.viewRadius2 && p.isInView()){
 			const ctx=f.ctx,scale=f.scale;
-			const r2=p.viewRadius2()*scale,x=p.x*scale,y=p.y*scale;
+			const r2=p.viewRadius2()*scale; if(!r2) return;
+			const x=p.x*scale,y=p.y*scale;
 			const grd=ctx.createRadialGradient(x , y, p.viewRadius1()*scale, x, y, r2);
 			grd.addColorStop(0, '#000000');
 			grd.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1290,7 +1286,6 @@ $pppp$.renderCanvas=function(renderer){
 	const old_attr=[];
 	const old_attr_idx=[];
 	const old_attr_size=[];
-	const old_attr_type=[];
 	const old_attr_isNorm=[];
 	const old_attr_stride=[];
 	const old_attr_offset=[];
@@ -1358,16 +1353,21 @@ $pppp$.renderCanvas=function(renderer){
 	f.tbl.forEach.k=k;
 	this.children.forEach(f.tbl.forEach);
 	}
+	
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, f.tbl.glbuf_i);
 	gl.bindBuffer(gl.ARRAY_BUFFER, f.tbl.glbuf);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(eles), gl.STATIC_DRAW);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
 	const loc_reso = gl.getUniformLocation(prog, "u_resolution");
-	gl.uniform2f(loc_reso, canvas.width, canvas.height);
+	const loc_base = gl.getUniformLocation(prog, "u_baseAlpha");
+	{ const c=gl.canvas,a=1-$gameScreen.limitedView||0;
+	gl.uniform2f(loc_reso, c.width, c.height);
+	gl.uniform1f(loc_base, Math.min(Math.max(a,0),1));
+	}
 	
 	const loc_cent = gl.getAttribLocation(prog, "a_center");
 	const loc_rad2 = gl.getAttribLocation(prog, "a_radius2");
-	const loc_type = gl.getAttribLocation(prog, "aType");
+	const loc_type = gl.getAttribLocation(prog, "a_dir");
 	if(!f.tbl.enabled){
 		f.tbl.enabled=true;
 		gl.enableVertexAttribArray(loc_cent);
@@ -1391,16 +1391,19 @@ $pppp$.renderCanvas=function(renderer){
 	gl.blendEquation(gl.FUNC_ADD);
 	gl.colorMask(1,1,1,1);
 	
-	if(objs.isDev && !f.tbl.firstErrPrinted) console.log(gl.getError())||(f.tbl.firstErrPrinted=1);
-	
 	// restore
 	gl.useProgram(old_prog);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
-	// seems not needed
-	if(0)for(let i=0;i!==3;++i){ // only use 3 attributes
-		//gl.vertexAttribPointer( gl.getAttribLocation(old_prog, old_attr.name) , old_attr.size , old_attr.type , false , 0 , 0);
-		gl.vertexAttribPointer(old_attr_idx[i],old_attr_size[i],old_attr_type[i],old_attr_isNorm[i],old_attr_stride[i],old_attr_offset[i]);
+	if(0)for(let i=0,sz=old_attr_cnt;i!==sz;++i){
+		gl.vertexAttribPointer(
+			old_attr_idx[i],
+			old_attr_size[i],
+			old_attr[i].type,
+			old_attr_isNorm[i],
+			old_attr_stride[i],
+			old_attr_offset[i]
+		);
 	}
 }).tbl={
 	forEach:function f(p){
@@ -1424,8 +1427,8 @@ $pppp$.renderCanvas=function(renderer){
 			}
 		}
 	},
-	shaderSrcV:"precision lowp float;\n\nuniform vec2 u_resolution;\n\nattribute vec2 a_center,a_radius2;\nattribute float aType;\n\nvarying vec2 center;\nvarying float radius12,radius22;\n\nvoid main(){\n\tvec2 xy=vec2(0.0,0.0);\n\tif(aType==0.0) xy=a_center;\n\tif(aType==1.0) xy=u_resolution;\n\tif(aType==2.0) xy=vec2(0.0,u_resolution.y);\n\tif(aType==4.0) xy=vec2(u_resolution.x,0.0);\n\txy=xy/u_resolution*2.0-1.0;\n\t\n\tcenter = a_center;aType;\n\tradius12 = a_radius2[0];\n\tradius22 = a_radius2[1];\n\tgl_Position = vec4(xy*vec2(1, -1),-1,1);\n}",
-	shaderSrcF:"precision lowp float;\n\nvarying vec2 center;\nvarying float radius12,radius22;\n\nvoid main() {\n\tfloat dx = center.x - gl_FragCoord.x;\n\tfloat dy = center.y - gl_FragCoord.y;\n\tfloat d2 = dx*dx + dy*dy;\n\tfloat fc0=gl_FragColor[0],fc1=gl_FragColor[1],fc2=gl_FragColor[2],fc3=gl_FragColor[3];\n\t\n\tfloat a=1.0;\n\tif ( d2 >= radius22 ) a="+(objs._isDev?"0.5":"0.0")+";\n\telse if ( d2 >= radius12 ) a=(radius22-d2)/(radius22-radius12)"+(objs._isDev?"/2.0+0.5":"")+";\n\n\tgl_FragColor = vec4(0.0, 0.0, 0.0, a);\n}",
+	shaderSrcV:"precision lowp float;\n\nuniform vec2 u_resolution;\nuniform float u_baseAlpha;\n\nattribute vec2 a_center,a_radius2;\nattribute float a_dir;\n\nvarying vec2 center;\nvarying float radius12,radius22,baseAlpha;\n\nvoid main(){\n\tvec2 xy=vec2(0.0,0.0);\n\tif(a_dir==0.0) xy=a_center;\n\tif(a_dir==1.0) xy=u_resolution;\n\tif(a_dir==2.0) xy=vec2(0.0,u_resolution.y);\n\tif(a_dir==4.0) xy=vec2(u_resolution.x,0.0);\n\txy=xy/u_resolution*2.0-1.0;\n\t\n\tcenter = a_center;a_dir;\n\tradius12 = a_radius2[0];\n\tradius22 = a_radius2[1];\n\tbaseAlpha = u_baseAlpha;\n\tgl_Position = vec4(xy*vec2(1, -1),-1,1);\n}",
+	shaderSrcF:"precision lowp float;\n\nvarying vec2 center;\nvarying float radius12,radius22,baseAlpha;\n\nvoid main() {\n\tfloat dx = center.x - gl_FragCoord.x;\n\tfloat dy = center.y - gl_FragCoord.y;\n\tfloat d2 = dx*dx + dy*dy;\n\t\n\tfloat a=1.0;\n\tif ( d2 >= radius22 ) a=baseAlpha;\n\telse if ( d2 >= radius12 ) a=(radius22-d2)/(radius22-radius12)*(1.0-baseAlpha)+baseAlpha;\n\n\tgl_FragColor = vec4(0.0, 0.0, 0.0, a);\n}",
 	shaderV:undefined,
 	shaderF:undefined,
 	glbuf:undefined,
@@ -1549,8 +1552,8 @@ $dddd$=$pppp$.refreshTileset=function f(){
 };
 $dddd$.toPIXI=bitmap=>bitmap._baseTexture?new PIXI.Texture(bitmap._baseTexture):bitmap;
 $pppp$.updateTransform=function() {
-	const startX = (this.origin.x - this._margin)/this._tileWidth  ^0;
-	const startY = (this.origin.y - this._margin)/this._tileHeight ^0;
+	const startX = ((this._lastOx=this.origin.x) - this._margin)/this._tileWidth  ^0;
+	const startY = ((this._lastOy=this.origin.y) - this._margin)/this._tileHeight ^0;
 	this._updateLayerPositions(startX, startY);
 	if (this._needsRepaint ||
 		this._lastStartX !== startX || this._lastStartY !== startY) {
