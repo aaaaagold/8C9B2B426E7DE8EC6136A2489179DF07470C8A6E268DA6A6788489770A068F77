@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-const ver = "4.2.6.8.9.6.XYZWVUT" ;
+const ver = "4.2.6.8.9.6☆4.XYZWVUTSRQPONMLKJIHGF" ;
 
 var isDev,dev_kkk,dev_kk,jss;
 if(window.sha256&&sha256(location.hash)=== "0x14DD85360B94DCFB62EC6A5195564BBC48D75D4844786C887011D385AE3B0FCC") debugger;
@@ -80,7 +80,7 @@ let waits=[],waits_i=0,kkk=dev_kkk||"",kk=dev_kk||"",XHR=(url,cb,onerr,istxt,met
 "$gamePlayer",
 ]);
 objs.waits=waits; objs._vars=vars; objs._vars_strArg=vars.slice(); objs._consts=[]; objs._consts_strArg=[]; objs.addVar=(k,v)=>{ objs._consts_strArg.push(k); objs._consts.push(v); };
-objs.testing=0; objs.isDev=isDev;
+objs.testing=0; objs.isDev=isDev; objs._isDev=isDev_;
 const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=>{
 	const wait={}; wait.src=src; wait.cnt=idxcnt; wait.cb=wcb;
 	if(k){
@@ -157,7 +157,7 @@ const confPrefix=window.confPrefix||'rpgConf ',putck=(f,idx,idxcnt,src,c,k,wcb)=
 		// disable some buffers to reduce mem. usage
 		//   not very effective (about 10%) (1GB -> 0.9GB)
 		a=PIXI.glCore.createContext; z=PIXI.glCore.createContext=function f(canvas,opt){
-			opt.preserveDrawingBuffer=opt.alpha=!(opt.premultipliedAlpha=opt.depth=opt.stencil=opt.antialias=false);
+			opt.alpha=!(opt.preserveDrawingBuffer=opt.premultipliedAlpha=opt.depth=opt.stencil=opt.antialias=false);
 			opt.powerPreference="low-power";
 			return f.ori.call(this,canvas,opt);
 		}; z.ori=a;
