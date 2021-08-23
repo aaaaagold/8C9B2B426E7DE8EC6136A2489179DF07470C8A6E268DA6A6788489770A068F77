@@ -1200,14 +1200,14 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	},
 	function f(c){
 		if(c.constructor===Sprite_Character){
-			if(c._character._light){
+			/* if(c._character._light){
 				const ctx=f.renderer.context;
 				const gco=ctx.globalCompositeOperation;
 				ctx.globalCompositeOperation='source-over';
 				c.renderCanvas(f.renderer);
 				ctx.globalCompositeOperation=gco;
 				return;
-			}else if(c.isInView()) return c.renderCanvas(f.renderer);
+			}else */ if(c.isInView()) return c.renderCanvas(f.renderer);
 		}else return c.renderCanvas(f.renderer);
 	},
 ];
@@ -1281,11 +1281,12 @@ $pppp$.renderCanvas=function(renderer){
 	const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
 	const old_abi=gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 	const old_prog=gl.getParameter(gl.CURRENT_PROGRAM);
-	// TODO: gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
+	// get attribute infos
 	const old_attr_cnt=gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
 	const old_attr=[];
 	const old_attr_idx=[];
 	const old_attr_size=[];
+	const old_attr_type=[];
 	const old_attr_isNorm=[];
 	const old_attr_stride=[];
 	const old_attr_offset=[];
@@ -1293,6 +1294,7 @@ $pppp$.renderCanvas=function(renderer){
 		old_attr[i]=gl.getActiveAttrib(old_prog,i);
 		old_attr_idx[i]=gl.getAttribLocation(old_prog,old_attr[i].name);
 		old_attr_size[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_SIZE);
+		old_attr_type[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_TYPE);
 		old_attr_isNorm[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_NORMALIZED);
 		old_attr_stride[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_STRIDE);
 		old_attr_offset[i]=gl.getVertexAttribOffset(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_POINTER);
@@ -1354,15 +1356,40 @@ $pppp$.renderCanvas=function(renderer){
 	this.children.forEach(f.tbl.forEach);
 	}
 	
+	let abdata_i;
+	{ const ab_i=f.tbl.ab_i,sz_byte=eles.length*Uint16Array.BYTES_PER_ELEMENT;
+	let len=ab_i.byteLength;
+	while(len<sz_byte) len<<=1;
+	if(ab_i.byteLength<len) f.tbl.ab_i=new ArrayBuffer(len);
+	abdata_i=new Uint16Array(f.tbl.ab_i);
+	for(let x=0;x!==data.length;++x) abdata_i[x]=eles[x];
+	}
+	let abdata;
+	{ const ab=f.tbl.ab,sz_byte=data.length*Float32Array.BYTES_PER_ELEMENT;
+	let len=ab.byteLength;
+	while(len<sz_byte) len<<=1;
+	if(ab.byteLength<len) f.tbl.ab=new ArrayBuffer(len);
+	abdata=new Float32Array(f.tbl.ab);
+	for(let x=0;x!==data.length;++x) abdata[x]=data[x];
+	}
+	
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, f.tbl.glbuf_i);
 	gl.bindBuffer(gl.ARRAY_BUFFER, f.tbl.glbuf);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(eles), gl.STATIC_DRAW);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+	if(f.tbl.ab_i_maxsz<abdata_i.length){
+		f.tbl.ab_i_maxsz=abdata_i.length;
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, abdata_i, gl.STATIC_DRAW);
+	}else gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, abdata_i);
+	if(f.tbl.ab_maxsz<abdata.length){
+		f.tbl.ab_maxsz=abdata.length;
+		gl.bufferData(gl.ARRAY_BUFFER, abdata, gl.STREAM_DRAW);
+	}else gl.bufferSubData(gl.ARRAY_BUFFER, 0, abdata);
+	
 	const loc_reso = gl.getUniformLocation(prog, "u_resolution");
 	const loc_base = gl.getUniformLocation(prog, "u_baseAlpha");
-	{ const c=gl.canvas,a=1-$gameScreen.limitedView||0;
+	const alpha=Math.min(Math.max(1-$gameScreen.limitedView||0,0),1);
+	{ const c=gl.canvas;
 	gl.uniform2f(loc_reso, c.width, c.height);
-	gl.uniform1f(loc_base, Math.min(Math.max(a,0),1));
+	gl.uniform1f(loc_base, alpha);
 	}
 	
 	const loc_cent = gl.getAttribLocation(prog, "a_center");
@@ -1378,28 +1405,33 @@ $pppp$.renderCanvas=function(renderer){
 	gl.vertexAttribPointer(loc_rad2, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT,  8);
 	gl.vertexAttribPointer(loc_type, 1, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT, 16);
 	
+	//const cMask=gl.getParameter(gl.COLOR_WRITEMASK); // obviously = [true,true,true,true]
+	//const cColor=gl.getParameter(gl.COLOR_CLEAR_VALUE); // 0,0,0,0 is good
+	//const dMask=gl.getParameter(gl.DEPTH_WRITEMASK); // no depth buffer
 	gl.blendFunc(gl.ONE,gl.ONE);
 	if(!f.ext) f.ext=gl.getExtension('EXT_blend_minmax'); // https://developer.mozilla.org/en-US/docs/Web/API/EXT_blend_minmax
 	gl.blendEquation(f.ext.MAX_EXT); // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendEquation
-	gl.colorMask(0,0,0,1);
-	gl.clearColor(0.0, 0.0, 0.0, 0.0);
+	gl.colorMask(false,false,false,true);
+	gl.clearColor(0.0, 0.0, 0.0, alpha);
 	gl.clear(gl.COLOR_BUFFER_BIT);
+	//gl.depthMask(false);
 	
 	gl.drawElements(gl.TRIANGLES, eles.length, gl.UNSIGNED_SHORT, 0);
 	
 	gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
 	gl.blendEquation(gl.FUNC_ADD);
-	gl.colorMask(1,1,1,1);
+	gl.colorMask(true,true,true,true);
+	//gl.depthMask(dMask);
 	
 	// restore
 	gl.useProgram(old_prog);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
-	if(0)for(let i=0,sz=old_attr_cnt;i!==sz;++i){
+	for(let i=0,sz=old_attr_cnt;i!==sz;++i){
 		gl.vertexAttribPointer(
 			old_attr_idx[i],
 			old_attr_size[i],
-			old_attr[i].type,
+			old_attr_type[i],
 			old_attr_isNorm[i],
 			old_attr_stride[i],
 			old_attr_offset[i]
@@ -1433,111 +1465,12 @@ $pppp$.renderCanvas=function(renderer){
 	shaderF:undefined,
 	glbuf:undefined,
 	glbuf_i:undefined,
-	ab:undefined,
-	ab_i:undefined,
+	ab_maxsz:0,
+	ab:new ArrayBuffer(Float32Array.BYTES_PER_ELEMENT*25*41),
+	ab_i_maxsz:0,
+	ab_i:new ArrayBuffer(Uint16Array.BYTES_PER_ELEMENT*12*171),
 	prog:undefined,
 	ext:undefined,
-	firstErrPrinted:false,
-	enabled:false,
-};
-($pppp$._limitedView=function f(renderer){
-	const gl=renderer.gl; if(!gl) return;
-	const p=this.player;
-	const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-	const old_abi=gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
-	const old_prog=gl.getParameter(gl.CURRENT_PROGRAM);
-	const old_attr=gl.getActiveAttrib(old_prog,0);
-	const old_attr_idx=gl.getAttribLocation(old_prog,old_attr.name);
-	const old_attr_size=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_SIZE);
-	const old_attr_type=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_TYPE);
-	const old_attr_isNorm=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_NORMALIZED);
-	const old_attr_stride=gl.getVertexAttrib(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_STRIDE);
-	const old_attr_offset=gl.getVertexAttribOffset(old_attr_idx,gl.VERTEX_ATTRIB_ARRAY_POINTER);
-	
-	if(!f.tbl.prog){
-		const shaderV=f.tbl.shaderV||(f.tbl.shaderV=gl.createShader(gl.VERTEX_SHADER));
-		const shaderF=f.tbl.shaderF||(f.tbl.shaderF=gl.createShader(gl.FRAGMENT_SHADER));
-
-		gl.shaderSource(shaderV, f.tbl.shaderSrcV);
-		gl.shaderSource(shaderF, f.tbl.shaderSrcF);
-
-		gl.compileShader(shaderV);
-		gl.compileShader(shaderF);
-
-		const prog=f.tbl.prog=gl.createProgram();
-		gl.attachShader(prog, shaderV); 
-		gl.attachShader(prog, shaderF);
-		gl.linkProgram(prog);
-
-		gl.deleteShader(shaderV);
-		gl.deleteShader(shaderF);
-
-		if(f.tbl.glbuf){
-		}else{
-			f.tbl.glbuf_i =gl.createBuffer();
-			f.tbl.glbuf   =gl.createBuffer();
-		}
-	}
-	const prog=f.tbl.prog;
-	gl.useProgram(prog);
-	
-	const ATTRIBUTES = 2 , data = [];
-	const canvas=gl.canvas;
-	{ let j = 0;
-	data[j++] = 0;
-	data[j++] = 0;
-	
-	data[j++] = canvas.width;
-	data[j++] = 0;
-	
-	data[j++] = 0;
-	data[j++] = canvas.height;
-	
-	data[j++] = canvas.width;
-	data[j++] = canvas.height;
-	}
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, f.tbl.glbuf_i);
-	gl.bindBuffer(gl.ARRAY_BUFFER, f.tbl.glbuf);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(f.tbl.idxv), gl.STATIC_DRAW);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-	const loc_reso = gl.getUniformLocation(prog, "u_resolution");
-	const loc_cent = gl.getUniformLocation(prog, "u_center");
-	const loc_radi1 = gl.getUniformLocation(prog, "u_radius1");
-	const loc_radi2 = gl.getUniformLocation(prog, "u_radius2");
-	gl.uniform2f(loc_reso, canvas.width, canvas.height);
-	gl.uniform2f(loc_cent, p.x, p.y);
-	gl.uniform1f(loc_radi1, p.viewRadius1()||0);
-	gl.uniform1f(loc_radi2, p.viewRadius2()||0);
-	
-	const loc_posi = gl.getAttribLocation(prog, "a_position");
-	if(!f.tbl.enabled){
-		f.tbl.enabled=true;
-		gl.enableVertexAttribArray(loc_posi);
-	}
-	gl.vertexAttribPointer(loc_posi, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT, 0);
-	
-	gl.drawElements(gl.TRIANGLES, f.tbl.idxv.length, gl.UNSIGNED_SHORT, 0);
-	if(objs.isDev && !f.tbl.firstErrPrinted) console.log(gl.getError())||(f.tbl.firstErrPrinted=1);
-	
-	// restore
-	gl.useProgram(old_prog);
-	//gl.disableVertexAttribArray(loc_posi);
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
-	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
-	//gl.vertexAttribPointer( gl.getAttribLocation(old_prog, old_attr.name) , old_attr.size , old_attr.type , false , 0 , 0);
-	// seems not needed
-	//gl.vertexAttribPointer(old_attr_idx,old_attr_size,old_attr_type,old_attr_isNorm,old_attr_stride,old_attr_offset);
-}).tbl={
-	shaderSrcV:"uniform vec2 u_resolution;\nuniform vec2 u_center;\nuniform float u_radius1;\nuniform float u_radius2;\n\nattribute vec2 a_position;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\tvec2 clipspace = a_position / u_resolution * 2.0 - 1.0;\n\tgl_Position = vec4(clipspace * vec2(1, -1), -1, 1);\n\t\n\tradius1 = u_radius1;\n\tradius2 = u_radius2;\n\tcenter = u_center;\n\tresolution = u_resolution;\n}",
-	shaderSrcF:"precision mediump float;\n\nvarying vec2 center;\nvarying vec2 resolution;\nvarying float radius1;\nvarying float radius2;\n\nvoid main() {\n\t\n\tfloat x = gl_FragCoord.x;\n\tfloat y = gl_FragCoord.y;\n\t\n\tfloat dx = center[0] - x;\n\tfloat dy = center[1] - y;\n\tfloat distance2 = dx*dx + dy*dy;\n\tfloat r12=radius1*radius1,r22=radius2*radius2;\n\t\n\tif ( distance2 >= r22 ) gl_FragColor = vec4(0.0, 0.0, 0.0, "+(objs._isDev?"0.5":"1.0")+");\n\telse if ( distance2 >= r12 ) gl_FragColor = vec4(0.0, 0.0, 0.0, (distance2-r12)/(r22-r12)"+(objs._isDev?"/2.0":"")+" );\n\telse gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\t\n}",
-	shaderV:undefined,
-	shaderF:undefined,
-	idxv:[ 0,1,2, 1,2,3, ],
-	glbuf:undefined,
-	glbuf_i:undefined,
-	ab:undefined,
-	ab_i:undefined,
-	prog:undefined,
 	firstErrPrinted:false,
 	enabled:false,
 };
