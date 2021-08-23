@@ -77,16 +77,42 @@ if(typeof objs!=="undefined" && objs.isDev){
 }
 if(typeof objs!=='undefined' && objs.isDev) console.log("strt");
 
-if(objs.isDev){ const w=window;
-// add debug info
+if(objs.isDev){ const w=window; let k,r;
+
+	// add debug info
 { const p=WebGLRenderingContext.prototype;
-const gl_attachShader=p.attachShader; p.attachShader=function(prog,shader){
+k='attachShader';
+r=p[k]; (p[k]=function f(prog,shader){
 	if(!prog._shaders) prog._shaders=[];
 	prog._shaders.push(shader);
-	return gl_attachShader.apply(this,arguments);
-};
+	return f.ori.apply(this,arguments);
+}).ori=r;
+k='drawElements';
+r=p[k]; (p[k]=function f(){
+	if(window.pauseOnDraw) if(window.pauseOnDraw_skipThis) window.pauseOnDraw_skipThis=0; else debugger;
+	return f.ori.apply(this,arguments);
+}).ori=r;
+k='drawArrays';
+r=p[k]; (p[k]=function f(){
+	if(window.pauseOnDraw) if(window.pauseOnDraw_skipThis) window.pauseOnDraw_skipThis=0; else debugger;
+	return f.ori.apply(this,arguments);
+}).ori=r;
+k='vertexAttribPointer';
+r=p[k]; (p[k]=function f(){
+	if(window.pauseOnVap) if(window.pauseOnVap_skipThis) window.pauseOnVap_skipThis=0; else debugger;
+	return f.ori.apply(this,arguments);
+}).ori=r;
 }
-// dev shortcuts
+
+{ const p=console;
+k='warn';
+r=p[k]; (p[k]=function f(){
+	if(window.pauseOnWarn) debugger;
+	return f.ori.apply(this,arguments);
+}).ori=r;
+}
+
+	// dev shortcuts
 	w.bm=BattleManager;
 	w.sm=SceneManager;
 	w.loadjson=u=>_global_conf.jurl(u,"GET",0,0,0,t=>w.data=JSON.parse(t));

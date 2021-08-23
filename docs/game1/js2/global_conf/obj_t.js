@@ -3067,10 +3067,9 @@ $r$=$pppp$[$k$];
 	// '$dataMap' is updated ; '$gameMap' will be updated after 'f.ori' if by '$gamePlayer.reserveTransfer'
 	if($gameScreen){
 		// reset tone and viewRange
-		if($gameScreen._tone){
-			for(let x=0,arr=$gameScreen._tone;x!==arr.length;++x) arr[x]&=0; // reset tone
-			$gameScreen.limitedView=objs._getObj.call(none,$dataMap.meta.limitedView); // reset viewRange
-		}
+		if($gameScreen._tone) for(let x=0,arr=$gameScreen._tone;x!==arr.length;++x) arr[x]&=0; // reset tone
+		// reset viewRange
+		$gameScreen.limitedView=objs._getObj.call(none,$dataMap.meta.limitedView); // reset viewRange
 		// reset weather
 		if($gameScreen._weatherPower) $gameScreen.clearWeather();
 	}

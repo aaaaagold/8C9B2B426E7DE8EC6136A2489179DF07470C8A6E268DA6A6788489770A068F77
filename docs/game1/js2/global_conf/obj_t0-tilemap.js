@@ -1200,14 +1200,14 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	},
 	function f(c){
 		if(c.constructor===Sprite_Character){
-			if(c._character._light){
+			/* if(c._character._light){
 				const ctx=f.renderer.context;
 				const gco=ctx.globalCompositeOperation;
 				ctx.globalCompositeOperation='source-over';
 				c.renderCanvas(f.renderer);
 				ctx.globalCompositeOperation=gco;
 				return;
-			}else if(c.isInView()) return c.renderCanvas(f.renderer);
+			}else */ if(c.isInView()) return c.renderCanvas(f.renderer);
 		}else return c.renderCanvas(f.renderer);
 	},
 ];
@@ -1281,11 +1281,12 @@ $pppp$.renderCanvas=function(renderer){
 	const old_ab=gl.getParameter(gl.ARRAY_BUFFER_BINDING);
 	const old_abi=gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 	const old_prog=gl.getParameter(gl.CURRENT_PROGRAM);
-	// TODO: gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
+	// get attribute infos
 	const old_attr_cnt=gl.getProgramParameter(old_prog,gl.ACTIVE_ATTRIBUTES);
 	const old_attr=[];
 	const old_attr_idx=[];
 	const old_attr_size=[];
+	const old_attr_type=[];
 	const old_attr_isNorm=[];
 	const old_attr_stride=[];
 	const old_attr_offset=[];
@@ -1293,6 +1294,7 @@ $pppp$.renderCanvas=function(renderer){
 		old_attr[i]=gl.getActiveAttrib(old_prog,i);
 		old_attr_idx[i]=gl.getAttribLocation(old_prog,old_attr[i].name);
 		old_attr_size[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_SIZE);
+		old_attr_type[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_TYPE);
 		old_attr_isNorm[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_NORMALIZED);
 		old_attr_stride[i]=gl.getVertexAttrib(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_STRIDE);
 		old_attr_offset[i]=gl.getVertexAttribOffset(old_attr_idx[i],gl.VERTEX_ATTRIB_ARRAY_POINTER);
@@ -1378,28 +1380,33 @@ $pppp$.renderCanvas=function(renderer){
 	gl.vertexAttribPointer(loc_rad2, 2, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT,  8);
 	gl.vertexAttribPointer(loc_type, 1, gl.FLOAT, false, ATTRIBUTES * Float32Array.BYTES_PER_ELEMENT, 16);
 	
+	//const cMask=gl.getParameter(gl.COLOR_WRITEMASK); // obviously = [true,true,true,true]
+	//const cColor=gl.getParameter(gl.COLOR_CLEAR_VALUE); // 0,0,0,0 is good
+	//const dMask=gl.getParameter(gl.DEPTH_WRITEMASK); // no depth buffer
 	gl.blendFunc(gl.ONE,gl.ONE);
 	if(!f.ext) f.ext=gl.getExtension('EXT_blend_minmax'); // https://developer.mozilla.org/en-US/docs/Web/API/EXT_blend_minmax
 	gl.blendEquation(f.ext.MAX_EXT); // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/blendEquation
-	gl.colorMask(0,0,0,1);
+	gl.colorMask(false,false,false,true);
 	gl.clearColor(0.0, 0.0, 0.0, 0.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
+	//gl.depthMask(false);
 	
 	gl.drawElements(gl.TRIANGLES, eles.length, gl.UNSIGNED_SHORT, 0);
 	
 	gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
 	gl.blendEquation(gl.FUNC_ADD);
-	gl.colorMask(1,1,1,1);
+	gl.colorMask(true,true,true,true);
+	//gl.depthMask(dMask);
 	
 	// restore
 	gl.useProgram(old_prog);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, old_abi, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, old_ab, gl.STATIC_DRAW);
-	if(0)for(let i=0,sz=old_attr_cnt;i!==sz;++i){
+	for(let i=0,sz=old_attr_cnt;i!==sz;++i){
 		gl.vertexAttribPointer(
 			old_attr_idx[i],
 			old_attr_size[i],
-			old_attr[i].type,
+			old_attr_type[i],
 			old_attr_isNorm[i],
 			old_attr_stride[i],
 			old_attr_offset[i]
