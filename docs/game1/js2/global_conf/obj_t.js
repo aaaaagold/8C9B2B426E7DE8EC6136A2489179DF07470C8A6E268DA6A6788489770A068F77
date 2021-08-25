@@ -4516,7 +4516,7 @@ $r$=$pppp$[$k$];
 	//debug.log('Game_Map.prototype.displayName');
 	const pt=$gameParty && $gameParty.mapChanges,id=$gameMap._mapId;
 	const evalName = $dataMap.evalName===undefined ? ($dataMap.evalName=objs._getObj($dataMap.meta.evalName)) : $dataMap.evalName ;
-	return pt && pt[id] && pt[id].name && evalName || f.ori.call(this);
+	return pt && pt[id] && pt[id].name || evalName || f.ori.call(this);
 }).ori=$r$;
 $r$=$pppp$.data;
 ($d$=$pppp$.data=function f(idx){
@@ -10077,11 +10077,21 @@ $pppp$.refresh=function(forced){
 	return this;
 };
 $r$=$pppp$.list;
-($pppp$.list=function f(){
+($d$=$pppp$.list=function f(){
 	let olist=f.ori.call(this),rtv=[];
-	for(let x=0;x!==olist.length;++x){
-		let curr=olist[x];
-		if(curr.code===108 && curr.parameters[0]==="<meta>"){ // comments with starting line="<meta>" is not presented in list
+	for(let x=0,converted=new Set(),useOri;x!==olist.length;++x){
+		const curr=olist[x];
+		switch(!(useOri=converted.has(x)) && curr.code){
+		default:{
+			useOri=true;
+		}break;
+		case 102:{
+			f.convertToAdvancedChoice(curr);
+			useOri=true;
+		}break;
+		case 108:{
+			if(curr.parameters[0]!=="<meta>"){ useOri=true; break; }
+			// comments with starting line="<meta>" is not presented in list
 			let c=x+1,cmt="";
 			for(;c!==olist.length;++c){
 				if(olist[c].code===408){
@@ -10116,6 +10126,11 @@ $r$=$pppp$.list;
 					rtv.push({code:355,indent:indent,parameters:["delete this._wait_scrollTo_done;"]}); // script
 				} }break;
 			} }
+			if(tmp.enables!==undefined && olist[c].code===102){
+				// only worked if the next is choices (102)
+				f.convertToAdvancedChoice(olist[c],JSON.parse(tmp.enables));
+				converted.add(c);
+			}
 			if(tmp.cond!==undefined){
 				//let cond=eval(tmp.cond);
 				let cond=objs._getObj.call(this,tmp.cond);
@@ -10127,12 +10142,27 @@ $r$=$pppp$.list;
 				}
 			}
 			x=c-1; // for-loop: ++x
-		}else rtv.push(olist[x]);
+		}break;
+		}
+		if(useOri) rtv.push(curr);
 	}
-	let tmp=rtv.back;
 	rtv.push(Game_Interpreter.EMPTY);
 	return rtv;
 }).ori=$r$;
+$d$.convertToAdvancedChoice=(cmd102,enables)=>{
+	// enables[i] means i-th (0-based) of the original choices' enabled _getObj string. false-like is default: enabled
+	const dst=cmd102.parameters[0],noBak=!cmd102.p0bak;
+	if(noBak) cmd102.p0bak=deepcopy(dst);
+	const src=cmd102.p0bak;
+	let x=0;
+	if(noBak){
+		if(!enables) for(;x!==src.length;++x) dst[x]=[src[x]];
+		else for(;x!==src.length;++x) dst[x]=[src[x],enables[x]];
+	}else{
+		if(!enables) for(;x!==src.length;++x) dst[x].length=1;
+		else for(;x!==src.length;++x) dst[x][1]=enables[x];
+	}
+};
 $pppp$._genFaceData=function(c){
 	// 0<this._tileId (i.e. 0<$dataEvent.page.image.tileId) or ImageManager.isObjectCharacter
 	// Sprite_Character.prototype.patternWidth
@@ -14345,7 +14375,7 @@ $pppp$.clearCommandList=function(){
 $pppp$.drawItem=function(index) {
 	let rect=this.itemRectForText(index);
 	let align = this.itemTextAlign();
-	if(this._list[index] && this._list[index].once) this.contents.textColor=$dataCustom.textcolor.keyword;
+	if(this._list[index] && this._list[index].once) this.contents.textColor=$dataCustom.textcolor.keyword; // egg
 	else this.resetTextColor();
 	this.changePaintOpacity(this.isCommandEnabled(index));
 	this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
@@ -14574,7 +14604,7 @@ $r$=$pppp$[$k$];
 $pppp$.addOnceCommand=function(){
 	if(sha256(window['/tmp/']&&window['/tmp/'].V_I_M||'')==="0x321B146E4F257B81015ADF9BC4E84852334D134B27470E079838364188864AED"){
 		this.addCommand('Visit It', 'gifts');
-		this._list.back.once=1;
+		this._list.back.once=1; // egg
 	}
 };
 $pppp$.addMainCommands=function(){ // 
@@ -15350,7 +15380,7 @@ $pppp$.maxChoiceWidth = function() {
 	if(!(maxWidth>=96)) maxWidth=96; // original setting
 	const choices=$gameMessage.choices();
 	for(let i=0;i!==choices.length;++i){
-		const choiceWidth = this.textWidthEx(choices[i]) + this.textPadding() * 2;
+		const choiceWidth = this.textWidthEx(choices[i][0]) + this.textPadding() * 2;
 		//debug("Window_ChoiceList.prototype.maxChoiceWidth",i,choiceWidth);
 		if(maxWidth<choiceWidth) maxWidth=choiceWidth;
 	}
@@ -15433,6 +15463,12 @@ $r$=$pppp$.start;
 	}
 	return rtv;
 }).ori=$r$;
+$pppp$.makeCommandList=function(){
+	const choices=$gameMessage.choices();
+	for(let i=0;i!==choices.length;++i){
+		this.addCommand(choices[i][0], 'choice', !choices[i][1]||objs._getObj.call(none,choices[i][1]));
+	}
+};
 $pppp$=$aaaa$=undef;
 
 // - savefilelist
