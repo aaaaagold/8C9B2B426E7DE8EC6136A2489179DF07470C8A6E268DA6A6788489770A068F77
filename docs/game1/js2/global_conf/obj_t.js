@@ -6087,6 +6087,7 @@ $r$=$pppp$[$k$];
 	{
 		const dataItem=$dataStates[stateId];
 		const meta=dataItem && dataItem.meta; if(!meta) return false;
+		//if(dataItem._base && this.isStateResist(dataItem._base)) return false; // in 'isStateResist'
 		const cond=dataItem.cond||(dataItem.cond=(meta.cond=meta.cond)&&objs._getObj.call(none,meta.cond));
 		if(cond && !cond(this)) return false;
 	}

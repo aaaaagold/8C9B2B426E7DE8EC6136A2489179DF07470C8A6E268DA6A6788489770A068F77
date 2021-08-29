@@ -1046,8 +1046,7 @@ $pppp$._stateDmgVal_del=function(stat,c){
 		f.tbl[2]="return "+stat.dmgVal[1]+stat.dmgVal[2];
 		stat.dmgVal_func=Function.apply(null,f.tbl);
 	}
-	let rtv=stat.dmgVal_func.call(none,undefined,this);
-	return ~~rtv;
+	return stat.dmgVal_func.call(none,undefined,this)*this.elementRate(stat.dmgVal[3])||0;
 }).tbl=['windiw','b',];
 $pppp$.stateDmgValHp=function(){
 	let rtv=0;

@@ -77,6 +77,24 @@ list.rfl_summonClones_all=action=>{
 	for(let x=tbl.length>>1;x--;) $gameParty.removeActor(tbl[(x<<1)|1],tbl[x<<1]);
 	list.rfl_summonClones_fromActorWorkers(a);
 };
+list.rfl_summonClone=(action,trgt)=>{
+	const a=action.subject();
+	if(a.friendsUnit()!==trgt.friendsUnit()) return;
+	if(!a||a.constructor!==Game_Actor||!rfl_summonClones_isValidScene(SceneManager._scene)) return;
+	if(!a._meta.workers) a._meta.workers=[];
+	const tbl=[];
+	const t=$dataMap.templateStrt_item+11;
+	const mp=$gameMap,evts=mp._events;
+	const members=a.friendsUnit().members();
+	const ad=a.getData();
+	{
+		const m=trgt;
+		if(a===m || m._meta.worker || ad===m || ad!==m.getData()) return;
+		a._meta.workers.push(m._actorId);
+		$gameParty.removeActor(m._actorId);
+	}
+	list.rfl_summonClones_fromActorWorkers(a);
+};
 list.rfl_backClones_all=action=>{
 	const a=action.subject();
 	if(!a||a.constructor!==Game_Actor||!rfl_summonClones_isValidScene(SceneManager._scene)) return;
