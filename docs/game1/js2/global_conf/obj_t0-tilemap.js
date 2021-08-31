@@ -758,7 +758,10 @@ $pppp$._updateLayerPositions=function(){
 	for(let i = 0; i!==spritePs.length; ++i){
 		const children = spritePs[i].children , limitRect = spritePs[i]._limitRect;
 		if(limitRect){
-			if(limitRect[0]>=ox+this._width || limitRect[1]>=oy+this._height || ox>=limitRect[2] || oy>=limitRect[3]) continue;
+			if(limitRect[0]>=ox+this._width || limitRect[1]>=oy+this._height || ox>=limitRect[2] || oy>=limitRect[3]){
+				for(let x=0;x!==children.length;++x) children[x]._texture._frame.width=0;
+				continue;
+			}
 			const dx=limitRect[0]-ox , dy=limitRect[1]-oy , dw=limitRect[2]-limitRect[0] , dh=limitRect[3]-limitRect[1]; // actually drawn 
 			const dxe=dx+dw , dye=dy+dh;
 			let mvx0,mvy0,xs0,ys0,xe0,ye0,mvx3,mvy3,xs3,ys3,xe3,ye3;
