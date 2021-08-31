@@ -31,7 +31,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.dmgimg=x.meta.dmgimg?JSON.parse(x.meta.dmgimg):undefined;
 	});
 	
-	// comment in first non-runable page as note
+	// comment in first page (non-runable) as note
 	f.doForEach($dataTroops,x=>{
 		const pg0=x.pages[0]; if(pg0){
 		const cond=pg0.conditions; if(!(cond.actorValid||cond.enemyValid||cond.switchValid||cond.turnEnding||cond.turnValid)){
@@ -433,6 +433,23 @@ $dddd$=$pppp$.arrangeData=function f(){
 		}
 	});
 	
+	// troop pages: set name
+	f.doForEach($dataTroops,f.makeTroopPgName);
+	
+	// troop pages: cmdset vars: replace comment with cmds in the refer page
+	f.doForEach($dataTroops,f.placingRefTroopPgs);
+	
+	f.doForEach($dataTroops,dataobj=>{
+		for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
+			pgs[p].conditions.btlEnd=false;
+			for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
+				if(cmds[c].code===108 && cmds[c].parameters[0]==="@END"){
+					pgs[p].conditions.btlEnd=true;
+				}
+			}
+		}
+	});
+	
 	// **** recursive def (_*) ****
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		x._arr=$dataSkills;
@@ -650,6 +667,20 @@ $dddd$.makeTraitsMap=dataobj=>{
 		if(tmp=tmapS.get(Game_BattlerBase.TRAIT_ACTION_PLUS)) dataobj.params.push(tmp.v*1e6); // +act times
 	}
 };
+{ const kw="name=",re_invalid=/^\+-[0-9]/;
+$dddd$.makeTroopPgName=dataobj=>{
+	const m=dataobj.name2pgidx=new Map();
+	for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
+		for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
+			if(cmds[c].code===108 && cmds[c].parameters[0].slice(0,kw.length)===kw){
+				m.set(pgs[p].name=cmds[c].parameters[0].slice(kw.length),p);
+				if(pgs[p].name.match(re_invalid)) throw new Error('not a valid page name @ troop id='+dataobj.id+' page '+(p+1));
+				break;
+			}
+		}
+	}
+};
+}
 $dddd$.makeUncounterable=dataobj=>dataobj.uncounterable=dataobj.meta.uncounterable!==undefined;
 $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
@@ -833,6 +864,62 @@ $dddd$.note2traits=x=>{
 		// only state can has this, not doing it here
 	}
 };
+{ const kw="use=",tunePage=(dataobj,pgs,p,visiting)=>{
+	if(pgs[p].list_ori) return;
+	if(visiting.has(p)){
+		const arr=[]; visiting.forEach(x=>arr.push(x));
+		throw new Error('loop detected @ troop id='+dataobj.id+' page '+(p+1)+"\n loop = "+JSON.stringify(arr));
+	}
+	visiting.add(p);
+	const newcmds=[];
+	for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
+		if(cmds[c].code===108 && cmds[c].parameters[0].slice(0,kw.length)===kw){
+			const useval=cmds[c].parameters[0].slice(kw.length);
+			let delta=false,num;
+			switch(useval[0]){
+			case '+':
+			case '-': delta=true;
+			// use editor order
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				// by number
+				num=Number(useval);
+			break;
+			default:
+				// by name
+				num=dataobj.name2pgidx.get(useval)+1;
+			break;
+			}
+			if(!num) throw new Error('refered page num is NaN or 0 ('+useval+') @ troop id='+dataobj.id+' page '+(p+1)); // not accept delta=0 or page=0
+			const rp=num+(delta?p:-1);
+			if(!(rp>=0&&rp<pgs.length)) throw new Error('refered page out of bound @ troop id='+dataobj.id+' page '+(p+1)); // not accept delta=0 or page=0
+			tunePage(dataobj,pgs,rp,visiting); // ensure list is done with replacements
+			for(let x=0,arr=pgs[rp].list;x!==arr.length;++x){
+				const obj=deepcopy(arr[x]);
+				obj.indent+=cmds[c].indent;
+				newcmds.push(obj);
+			}
+			++c; while(cmds[c]&&cmds[c].code===408) ++c;
+			--c;
+			
+		}else newcmds.push(cmds[c]);
+	}
+	pgs[p].list_ori=pgs[p].list;
+	pgs[p].list=newcmds;
+	visiting.delete(p);
+};
+$dddd$.placingRefTroopPgs=dataobj=>{
+	const visiting=new Set();
+	for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p) tunePage(dataobj,pgs,p,visiting);
+};
+}
 $dddd$.precal=dataobj=>{
 	// pre-cal. something always being like that
 	dataobj.successRate/=100;
