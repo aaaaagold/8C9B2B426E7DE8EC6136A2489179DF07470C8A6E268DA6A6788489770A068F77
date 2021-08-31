@@ -2474,7 +2474,8 @@ $pppp$.commandOptimize=function f(){
 	SoundManager.playEquip();
 	const iw=this._itemWindow;
 	const itemEmpty=iw._data&&(iw._data.length===0||iw._data[0]===null);
-	this.actor().optimizeEquipments();
+	//this.actor().optimizeEquipments();
+	this.actor().fillEmptyEquipSlots();
 	if(!itemEmpty || (iw._data&&(iw._data.length===0||iw._data[0]===null))!==itemEmpty) iw.refresh();
 	this._statusWindow.refresh();
 	this._slotWindow._setSlotIdTbl();
@@ -10127,18 +10128,21 @@ $r$=$pppp$.list;
 					rtv.push({code:355,indent:indent,parameters:["delete this._wait_scrollTo_done;"]}); // script
 				} }break;
 			} }
-			if(tmp.enables!==undefined && olist[c].code===102){
+			if(olist[c].code===102){
 				// only worked if the next is choices (102)
-				f.convertToAdvancedChoice(olist[c],JSON.parse(tmp.enables));
+				f.convertToAdvancedChoice(olist[c],tmp.enables&&JSON.parse(tmp.enables));
 				converted.add(c);
 			}
+			const rtvLen=rtv.length;
 			if(tmp.cond!==undefined){
 				//let cond=eval(tmp.cond);
 				let cond=objs._getObj.call(this,tmp.cond);
 				if(!cond && tmp.elseSkipN){
 					//let skipN=eval(tmp.elseSkipN);
-					let skipN=objs._getObj.call(this,tmp.elseSkipN);
-					let line=(skipN && skipN.constructor===Function)?skipN(olist,c,rtv):skipN;
+					const skipN=objs._getObj.call(this,tmp.elseSkipN);
+					const isFunc=(skipN && skipN.constructor===Function);
+					const line=isFunc?skipN(olist,c,rtv):skipN;
+					if(isFunc) for(let x=rtvLen;x!==rtv.length;++x) if(rtv[x].code===102 && rtv[x].parameters[0][0].constructor!==Array) f.convertToAdvancedChoice(rtv[x]);
 					c+=line; if(c>=olist.length) c=olist.length;
 				}
 			}
@@ -12088,6 +12092,7 @@ $d$=$pppp$.optimizeEquipments=function f(){
 				} }
 				continue;
 			}
+			/*
 			for(let x=0,xs=recnt[i];x!==xs;++x){ if(this.isEquipChangeOk(i,x)){
 				//this.changeEquip(i, this.bestEquipItem(i),x);
 				const top=h.top; if(top){
@@ -12095,6 +12100,7 @@ $d$=$pppp$.optimizeEquipments=function f(){
 					if(--top[2]===0) h.pop();
 				}
 			} }
+			*/
 		}
 	}
 	this.refresh(true);
@@ -12102,6 +12108,24 @@ $d$=$pppp$.optimizeEquipments=function f(){
 };
 $d$.cmp=(a,b)=>a[1]-b[1];
 $d$.tbl={preserveRepeats:true};
+($pppp$.fillEmptyEquipSlots=function f(){
+	const slots=this.equipSlots();
+	const maxSlotTypes = slots.length,repeats=$dataSystem.equipTypes.meta.repeat;
+	const recnt=this._equips.map(x=>x&&x.constructor===Array&&x.length);
+	for(let i=0;i!==maxSlotTypes;++i) if(!repeats[slots[i]]&&this.isEquipChangeOk(i)&&!this._equips[i]._itemId) this.changeEquip(i, this.bestEquipItem(i));
+	for(let i=0,eall=$gameParty.equipItems();i!==maxSlotTypes;++i){
+		if(!repeats[slots[i]]) continue;
+		const etypeId=slots[i];
+		const h=new Heap(f.cmp , eall.filter( item => item.etypeId === etypeId && this.canEquip(item) ).map(item=>[item,this.calcEquipItemPerformance(item),$gameParty.numItems(item)]) , true);
+		const x=recnt[i]-1;
+		if(this.isEquipChangeOk(i,x)){ const top=h.top; if(top){
+			this.changeEquip(i,top[0],x,true,true);
+			if(--top[2]===0) h.pop();
+		} }
+	}
+	this.refresh(true);
+	this.updateChase();
+}).cmp=(a,b)=>a[1]-b[1];
 $pppp$.refresh=function(noReleaseEquips,only){
 	if(this.noRefresh) return this._needRefresh=true;
 	if(!noReleaseEquips) this.releaseUnequippableItems(false);
@@ -14379,7 +14403,18 @@ $pppp$.drawItem=function(index) {
 	if(this._list[index] && this._list[index].once) this.contents.textColor=$dataCustom.textcolor.keyword; // egg
 	else this.resetTextColor();
 	this.changePaintOpacity(this.isCommandEnabled(index));
-	this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
+	const txt=this.commandName(index);
+	let omit=0,printed=txt[0]==='\\';
+	if(printed){ omit=2; switch(txt[1]){
+	case 'E':{
+		this.drawTextEx(txt.slice(omit), rect.x, rect.y);
+	}break;
+	default: omit=1;
+	case '_':
+		printed=false;
+	break;
+	} }
+	if(!printed) this.drawText(omit?txt.slice(omit):txt, rect.x, rect.y, rect.width, align);
 };
 $pppp$=$aaaa$=undef;
 
@@ -15467,7 +15502,7 @@ $r$=$pppp$.start;
 $pppp$.makeCommandList=function(){
 	const choices=$gameMessage.choices();
 	for(let i=0;i!==choices.length;++i){
-		this.addCommand(choices[i][0], 'choice', !choices[i][1]||objs._getObj.call(none,choices[i][1]));
+		this.addCommand("\\E"+choices[i][0], 'choice', !choices[i][1]||objs._getObj.call(none,choices[i][1]));
 	}
 };
 $pppp$=$aaaa$=undef;
