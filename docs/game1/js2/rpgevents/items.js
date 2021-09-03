@@ -209,6 +209,9 @@ const returnToSomewhere=(action,mapId,x,y,dir,fade,msg_alreadyAt)=>{
 		$gameMessage.popup(msg_alreadyAt,1);
 	}
 };
+list._genReturnTo=(mapId,x,y,dir,fade,msg_alreadyAt)=>{
+	return action=>returnToSomewhere(action,mapId,x,y,dir,fade,msg_alreadyAt);
+};
 list.returnFloatCity=action=>{
 	returnToSomewhere(action,32,25,34,8,0,"已在浮游城");
 };

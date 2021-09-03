@@ -1729,7 +1729,10 @@ $k$='makeEscapeRatio';
 $r$=$aaaa$[$k$];
 ($aaaa$[$k$]=function f(){
 	if($gameTroop._trueEscape || $gameParty.mustEscape()) this._escapeRatio = 1;
-	else f.ori.call(this);
+	else if($gameTroop._escapeRatioFunc_txt){
+		if(!$gameTroop._escapeRatioFunc) $gameTroop._escapeRatioFunc=objs._getObj.call(this,$gameTroop._escapeRatioFunc_txt);
+		this._escapeRatio=$gameTroop._escapeRatioFunc(this);
+	}else f.ori.call(this);
 }).ori=$r$;
 $aaaa$._logItemUsed=function(container,item,s){
 	// s' use
@@ -2604,7 +2607,11 @@ $pppp$._edt=function f(){
 	$dataCustom.apps=$dataCustom.apps_ori;
 	$dataSystem.currencyUnit=$dataSystem.currencyUnit_ori;
 	$dataSystem.titleBgm=deepcopy($dataSystem.titleBgm_ori);
-	objs.confs={};
+	objs.confs={
+		hideLearnableSkills:false,
+		noRestoreHpMp:false,
+		useStp:false,
+	};
 	switch(sha256(info)){
 	case "book":{
 		$dataSystem. title1Name = "Book";
@@ -4393,12 +4400,12 @@ $pppp$.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
 	// evt.constructor === Game_Event
 	
 	// self switches
-	if(evt._sameStatEvts){
-		const obj=objs.$gameSelfSwitches._data[objs.$gameMap._mapId];
-		const sskeys=objs.$gameSelfSwitches.switches;
-		for(let x=0,arr=evt._sameStatEvts;x!==arr.length;++x){ let evtid=arr[x];
-			for(let z=0;z!==sskeys.length;++z){
-				objs.$gameSelfSwitches.setValue_(obj,evtid,sskeys[z],!doRemove && obj[evt._eventId][s]);
+	if(evt._sameStatEvts){ const obj=objs.$gameSelfSwitches._data[objs.$gameMap._mapId];
+		if(obj){ const sskeys=objs.$gameSelfSwitches.switches;
+			for(let x=0,arr=evt._sameStatEvts;x!==arr.length;++x){ let evtid=arr[x];
+				for(let z=0;z!==sskeys.length;++z){
+					objs.$gameSelfSwitches.setValue_(obj,evtid,sskeys[z],!doRemove && obj[evt._eventId][s]);
+				}
 			}
 		}
 	}
@@ -5659,10 +5666,10 @@ $pppp$.getTraits_overall_m=function(code,id){
 	return rtv;
 };
 $pppp$.traitsPi=function(code, id){
-	return this.getTraits_overall_m(code,id);
+	return id===undefined?1:this.getTraits_overall_m(code,id);
 };
 $pppp$.traitsSum=function(code, id){
-	return this.getTraits_overall_s(code,id);
+	return id===undefined?0:this.getTraits_overall_s(code,id);
 };
 $pppp$.traitsSumAll=function(code){
 	return this.getTraits_overall_s(code).v||0;
@@ -6996,7 +7003,7 @@ if(0)$d$.map=chrs=>{
 	}
 	return rtv;
 };
-($pppp$.moveAwayChr_bfs=function f(chr,fullSearch){
+($pppp$.moveAwayChr_bfs=function f(chr,fullSearch,stop){
 	let list=[],disables=[];
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y+1)]);
 	disables.push([$gameMap.roundX(chr.x+1),$gameMap.roundY(chr.y-1)]);
@@ -7024,7 +7031,7 @@ if(0)$d$.map=chrs=>{
 	}
 	let dir=this.findDirTo(list,disables,{fullSearch:fullSearch});
 	if(dir) this.moveDiagonally_d8(dir);
-	else if(chr) this.moveAwayFromCharacter(chr);
+	else if(chr&&!stop) this.moveAwayFromCharacter(chr);
 }).map=$pppp$.moveToChrs_bfs.map;
 $pppp$.moveAwayFromCharacter=function(chr){
 	let sx=this.deltaXFrom(chr.x);
@@ -8757,7 +8764,21 @@ $pppp$._gainItem_msg=function(item, cnt, includeEquip, noSound){
 			if(i!==-1) head+="\\RGB["+color[c.attr[i]]+"]"+c.text[i]+"\\RGB["+color.default+"] ";
 		}
 	}
-	let txt=head+(arguments[0].name.replace(/\\/g,"\\\\"))+"\\RGB["+color.default+"] * ";
+	let txt=head;
+	{
+		let omit=0,printed=item.name[0]==='\\';
+		if(printed){ omit=2; switch(item.name[1]){
+		case 'E':{
+			txt+=item.name.slice(omit);
+		}break;
+		default: omit=1;
+		case '-':
+			printed=false;
+		break;
+		} }
+		if(!printed) txt+=(omit?item.name.slice(omit):item.name).replace(/\\/g,"\\\\");
+	}
+	txt+="\\RGB["+color.default+"] * ";
 	//if(!$gameSystem._usr._noGainMsg) $gameMessage.add(txt+Math.abs(cnt));
 	if(!$gameSystem._usr._noGainMsg&&!$gameTemp.____byChEqu) $gameMessage.add_gainItem(txt,cnt,item);
 	if(!$gameSystem._usr._noGainHint) $gameMessage.popup(txt+Math.abs(cnt),1);
@@ -11272,7 +11293,7 @@ $r$=$pppp$[$k$];
 	{
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
 	//if(meta&&meta.func) objs._getObj.call(none,meta.func.replace(/\(|\)/g,''))(this);
-	const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && objs._getObj.call(none,meta.func.replace(/\(|\)/g,'')) );
+	const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && objs._getObj.call(none,meta.func) );
 	//const func=dataItem.func||( dataItem.func=meta&&(meta.func=meta.func) && eval('objs.'+meta.func.replace(/\(|\)/g,'')) );
 	if(func) func(this);
 	//if(meta&&meta.code) objs._doFlow.call(this,meta.code);
@@ -12721,7 +12742,7 @@ $r$=$pppp$[$k$];
 			const n=this._mimic=refActor=ids.rnd();
 			const a=$gameActors.actor(n);
 			for(let x=0,arr=this._paramPlus;x!==arr.length;++x){
-				arr[x]=a.paramBase(x)+a.paramPlus(x);
+				arr[x]=a.paramBase(x)+a.paramPlus(x)-this.paramBase(x);
 			}
 			this.recoverAll(true);
 		}break;
@@ -12801,7 +12822,7 @@ $pppp$=$aaaa$=undef;
 // - Game_Troop
 $aaaa$=Game_Troop;
 $pppp$=$aaaa$.prototype;
-$pppp$.getDate=function(){
+$pppp$.getData=function(){
 	return this.troop();
 };
 $pppp$.clear = function() {
@@ -12812,6 +12833,8 @@ $pppp$.clear = function() {
 	this._turnCount = 0;
 	this._namesCount = {};
 	this._trueEscape=false;
+	this._escapeRatioFunc_txt=0;
+	this._escapeRatioFunc=undefined;
 	this._incKey=0;
 	if($gameTemp._tp_key2e) $gameTemp._tp_key2e.clear(); else $gameTemp._tp_key2e=new Map(); 
 };
@@ -12835,6 +12858,8 @@ $r$=$pppp$.setup;
 	f.ori.call(this,id);
 	this._setUKeys();
 	// meta // TODO
+	const meta=this.getData().meta;
+	this._trueEscape=!!meta.trueEscape;
 }).ori=$r$;
 $pppp$.addNew=function(e,dur,ox,oy){
 	if(dur!==0) dur=dur||23;
@@ -13069,7 +13094,18 @@ $pppp$.drawItemName=function(item, x, y, width){
 		if(clr) this.changeTextColor(clr);
 		else this.resetTextColor();
 		this.drawIcon(item.iconIndex, x + 2, y + 2);
-		this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+		
+		let omit=0,printed=item.name[0]==='\\';
+		if(printed){ omit=2; switch(item.name[1]){
+		case 'E':{
+			this.drawTextEx(item.name.slice(omit), x + iconBoxWidth, y, width - iconBoxWidth);
+		}break;
+		default: omit=1;
+		case '-':
+			printed=false;
+		break;
+		} }
+		if(!printed) this.drawText(omit?item.name.slice(omit):item.name, x + iconBoxWidth, y, width - iconBoxWidth);
 	}
 };
 $pppp$.textWidth=function f(txt,ende){ // TODO: aligned tab width
@@ -13254,6 +13290,7 @@ $d$.regExp=/^[\$\.\|\^!><\{\}\\-]|^[A-Z]+/i;
 $d$=$pppp$.processEscapeCharacter=function f(code, textState){
 	// upper case str
 	switch(code){
+	case 'E': break; // use drawTextEx instead of drawText ; already ex
 	case '-': break; // a break, no function
 	case 'MINOR': { // only function in Window_Message
 		if(this.constructor!==Window_Message) break;
@@ -13713,12 +13750,12 @@ $d$=$pppp$.makeItemList=function f(){
 	if(this._actor){
 		const a=this._actor;
 		const c=a._skills_getUpdatedCache(),rtv=this._data=a.skills().filter(f.forEach, this);
-		for(let x=0,arr=this._actor.currentClass().learnings;x!==arr.length;++x){
+		if(!objs.confs.hideLearnableSkills){ for(let x=0,arr=this._actor.currentClass().learnings;x!==arr.length;++x){
 			// maybe not learn skills well, so still iterate all
 			const id=arr[x].skillId;
 			if(c.has(id)) continue;
 			if(this.includes($dataSkills[id])) rtv.push(arr[x]);
-		}
+		} }
 	}else if(this._data) this._data.length=0; else this._data=[];
 };
 $d$.forEach=function(item){ return this.includes(item); };
@@ -14207,12 +14244,12 @@ $d$=$pppp$.displayActionResults=function f(subject,target,action,isInstShowMsg){
 		if(!isInstShowMsg&&_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
 };
-$pppp$.displayActionChaseResults=function(subject,target,action){
+($pppp$.displayActionChaseResults=function f(subject,target,action){
 	if(target.result().used){
 		this.push('-actChaseResStrt');
 		this.push('-set_doMore');
 		{ const item=action.item(),logs=$dataCustom.battle.logs;
-		this.push('addText', (item.scope?logs.chaseAim:logs.chase).format(subject.name(),target.name(),"\\skill["+item.id+']'));
+		this.push('addText', (item.scope?logs.chaseAim:logs.chase).format(subject.name(),target.name(),f.tbl[item.itemType]+item.id+']') );
 		}
 		// lag
 		//if(this.isRepeatedAnimationAction(action)) this.push('showAnimation', subject, [target], action.item().animationId);
@@ -14227,6 +14264,11 @@ $pppp$.displayActionChaseResults=function(subject,target,action){
 		this.push('-actChaseResEnde');
 		if(_global_conf.chasePopAfterFrame) this.push('-set_break');
 	}
+}).tbl={
+	//'a':"\\armor[",
+	'i':"\\item[",
+	's':"\\skill[",
+	//'w':"\\weapon[",
 };
 // Window_BattleLog.prototype.displayDamage
 $pppp$.displayStpDamage = function(target) {
@@ -14410,7 +14452,7 @@ $pppp$.drawItem=function(index) {
 		this.drawTextEx(txt.slice(omit), rect.x, rect.y);
 	}break;
 	default: omit=1;
-	case '_':
+	case '-':
 		printed=false;
 	break;
 	} }

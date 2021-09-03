@@ -956,9 +956,6 @@ Object.defineProperties($pppp$,{
 	decDmgP:{ get: function() { return this.decreaseDamageP(); },configurable: false},
 	decDmgM:{ get: function() { return this.decreaseDamageM(); },configurable: false},
 });
-$pppp$.paramRate = function(paramId) {
-	return this.getTraits_overall_m(Game_BattlerBase.TRAIT_PARAM, paramId);
-};
 $pppp$.stateResistSet = function() {
 	return this.getTraits_overall_s(Game_BattlerBase.TRAIT_STATE_RESIST);
 };
