@@ -2472,20 +2472,24 @@ $pppp$.playtimeText=function(){
 	let hour =~~(min/60); min%=60;
 	return (hour+'').padZero(2) + ':' + (min+'').padZero(2) + ':' + (sec+'').padZero(2);
 };
-$pppp$.database_typeToArr=function(type){
+($pppp$.database_typeToArr=function f(type){
 	// 1-indexed ; the order is according to MV editor
-	switch(type){
-	case 1: return $dataActors;
-	case 2: return $dataSkills;
-	case 3: return $dataItems;
-	case 4: return $dataWeapons;
-	case 5: return $dataArmors;
-	case 6: return $dataTroops;
-	case 7: return $dataStates;
-	case 8: return $dataAnimations;
-	case 9: return $dataTilesets;
-	}
-};
+	if(f.tbl) return f.tbl[type];
+	f.tbl={
+		0: undefined,
+		1: $dataActors,
+		2: $dataSkills,
+		3: $dataItems,
+		4: $dataWeapons,
+		5: $dataArmors,
+		6: $dataTroops,
+		7: $dataStates,
+		8: $dataAnimations,
+		9: $dataTilesets,
+		undefined:undefined,
+	};
+	return f.apply(this,arguments);
+}).tbl=undefined;
 $pppp$._database_resetLen=function(){
 	for(let t=1;t!==10;++t){
 		const $data=this.database_typeToArr(t);

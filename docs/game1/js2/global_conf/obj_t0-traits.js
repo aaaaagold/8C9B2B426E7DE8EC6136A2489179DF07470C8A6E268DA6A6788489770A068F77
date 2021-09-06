@@ -7,10 +7,12 @@
 $aaaa$=Scene_Boot;
 $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
+	let tmp;
 	
 	// == tune consts ==
-	if(undefined===$dataSystem.elements.barehand){
-		$dataSystem.elements.barehand=$dataSystem.elements.indexOf('barehand');
+	tmp=$dataSystem.elements;
+	if(undefined===tmp.barehand){
+		tmp.barehand=tmp.indexOf('barehand');
 		{ const k = 'emptyTemplateId' , n = "== empty template ==";
 		[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(arr=>{
 			for(let x=0;x!==arr.length;++x) if(arr[x] && arr[x].name===n){ arr[k]=x; break; }
@@ -1108,23 +1110,30 @@ $pppp$.regenTpV=function(){
 	return rtv;
 }).key=$t$;
 $t$=undef;
-$pppp$._stateDmgVal_add=function(stat,c){
+($pppp$._stateDmgVal_add=function f(stat,c){
 	c=c||this._stateDmgVal_getCache();
-	switch(stat&&stat.dmgVal&&stat.dmgVal[0]){
-	case 1: c.add(stat.id); return c.hp.add(stat.id);
-	case 2: c.add(stat.id); return c.mp.add(stat.id);
-	case 3: c.add(stat.id); return c.tp.add(stat.id);
-	}
-};
-$pppp$._stateDmgVal_del=function(stat,c){
+	return (f.tbl.get(stat&&stat.dmgVal&&stat.dmgVal[0])||none)(c,stat.id);
+}).tbl=new Map([
+	[1, (c,id)=>{ c.add(id); return c.hp.add(id); }],
+	[2, (c,id)=>{ c.add(id); return c.mp.add(id); }],
+	[3, (c,id)=>{ c.add(id); return c.tp.add(id); }],
+]);
+($pppp$._stateDmgVal_del=function f(stat,c){
 	c=c||this._stateDmgVal_getCache();
-	switch(stat&&stat.dmgVal&&stat.dmgVal[0]){
-	default: c.hp.delete(stat.id); c.mp.delete(stat.id); c.tp.delete(stat.id); return c.delete(stat.id);
-	case 1: c.delete(stat.id); return c.hp.delete(stat.id);
-	case 2: c.delete(stat.id); return c.mp.delete(stat.id);
-	case 3: c.delete(stat.id); return c.tp.delete(stat.id);
+	const func=f.tbl.get(stat&&stat.dmgVal&&stat.dmgVal[0]);
+	if(func) return func(c,stat.id);
+	else{
+		const id=stat.id;
+		c.hp.delete(id);
+		c.mp.delete(id);
+		c.tp.delete(id);
+		return c.delete(id);
 	}
-};
+}).tbl=new Map([
+	[1, (c,id)=>{ c.delete(id); return c.hp.delete(id); }],
+	[2, (c,id)=>{ c.delete(id); return c.mp.delete(id); }],
+	[3, (c,id)=>{ c.delete(id); return c.tp.delete(id); }],
+]);
 ($pppp$._stateDmgVal_calc=function f(stat){
 	if(!stat.dmgVal_func){
 		f.tbl[2]="return "+stat.dmgVal[1]+stat.dmgVal[2];

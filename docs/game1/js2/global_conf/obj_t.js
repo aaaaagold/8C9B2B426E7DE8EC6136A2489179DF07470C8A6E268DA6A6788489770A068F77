@@ -1707,8 +1707,23 @@ $r$=$aaaa$[$k$];
 	
 	this._actionNoEffect=false;
 	
+	// key : subject
 	if(this._actLog_turn) this._actLog_turn.clear(); else this._actLog_turn=new Map();
 	if(this._actLog_all ) this._actLog_all .clear(); else this._actLog_all =new Map();
+	
+	// key : subject
+	if(this._actResLogS_turn) this._actResLogS_turn.clear(); else this._actResLogS_turn=new Map();
+	if(this._actResLogS_all ) this._actResLogS_all .clear(); else this._actResLogS_all =new Map();
+	// key : target
+	if(this._actResLogT_turn) this._actResLogT_turn.clear(); else this._actResLogT_turn=new Map();
+	if(this._actResLogT_all ) this._actResLogT_all .clear(); else this._actResLogT_all =new Map();
+	
+	// key : subject
+	if(this._actDmgLogS_turn) this._actDmgLogS_turn.clear(); else this._actDmgLogS_turn=new Map();
+	if(this._actDmgLogS_all ) this._actDmgLogS_all .clear(); else this._actDmgLogS_all =new Map();
+	// key : target
+	if(this._actDmgLogT_turn) this._actDmgLogT_turn.clear(); else this._actDmgLogT_turn=new Map();
+	if(this._actDmgLogT_all ) this._actDmgLogT_all .clear(); else this._actDmgLogT_all =new Map();
 	
 	this.initChases();
 }).ori=$r$;
@@ -1743,7 +1758,7 @@ $aaaa$._logItemUsed=function(container,item,s){
 	}
 	// overall item used
 	if(s) this._logItemUsed(container,item);
-}
+};
 $aaaa$.logItemUsed=function(item,s){
 	this._logItemUsed(this._actLog_turn,item,s);
 	this._logItemUsed(this._actLog_all ,item,s);
@@ -1759,6 +1774,40 @@ $aaaa$.getItemUsedCount_turn=function(item,s){
 $aaaa$.getItemUsedCount_all=function(item,s){
 	return this._getItemUsedCount(this._actLog_all ,item,s);
 };
+$aaaa$._logActRes=function(container,actRes,key){
+	if(!container) return; // called by act.apply.toQ
+	// key' res
+	{
+	let arr=container.get(key);
+	if(!arr) container.set(key,arr=[]);
+	arr.push(actRes);
+	}
+	// overall res
+	if(key) this._logActRes(container,actRes);
+};
+$aaaa$.logActRes=function(actRes,s,t){
+	this._logActRes(this._actResLogS_turn,actRes,s);
+	this._logActRes(this._actResLogS_all ,actRes,s);
+	this._logActRes(this._actResLogT_turn,actRes,t);
+	this._logActRes(this._actResLogT_all ,actRes,t);
+};
+$aaaa$._logActDmg=function(container,info,key){
+	if(!container) return; // called by act.apply.toQ
+	// key' res
+	{
+	let arr=container.get(key);
+	if(!arr) container.set(key,arr=[]);
+	arr.push(info);
+	}
+	// overall res
+	if(key) this._logActDmg(container,info);
+};
+$aaaa$.logActDmg=function(info,s,t){
+	this._logActDmg(this._actDmgLogS_turn,info,s);
+	this._logActDmg(this._actDmgLogS_all ,info,s);
+	this._logActDmg(this._actDmgLogT_turn,info,t);
+	this._logActDmg(this._actDmgLogT_all ,info,t);
+};
 $r$=$aaaa$.update;
 ($aaaa$.update=function f(){ // prepare
 	//console.log(' update ',this._actorIndex);
@@ -1768,22 +1817,33 @@ $r$=$aaaa$.update;
 		f.ori.call(this);
 	}while(this._actionNoEffect);
 }).ori=$r$;
-$aaaa$.updateEvent=function f(){
-	switch(this._phase){
-		case 'start':
-		case 'turn':
-		case 'turnEnd':
-			if(this.isActionForced()){
-				this.processForcedAction();
-				return true;
-			}else return this.updateEventMain();
-		case 'battleEnd':
-			$gameTroop.setupBattleEvent();
-			$gameTroop.updateInterpreter();
-			return $gameTroop.isEventRunning();
-	}
-	return this.checkAbort();
+{ const f1=function(){
+	if(this.isActionForced()){
+		this.processForcedAction();
+		return true;
+	}else return this.updateEventMain();
+},f2=function(){
+	$gameTroop.setupBattleEvent();
+	$gameTroop.updateInterpreter();
+	return $gameTroop.isEventRunning();
 };
+($aaaa$.updateEvent=function f(){
+	const func=f.tbl[this._phase];
+	if(func) return func.call(this);
+	else return this.checkAbort();
+}).tbl={
+	null: undefined,
+	init: undefined,
+	input: undefined,
+	aborting: undefined,
+	action: undefined,
+	
+	start: f1,
+	turn: f1,
+	turnEnd: f1,
+	battleEnd: f2,
+};
+}
 $aaaa$.startInput=function f(){ // prepare
 	if(objs.isDev) console.log(' startInput ','actor id',this._actorIndex);
 	//return f.ori.call(this);
@@ -1804,6 +1864,10 @@ $r$=$aaaa$.startTurn;
 	if(objs.isDev) console.log(' startTurn ',this._actorIndex);
 	$gameTroop.makeActions();
 	this._actLog_turn.clear();
+	this._actResLogS_turn.clear();
+	this._actResLogT_turn.clear();
+	this._actDmgLogS_turn.clear();
+	this._actDmgLogT_turn.clear();
 	++this._turnCtr;
 	return f.ori.call(this);
 }).ori=$r$;
@@ -2107,7 +2171,7 @@ $aaaa$.updateChase=function(btlr,isRemoved){
 	}
 };
 $d$.doChase.forEach.tbl=undefined;
-$d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
+($d$.doChase.forEach.setAction=function f(item,act,s,t,k,preloads){
 	let rfl,skill,pk,p,repeat=0;
 	switch(k){
 	case "r-":
@@ -2138,6 +2202,7 @@ $d$.doChase.forEach.setAction=(item,act,s,t,k,preloads)=>{
 		repeat=act.numRepeats(rfl);
 	}
 	return repeat;
+}).tbl={
 };
 $aaaa$.invokeNormalAction=function(subject, target){
 	const realTarget = this.applySubstitute(target);
@@ -4910,10 +4975,16 @@ Object.defineProperty($pppp$,'_character',{
 		return rhs;
 	},
 });
-$pppp$.makeLabelTbl=function(){
+$t$=($pppp$.makeLabelTbl=function f(){
 	const arr=this._list,tbl=this._labelTbl={},indents=[],rl=this._rightLe||(this._rightLe=[]),lo=this._loop||(this._loop=[]);
 	if(arr){ // reversed order
 		const xs=arr.length,rr=[],lastLo=[],lbs=[]; // rightRepeat , lastLoop , lastBreak
+		const kargs={
+			tbl:tbl,
+			rr:rr,
+			lbs:lbs,
+			lo:lo,
+		};
 		for(let x=xs,c,i;x--;){ c=arr[x];
 			// skip tbl: skip@x: find nearest next i which arr[i].indent<=arr[x].indent
 			rl[x]=xs;
@@ -4925,25 +4996,8 @@ $pppp$.makeLabelTbl=function(){
 			}
 			
 			indents.push(c.indent);
-			switch(c.code){
-			default: break;
-			case 112: // loop
-				if(rr[c.indent]>=0){ const t=rr[c.indent]; lo[t]=x;
-					if(lbs.length) for(let lb=lbs.pop();lb.length;) lo[lb.pop()]=t;
-					rr[c.indent]=-1;
-				}
-			break;
-			case 113: // loop - break
-				lbs.back.push(x);
-			break;
-			case 413: // loop - repeat above
-				rr[c.indent]=x;
-				lbs.push([]);
-			break;
-			case 118: // label
-				tbl[c.parameters[0]]=x;
-			break;
-			}
+			const func=f.tbl[c.code];
+			if(func) func(x,c,kargs);
 		}
 	}
 	if(indents.length){ indents.reverse();
@@ -4951,7 +5005,25 @@ $pppp$.makeLabelTbl=function(){
 		t.max=new SegmentTree(Math.max,   -1,indents,true);
 		t.min=new SegmentTree(Math.min,1<<21,indents,true);
 	}else this._segtree_indent=undefined;
+}).tbl=[]; for(let x=1e3;x--;) $t$[x]=undefined;
+$t$[112]=(x,c,kargs)=>{
+	if(kargs.rr[c.indent]>=0){
+		const t=kargs.rr[c.indent]; kargs.lo[t]=x;
+		if(kargs.lbs.length) for(let lb=kargs.lbs.pop();lb.length;) kargs.lo[lb.pop()]=t;
+		kargs.rr[c.indent]=-1;
+	}
 };
+$t$[113]=(x,c,kargs)=>{
+	kargs.lbs.back.push(x);
+};
+$t$[413]=(x,c,kargs)=>{
+	kargs.rr[c.indent]=x;
+	kargs.lbs.push([]);
+};
+$t$[118]=(x,c,kargs)=>{
+	kargs.tbl[c.parameters[0]]=x;
+};
+$t$=undefined;
 $r$=$pppp$.setup;
 ($pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
@@ -5024,139 +5096,68 @@ $d$.re_faceExt_any=/^\[([^\]]+)\]/;
 $pppp$.ssKey=function(){ // not used ?
 	return [this._mapId, this._eventId, this._params[1]];
 };
-$d$=$pppp$.command111=function f(){ // cond branch
-	let result=false;
-	switch(this._params[0]){
-	case 0:{ // switch
-		result = ($gameSwitches.value(this._params[1])===(this._params[2]===0));
-	}break;
-	case 1:{ // var
-		let value1 = $gameVariables.value(this._params[1]);
-		let value2;
-		if(this._params[2]===0) value2=this._params[3];
-		else value2=$gameVariables.value(this._params[3]);
-		switch(this._params[4]){
-		case 0:{
-			result=(value1===value2);
-		}break;
-		case 1:{
-			result=(value1>=value2);
-		}break;
-		case 2:{
-			result=(value1<=value2);
-		}break;
-		case 3:{
-			result=(value1>value2);
-		}break;
-		case 4:{
-			result=(value1<value2);
-		}break;
-		case 5:{
-			result=(value1!==value2);
-		}break;
-		}
-	}break;
-	case 2:{ // ss
-		if (this._eventId.toId()>0) {
-			result=($gameSelfSwitches._value(this._mapId,this._eventId,this._params[1])===(this._params[2]===0));
-		}
-	}break;
-	case 3:{ // timer
-		if ($gameTimer.isWorking()){
-			if(this._params[2]===0){
-				result=($gameTimer.seconds()>=this._params[1]);
-			}else{
-				result=($gameTimer.seconds()<=this._params[1]);
-			}
-		}
-	}break;
-	case 4:{ // actor
-		let actor=$gameActors.actor(this._params[1]);
-		if(actor){
-			let n=this._params[3];
-			switch(this._params[2]){
-			case 0:{ // In the Party
-				result=$gameParty.members().contains(actor);
-			}break;
-			case 1:{ // Name
-				result=(actor.name()===n);
-			}break;
-			case 2:{ // Class
-				result=actor.isClass($dataClasses[n]);
-			}break;
-			case 3:{ // Skill
-				result=actor.hasSkill(n);
-			}break;
-			case 4:{ // Weapon
-				result=actor.hasWeapon($dataWeapons[n]);
-			}break;
-			case 5:{ // Armor
-				result=actor.hasArmor($dataArmors[n]);
-			}break;
-			case 6:{ // State
-				result=actor.isStateAffected(n);
-			}break;
-			}
-		}
-	}break;
-	case 5:{ // Enemy
-		let enemy=$gameTroop.members()[this._params[1]];
-		if(enemy){
-			switch(this._params[2]){
-			case 0:{ // Appeared
-				result=enemy.isAlive();
-			}break;
-			case 1:{ // State
-				result=enemy.isStateAffected(this._params[3]);
-			}break;
-			}
-		}
-	}break;
-	case 6:{ // chr dir
-		let character=this.character(this._params[1]);
-		if(character) result=(character.direction()===this._params[2]);
-	}break;
-	case 7:{ // Gold
-		switch(this._params[2]){
-		case 0:{
-			result=($gameParty.gold()>=this._params[1]);
-		}break;
-		case 1:{
-			result=($gameParty.gold()<=this._params[1]);
-		}break;
-		case 2:{
-			result=($gameParty.gold()<this._params[1]);
-		}break;
-		}
-	}break;
-	case 8:{ // Item
-		result=$gameParty.hasItem($dataItems[this._params[1]]);
-	}break;
-	case 9:{ // Weapon
-		result=$gameParty.hasItem($dataWeapons[this._params[1]], this._params[2]);
-	}break;
-	case 10:{ // Armor
-		result=$gameParty.hasItem($dataArmors[this._params[1]], this._params[2]);
-	}break;
-	case 11:{ // Button
-		result=Input.isPressed(this._params[1]);
-	}break;
-	case 12:{ // Script
-		if(this._params[1][0]===":"&&this._params[1][1]==="!") result=!!f.script.call(this,this._params[1].slice(2));
-		else result=!!objs._getObj.call(this,this._params[1]);
-	}break;
-	case 13:{ // Vehicle
-		result=($gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]));
-	}break;
+$t$=($d$=$pppp$.command111=function f(){ // cond branch
+	let res;
+	if(this._params[0]===12){
+		if(this._params[1][0]===":"&&this._params[1][1]==="!") res=f.script.call(this,this._params[1].slice(2));
+		else res=objs._getObj.call(this,this._params[1]);
+	}else{
+		const func=f.tbl[this._params[0]];
+		if(func) res=func.call(this);
 	}
-	if((this._branch[this._indent]=result)===false) this.skipBranch();
+	if(!(this._branch[this._indent]=!!res)) this.skipBranch();
 	return true;
-};
-$d$.script=function(j){
+}).tbl=[
+	function(){ // 0: switch
+		return ($gameSwitches.value(this._params[1])===(this._params[2]===0));
+	}, // 0: switch
+	function f(){ // 1: var
+		return f.tbl[this._params[4]](
+			$gameVariables.value(this._params[1]),
+			this._params[2]?$gameVariables.value(this._params[3]):this._params[3]
+		);
+	}, // 1: var
+	function(){ // 2: ss
+		return $gameSelfSwitches._value(this._mapId,this._eventId,this._params[1])===(!this._params[2]);
+	}, // 2: ss
+	function(){ // 3: timer
+		return $gameTimer.isWorking() && ($gameTimer._frames>this._params[1]*60)===(!this._params[2]);
+	}, // 3: timer
+	function f(){ // 4: actor
+		return f.tbl[this._params[2]].call(this,$gameActors.actor(this._params[1]),this._params[3]);
+	}, // 4: actor
+	function(){ // 5: Enemy
+		const enemy=$gameTroop.members()[this._params[1]];
+		return enemy&&(this._params[2]?enemy.isStateAffected(this._params[3]):enemy.isAlive());
+	}, // 5: Enemy
+	function(){ // 6: chr dir
+		const chr=this.character(this._params[1]);
+		return chr?(chr.direction()===this._params[2]):false;
+	}, // 6: chr dir
+	function f(){ // 7: Gold
+		return f.tbl[this._params[2]]($gameParty.gold(),this._params[1]);
+	}, // 7: Gold
+	function(){ // 8: Item
+		return $gameParty.hasItem($dataItems[this._params[1]]);
+	}, // 8: Item
+	function(){ // 9: Weapon
+		return $gameParty.hasItem($dataWeapons[this._params[1]], this._params[2]);
+	}, // 9: Weapon
+	function(){ // 10: Armor
+		return $gameParty.hasItem($dataArmors[this._params[1]], this._params[2]);
+	}, // 10: Armor
+	function(){ // 11: Button
+		return Input.isPressed(this._params[1]);
+	}, // 11: Button
+	0, // 12: script
+	function(){ // 13: Vehicle
+		return $gamePlayer.vehicle()===$gameMap.vehicle(this._params[1]);
+	}, // 13: Vehicle
+];
+($d$.script=function f(j){
 	j=JSON.parse(j);
 	let obj=false;
-	switch(j[0]){
-	case "func":{
+	if(j[0]==="func"){
 		if(j[1] in rpgevts){
 			let curr=rpgevts,argv;
 			for(let x=1;x!==j.length&&curr;++x){ let next=j[x];
@@ -5166,21 +5167,9 @@ $d$.script=function(j){
 			return curr(this.getEvt(),argv,this);
 		}
 		return;
-	}break;
-	case "itrp":
-	case "this": obj=this; break;
-	case "pt": obj=$gameParty; break;
-	case "pl": obj=$gamePlayer; break;
-	case "mp": obj=$gameMap; break;
-	case "tmp": obj=$gameTemp; break;
-	case "evt": obj=this.getEvt(); break;
-	case "evtd": obj=this.getEvt().event(); break;
-	case "evts": obj=$gameMap._events; break;
-	case "dataMp": obj=$dataMap; break;
-	case "dataIt": obj=$dataItems; break;
-	case "dataAm": obj=$dataArmors; break;
-	case "dataSk": obj=$dataSkills; break;
-	case "dataWp": obj=$dataWeapons; break;
+	}else{
+		const func=f.tbl[j[0]];
+		if(func) obj=func.call(this);
 	}
 	if(obj&&j.length){
 		for(let x=1,prev=obj;x!==j.length;++x){
@@ -5194,7 +5183,46 @@ $d$.script=function(j){
 		}
 		return obj;
 	}
+}).tbl={
+	itrp: function(){ return this; },
+	this: function(){ return this; },
+	pt: ()=>$gameParty,
+	pl: ()=>$gamePlayer,
+	mp: ()=>$gameMap,
+	tmp: ()=>$gameTemp,
+	evt: function(){ return this.getEvt(); },
+	evtd: function(){ return this.getEvt().event(); },
+	evts: ()=>$gameMap._events,
+	dataMp: ()=>$dataMap,
+	dataIt: ()=>$dataItems,
+	dataAm: ()=>$dataArmors,
+	dataSk: ()=>$dataSkills,
+	dataWp: ()=>$dataWeapons,
 };
+$t$[1].tbl=[
+	(v1,v2)=>v1===v2,
+	(v1,v2)=>v1>= v2,
+	(v1,v2)=>v1<= v2,
+	(v1,v2)=>v1>  v2,
+	(v1,v2)=>v1<  v2,
+	(v1,v2)=>v1!==v2,
+];
+$t$[4].tbl=[
+	actor=>$gameParty.members().contains(actor),
+	(actor,n)=>actor.name()===n,
+	(actor,n)=>actor.isClass($dataClasses[n]),
+	(actor,n)=>actor.hasSkill(n),
+	(actor,n)=>actor.hasWeapon($dataWeapons[n]),
+	(actor,n)=>actor.hasArmor($dataArmors[n]),
+	(actor,n)=>actor.isStateAffected(n),
+];
+$t$[7].tbl=[
+	$t$[1].tbl[1],
+	$t$[1].tbl[2],
+	$t$[1].tbl[4],
+];
+$t$[12]=$d$.script;
+$t$=undefined;
 $pppp$.command413=function(){ // loop-repeat
 	this._index=this._loop[this._index];
 	return true;
@@ -5699,148 +5727,66 @@ $d$.tbl=-Infinity;
 $pppp$.paramMax=function(paramId){
 	return paramId>1?999999:99999999;
 };
-$pppp$.param=function(paramId){
-	
+$t$=()=>"";
+($d$=$pppp$.param=function f(paramId){
 	// Window_EquipStatus.prototype.drawNewParam use '-', so String(s) are casted to Number
-	if(1) switch(paramId){
-	default: return 0;
-	case -2: return this.sparam(9).toExponential(2);
-	case -1: return this.makeActionTimes();
-	case 0:
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-	break;
-	case 8:
-	case 9:
-	case 10: return this.mev.toFixed(2);
-	case 11: // cri
-	case 12: return this.xparam(paramId-9).toFixed(2);
-	case 13: return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
-	case 14: return this.isAlwaysSubstitute();
-	case 15: // tgr
-	case 16: return this.sparam(paramId-15).toExponential(2);
-	case 17: // pdr
-	case 18: return this.sparam(paramId-11).toExponential(2);
-	case 19: // pha
-	case 20: return this.sparam(paramId-17).toExponential(2);
-	case 21: return this.hpCostRate().toExponential(2);
-	case 22: return this.mcr.toExponential(2);
-	case 23: // hrg
-	case 24:
-	case 25: return this.xparam(paramId-16).toFixed(2);
-	break;
-	case 26: return this.attackTimesAdd(); // page2
-	case 27: return this.attackTimesMul().toFixed(3);
-	case 28:
-	case 29:
-	case 30:
-	case 31:
-	case 32:
-	case 33:
-	case 34:
-	case 35: {
-		const id=paramId-28;
-		return (this.paramRate(id)*this.paramBuffRate(id)).toExponential(2);
-	}break;
-	case 36: return this.reflectPRate().toFixed(2);
-	case 37: return this.reflectMRate().toFixed(2);
-	case 38: return this.counterPRate().toFixed(2);
-	case 39: return this.counterMRate().toFixed(2);
-	case 40: return "";
-	case 41: return this.hitRecHpR().toFixed(2);
-	case 42: return this.hitRecHpV();
-	case 43: return this.hitRecMpR().toFixed(2);
-	case 44: return this.hitRecMpV();
-	case 45: return this.decreaseDamageP();
-	case 46: return this.decreaseDamageM();
-	case 47: return this.MPSubstituteRate().toFixed(3);
-	case 48: return "";
-	case 49: return this.TPRegenAtBattleEnd();
-	case 50: return this.tcr.toExponential(2);
-	case 51: return this.regenHpV();
-	case 52: return this.regenMpV();
-	case 53: return this.regenTpV();
-	}
-	else switch(~~((paramId+12)/10)){
-	default: return 0;
-	case 1:
-		switch(paramId){
-		case -2: return this.sparam(9).toExponential(2);
-		case -1: return this.makeActionTimes();
-		}
-	break;
-	case 2:
-		switch(paramId){
-		case 13: return this.partyAbility(Game_Party.ABILITY_MUST_ESCAPE);
-		case 14: return this.tgr.toExponential(2);
-		}
-		return this.xparam(paramId-8).toFixed(2);
-	break;
-	case 3:
-		switch(paramId){
-		case 18: return this.TPRegenAtBattleEnd();
-		case 21: return this.hpCostRate().toExponential(2);
-		case 26: return this.attackTimesAdd(); // page2
-		case 27: return this.attackTimesMul().toFixed(3);
-		}
-		return this.sparam(paramId-18).toExponential(2);
-	break;
-	case 4:
-		switch(paramId){
-		case 36: return this.decreaseDamageP();
-		case 37: return this.decreaseDamageM();
-		}
-		const id=paramId-28;
-		return this.paramRate(id)*this.paramBuffRate(id);
-	break;
-	case 5:
-		switch(paramId){
-		case 38: return this.MPSubstituteRate().toFixed(3);
-		case 39: return this.reflectPRate().toFixed(2);
-		case 40: return this.reflectMRate().toFixed(2);
-		case 41: return this.counterPRate().toFixed(2);
-		case 42: return this.counterMRate().toFixed(2);
-		case 43: return this.regenHpV();
-		case 44: return this.regenMpV();
-		case 45: return this.regenTpV();
-		case 46: return "";
-		case 47: return "";
-		}
-		return this.param(); // nothing
-	break;
-	case 6:
-		switch(paramId){
-		case 48: return this.pha.toExponential(2);
-		case 49: return "";
-		case 50: return this.hitRecHpR().toFixed(2);
-		case 51: return this.hitRecHpV();
-		case 52: return this.hitRecMpR().toFixed(2);
-		case 53: return this.hitRecMpV();
-		case 54: return "";
-		case 55: return "";
-		case 56: return "";
-		case 57: return "";
-		}
-		return this.param(); // nothing
-	break;
-	}
-	
-	let value = this.paramBase(paramId) + this.paramPlus(paramId);
-	value *= this.paramRate(paramId) * this.paramBuffRate(paramId);
-	if(paramId>1 && this.stp===0) value/=10;
-	{ let tmp=this.paramMin(paramId);
-	if(!(value>=tmp)) value=tmp;
-	else{
-		tmp=this.paramMax(paramId);
-		if(value>tmp) value=tmp;
-	} }
-	return ~~(value+(value<0?-0.5:0.5));
-};
+	return (f.tbl[paramId]||f.tbl._)(this,paramId);
+}).tbl=[
+	(s,i)=>{
+		let value = s.paramBase(i) + s.paramPlus(i);
+		value *= s.paramRate(i) * s.paramBuffRate(i);
+		if(i>1 && s.stp===0) value/=10;
+		{ let tmp=s.paramMin(i);
+		if(!(value>=tmp)) value=tmp;
+		else{
+			tmp=s.paramMax(i);
+			if(value>tmp) value=tmp;
+		} }
+		return ~~(value+(value<0?-0.5:0.5));
+	},0,0,0,0,0,0,0, // 7,
+	(s,i)=>s.xparam(i-8).toFixed(2), 0, // 9,
+	s=>s.mev.toFixed(2),
+	(s,i)=>s.xparam(i-9).toFixed(2), 0, // 12,
+	s=>s.partyAbility(Game_Party.ABILITY_MUST_ESCAPE),
+	s=>s.isAlwaysSubstitute(),
+	(s,i)=>s.sparam(i-15).toExponential(2), 0, // 16,
+	(s,i)=>s.sparam(i-11).toExponential(2), 0, // 18,
+	(s,i)=>s.sparam(i-17).toExponential(2), 0, // 20,
+	s=>s.hpCostRate().toExponential(2),
+	s=>s.mcr.toExponential(2),
+	(s,i)=>s.xparam(i-16).toFixed(2), 0,0, // 25,
+	//
+	s=>s.attackTimesAdd(),
+	s=>s.attackTimesMul().toFixed(3),
+	(s,i)=>{
+		const id=i-28;
+		return (s.paramRate(id)*s.paramBuffRate(id)).toExponential(2);
+	}, 0,0,0,0,0,0,0, // 35,
+	s=>s.reflectPRate().toFixed(2),
+	s=>s.reflectMRate().toFixed(2),
+	s=>s.counterPRate().toFixed(2),
+	s=>s.counterMRate().toFixed(2),
+	$t$, // 40,
+	s=>s.hitRecHpR().toFixed(2),
+	s=>s.hitRecHpV(),
+	s=>s.hitRecMpR().toFixed(2),
+	s=>s.hitRecMpV(),
+	s=>s.decreaseDamageP(),
+	s=>s.decreaseDamageM(),
+	s=>s.MPSubstituteRate().toFixed(3),
+	$t$, // 48,
+	s=>s.TPRegenAtBattleEnd(),
+	s=>s.tcr.toExponential(2),
+	s=>s.regenHpV(),
+	s=>s.regenMpV(),
+	s=>s.regenTpV(),
+	$t$, // 54,
+];
+for(let x=0,arr=$d$.tbl,last=$t$;x!==arr.length;++x) if(arr[x]) last=arr[x]; else arr[x]=last;
+$t$=undefined;
+$d$.tbl[-1]=s=>s.makeActionTimes();
+$d$.tbl[-2]=s=>s.sparam(9).toExponential(2);
+$d$.tbl._=()=>0;
 $pppp$.setHp=function(hp){
 	if(this._hp === hp) return;
 	this._hp = hp;
@@ -5892,13 +5838,9 @@ $pppp$.refresh_stp=function(){
 		}
 	}
 };
-$d$=$pppp$.refresh=function f(_,only){
-	switch(only){
-	case 1: return this.refresh_hp();
-	case 2: return this.refresh_mp();
-	case 3: return this.refresh_tp();
-	case 4: return this.refresh_stp();
-	};
+($d$=$pppp$.refresh=function f(_,only){
+	const func=f.tbl[only];
+	if(func) return func.call(this);
 	
 	this.stateResistSet().forEach(f.forEach, this);
 	
@@ -5906,7 +5848,14 @@ $d$=$pppp$.refresh=function f(_,only){
 	this.refresh_mp();
 	this.refresh_tp();
 	this.refresh_stp();
-};
+}).tbl=[
+	undefined,
+	function(){ return this.refresh_hp (); },
+	function(){ return this.refresh_mp (); },
+	function(){ return this.refresh_tp (); },
+	function(){ return this.refresh_stp(); },
+];
+$d$.tbl[undefined]=$d$.tbl[null]=$d$.tbl[false]=undefined;
 $d$.forEach=function(_,stateId){
 	this.eraseState(stateId);
 };
@@ -6068,7 +6017,9 @@ $pppp$.reserveActResQ=function(){
 };
 $pppp$.pushActResQ=function(actResRef){
 	const q=this.reserveActResQ();
-	if(q){ q.push(actResRef.copy()); }
+	let rtv;
+	if(q){ q.push(rtv=actResRef.copy()); }
+	return rtv;
 };
 $pppp$.popActResQ=function(){
 	const q=this.reserveActResQ();
@@ -7908,15 +7859,9 @@ $r$=$pppp$[$k$];
 	$gameMap.save_recordLoc();
 	
 }).ori=$r$;
-$pppp$.adjDecRate=function(what,rate,useMax){
+($pppp$.adjDecRate=function f(what,rate,useMax){
 	// what: HP,MP,TP
-	let act="";
-	switch(what){
-		case 'hp': act+="gainHp"; break;
-		case 'mp': act+="gainMp"; break;
-		case 'tp': act+="gainTp"; break;
-		default: break;
-	}
+	const act=f.tbl[what]||"";
 	if(act==="") return;
 	if(useMax) what='m'+what;
 	for(let x=0,arr=$gameParty.allMembers();x!==arr.length;++x){
@@ -7925,6 +7870,10 @@ $pppp$.adjDecRate=function(what,rate,useMax){
 		actor[act](-vi-(v!==vi));
 	}
 	
+}).tbl={
+	hp: "gainHp",
+	mp: "gainMp",
+	tp: "gainTp",
 };
 $pppp$.addOnlineSaveId=function(id){
 	if(this._onlineSaveIds===undefined){
@@ -7957,7 +7906,7 @@ Object.defineProperties($pppp$, {
 			debug.warn("set actors");
 			let tmp=$gameTemp; // for fast change data structure
 			tmp._pt_battleMembers=tmp._pt_allMembers=false;
-			tmp._pt_allMembers_idSet=new Set(this._acs=rhs);
+			this._acs=rhs;
 			this.allMembers(); this.battleMembers();
 			return rhs;
 	}, configurable: false },
@@ -8122,9 +8071,11 @@ $pppp$.battleMembers=function f(){
 	return rtv;
 };
 $d$=$pppp$.allMembers=function f() {
-	if($gameActors._data.length===0) return []; // due to '$gameActors.actor' will create new if not exist
-	if($gameTemp._pt_allMembers) return $gameTemp._pt_allMembers;
-	return $gameTemp._pt_allMembers=this._acs.map(f.toDataActor);
+	if($gameActors._data.length===0) return []; // due to '$gameActors.actor' will create new if not exist, cache will be invalid
+	const tmp=$gameTemp;
+	if(tmp._pt_allMembers) return tmp._pt_allMembers;
+	tmp._pt_allMembers_idSet=new Set(this._acs);
+	return tmp._pt_allMembers=this._acs.map(f.toDataActor);
 };
 $d$.toDataActor=id=>$gameActors.actor(id);
 $pppp$.maxBattleMembers = function() {
@@ -8348,23 +8299,23 @@ $pppp$.numItems_w=function(id){
 	const rtv=this._weapons[id]^0;
 	return rtv;
 };
-$d$=$pppp$.unionCnt=function f(o){
+($d$=$pppp$.unionCnt=function f(o){
 	const u=f.key;
 	if(o.meta && Object.hasOwnProperty.call(o.meta,u)){
 		if(!Object.hasOwnProperty.call(o,u)) o[u]=JSON.parse(o.meta[u]);
+		if(!f.tbl) f.tbl={
+			a: $dataArmors,
+			i: $dataItems,
+			w: $dataWeapons,
+		};
 		let cnt=0;
 		for(let x=0,arr=o[u],c;x!==arr.length;++x){
-			switch(arr[x][0]){
-			default: c=undefined; break;
-			case 'a': c=$dataArmors; break;
-			case 'i': c=$dataItems; break;
-			case 'w': c=$dataWeapons; break;
-			}
+			c=f.tbl[arr[x][0]];
 			if(c) cnt+=this.numItems(c[arr[x][1]]);
 		}
 		return cnt;
 	}else return this.numItems(o);
-};
+}).tbl=undefined;
 $d$.key='unionCnt';
 $pppp$.arrangeMaxDayItems=function(){ // TODO(?)
 	const tmp=[];
@@ -10292,19 +10243,18 @@ $pppp$.updateSelfMovement_cond=function(forced){
 		this.checkStop(this.stopCountThreshold())
 	);
 };
-$pppp$.updateSelfMovement=function(forced){
-	switch(this._moveType){
-	case 1:
-		if(this.updateSelfMovement_cond(forced)) this.moveTypeRandom();
-		break;
-	case 2:
-		if(this.updateSelfMovement_cond(forced)) this.moveTypeTowardPlayer();
-		break;
-	case 3:
-		if(this.updateSelfMovement_cond(forced)) this.moveTypeCustom();
-		break;
-	}
-};
+($pppp$.updateSelfMovement=function f(forced){
+	const func=f.tbl[this._moveType];
+	if(func && this.updateSelfMovement_cond(forced)) func.call(this);
+}).tbl=[
+	undefined,
+	function(){ this.moveTypeRandom(); },
+	function(){ this.moveTypeTowardPlayer(); },
+	function(){ this.moveTypeCustom(); },
+	undefined,
+	undefined,
+	undefined,
+];
 $pppp$.getText=function(){
 	const data=this.getData();
 	return data&&data.txts[this._pageIndex];
@@ -10388,31 +10338,29 @@ $pppp$._deleteOldDataMember=function(){
 		this._id=id;
 	}
 };
-$pppp$.object=function(){
-	switch(this._dataClass){
-	default: return null;
-	case 'skill':
-		return $dataSkills[this._itemId];
-	break;
-	case 'item':
-		return $dataItems[this._itemId];
-	break;
-	case 'weapon':
-		return $dataWeapons[this._itemId];
-	break;
-	case 'armor':
-		return $dataArmors[this._itemId];
-	break;
-	}
-};
-$d$=$pppp$.setObject=function f(item){
+($pppp$.object=function f(){
+	if(f.tbl) return (f.tbl[this._dataClass]||f.tbl._)[this._itemId];
+	f.tbl={
+		a:$dataArmors,
+		armor:$dataArmors,
+		i:$dataItems,
+		item:$dataItems,
+		s:$dataSkills,
+		skill:$dataSkills,
+		w:$dataWeapons,
+		weapon:$dataWeapons,
+	};
+	f.tbl[undefined]=f.tbl['']=f.tbl._={};
+	return f.call(this);
+}).tbl=undefined;
+($pppp$.setObject=function f(item){
 	if(!item) this._itemId=0;
 	else{
-		this._dataClass=f.tbl[item.itemType]||'';
+		//this._dataClass=f.tbl[item.itemType]||'';
+		this._dataClass=item.itemType||'';
 		this._itemId=item.id;
 	}
-};
-$d$.tbl={a:'armor',i:'item',s:'skill',w:'weapon',};
+}).tbl={a:'armor',i:'item',s:'skill',w:'weapon',};
 $pppp$=$aaaa$=undef;
 
 // - action
@@ -10556,28 +10504,32 @@ $pppp$.isGuard=function(subject){
 $pppp$.isSpaceout=function(subject){
 	return this.item() === $dataSkills[(subject||this.subject()).spaceoutSkillId()];
 };
-$pppp$.decideRandomTarget=function(){
-	let target;
-	switch(this.item().scope){
-	case 9:
-	case 10: // this.isForDeadFriend
-		target = this.friendsUnit().randomDeadTarget();
-	break;
-	case 7:
-	case 8:
-	case 11: // this.isForFriend
-		target = this.friendsUnit().randomTarget();
-	break;
-	case 12: // this.isForAllFriends
-	case 16: // this.isForAllFriend
-		target = this.friendsUnit().members().rnd();
-	break;
-	default: // otherwise
-		target = this.opponentsUnit().randomTarget();
-	}
+$t$={
+	isForDeadFriend: function(){
+		return this.friendsUnit().randomDeadTarget();
+	},
+	isForFriend: function(){
+		return this.friendsUnit().randomTarget();
+	},
+	isForAllFriend: function(){
+		return this.friendsUnit().members().rnd();
+	},
+};
+($d$=$pppp$.decideRandomTarget=function f(){
+	const func=f.tbl[this.item().scope];
+	const target=func?func.call(this):this.opponentsUnit().randomTarget();
 	if(target) this._targetIndex = target.index();
 	else this.clear();
-};
+}).tbl={
+	9: $t$.isForDeadFriend,
+	10: $t$.isForDeadFriend,
+	7: $t$.isForFriend,
+	8: $t$.isForFriend,
+	11: $t$.isForFriend,
+	12: $t$.isForAllFriend,
+	16: $t$.isForAllFriend,
+}; for(let x=64,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
+$t$=undefined;
 $pppp$.speed=function(){
 	//let agi=this.subject().agi;
 	let speed=this.subject().agi; // + Math.randomInt(Math.floor(5 + agi / 4)); // edit: fixed speed
@@ -10624,35 +10576,44 @@ $pppp$.repeatTargets=function(targets){ // reverse order
 	}else for(let szi=targets.length;j-->0;) for(let i=szi;i--;) targets[i]&&repeatedTargets.push(targets[i]);
 	return repeatedTargets;
 };
-$pppp$.makeTargets=function(dontTestConfused,toWrongTarget){
+$t$={
+	isForOpponent: function(toWrongTarget){
+		return toWrongTarget ? this.targetsForFriends(this.opponentsUnit()) : this.targetsForOpponents();
+	},
+	isForFriend: function(toWrongTarget){
+		return toWrongTarget ? this.targetsForOpponents(this.friendsUnit()) : this.targetsForFriends();
+	},
+	isForBattler: function(toWrongTarget){
+		return this.targetsForBattler();
+	},
+};
+($d$=$pppp$.makeTargets=function f(dontTestConfused,toWrongTarget){
 	let targets,s=this.item().scope;
 	if(!dontTestConfused && !this._forcing && s!==1 && this.subject().isConfused()) targets = [this.confusionTarget()];
-	else switch(s){
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6: // this.isForOpponent
-		targets = toWrongTarget ? this.targetsForFriends(this.opponentsUnit()) : this.targetsForOpponents();
-	break;
-	case 7:
-	case 8:
-	case 9:
-	case 10:
-	case 11:
-	case 12: // this.isForFriends // all, dead not matter
-	case 16: { // this.isForFriend // 1, dead not matter
-		targets = toWrongTarget ? this.targetsForOpponents(this.friendsUnit()) : this.targetsForFriends();
-	}break;
-	case 13:
-	case 14:
-	case 15:
-		targets = this.targetsForBattler();
-	break;
+	else{
+		const func=f.tbl[s];
+		if(func) targets=func.call(this,toWrongTarget);
 	}
 	return this.repeatTargets(targets||[]);
-};
+}).tbl={
+	1: $t$.isForOpponent,
+	2: $t$.isForOpponent,
+	3: $t$.isForOpponent,
+	4: $t$.isForOpponent,
+	5: $t$.isForOpponent,
+	6: $t$.isForOpponent,
+	7: $t$.isForFriend,
+	8: $t$.isForFriend,
+	9: $t$.isForFriend,
+	10: $t$.isForFriend,
+	11: $t$.isForFriend,
+	12: $t$.isForFriend, // all, dead not matter
+	13: $t$.isForBattler,
+	14: $t$.isForBattler,
+	15: $t$.isForBattler,
+	16: $t$.isForFriend, // 1, dead not matter
+}; for(let x=64,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
+$t$=undefined;
 $pppp$.confusionTarget=function(){
 	switch (this.subject().confusionLevel()) {
 	// case 1: return this.opponentsUnit().randomTarget(); // remain same , but not user input
@@ -10662,47 +10623,51 @@ $pppp$.confusionTarget=function(){
 		return this.makeTargets(true,true);
 	}
 };
-$pppp$.targetsForOpponents=function(U){ // scope: [1..6]
-	const unit = U||this.opponentsUnit();
-	switch(this.item().scope){
-	case 1: {
+$t$={
+	isForRandom: function(unit){
+		return unit.randomTarget(this.numTargets(),this.meta.targets);
+	},
+};
+($d$=$pppp$.targetsForOpponents=function f(U){ // scope: [1..6]
+	const func=f.tbl[this.item().scope];
+	if(func) return func.call(this,U||this.opponentsUnit());
+	return [];
+}).tbl={
+	1: function(unit){
 		let idx=this.meta.targets;
 		if(!idx||!idx.length) idx=this._targetIndex;
 		return [ idx<0 ? unit.randomTarget() : unit.smoothTarget(idx) ] ; // this.isForOne
-	}break;
-	case 2: return unit.aliveMembers();
-	case 3:
-	case 4:
-	case 5:
-	case 6:{ // this.isForRandom
-		return unit.randomTarget(this.numTargets(),this.meta.targets);
-	}break;
-	}
+	},
+	2: unit=>unit.aliveMembers(),
+	3: $t$.isForRandom,
+	4: $t$.isForRandom,
+	5: $t$.isForRandom,
+	6: $t$.isForRandom,
+}; for(let x=32,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
+$t$=undefined;
+($d$=$pppp$.targetsForFriends=function f(U){ // scope: [7..12,16]
+	const func=f.tbl[this.item().scope];
+	if(func) return func.call(this,U||this.friendsUnit(),this.meta.targets);
 	return [];
-};
-$pppp$.targetsForFriends=function(U){ // scope: [7..12]
-	const unit = U||this.friendsUnit();
-	let idx=this.meta.targets;
-	switch(this.item().scope){
-	case  7:{
+}).tbl={
+	7: function(unit,idx){
 		if(!idx||!idx.length) idx=this._targetIndex;
-		return [ idx<0 ? unit.randomTarget() : unit.smoothTarget(idx) ]; // isForFriend (1)
-	}break;
-	case  8: return unit.aliveMembers(); // isForFriend (all)
-	case  9:{
+		return [ idx<0 ? unit.randomTarget() : unit.smoothTarget(idx) ];
+	}, // isForFriend (1)
+	8: unit=>unit.aliveMembers(), // isForFriend (all)
+	9: function(unit,idx){
 		if(!idx||!idx.length) idx=this._targetIndex;
-		return [unit.smoothDeadTarget(idx)]; // this.isForDeadFriend (1)
-	}case 10: return unit.deadMembers(); // this.isForDeadFriend (all)
-	case 11: return [this.subject()]; // this.isForUser
-	case 12: return unit.members(); // this.isForAllFriends // all, dead not matter
-	case 16: { // this.isForAllFriend // 1, dead not matter
+		return [unit.smoothDeadTarget(idx)];
+	}, // this.isForDeadFriend (1)
+	10: unit=>unit.deadMembers(), // this.isForDeadFriend (all)
+	11: function(){ return [this.subject()]; }, // this.isForUser
+	12: unit=>unit.members(), // this.isForAllFriends // all, dead not matter
+	16: function(unit,idx){
 		if(idx&&idx.length) idx=idx[0];
 		else idx=this._targetIndex;
 		return [ idx>=0 ? unit.members()[idx] : unit.randomTarget() ];
-	}break;
-	}
-	return [];
-};
+	}, // this.isForAllFriend // 1, dead not matter
+}; for(let x=32,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
 $pppp$.targetsForBattler=function(){ // scope: [13..15]
 	const s=this.subject(),t=x=>s!==x;
 	const ou=this.opponentsUnit();
@@ -10744,33 +10709,50 @@ $pppp$.targetsForBattler=function(){ // scope: [13..15]
 	}
 	return [];
 };
-$pppp$.itemTargetCandidates = function() {
-	if(!this.isValid()) return [];
-	switch(this.item().scope){
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6: // this.isForOpponent
+$t$={
+	isForOpponent: function(){
 		return this.opponentsUnit().aliveMembers();
-	break;
-	case 9:
-	case 10:
-		return this.friendsUnit().deadMembers();
-	break;
-	case 11: // this.isForUser
-		return [this.subject()];
-	break;
-	case 12: // this.isForAllFriends
-	case 16: // this.isForAllFriend
-		return this.friendsUnit().members();
-	break;
-	default:
+	},
+	isForFriend: function(){
 		return this.friendsUnit().aliveMembers();
-	break;
-	}
+	},
+	isForDeadFriend: function(){
+		return this.friendsUnit().deadMembers();
+	},
+	isForUser: function(){
+		return [this.subject()];
+	},
+	isForAllFriend: function(){
+		return this.friendsUnit().members();
+	},
+	isForBattler: function(){
+		return this.targetsForBattler();
+	},
 };
+($d$=$pppp$.itemTargetCandidates = function f(){
+	if(!this.isValid()) return [];
+	const func=f.tbl[this.item().scope];
+	if(func) func.call(this);
+	return [];
+}).tbl={
+	1: $t$.isForOpponent,
+	2: $t$.isForOpponent,
+	3: $t$.isForOpponent,
+	4: $t$.isForOpponent,
+	5: $t$.isForOpponent,
+	6: $t$.isForOpponent,
+	7: $t$.isForFriend,
+	8: $t$.isForFriend,
+	9: $t$.isForDeadFriend,
+	10: $t$.isForDeadFriend,
+	11: $t$.isForUser,
+	12: $t$.isForAllFriend,
+	13: $t$.isForBattler,
+	14: $t$.isForBattler,
+	15: $t$.isForBattler,
+	16: $t$.isForAllFriend,
+}; for(let x=32,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
+$t$=undefined;
 $pppp$.getItemFilter=function(item){
 	item=item||this.item();
 	if(!item) return false;
@@ -10858,19 +10840,20 @@ $pppp$.itemHit=function(t,s){
 			1
 	));
 };
-$pppp$.itemEva=function(t){
+($pppp$.itemEva=function f(t){
 	const item=this.item();
 	if(item.surehit) return 0;
-	else switch(item.hitType){
-	default:
-	case Game_Action.HITTYPE_CERTAIN:
-		return 0;
-	case Game_Action.HITTYPE_PHYSICAL:
+	else if(f.tbl) return (f.tbl[item.hitType]||f.tbl._).call(this,t);
+	const tbl=f.tbl={},a=Game_Action;
+	tbl[a.HITTYPE_CERTAIN]=()=>0;
+	tbl[a.HITTYPE_PHYSICAL]=function(t){
 		return (this.isUsePreload()?this.getPreload_t():t).eva;
-	case Game_Action.HITTYPE_MAGICAL:
+	};
+	tbl[a.HITTYPE_MAGICAL]=function(t){
 		return (this.isUsePreload()?this.getPreload_t():t).mev;
-	}
-};
+	};
+	return f.apply(this,arguments);
+}).tbl=undefined;
 $pppp$.itemCri=function(t){
 	const item=this.item();
 	return item.damage.critical ? 
@@ -10881,16 +10864,21 @@ $pppp$.itemCri=function(t){
 		) * (1 - (this.isUsePreload()?this.getPreload_t():t).cev ) : 
 		0 ;
 };
-$pppp$.getSelfItemObj=function(obj){
+($pppp$.getSelfItemObj=function f(obj){
 	const item=arguments.length?obj:this.item();
 	if(item){ const l=item.meta.self;
-		if(l){ const s=l.split(','); switch(s[0]){
-		case 'i': return $dataItems  [s[1]];
-		case 's': return $dataSkills [s[1]];
-		} return; }
+		if(l){
+			const s=l.split(',');
+			if(!f.tbl) f.tbl={
+				_:{},
+				i:$dataItems,
+				s:$dataSkills,
+			};
+			return (f.tbl[s[0]]||f.tbl._)[s[1]];
+		}
 	}
 	return false;
-};
+}).tbl=undefined;
 $pppp$.canForSelf=obj=>!!obj;
 $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	// return action used if used
@@ -10923,12 +10911,12 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	result.drain = act.isDrain();
 	if( result.missed = (used && Math.random() >= act.itemHit(target,subject)) ){
 		result.merge=dmgPopupFollowPrev;
-		f.toQ(result,target); // if(result.isHit())
+		f.toQ(result,target,subject); // if(result.isHit())
 		return act;
 	}
 	if( result.evaded = (used && !result.missed && Math.random() < act.itemEva(target)) ){
 		result.merge=dmgPopupFollowPrev;
-		f.toQ(result,target); // if(result.isHit())
+		f.toQ(result,target,subject); // if(result.isHit())
 		return act;
 	}
 	const isBtl=SceneManager.isBattle();
@@ -10956,7 +10944,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	
 	if(isBtl && used){
 		result.merge=dmgPopupFollowPrev;
-		f.toQ(result,target); // at least this is not 'later'
+		f.toQ(result,target,subject); // at least this is not 'later'
 		if(subject!==target){
 			const q=subject.reserveActResQ() , res=subject.result();
 			if(res.hpDamage!==0||res.mpDamage!==0||res.stpDamage!==0){
@@ -10968,10 +10956,11 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 	}
 	return used && act;
 };
-$d$.toQ=(res,trgt)=>{
+$d$.toQ=(res,trgt,s)=>{
 	if(!res.used) return;
 	// prepare for displaying this info
-	trgt.pushActResQ(res);
+	const res2=trgt.pushActResQ(res);
+	// if(res2) BattleManager.logActRes(res2,s,trgt); // currently not needed
 };
 $d$.clearDs=res=>{ res.hpDamage=0; res.mpDamage=0; res.stpDamage=0; };
 $pppp$.makeDamageValue=function(target,isCri){
@@ -10980,9 +10969,9 @@ $pppp$.makeDamageValue=function(target,isCri){
 	const t=(this.isUsePreload()?this.getPreload_t():target);
 	let value = baseValue * this.calcElementRate(target) , decDmg=0;
 	switch(item.hitType){
-	default:
-	case Game_Action.HITTYPE_CERTAIN:
-	break;
+	// default:
+	// case Game_Action.HITTYPE_CERTAIN:
+	// break;
 	case Game_Action.HITTYPE_PHYSICAL: {
 		value *=t.pdr;
 		decDmg+=t.decDmgP;
@@ -11272,23 +11261,15 @@ $aaaa$.addEnum("CUSTOM_EFFECT_REMOVE",$d$.tbl,function(target,effect){
 }).tbl=['window','a',];
 $k$='applyGlobal';
 $r$=$pppp$[$k$];
-($pppp$[$k$]=function f(){
+($d$=$pppp$[$k$]=function f(){
 	//debug.log('Game_Action.prototype.applyGlobal');
 	const dataItem=this.item();
+	const meta=dataItem&&dataItem.meta; if(!meta) return;
+	
 	if(dataItem.effects) dataItem.effects.forEach(ef=>ef.code===Game_Action.EFFECT_COMMON_EVENT&&$gameTemp.reserveCommonEvent(ef.dataId)); // f.ori.call(this);
-	const item=this._item,id=item._itemId.toId(),meta=dataItem.meta;
-	switch(item._dataClass){
-		default: break;
-		case 'armor': {
-		}break;
-		case 'item': { let qlist=rpgquests.list; //meta=$dataItems[id].meta;
-			if(meta.quest&&qlist[meta.ref]) rpgquests.func.showBoard(qlist[meta.ref]);
-		}break;
-		case 'skill': { let list=rpgskills.list; //meta=$dataSkills[id].meta;
-			if(list[meta.ref]) list[meta.ref](this);
-		}break;
-		case 'weapon': {
-		}break;
+	const item=this._item,id=item._itemId.toId();
+	{ const func=f.tbl[dataItem.itemType];
+	if(func) func.call(this,meta);
 	}
 	{
 	//if(meta&&meta.func) eval(meta.func.replace(/\(|\)/g,''))(this);
@@ -11301,6 +11282,18 @@ $r$=$pppp$[$k$];
 	if(code) code(this);
 	}
 }).ori=$r$;
+$d$.tbl={
+	item: function(meta){
+		let qlist=rpgquests.list; //meta=$dataItems[id].meta;
+		if(meta.quest&&qlist[meta.ref]) rpgquests.func.showBoard(qlist[meta.ref]);
+	},
+	skill: function(meta){
+		const func=rpgskills.list[meta.ref];
+		if(func) func(this);
+	},
+};
+$d$.tbl.i=$d$.tbl.item;
+$d$.tbl.s=$d$.tbl.skill;
 $pppp$.itemEffectAddAttackState=function(target, effect){
 	this.subject().attackStates().forEach((_,stateId)=>{
 		let chance = effect.value1;
@@ -12152,6 +12145,17 @@ $pppp$.refresh=function(noReleaseEquips,only){
 	if(!noReleaseEquips) this.releaseUnequippableItems(false);
 	Game_Battler.prototype.refresh.call(this,0,only);
 };
+$pppp$.index=function(){
+	const tmp=$gameTemp;
+	if(!tmp._pt_allMembers_idSet.has(this._actorId)) return -1;
+	const arrb=$gameParty.battleMembers(),arr=$gameParty.members();
+	const idxb=tmp._pt_battleMembers_actor2idx.get(this);
+	return arr.indexOf(this,idxb>=0?idxb:arrb.length);
+};
+$pppp$.isBattleMember=function(){
+	const arr=$gameParty.battleMembers();
+	return arr[$gameTemp._pt_battleMembers_actor2idx.get(this)]===this;
+};
 $d$=$pppp$._skills_delCache=function f(){
 	$gameTemp.delCache(this,f.key);
 };
@@ -12408,24 +12412,17 @@ $pppp$.performAction=function(action){
 		if(tmp) this.requestMotion(tmp);
 	}
 };
-$pppp$.performAttack=function(){
+($d$=$pppp$.performAttack=function f(){
 	const weapons = this.weapons();
 	const attackMotion = $dataSystem.attackMotions[weapons[0]&&weapons[0].wtypeId];
 	const am2=$dataSystem.attackMotions[weapons[1]&&weapons[1].wtypeId];
 	const m=attackMotion||am2;
 	if(m){
-		switch(m.type){
-			case 0: this.requestMotion('thrust');
-			break;
-			case 1: this.requestMotion('swing');
-			break;
-			case 2: this.requestMotion('missile');
-			break;
-		}
+		if(f.tbl[m.type]) this.requestMotion(f.tbl[m.type]);
 		this.startWeaponAnimation(attackMotion?attackMotion.weaponImageId:0);
 		this.startWeapon2Animation(am2?am2.weaponImageId:0);
 	}
-};
+}).tbl=[ 'thrust' , 'swing' , 'missile' , ]; for(let x=64,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
 $pppp$.onPlayerWalk=function(){
 	this.clearResult();
 	this.checkFloorEffect();
@@ -12481,31 +12478,21 @@ $pppp$.getPlan=function(idx){
 	if(!this._plan) this._plan=[];
 	return this._plan[idx];
 };
-$pppp$.getPlanObj=function(idx){
-	const tmp=this.getPlan(idx);
-	let rtv;
-	switch(tmp&&tmp[0]){
-	case 's':
-		rtv=$dataSkills[tmp[1]];
-	break;
-	case 'i':
-		rtv=$dataItems[tmp[1]];
-	break;
+($pppp$.getPlanObj=function f(idx){
+	if(f.tbl){
+		const tmp=this.getPlan(idx);
+		return tmp&&(f.tbl[tmp[0]]||f.tbl._)[tmp[1]];
 	}
-	return rtv;
-};
+	f.tbl={
+		_:{},
+		i: $dataItems,
+		s: $dataSkills,
+	};
+	return f.apply(this,arguments);
+}).tbl=undefined;
 $pppp$.getPlanObjName=function(idx){
-	const tmp=this.getPlan(idx);
-	let rtv;
-	switch(tmp&&tmp[0]){
-	case 's':
-		rtv=$dataSkills[tmp[1]].name;
-	break;
-	case 'i':
-		rtv=$dataItems[tmp[1]].name;
-	break;
-	}
-	return rtv;
+	const rtv=this.getPlanObj(idx);
+	return rtv&&rtv.name;
 };
 $pppp$.getWorkerEvt=function(){
 	const w=this._meta.worker;
@@ -12793,16 +12780,16 @@ $pppp$.getTraits_custom_m=function f(code,id){
 	}
 	return r;
 };
-$pppp$.itemObject = function(kind, dataId) {
-	let rtv=null;
-	switch(kind){
-	default: break;
-	case 1: rtv=$dataItems  [dataId]; break;
-	case 2: rtv=$dataWeapons[dataId]; break;
-	case 3: rtv=$dataArmors [dataId]; break;
-	}
-	return rtv;
-};
+($pppp$.itemObject = function f(kind, dataId){
+	if(f.tbl) return (f.tbl[kind]||f.tbl._)[dataId];
+	else f.tbl={
+		1: $dataItems,
+		2: $dataWeapons,
+		3: $dataArmors,
+		_:{},
+	};
+	return f.apply(this,arguments);
+}).tbl=undefined;
 $pppp$.performDamage=function(){
 	Game_Battler.prototype.performDamage.call(this);
 	SoundManager.playEnemyDamage();
@@ -13287,56 +13274,53 @@ $d$=$pppp$.obtainEscapeCode=function f(textState){
 	}else return '';
 };
 $d$.regExp=/^[\$\.\|\^!><\{\}\\-]|^[A-Z]+/i;
-$d$=$pppp$.processEscapeCharacter=function f(code, textState){
+$t$=($d$=$pppp$.processEscapeCharacter=function f(code, textState){
 	// upper case str
-	switch(code){
-	case 'E': break; // use drawTextEx instead of drawText ; already ex
-	case '-': break; // a break, no function
-	case 'MINOR': { // only function in Window_Message
-		if(this.constructor!==Window_Message) break;
-		this.printMinor=true;
-	}break;
-	case 'ICONLOOP':{
+	const func=f.tbl.get(code);
+	if(func) func.call(this,f,textState);
+}).tbl=new Map([
+	['E',none],
+	['-',none],
+	['MINOR', function(f,textState){
+		if(this.constructor===Window_Message) this.printMinor=true;
+	}],
+	['ICONLOOP', function(f,textState){
 		let res = f.re_iconloop.exec(textState.text.slice(textState.index));
-		if(!res) break;
+		if(!res) return;
 		textState.index += res[0].length;
 		res=JSON.parse(res[1]+']');
-		if(!res.length) break;
+		if(!res.length) return;
 		if(res.length>1){
 			if(!this._iconloop) this._iconloop=[];
 			this._iconloop.push([res,textState.x,textState.y,0,res[0][1],this._drawingIdx]);
 		}
 		this.processDrawIcon(res[0][0], textState);
-	}break;
-	case 'RGB':
-	case 'RGBA': {
+	}],
+	['RGB', function(f,textState){
 		let res = f.re.exec(textState.text.slice(textState.index));
 		if(res){
 			textState.index += res[0].length;
 			res=res[0].slice(1,-1);
 		}
 		this.changeTextColor(res||$dataCustom.textcolor.default);
-	}break;
-	case 'L':
-		this.inaline=true;
-		break;
-	case 'R':
-		this.inaline=false;
-		break;
-	case 'C':
+	}],
+	['L', function(f,textState){ this.inaline=true; }],
+	['R', function(f,textState){ this.inaline=false; }],
+	['C', function(f,textState){
 		this.changeTextColor(this.textColor(this.obtainEscapeParam(textState)));
-		break;
-	case 'I':
+	}],
+	['I', function(f,textState){
 		this.processDrawIcon(this.obtainEscapeParam(textState), textState);
-		break;
-	case '{':
+	}],
+	['{', function(f,textState){
 		this.makeFontBigger();
-		break;
-	case '}':
+	}],
+	['}', function(f,textState){
 		this.makeFontSmaller();
-		break;
-	}
-};
+	}],
+]);
+$t$.set('RGBA',$t$.get('RGB'));
+$t$=undefined;
 $d$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
 $d$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*),?\]/;
 $pppp$.calcTextHeight=function f(textState, all){
