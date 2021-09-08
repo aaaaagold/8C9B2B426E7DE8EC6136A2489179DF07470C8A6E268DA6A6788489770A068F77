@@ -1135,7 +1135,7 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	if(!(this.visible && 0<this.worldAlpha && this.renderable)) return;
 	//if(this._mask){ renderer.maskManager.pushMask(this._mask); console.log("?"); }
 	//this._renderCanvas(renderer); // empty function
-	if($gameScreen.limitedView){
+	if(f.tbl[2].limitedView=$gameScreen.limitedView){
 		const ctx=renderer.context,p=this.player;
 		ctx.save();
 		const scale=objs.test_scaledLightCarving;
@@ -1152,7 +1152,7 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 			f.tbl[1].scale=scale;
 			this.children.forEach(f.tbl[1]);
 			
-			ctx.globalCompositeOperation='copy';
+			ctx.globalCompositeOperation='destination-in';
 			ctx.drawImage(tc,0,0,c.width,c.height);
 		}else{
 			ctx.globalCompositeOperation='source-in';
@@ -1203,14 +1203,13 @@ $pppp$._drawShadow=function(bitmap, shadowBits, dx, dy){
 	},
 	function f(c){
 		if(c.constructor===Sprite_Character){
-			/* if(c._character._light){
-				const ctx=f.renderer.context;
-				const gco=ctx.globalCompositeOperation;
-				ctx.globalCompositeOperation='source-over';
+			if(c.isInView()){
+				if(f.limitedView && c.blendMode===0 && f.renderer._activeBlendMode!==0){
+					f.renderer._activeBlendMode=0;
+					f.renderer.context.globalCompositeOperation='source-atop';
+				}
 				c.renderCanvas(f.renderer);
-				ctx.globalCompositeOperation=gco;
-				return;
-			}else */ if(c.isInView()) return c.renderCanvas(f.renderer);
+			}
 		}else return c.renderCanvas(f.renderer);
 	},
 ];
