@@ -848,19 +848,15 @@ $dddd$.note2traits=x=>{
 		x.traits.push({code:tc,dataId:enums.MPSubstitute,value:n});
 	}
 	if(meta.loopAni){ // forEach dataId
-		const n=Number(meta.loopAni);
-		if(n){
-			x.traits.push({code:gbb.TRAIT_LOOP_ANI_B,dataId:n,value:1});
-			x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:n,value:1});
-		}
-	}
-	if(meta.loopAniB){ // forEach dataId
-		const n=Number(meta.loopAniB);
-		if(n) x.traits.push({code:gbb.TRAIT_LOOP_ANI_B,dataId:n,value:1});
-	}
-	if(meta.loopAniM){ // forEach dataId
-		const n=Number(meta.loopAniM);
-		if(n) x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:n,value:1});
+		const sp=meta.loopAni.split(',');
+		const occ=Number(sp[1])&3^3;
+		const obj={
+			ani:Number(sp[0])|0, // id
+			fixed:sp.indexOf('fixed',2)+1|0, // location
+			same:sp.indexOf('same',2)+1|0, // alpha
+		};
+		if(occ&1) x.traits.push({code:gbb.TRAIT_LOOP_ANI_B,dataId:obj,value:1});
+		if(occ&2) x.traits.push({code:gbb.TRAIT_LOOP_ANI_M,dataId:obj,value:1});
 	}
 	if(meta.dmgVal){ // forEach dataId
 		// only state can has this, not doing it here

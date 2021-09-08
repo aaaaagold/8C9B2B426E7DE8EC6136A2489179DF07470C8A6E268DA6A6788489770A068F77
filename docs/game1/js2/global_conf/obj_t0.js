@@ -218,6 +218,15 @@ LZString.decompressFromUint8Array=function(e){ // reduce mem. use and prevent 'M
 };
 // additional func: see lib-h
 
+// PIXI structs - small pieces
+PIXI.ObservablePoint.prototype.pos=function(x,y){
+	if(this._x !== x || this._y!==y){
+		this._x = x;
+		this._y = y;
+		this.cb.call(this.scope);
+	}
+};
+
 // fit 'when children is AVLTree'
 PIXI.accessibility.AccessibilityManager.prototype.updateAccessibleObjects=function updateAccessibleObjects(displayObject) {
 	if(!displayObject.visible) return;
@@ -2021,6 +2030,11 @@ Object.defineProperty($pppp$, 'opacity', {
 $pppp$.update=function f(){ // overwrite, forEach is slowwwwwwwwww
 	for(let arr=this.children,x=arr.length;x--;){ let child=arr[x];
 		child && child.update && child.update();
+	}
+};
+$pppp$.move=function(x,y){
+	if(this._character===$gamePlayer || this.oy===undefined){
+		this.transform.position.pos(x,y);
 	}
 };
 $pppp$.setFrameB=function(x,y,xe,ye){
