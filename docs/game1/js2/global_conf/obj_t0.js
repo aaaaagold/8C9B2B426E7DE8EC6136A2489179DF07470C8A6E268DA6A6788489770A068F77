@@ -1560,19 +1560,22 @@ $pppp$._editAccordingToArgs_chr2sv=function(src){
 				ctx.scale(-1,1);
 				ctx.translate(-dstw,0);
 			}
-			ctx.clearRect(0,0,dstw,dsth);
+			//ctx.clearRect(0,0,dstw,dsth);
+			ctx.globalCompositeOperation='copy';
 			ctx.drawImage(src,sx,sy,pw,ph,0,0,dstw,dsth);
 		}
 		{
 			const ctx=c3.getContext('2d');
 			ctx.rotate(Math.PI/2); // rotate canvas according to origin (default=(0,0))
 			ctx.translate(0,-dsth); // move origin to delta ((0,0)=unchanged)
+			ctx.globalCompositeOperation='copy';
 			ctx.drawImage(c2,0,0);
 			ctx.globalCompositeOperation = 'source-atop';
 			ctx.fillStyle = 'rgba(0,0,0,0.5)';
 			ctx.fillRect(0, 0, dstw, dsth);
 		}
 		const ctx=c.getContext('2d');
+		ctx.globalCompositeOperation='copy';
 		for(let y=0;y!=6;++y){ for(let x=0;x!==9;++x){
 			if(y*9+x===51) c2=c3;
 			ctx.drawImage(c2,x*dstw,y*dsth,dstw,dsth);
@@ -1589,24 +1592,26 @@ $d$=$pppp$._editAccordingToArgs_scale=function f(src){
 	let c=d.ce('canvas');
 	if(this._isTile){
 		// prevent edge blur: draw seperately
-		let pw=$gameMap.tileWidth()|0,ph=$gameMap.tileHeight()|0;
-		let pwS=~~(pw*scale),phS=~~(ph*scale);
+		const pw=$gameMap.tileWidth()|0,ph=$gameMap.tileHeight()|0;
+		const pwS=~~(pw*scale),phS=~~(ph*scale);
 		this._pw=pwS; this._ph=phS; 
 		let xs=~~(src.width/pw),ys=~~(src.height/ph);
 		f.f(c,src,xs,ys,pw,ph,pwS,phS);
 	}else{
 		if(this._url.match(/(^|\/)img\/(sv_)?enemies/)){
 			c.width=src.width*scale; c.height=src.height*scale;
-			c.getContext('2d').drawImage(src,0,0,c.width,c.height);
+			const ctx=c.getContext('2d');
+			ctx.globalCompositeOperation='copy';
+			ctx.drawImage(src,0,0,c.width,c.height);
 		}else{
 			let pw=src.width/3,ph=src.height>>2;
 			if(!this._isBigChr){
 				pw>>=2;
 				ph>>=1;
 			}
-			let pwS=~~(pw*scale),phS=~~(ph*scale);
+			const pwS=~~(pw*scale),phS=~~(ph*scale);
 			this._pw=pwS; this._ph=phS; 
-			let xs=~~(src.width/pw),ys=~~(src.height/ph);
+			const xs=~~(src.width/pw),ys=~~(src.height/ph);
 			f.f(c,src,xs,ys,pw,ph,pwS,phS);
 		}
 	}
@@ -1616,11 +1621,13 @@ $d$=$pppp$._editAccordingToArgs_scale=function f(src){
 { const tmpCanvas=document.createElement('canvas');
 $d$.f=(dst,src,xs,ys,pw,ph,pwS,phS)=>{
 	dst.width=pwS*xs; dst.height=phS*ys;
-	let ctx=dst.getContext('2d');
-	let tmpc=tmpCanvas; tmpc.width=pw; tmpc.height=ph;
-	let tmpctx=tmpc.getContext('2d');
+	const ctx=dst.getContext('2d');
+	const tmpc=tmpCanvas; tmpc.width=pw; tmpc.height=ph;
+	const tmpctx=tmpc.getContext('2d');
+	//ctx.globalCompositeOperation='copy';
+	tmpctx.globalCompositeOperation='copy';
 	for(let y=0;y!==ys;++y){ for(let x=0;x!==xs;++x){
-		tmpctx.clearRect(0,0,pw,ph);
+		//tmpctx.clearRect(0,0,pw,ph);
 		tmpctx.drawImage(src, x*pw,y*ph,pw,ph, 0,0,pw,ph);
 		ctx.drawImage(tmpc, x*pwS,y*phS,pwS,phS);
 	} }
@@ -1641,8 +1648,8 @@ $pppp$._editAccordingToArgs=function(){
 	// change color
 	if( !this._colorChanged && commonFlags && this._args.color!==undefined ){
 		this._colorChanged=true;
-		let color=JSON.parse(this._args.color);
-		let invert=!!color[3],w=[];
+		const color=JSON.parse(this._args.color);
+		const invert=!!color[3],w=[];
 		for(let c=0;c!==3;++c){ // color.length===3 // rgb
 			w[c]=0;
 			for(let x=0,arr=color[c];x!==3;++x) // color[c].length===3
@@ -1650,10 +1657,11 @@ $pppp$._editAccordingToArgs=function(){
 			if(color[c][3]) w[c]+=color[c][3]; // degrade color
 			if(w[c]===0) w[c]=1; // ensurance
 		}
-		let c=d.ce('canvas'); c.width=src.width; c.height=src.height;
-		let ctx=c.getContext('2d');
+		const c=d.ce('canvas'); c.width=src.width; c.height=src.height;
+		const ctx=c.getContext('2d');
+		ctx.globalCompositeOperation='copy';
 		ctx.drawImage(src,0,0);
-		let tmp=ctx.getImageData(0,0,c.width,c.height);
+		const tmp=ctx.getImageData(0,0,c.width,c.height);
 		for(let x=0,xs=(c.width*c.height)<<2;x!==xs;x+=4){
 			let curr=[];
 			for(let c=0;c!==3;++c) curr[c]=tmp.data[x+c]; // rgb
@@ -1661,6 +1669,29 @@ $pppp$._editAccordingToArgs=function(){
 				let sum=0;
 				for(let cc=0;cc!==3;++cc) sum+=color[c][cc]*curr[cc];
 				tmp.data[x+c]=invert?0xFF&~(sum/w[c]):~~(sum/w[c]);
+			}
+		}
+		ctx.putImageData(tmp,0,0);
+		src=c;
+	}
+	// change grayscale
+	if( !this._grayscaled && commonFlags && this._args.grayscale!==undefined ){
+		this._grayscaled=true;
+		const grayscale=JSON.parse('['+this._args.grayscale+']');
+		const grayRate=grayscale[0], toColor=grayscale[1] , toColorRate=grayscale[2];
+		const c=d.ce('canvas'); c.width=src.width; c.height=src.height;
+		const ctx=c.getContext('2d');
+		const tmp=ctx.getImageData(0,0,c.width,c.height);
+		ctx.globalCompositeOperation='copy';
+		ctx.drawImage(src,0,0);
+		for(let x=0,xs=w*h<<2,gsc=1-grayRate;x!==xs;x+=4){
+			let sum=0;
+			for(let c=0;c!==3;++c) sum+=tmp.data[x+c];
+			for(let c=0,v=grayRate*~~(sum/3);c!==3;++c) tmp.data[x+c]=tmp.data[x+c]*gsc+v;
+		}
+		if(!isNaN(toColorRate)){
+			for(let x=0,xs=w*h<<2,tcrc=1-toColorRate;x!==xs;x+=4){
+				for(let c=0;c!==3;++c) tmp.data[x+c]=tmp.data[x+c]*tcrc+toColorRate*toColor[c];
 			}
 		}
 		ctx.putImageData(tmp,0,0);
@@ -1674,9 +1705,10 @@ $pppp$._editAccordingToArgs=function(){
 		const tmpc=d.ce('canvas'); tmpc.width=this._pw;  tmpc.height=this._ph;
 		const tmpctx=tmpc.getContext('2d');
 		tmpctx.scale(-1,1); tmpctx.translate(-tmpc.width,0);
+		//ctx.globalCompositeOperation='copy';
+		tmpctx.globalCompositeOperation='copy';
 		for(let y=0;y<c.height;y+=tmpc.height){ for(let x=0;x<c.width;x+=tmpc.width){
 			// WARNING: suppose no precision errors
-			tmpctx.clearRect(0,0,tmpc.width,tmpc.height);
 			tmpctx.drawImage(src,x,y,tmpc.width,tmpc.height,0,0,tmpc.width,tmpc.height);
 			ctx.drawImage(tmpc,x,y,tmpc.width,tmpc.height);
 		} }
@@ -2164,6 +2196,7 @@ $pppp$._setBitmap_args=function(){
 		if(data.anchory!==undefined) this.anchor.y=Number(data.anchory);
 		let tmp;
 		if(tmp=r._getColorEdt()){ rtv.color=tmp; hasSth=true; }
+		if(tmp=r._getGrayEdt()){ rtv.grayscale=tmp; hasSth=true; }
 		tmp=r._getScaleEdt();
 		// rtv.scale=tmp; hasSth=true;
 		tmp=this.scale.x=this.scale.y=Number(tmp)||1;

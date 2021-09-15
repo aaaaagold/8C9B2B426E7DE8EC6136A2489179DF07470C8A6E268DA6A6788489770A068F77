@@ -4700,6 +4700,17 @@ $r$=$pppp$[$k$];
 	if(parseInt(x)!==x||parseInt(y)!==y) return false;
 	return $dataMap.isChair[y*$dataMap.width+x];
 }).tbl=[];
+$pppp$.update=function(sceneActive){
+	this.refreshIfNeeded();
+	this.updateEvents(); //
+	if(sceneActive){
+		this.updateInterpreter();
+	}
+	this.updateScroll();
+	//this.updateEvents(); //
+	this.updateVehicles();
+	this.updateParallax();
+};
 $k$='displayName';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
@@ -5170,6 +5181,7 @@ $d$=$pppp$.command101=function f(){
 		$gameMessage.setFaceImage(this._params[0], this._params[1]);
 		$gameMessage.setBackground(this._params[2]);
 		$gameMessage.setPositionType(this._params[3]);
+		$gameMessage._fadeEffect=this.fadeEffect; this.fadeEffect=undefined;
 		while (this.nextEventCode() === 401) { // Text data
 			this._index++;
 			let txt=this.currentCommand().parameters[0];
@@ -5571,6 +5583,16 @@ $pppp$.addNewState=function(stateId){
 $pppp$.states_noSlice=function(){
 	return this._states_getCache()||this._states_updateCache();
 };
+$pppp$._statesExtra=function f(){
+	const rtv=new Map(),resists=this.stateResistSet(),src=this.getTraits_overall_s(Game_BattlerBase.TRAIT_AUTOSTATE);
+	src.forEach((v,k)=>!resists.has(k)&&rtv.set(k,v));
+	return rtv;
+};
+$pppp$.statesExtra=function(){
+	const rtv=[],src=this._statesExtra();
+	src.forEach((v,k)=>rtv.push($dataStates[k]));
+	return rtv;
+};
 $pppp$.states=function f(){
 	return this.states_noSlice().slice();
 };
@@ -5650,6 +5672,9 @@ $pppp$.updateBuffTurns=function(){
 $pppp$.stateIcons=function(rtv){
 	const icons=rtv||[] , arr=this.states_noSlice();
 	for(let x=0;x!==arr.length;++x) if(arr[x].iconIndex>0) icons.push(arr[x].iconIndex);
+	this._statesExtra().forEach((v,k)=>{
+		if($dataStates[k].iconIndex>0) icons.push($dataStates[k].iconIndex);
+	});
 	return icons;
 };
 $pppp$.buffIconIndex=function(buffLv, parId){
@@ -5659,7 +5684,7 @@ $pppp$.buffIconIndex=function(buffLv, parId){
 			Game_BattlerBase.ICON_DEBUFF_START + ((-buffLv<3)<<3)
 		)+parId:
 		0;
-}
+};
 $pppp$.buffIcons=function(rtv){
 	const icons=rtv||[] , arr=this._buffs;
 	for(let x=0;x!==arr.length;++x)
@@ -5688,6 +5713,44 @@ $pppp$.getTraits_equips_s=$d$;
 $pppp$.getTraits_equips_m=$d$;
 $pppp$.getTraits_custom_s=$d$;
 $pppp$.getTraits_custom_m=$d$;
+$pppp$._getTraitsEx_autoStates_getAvailables=function(curr){
+	const rtv=[] , gbb=Game_BattlerBase ;
+	const src=this.getTraits_overall_s(gbb.TRAIT_AUTOSTATE,undefined,true);
+	if(src){
+		const kv=[] , omit=this.traitsSet(gbb.TRAIT_STATE_RESIST,undefined,true) , omit2=new Set() ;
+		src.forEach((v,k)=>{ if( v>0 && $dataStates[k] && (!omit||!omit.has(k)) ){
+			kv.push(k); // no TRAIT_SKILL_ADD (cause errors when loading in 'Scene_Boot.prototype.arrangeData.note2traits_postProc')
+			const r=$dataStates[k].tmapS.get(gbb.TRAIT_STATE_RESIST);
+			if(r) r.forEach((v,k)=>omit2.add(k));
+		} });
+		kv.forEach(k=> !omit2.has(k) && rtv.push(k) );
+	}
+	return rtv;
+};
+$pppp$.getTraitsEx_autoStates_s=function f(code,id){
+	const arr=this._getTraitsEx_autoStates_getAvailables();
+	let rtv;
+	if(id===undefined){ rtv=new Map(); for(let x=0,xs=arr.length;x!==xs;++x){
+		const tmp=$dataStates[arr[x]].tmapS.get(code);
+		if(tmp) rtv.byKey_sum(tmp,true);
+	} }else{ rtv=0; for(let x=0,xs=arr.length;x!==xs;++x){
+		const tmp=$dataStates[arr[x]].tmapS.get(code);
+		if(tmp&&(tmp=tmp.get(id))) rtv+=tmp;
+	} }
+	return rtv;
+};
+$pppp$.getTraitsEx_autoStates_m=function f(code,id){
+	const arr=this._getTraitsEx_autoStates_getAvailables();
+	let rtv;
+	if(id===undefined){ rtv=new Map(); for(let x=0,xs=arr.length;x!==xs;++x){
+		const tmp=$dataStates[arr[x]].tmapP.get(code);
+		if(tmp) rtv.byKey_mul(tmp,true);
+	} }else{ rtv=1; for(let x=0,xs=arr.length;x!==xs;++x){
+		const tmp=$dataStates[arr[x]].tmapP.get(code);
+		if(tmp&&(tmp=tmp.get(id))!==undefined) rtv*=tmp;
+	} }
+	return rtv;
+};
 $pppp$._overall_delCache=function(code){
 	this._overall_s_delCache(code);
 	this._overall_m_delCache(code);
@@ -5705,13 +5768,15 @@ $d$=$pppp$._overall_s_getCache=function f(code){
 	return (c&&code)?c.get(code):c;
 };
 $d$.key=$tttt$;
-$d$=$pppp$._overall_s_updateCache=function f(code){
+$d$=$pppp$._overall_s_updateCache=function f(code,noEx){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_s_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
 	tmp.mapd=$dataMap;
-	if(rtv=tmp.get(code)) rtv.clear();
-	else tmp.set(code,rtv=new Map());
+	{ const c2=noEx?-code:code;
+	if(rtv=tmp.get(c2)) rtv.clear();
+	else tmp.set(c2,rtv=new Map());
+	}
 	
 	tmp=this.getTraits_native_s(code);
 	if(tmp) rtv.byKey_sum(tmp,true);
@@ -5726,27 +5791,49 @@ $d$=$pppp$._overall_s_updateCache=function f(code){
 	tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
 	if(tmp) rtv.byKey_sum(tmp,true);
 	
+	if(!noEx){
+		// autoState
+		tmp=this.getTraitsEx_autoStates_s(code);
+		if(tmp) rtv.byKey_sum(tmp,true);
+	}
+	
 	return rtv;
 };
 $d$.key=$tttt$;
 $tttt$=undef;
-$pppp$.getTraits_overall_s=function(code,id){
-	let rtv,tmp;
-	if(id===undefined) return this._overall_s_getCache(code)||this._overall_s_updateCache(code);
-	else{
-		rtv=0;
+$pppp$._getTraits_ex_s=function(code,id){
+	let rtv=0,tmp;
+	
+	if(code!==Game_BattlerBase.TRAIT_AUTOSTATE){
+		// autoState
+		tmp=this.getTraitsEx_autoStates_s(code,id);
+		if(tmp) rtv+=tmp;
+	}
+	
+	return rtv;
+};
+$pppp$.getTraits_overall_s=function(code,id,noEx){
+	if(id===undefined) return this._overall_s_getCache(noEx?-code:code)||this._overall_s_updateCache(code,noEx);
+	let rtv=0;
+	{
+		let tmp;
 		tmp=this.getTraits_native_s(code,id);
-		if(tmp!==undefined) rtv+=tmp;
+		if(tmp) rtv+=tmp;
 		tmp=this.getTraits_states_s(code,id);
-		if(tmp!==undefined) rtv+=tmp;
+		if(tmp) rtv+=tmp;
 		tmp=this.getTraits_equips_s(code,id);
-		if(tmp!==undefined) rtv+=tmp;
+		if(tmp) rtv+=tmp;
 		tmp=this.getTraits_custom_s(code,id);
-		if(tmp!==undefined) rtv+=tmp;
+		if(tmp) rtv+=tmp;
 		
 		// environment
 		tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
-		if(tmp) (tmp=tmp.get(id))&&(rtv+=tmp);
+		if(tmp&&(tmp=tmp.get(id))) rtv+=tmp;
+		
+		// ex: post process
+		if(!noEx){
+			rtv+=this._getTraits_ex_s(code,id);
+		}
 		
 		rtv=(~~( rtv*100+(rtv<0?-0.5:0.5) ))/100;
 	}
@@ -5765,13 +5852,15 @@ $d$=$pppp$._overall_m_getCache=function f(code){
 	return (c&&code)?c.get(code):c;
 };
 $d$.key=$tttt$;
-$d$=$pppp$._overall_m_updateCache=function f(code){
+$d$=$pppp$._overall_m_updateCache=function f(code,noEx){
 	if(!code) return; // lazy to do overall and code===0 update
 	let rtv,tmp=this._overall_m_getCache();
 	if(!tmp) $gameTemp.updateCache(this,f.key,tmp=new Map());
 	tmp.mapd=$dataMap;
-	if(rtv=tmp.get(code)) rtv.clear();
-	else tmp.set(code,rtv=new Map());
+	{ const c2=noEx?-code:code;
+	if(rtv=tmp.get(c2)) rtv.clear();
+	else tmp.set(c2,rtv=new Map());
+	}
 	
 	tmp=this.getTraits_native_m(code);
 	if(tmp) rtv.byKey_mul(tmp,true);
@@ -5786,15 +5875,32 @@ $d$=$pppp$._overall_m_updateCache=function f(code){
 	tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapP.get(code);
 	if(tmp) rtv.byKey_mul(tmp,true);
 	
+	if(!noEx){
+		// autoState
+		tmp=this.getTraitsEx_autoStates_m(code);
+		if(tmp) rtv.byKey_mul(tmp,true);
+	}
+	
 	return rtv;
 };
 $d$.key=$tttt$;
 $tttt$=undef;
-$pppp$.getTraits_overall_m=function(code,id){
-	let rtv,tmp;
-	if(id===undefined) return this._overall_m_getCache(code)||this._overall_m_updateCache(code);
-	else{
-		rtv=1;
+$pppp$._getTraits_ex_m=function(code,id){
+	let rtv=1,tmp;
+	
+	// autoState
+	if(code!==Game_BattlerBase.TRAIT_AUTOSTATE){
+		tmp=this.getTraitsEx_autoStates_m(code,id);
+		if(tmp!==undefined) rtv*=tmp;
+	}
+	
+	return rtv;
+};
+$pppp$.getTraits_overall_m=function(code,id,noEx){
+	if(id===undefined) return this._overall_m_getCache(noEx?-code:code)||this._overall_m_updateCache(code,noEx);
+	let rtv=1;
+	{
+		let tmp;
 		tmp=this.getTraits_native_m(code,id);
 		if(tmp!==undefined) rtv*=tmp;
 		tmp=this.getTraits_states_m(code,id);
@@ -5807,6 +5913,11 @@ $pppp$.getTraits_overall_m=function(code,id){
 		// environment
 		tmp=$dataMap&&$dataMap.tmapS&&$dataMap.tmapS.get(code);
 		if(tmp&&(tmp=tmp.get(id))!==undefined) rtv*=tmp;
+		
+		// ex: post process
+		if(!noEx){
+			rtv*=this._getTraits_ex_m(code,id);
+		}
 	}
 	return rtv;
 };
@@ -5816,11 +5927,11 @@ $pppp$.traitsPi=function(code, id){
 $pppp$.traitsSum=function(code, id){
 	return id===undefined?0:this.getTraits_overall_s(code,id);
 };
-$pppp$.traitsSumAll=function(code){
-	return this.getTraits_overall_s(code).v||0;
+$pppp$.traitsSumAll=function(code,noEx){
+	return this.getTraits_overall_s(code,undefined,noEx).v||0;
 };
-$pppp$.traitsSet=function(code){
-	return this.getTraits_overall_s(code);
+$pppp$.traitsSet=function(code,noEx){
+	return this.getTraits_overall_s(code,undefined,noEx);
 };
 $pppp$.traitsMaxId=function(code,min){
 	const t=this.getTraits_overall_s(code);
@@ -5828,10 +5939,8 @@ $pppp$.traitsMaxId=function(code,min){
 	if(t) t.forEach((v,k)=>rtv<k&&(rtv=k));
 	return rtv;
 };
-$pppp$.paramBase=function(paramId){
-	let rtv=this.currentClass().params[paramId][this._level];
-	if(this.stp===0) rtv/=10;
-	return rtv||0;
+$pppp$.paramPlus2=function(paramId){
+	return 0;
 };
 $d$=$pppp$.paramMin=function f(paramId){
 	switch(paramId){
@@ -5840,7 +5949,7 @@ $d$=$pppp$.paramMin=function f(paramId){
 	}
 	return f.tbl;
 };
-$d$.tbl=-Infinity;
+$d$.tbl=-99999999;
 $pppp$.paramMax=function(paramId){
 	return paramId>1?999999:99999999;
 };
@@ -5851,8 +5960,9 @@ $t$=()=>"";
 }).tbl=[
 	(s,i)=>{
 		let value = s.paramBase(i) + s.paramPlus(i);
-		value *= s.paramRate(i) * s.paramBuffRate(i);
 		if(i>1 && s.stp===0) value/=10;
+		value += s.paramPlus2(i);
+		value *= s.paramRate(i) * s.paramBuffRate(i);
 		{ let tmp=s.paramMin(i);
 		if(!(value>=tmp)) value=tmp;
 		else{
@@ -6733,7 +6843,7 @@ Object.defineProperties($pppp$,{
 		return  this._vr2=rhs|0;
 	},configurable:false},
 });
-($pppp$._getColorEdt=function f(){
+$t$=($pppp$._getColorEdt=function f(){
 	let rtv;
 	{
 		const meta=this.getData().meta;
@@ -6745,6 +6855,18 @@ Object.defineProperties($pppp$,{
 	if(!rtv) rtv=this._color;
 	return rtv;
 }).toJson=x=>x&&JSON.stringify(x)||undefined;
+($pppp$._getGrayEdt=function(){
+	let rtv;
+	{
+		const meta=this.getData().meta;
+		if(meta.grayscales){
+			if(!meta.grayscales_lazyTbl) meta.grayscales_lazyTbl=JSON.parse(meta.grayscales).map(f.toJson);
+			rtv=meta.grayscales_lazyTbl[this._pageIndex];
+		}else rtv=meta.grayscale;
+	}
+	if(!rtv) rtv=this._grayscale;
+	return rtv;
+}).toJson=$t$;
 ($pppp$._getScaleEdt=function f(){
 	let rtv;
 	{
@@ -6756,7 +6878,8 @@ Object.defineProperties($pppp$,{
 	}
 	if(!rtv) rtv=this._scale;
 	return rtv;
-}).toJson=$pppp$._getColorEdt.toJson;
+}).toJson=$t$;
+$t$=undefined;
 $pppp$._getAnchoryEdt=function f(){
 	let meta=this.getData().meta;
 	if(meta.anchorys){
@@ -7362,6 +7485,7 @@ $r$=$pppp$.clear;
 	this._lastMsgType=undef;
 	this._lastFinish=undef;
 	this._lastGain=undef;
+	this._fadeEffect=undef;
 }).ori=$r$;
 $pppp$.setFaceImage = function(faceName, faceIndex, faceColor) {
 	this._faceName = faceName;
@@ -9423,6 +9547,7 @@ this.refresh=none;
 	// display
 	this._skipRender=meta.skipRender;
 	this._color=undefined;
+	this._grayscale=undefined;
 	this._scale=undefined;
 	this._z=undefined;
 	if(meta.z){
@@ -9693,6 +9818,14 @@ Object.defineProperties($pppp$,{
 			if(this._clr===rhs) return rhs;
 			this.imgModded=true;
 			return this._clr=rhs;
+		},
+	configurable:false},
+	_grayscale:{
+		get:function(){ return this._gscl; },
+		set:function(rhs){
+			if(this._gscl===rhs) return rhs;
+			this.imgModded=true;
+			return this._gscl=rhs;
 		},
 	configurable:false},
 	_scale:{
@@ -10421,15 +10554,19 @@ $pppp$.setValue=function f(switchId,value,noUpdate){
 // - vars
 $aaaa$=Game_Variables;
 $pppp$=$aaaa$.prototype;
-$pppp$.setValue=function f(varId,val){
+$pppp$.setValue=function f(id,val){
 	let strt=$gameTemp.gameVarTrimStrt^=0;
-	if(strt<varId){
-		for(;strt!==varId;++strt) if(!this._data[strt] && this._data[strt]!=='') this._data[strt]^=0;
-		$gameTemp.gameVarTrimStrt=varId;
+	if(strt<id){
+		for(;strt!==id;++strt) if(!this._data[strt] && this._data[strt]!=='') this._data[strt]^=0;
+		$gameTemp.gameVarTrimStrt=id;
 	}
-	if(0<varId){
-		if(typeof val === 'number') val^=0;
-		this._data[varId] = val;
+	if(0<id){
+		if((typeof val)==='number'){
+			const abs=Math.abs(val);
+			if(abs<=0x7FFFFFFF) val^=0;
+			else if(abs===Infinity||isNaN(val)) val+='';
+		}
+		this._data[id]=val;
 		this.onChange();
 	}
 };
@@ -10947,7 +11084,9 @@ $pppp$.itemPrf=function(target){
 $pppp$.itemMrf=function(target){
 	return this.item().reflectable && this.isMagical() ? target.reflectMRate() : 0 ;
 };
-$pppp$.itemHit=function(t,s){
+$pppp$.itemHit=function(t,s){ // successRate only
+	return this.item().successRate;
+	/*
 	const item=this.item();
 	return item.surehit?1:(item.successRate*(
 		this.isPhysical() ? 
@@ -10956,18 +11095,19 @@ $pppp$.itemHit=function(t,s){
 			).hit : 
 			1
 	));
+	*/
 };
-($pppp$.itemEva=function f(t){
+($pppp$.itemEva=function f(t,s){
 	const item=this.item();
 	if(item.surehit) return 0;
-	else if(f.tbl) return (f.tbl[item.hitType]||f.tbl._).call(this,t);
+	else if(f.tbl) return (f.tbl[item.hitType]||f.tbl._).call(this,t,s);
 	const tbl=f.tbl={},a=Game_Action;
-	tbl[a.HITTYPE_CERTAIN]=()=>0;
-	tbl[a.HITTYPE_PHYSICAL]=function(t){
-		return (this.isUsePreload()?this.getPreload_t():t).eva;
+	tbl._=tbl[a.HITTYPE_CERTAIN]=()=>0;
+	tbl[a.HITTYPE_PHYSICAL]=function(t,s){
+		return (this.isUsePreload()?this.getPreload_t():t).eva - (this.isUsePreload()?this.getPreload_s():(s||this.subject())).hit ;
 	};
-	tbl[a.HITTYPE_MAGICAL]=function(t){
-		return (this.isUsePreload()?this.getPreload_t():t).mev;
+	tbl[a.HITTYPE_MAGICAL]=function(t,s){
+		return (this.isUsePreload()?this.getPreload_t():t).mev ;
 	};
 	return f.apply(this,arguments);
 }).tbl=undefined;
@@ -11031,7 +11171,7 @@ $d$=$pppp$.apply=function f(target,dmgPopupFollowPrev){
 		f.toQ(result,target,subject); // if(result.isHit())
 		return act;
 	}
-	if( result.evaded = (used && !result.missed && Math.random() < act.itemEva(target)) ){
+	if( result.evaded = (used && !result.missed && Math.random() < act.itemEva(target,subject)) ){
 		result.merge=dmgPopupFollowPrev;
 		f.toQ(result,target,subject); // if(result.isHit())
 		return act;
@@ -11558,6 +11698,7 @@ $pppp$.getData=function(){
 };
 $r$=Game_Character.prototype;
 $pppp$._getColorEdt=$r$._getColorEdt;
+$pppp$._getGrayEdt=$r$._getGrayEdt;
 $pppp$._getScaleEdt=$r$._getScaleEdt;
 $pppp$._getAnchoryEdt=$r$._getAnchoryEdt;
 Object.defineProperties($pppp$,{
@@ -12514,8 +12655,8 @@ $pppp$._addNewState_updateCache=function(stateId){
 	
 	this._updateFlr(stateId);
 };
-$pppp$.paramPlus=function(paramId){
-	let rtv = Game_Battler.prototype.paramPlus.call(this, paramId);
+$pppp$.paramPlus2=function(paramId){
+	let rtv=0;
 	const equips = this.equips();
 	if(equips.u===undefined) equips.u=[];
 	if(equips.u[paramId]===undefined){
@@ -12819,6 +12960,7 @@ $pppp$.getData=function(){
 };
 $r$=Game_Character.prototype;
 $pppp$._getColorEdt=$r$._getColorEdt;
+$pppp$._getGrayEdt=$r$._getGrayEdt;
 $pppp$._getScaleEdt=$r$._getScaleEdt;
 $pppp$._getAnchoryEdt=$r$._getAnchoryEdt;
 Object.defineProperties($pppp$,{
@@ -13047,6 +13189,7 @@ $r$=$pppp$[$k$];
 	
 	this.adjLrArrows=undefined;
 	this._iconloop=undefined;
+	this.clearFadeEffect();
 }).ori=$r$;
 $r$=$pppp$.update;
 ($d$=$pppp$.update=function f(){
@@ -13067,6 +13210,55 @@ $d$.forEach=function(info,index){
 		info[4]=icons[idx][1];
 		this.drawLoopIcon(index);
 	}
+};
+$k$='updateOpen';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(){
+	if(this._fadingIn){
+		this.openness=256;
+		if(!this._fadeEffect || !(( this.alpha=( this._fadeEffect_open+=this._fadeEffect_open<this._fadeEffect[0] )/this._fadeEffect[0]||0 )<1)){
+			this._fadingIn=false;
+			this.alpha=1;
+		}
+	}
+	f.ori.call(this);
+}).ori=$r$;
+$k$='updateClose';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(){
+	if(this._fadingOut){
+		this._closing=false;
+		if(!this._fadeEffect || !((this.alpha=(this._fadeEffect[1] - (this._fadeEffect_close+=this._fadeEffect_close<this._fadeEffect[1]))/this._fadeEffect[1]||0)>0)){
+			this._fadingOut=false;
+			this.openness=0;
+			this.alpha=1;
+			this.clearFadeEffect();
+		}
+	}
+	f.ori.call(this);
+}).ori=$r$;
+$r$=$pppp$.open;
+($pppp$.open=function f(){
+	f.ori.call(this);
+	if(this._fadeEffect && this._fadeEffect_open<this._fadeEffect[0] && this._fadeEffect[0]>0){
+		this._fadingIn=true;
+		this._fadeEffect_open=this.isOpen()?~~(this.alpha*this._fadeEffect[0]+0.5||0):0;
+	}else this.alpha=1;
+	this._fadeEffect_close=(this._fadingOut=false)|0;
+}).ori=$r$;
+$r$=$pppp$.close;
+($pppp$.close=function f(){
+	f.ori.call(this);
+	if(this._fadeEffect && this._fadeEffect_close<this._fadeEffect[1] && this._fadeEffect[1]>0){
+		this._fadingOut=true;
+		this._fadeEffect_close=~~((1-this.alpha)*this._fadeEffect[1]+0.5||0);
+	}else this.alpha=1;
+	this._fadeEffect_open=(this._fadingIn=false)|0;
+}).ori=$r$;
+$pppp$.clearFadeEffect=function(){
+	this._fadeEffect=undefined;
+	this._fadeEffect_close=this._fadeEffect_open=0;
+	//this._fadingIn=this._fadingOut=false;
 };
 ($pppp$.clearLoopIcon=function f(){
 	const ws=this.subWindows();
@@ -13105,8 +13297,9 @@ $pppp$.drawActorFace=function(actor, x, y, width, height){
 };
 $pppp$.drawActorIcons=function(actor, x, y, width){
 	width = width || 144;
-	const ty=y+2 , w_4=(Window_Base._iconWidth>>2) , w_4_3=(Window_Base._iconWidth>>1)+(Window_Base._iconWidth>>2) , stats=actor.states_noSlice() , fs=this.contents.fontSize ;
-	const fs2=(fs>>1)+(fs>>3)+(fs>>4) , iconsLen=stats.length+actor.buffCnt() , rect=new Rectangle(x,ty,width,Window_Base._iconHeight) ;
+	const ty=y+2 , w_4=(Window_Base._iconWidth>>2) , w_4_3=(Window_Base._iconWidth>>1)+(Window_Base._iconWidth>>2) , fs=this.contents.fontSize ;
+	const stats=actor.states_noSlice() , statExtra=actor._statesExtra();
+	const fs2=(fs>>1)+(fs>>3)+(fs>>4) , iconsLen=stats.length+statExtra.size+actor.buffCnt() , rect=new Rectangle(x,ty,width,Window_Base._iconHeight) ;
 	this.contents.clearRect(rect.x,rect.y,rect.width,rect.height);
 	const iconsWidth=iconsLen*Window_Base._iconWidth;
 	this.changeTextColor( this.iconStackTextColor() );
@@ -13134,6 +13327,17 @@ $pppp$.drawActorIcons=function(actor, x, y, width){
 		}
 		tx+=Window_Base._iconWidth;
 	}
+	
+	// statesExtra
+	statExtra.forEach((v,k)=>{
+		const stat=$dataStates[k]; if(!(v>0)) return;
+		if(this.drawIcon(stat.iconIndex,tx,ty,rect) && stat.autoRemovalTiming){
+			//this.setFontsize(fs2);
+			//this.drawText('x'+v,tx+w_4,ty-2,w_4_3,'right',rect);
+			//this.setFontsize(fs);
+		}
+		tx+=Window_Base._iconWidth;
+	});
 	
 	// buffs
 	{
@@ -13940,6 +14144,16 @@ $r$=$pppp$[$k$];
 	f.ori.call(this);
 	this.inaline=false;
 }).ori=$r$;
+if(0){$k$='doesContinue';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(){
+	const rtv=f.ori.call(this);
+	if(rtv){
+		this._fadingOut=false;
+	}
+	return rtv;
+}).ori=$r$;
+}
 $r$=$pppp$.newPage;
 ($pppp$.newPage=function f(txtstat){
 	this.clearLoopIcon();
@@ -13974,6 +14188,10 @@ $r$=$pppp$[$k$];
 			// this._nameField will be 'removeChild' from 'this' @terminateMessage
 		//this._moveTxtInput(); // not yet added to 'SceneManager._scene._windowLayer'
 	}else if(this._nameField) this._nameField.enabled=this._nameField.alpha=0;
+	if(this._fadingOut || !isNone($gameMessage._fadeEffect)){
+		this._fadeEffect=$gameMessage._fadeEffect;
+		$gameMessage._fadeEffect=undefined;
+	}
 	return f.ori.call(this);
 }).ori=$r$;
 $pppp$._moveTxtInput=function(){ // if 'this._nameField' is presented
@@ -13995,7 +14213,7 @@ $pppp$._moveTxtInput=function(){ // if 'this._nameField' is presented
 $k$='updateOpen';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
-	let op=this._opening;
+	const op=this._opening;
 	f.ori.call(this);
 	if(this._opening===false && this._nameField && this._nameField.enabled){
 		this._nameField.alpha=1; // must be run: when it is another person talking in the seq. of msg.

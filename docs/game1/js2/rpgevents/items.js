@@ -93,7 +93,7 @@ list.defs=action=>{
 	txtarr.push({txt:ie.dmgType_txt+"不管是對目標:減少或增加,HP或MP，通通都叫做傷害"});
 	txtarr.push("\n");
 	txtarr.push("\n");
-	txtarr.push({txt:pr.grd+":"+TextManager.guard+"效果的倍數，預設為2，將所受傷害除以該值(未滿0.5時以0.5計，代表無效果)，即防禦時的計算值。"});
+	txtarr.push({txt:pr.grd+":"+TextManager.guard+"效果的倍數，將所受傷害除以此值(未滿0.5時以0.5計，代表無效果)，再除以2，即"+TextManager.guard+"時所受傷害的計算值。"});
 	txtarr.push("\n");
 	txtarr.push("\n");
 	txtarr.push({txt:"傷害計算順序:"});
@@ -106,7 +106,7 @@ list.defs=action=>{
 	txtarr.push("\n");
 	txtarr.push({txt:"4. 由上述C依據 "+getTxt("dmgCrit")+" 計算倍率，得D"});
 	txtarr.push("\n");
-	txtarr.push({txt:"5. 由上述D依據目標是否 "+TextManager.guard+" 及目標的 "+pr.grd+" 計算倍率，得E"});
+	txtarr.push({txt:"5. 由上述D依據目標是否 "+TextManager.guard+"及目標的"+pr.grd+"計算傷害倍率，得E"});
 	txtarr.push("\n");
 	txtarr.push({txt:"6. 由上述E代入 "+[pr.arh,pr.arm]+" 的計算及傷害計算，若是下列之一情形:\""+ie.dmgType_txt+ie.dmgType.slice(5,7)+"\"，則實際吸收量不會超過目標所擁有的HP或MP量。得F，F為計算結果。"});
 	txtarr.push("\n");

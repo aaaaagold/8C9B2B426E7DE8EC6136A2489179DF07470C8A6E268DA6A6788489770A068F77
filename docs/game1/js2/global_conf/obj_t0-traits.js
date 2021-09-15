@@ -141,6 +141,13 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataStates  ,f.note2traits);
 	f.doForEach($dataWeapons ,f.note2traits);
 	
+	f.doForEach($dataActors  ,f.note2traits_postProc);
+	f.doForEach($dataArmors  ,f.note2traits_postProc);
+	f.doForEach($dataClasses ,f.note2traits_postProc);
+	f.doForEach($dataEnemies ,f.note2traits_postProc);
+	f.doForEach($dataStates  ,f.note2traits_postProc);
+	f.doForEach($dataWeapons ,f.note2traits_postProc);
+	
 	// switch skills // meta.switch -> effect.isSwitch
 	f.doForEach($dataSkills,x=>{ if(!x) return;
 		if(!x.meta.switch) return;
@@ -862,6 +869,29 @@ $dddd$.note2traits=x=>{
 		// only state can has this, not doing it here
 	}
 };
+$dddd$.note2traits_postProc=(dataobj,i,a)=>{
+	const meta=dataobj&&dataobj.meta; if(!meta) return;
+	
+	// autoState
+	if(meta.autoState && a!==$dataStates){ // +
+		const tas=Game_BattlerBase.TRAIT_AUTOSTATE;
+		for(let x=0,arr=meta.autoState.split(',');x!==arr.length;++x){
+			const n=Number(arr[x])|0;
+			const stat=$dataStates[n];
+			if(stat){
+				if(stat.traits.filter(t=>t.code===Game_BattlerBase.TRAIT_SKILL_ADD).some(t=>$dataSkills[t.dataId].meta.passive)){
+					if(objs._isDev) console.warn(a,i,dataobj);
+					throw new Error('error: database: set SKILL_ADD with traited skills (e.g. passive skills) in states used in <autoState>');
+				}
+				const marker={code:tas,dataId:n,value:1,};
+				if(objs._isDev) marker.comment="autostate";
+				dataobj.traits.push(marker);
+				//dataobj.traits.concat_inplaceThis(stat.traits.filter(t=>t.code===Game_BattlerBase.TRAIT_SKILL_ADD));
+			}
+		}
+	}
+	
+};
 { const kw="use=",tunePage=(dataobj,pgs,p,visiting)=>{
 	if(pgs[p].list_ori) return;
 	if(visiting.has(p)){
@@ -1015,6 +1045,7 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("TpRegenV").
 	addEnum("__DUMMY") , gbb=Game_BattlerBase.
 	addEnum("TRAITS_CUSTOM").
+	addEnum("TRAIT_AUTOSTATE").
 	addEnum("TRAIT_LOOP_ANI_B").
 	addEnum("TRAIT_LOOP_ANI_M").
 	addEnum("__DUMMY") ;
@@ -1132,10 +1163,15 @@ $t$=undef;
 ]);
 ($pppp$._stateDmgVal_calc=function f(stat){
 	if(!stat.dmgVal_func){
-		f.tbl[2]="return "+stat.dmgVal[1]+stat.dmgVal[2];
+		let baseStr=stat.dmgVal[1]+stat.dmgVal[2];
+		if(stat.dmgVal[3]){
+			if(!isNone(stat.dmgVal[3][0])) baseStr="Math.max(("+baseStr+"),"+stat.dmgVal[3][0]+")";
+			if(!isNone(stat.dmgVal[3][1])) baseStr="Math.min(("+baseStr+"),"+stat.dmgVal[3][1]+")";
+		}
+		f.tbl[2]="return "+baseStr;
 		stat.dmgVal_func=Function.apply(null,f.tbl);
 	}
-	return stat.dmgVal_func.call(none,undefined,this)*this.elementRate(stat.dmgVal[3])||0;
+	return stat.dmgVal_func.call(none,undefined,this)*this.elementRate(stat.dmgVal[4])||0;
 }).tbl=['windiw','b',];
 $pppp$.stateDmgValHp=function(){
 	let rtv=0;
