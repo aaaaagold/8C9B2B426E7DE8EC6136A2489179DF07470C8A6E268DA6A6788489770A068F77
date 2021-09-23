@@ -34,6 +34,36 @@ list.discardShopItemsFirstN=n=>{
 		return n;
 	};
 };
+const genChoices_scr_saveChoiceName="this._tmpData.lastChoiceName=this._list[this._index-1].parameters[1];";
+const genChoices_putPairs=function f(p,i){
+	this.push({code:402,indent:f.indent,parameters:[i,p[0]]});
+	this.push({code:355,indent:f.indent+1,parameters:[genChoices_scr_saveChoiceName]});
+	this.push({code:119,indent:f.indent+1,parameters:[p[1]]});
+	this.push(Game_Interpreter.EMPTY);
+};
+const genChoices_toChoiceOnly=x=>x[0];
+list.genChoices=(windowOpt,defaultChoiceId,label_cancel,choiceLabelPairs)=>{
+	windowOpt=windowOpt||{};
+	choiceLabelPairs=choiceLabelPairs||[];
+	return (olist,c,rtv)=>{
+		const indent=olist[c-1].indent;
+		rtv.push({code:102,indent:indent,parameters:[
+			choiceLabelPairs.map(genChoices_toChoiceOnly),
+			label_cancel?-2:-1, // -1: disable cancal
+			defaultChoiceId>=0?defaultChoiceId:-1,
+			windowOpt.pos===undefined?2:windowOpt.pos, // pos
+			windowOpt.bak===undefined?0:windowOpt.bak, // background
+		]});
+		const f=genChoices_putPairs;
+		f.indent=indent;
+		choiceLabelPairs.forEach(f,rtv);
+		rtv.push({code:403,indent:indent,parameters:[]});
+		rtv.push({code:355,indent:indent+1,parameters:[genChoices_scr_saveChoiceName]});
+		rtv.push({code:119,indent:indent+1,parameters:[label_cancel]});
+		rtv.push(Game_Interpreter.EMPTY);
+		return 0;
+	};
+};
 const randSelCmdFromNextIf0_ifTrue_param=[12,"1"];
 const randSelCmdFromNextIf0_forEach=function(x){this.push(x);};
 list.randSelCmdFromNextIf0=(olist,c,rtv)=>{

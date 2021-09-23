@@ -120,17 +120,15 @@ $dddd$.set=function f(name,txt ,changesCallback,changesKArgs){
 		$dataTemplateEvtFromMaps.others[name.slice(prefix.length)]=window[name]; // sorted after first map-loading
 		return 'evtds';
 	},
-	'$dataTilesets':(arr)=>{
-		if(!arr) return;
-		for(let x=1;x!==arr.length;++x){
-			let t=arr[x].meta;
-			let s=t.chairThatCanSitUp;
-			if(s){
-				let arr=s.split(',').map(Number);
-				t.chairThatCanSitUp=new Set(arr);
-				if(!t.chair) t.chair=new Set(arr);
-				else for(let x=0,s=t.chair;x!==arr.length;++x) s.add(arr[x]);
-			}
+	// tune fixed database
+	'$dataSystem':obj=>{
+		if(!obj) return;
+		// terms backup
+		if(!$dataSystem.termsBackuped){
+			$dataSystem.termsBackuped=true;
+			$dataCustom.apps_ori=$dataCustom.apps;
+			$dataSystem.currencyUnit_ori=$dataSystem.currencyUnit;
+			$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
 		}
 	},
 };  }
@@ -518,6 +516,19 @@ if(!$dataMap.meta.disablePreload){
 				evt.x=evt.y=-1; // loop map will x,y mod w,h
 			});
 		}
+		// cmdSameAsPage
+		for(let e=0,evtds=$dataMap.events,es=$dataMap.templateStrt;e!==es;++e){
+			const evtd=evtds[e]; if(evtd){ for(let p=0,pgs=evtd.pages;p!==pgs.length;++p){
+				const list=pgs[p].list;
+				if(list[0].code!==108 || list[0].parameters[0]!=="<meta>" ||
+					list[1].code!==408 || list[1].parameters[0]!=="<cmdSameAsPage>" ||
+					list[2].code!==408 ){
+					continue;
+				}
+				const n=Number(list[2].parameters[0]);
+				if(n<=p && pgs[n-1]) pgs[p].list=pgs[n-1].list;
+			} }
+		}
 		// cmdRef
 		for(let e=0,evtds=$dataMap.events,es=$dataMap.templateStrt;e!==es;++e){
 			const evtd=evtds[e],revtd=evtd&&evtds[evtd.meta.cmdRef]; if(!revtd) continue;
@@ -883,6 +894,7 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 	
 	// - sys
 	tmp=content.system;
+	tmp.sysSetting();
 	tmp._database_putAll();
 	
 	// config apps to party apps

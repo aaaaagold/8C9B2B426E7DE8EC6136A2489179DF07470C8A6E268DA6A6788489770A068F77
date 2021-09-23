@@ -1372,6 +1372,22 @@ $r$=$pppp$[$k$];
 	this._sortE(true);
 	f.ori.call(this);
 }).ori=$r$;
+//
+$t$='terrainBattleback';
+$k$=$t$+'1Name';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(type){
+	const tset = $dataMap && $dataTilesets[$dataMap.tilesetId] , bgmp = tset && tset.battleBack1 ;
+	return bgmp && bgmp.get(type) || f.ori.call(this,type);
+}).ori=$r$;
+$k$=$t$+'2Name';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(type){
+	const tset = $dataMap && $dataTilesets[$dataMap.tilesetId] , bgmp = tset && tset.battleBack2 ;
+	return bgmp && bgmp.get(type) || f.ori.call(this,type);
+}).ori=$r$;
+$t$=undef;
+//
 $pppp$.createActors=function(){
 	this._actorSprites = [];
 	for (let i=0,sz=$gameParty.battleMembers().length;i!==sz;++i) this._battleField.addChild( this._actorSprites[i] = new Sprite_Actor() );
@@ -1933,6 +1949,7 @@ $r$=$aaaa$.update;
 		this._actionNoEffect=false;
 		f.ori.call(this);
 	}while(this._actionNoEffect);
+	if(!this.isBattleEnd()) $gameTroop.updateParallel();
 }).ori=$r$;
 { const f1=function(){
 	if(this.isActionForced()){
@@ -2772,153 +2789,14 @@ $pppp$=$aaaa$=undef;
 // - title
 $aaaa$=Scene_Title;
 $pppp$=$aaaa$.prototype;
-$pppp$._edt=function f(){
-	if(!f.ori){
-		f.ori=deepcopy($dataSystem);
-		f.tbl={};
-	}
-	let tmp=location.pathname.match(/\/([A-Za-z0-9]+)\.html$/);
-	const info=tmp&&tmp[1];
-	
-	const cursorDiv_id='cursorDiv';
-	const cursorDiv=d.ge(cursorDiv_id);
-	let cursorCss;
-	let mouseMvEvtFunc;
-	
-	let useDefault=false;
-	$dataCustom.apps=$dataCustom.apps_ori;
-	$dataSystem.currencyUnit=$dataSystem.currencyUnit_ori;
-	$dataSystem.titleBgm=deepcopy($dataSystem.titleBgm_ori);
-	objs.confs={
-		hideLearnableSkills:false,
-		noRestoreHpMp:false,
-		useStp:false,
-	};
-	switch(sha256(info)){
-	case "book":{
-		$dataSystem. title1Name = "Book";
-		$dataSystem. gameTitle  = "☆作者的垃圾話時間☆";
-		$dataSystem. partyMembers = [17];
-	}break;
-	case "0x859FACC5A4C9B80AC2EEF78916C1953BCCCAAB6014BB11B9DE8337430EA34F0C":{
-		let ori=f.ori;
-		$dataSystem. title1Name = ori.title1Name ;
-		$dataSystem. startMapId = ori.startMapId ;
-		$dataSystem. gameTitle  = "燒毀" ;
-		$dataSystem. partyMembers = [17];
-		
-		let burnLv = localStorage.getItem("maxBurnLv")|0;
-		$dataSystem.title1Name+="?color="+encodeURIComponent("[[4,"+burnLv+",0],["+burnLv+",44,0],[0,0,1]]");
-		$dataSystem.currencyUnit="B幣";
-	}break;
-	default:
-		useDefault=true;
-	case "0x2A97516C354B68848CDBD8F54A226A0A55B21ED138E207AD6C5CBB9C00AA5AEA":{
-		$dataSystem. title1Name = "Fountain";
-		$dataSystem. gameTitle  = "做一堆遊戲都用同一份檔案，好省";
-		$dataSystem. startMapId = 272 ;
-		$dataSystem. partyMembers = [21];
-		$dataSystem. titleBgm={name: "03_Lonely_Departure", pan: 0, pitch: 119, volume: 50};
-		$dataSystem.currencyUnit="D幣";
-	}break;
-	case "0x780D88ACF70DF7B68290F99F4E4544C267562B3E8FCFD1D75DAC6842942575CF":{
-		$dataSystem. title1Name = "Volcano";
-		$dataSystem. gameTitle  = "拉起封鎖線";
-		$dataSystem. startMapId = 8 ;
-		$dataSystem. partyMembers = [12];
-		$dataSystem.currencyUnit="K幣";
-	}break;
-	case "0x187897CE0AFCF20B50BA2B37DCA84A951B7046F29ED5AB94F010619F69D6E189":{
-		$dataSystem. title1Name = "Dragon";
-		let maxMember=Number(localStorage.getItem("maxMember"))|0;
-		let actorId=16,actorMp=$dataClasses[$dataActors[actorId].classId].params[1][1];
-		$dataSystem. partyMembers = [actorId];
-	//	let last=~~( actorMp/(~~( actorMp / maxMember )) )||0;
-		++maxMember;
-		let mpCost=$dataSkills[12].mpCost = ~~( actorMp / maxMember );
-		$dataSystem. gameTitle  = maxMember+"個人不夠,你有試過"+(maxMember+1)+"個人嗎?";
-	//	let curr=~~(actorMp/mpCost);
-	//	$dataSystem. gameTitle  = (last+1)+"個人不夠,你有試過"+(curr+1)+"個人嗎?";
-		$dataSystem. startMapId = 101 ;
-		$dataSystem.currencyUnit="M幣";
-	}break;
-	case "0x909CA0096D519DCF94ABA6069FA664842BDF9DE264725A6C543C4926ABE6BDFA":{
-		$dataSystem. title1Name = "Sword";
-		$dataSystem. gameTitle  = "反射";
-		$dataSystem. startMapId = 276 ;
-		$dataSystem.currencyUnit="ㄈ幣";
-		objs.confs.useStp=true;
-		
-		if(!f.tbl.cursorImg_rfl){
-			const c=d.ce('canvas'),c2=d.ce('canvas');
-			const sx=-24,sy=-30;
-			const w=c2.width  =c.width  =Sprite_Weapon.width;
-			const h=c2.height =c.height =Sprite_Weapon.height;
-			c.getContext('2d').drawImage(ImageManager.loadSystem("Weapons1")._image,w*2,0,w,h,sx,sy,w,h);
-			const ctx2=c2.getContext('2d');
-			ctx2.scale(-1,1);
-			ctx2.drawImage(c,-w,0);
-			f.tbl.cursorImg_rfl=c.toDataURL();
-			f.tbl.cursorImg2=c2.sa('class','abs').sa('style','z-index:-1;top:100%');
-			f.tbl.cursorImg2.onmousemove=e=>e.preventDefault();
-			f.tbl.mouseMvEvtFunc=function(e){
-				const x=e.layerX,y=e.layerY;
-				f.tbl.cursorImg2.style.top=y+"px";
-				f.tbl.cursorImg2.style.right=x+"px";
-			};
-		}
-		const id='cursorCss_rfl';
-		cursorCss=d.ge(id);
-		if(!cursorCss) d.head.ac(cursorCss=d.ce('style').sa("id",id).at("div."+id+"{z-index:404;cursor:url("+f.tbl.cursorImg_rfl+") 0 0,auto;}"));
-		mouseMvEvtFunc=f.tbl.mouseMvEvtFunc;
-	}break;
-	case "0x0CF35AB8CF8D2C5A4D14CB9E2E4ED472C72C7D65A5095B0EE095CE92223CF661":{
-		$dataSystem. title1Name = "Crystal";
-		$dataSystem. gameTitle  = "如果我有一座新冰箱";
-		$dataSystem. startMapId = 139 ;
-		$dataSystem. partyMembers = [20];
-		$dataSystem. titleBgm=objs.rndmusic();
-		$dataSystem.borrowDays=30;
-		$dataSystem.enemyCnts=[10,15,20,40,50,100];
-		$dataCustom.apps="便利功能";
-		$dataSystem.currencyUnit="R幣";
-		objs.confs.noRestoreHpMp=true;
-		objs.confs.useStp=true;
-	}break;
-	case "0x9BBA5C53A0545E0C80184B946153C9F58387E3BD1D4EE35740F29AC2E718B019":{
-		$dataSystem. title1Name = "tester";
-		$dataSystem. gameTitle  = "作者在雷吧?遊戲測試員的無奈!";
-		$dataSystem. startMapId = 256 ;
-		$dataSystem. partyMembers = [23];
-		$dataSystem. titleBgm = objs.rndmusic();
-		$dataSystem.currencyUnit = "T幣";
-	}break;
-	}
-	
-	if(cursorCss){
-		if(!cursorDiv) d.ge('div999').ac(f.tbl.cursorDiv||(
-			f.tbl.cursorDiv=d.ce('div').sa('id',cursorDiv_id).sa('class','full '+cursorCss.id).ac(
-				f.tbl.cursorImg2
-			).ac(
-				d.ce('div').sa('class','full')
-			)
-			//d.ce('div').sa('id',cursorDiv_id).sa('class','full '+cursorCss.id).sa('style','touch-action: none; user-select: none;').ac(f.tbl.cursorImg2)
-		));
-		f.tbl.cursorDiv.onmousemove=mouseMvEvtFunc;
-		this._cursorDiv=f.tbl.cursorDiv;
-	}else{
-		if(cursorDiv) cursorDiv.parentNode.removeChild(cursorDiv);
-		this._cursorDiv=null;
-	}
-	
-	if(useDefault) history.replaceState(undefined , document.title=$dataSystem.gameTitle, location.search + "#"+location.hash.slice(1) );
-	else history.replaceState(undefined , document.title=$dataSystem.gameTitle, "./"+info+".html" + location.search + "#"+location.hash.slice(1) );
-	if($gameTemp) $gameTemp.clearCacheAll();
-};
+Object.defineProperties($pppp$,{
+	_edt:{set:none,get:()=>objs.isDev&&console.warn('see objs.funcs.sysSetting')||undefined,
+	},
+});
 $r$=$pppp$.create;
 ($pppp$.create=function f(){
 	debug.log('Scene_Title.prototype.create');
-	this._edt();
+	objs.funcs.sysSetting._.call(this);
 	f.ori.call(this);
 	$dataMap=null;
 	$gamePlayer=objs.$gamePlayer=null;
@@ -5085,7 +4963,7 @@ $pppp$=$aaaa$=undef;
 // - interpreter
 $aaaa$=Game_Interpreter;
 $pppp$=$aaaa$.prototype;
-$aaaa$.EMPTY={code:0,indent:0,parameters:[]};
+($aaaa$.EMPTY=deepcopy({code:0,indent:0,parameters:[],_anchor:null}))._anchor=()=>{};
 $k$='initialize';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
@@ -5151,16 +5029,19 @@ $t$[413]=(x,c,kargs)=>{
 $t$[118]=(x,c,kargs)=>{
 	kargs.tbl[c.parameters[0]]=x;
 };
-$t$=undefined;
+$t$=undef;
 $r$=$pppp$.setup;
 ($pppp$.setup=function f(list,evtId,strtMeta){
 	f.ori.call(this,list,evtId);
 	this.makeLabelTbl();
 	this._strtMeta=strtMeta;
+	this._tmpData={};
 }).ori=$r$;
 $r$=$pppp$.clear;
 ($pppp$.clear=function f(){
 	// flow: '.terminate' , '.clear'
+	this._pageId=undefined;
+	this._tmpData=undefined;
 	this._strtMeta=undefined;
 	this._segtree_indent=undefined;
 	if(this._rightLe) this._rightLe.length=0;
@@ -5351,7 +5232,7 @@ $t$[7].tbl=[
 	$t$[1].tbl[4],
 ];
 $t$[12]=$d$.script;
-$t$=undefined;
+$t$=undef;
 $pppp$.command413=function(){ // loop-repeat
 	this._index=this._loop[this._index];
 	return true;
@@ -6010,7 +5891,7 @@ $t$=()=>"";
 	$t$, // 54,
 ];
 for(let x=0,arr=$d$.tbl,last=$t$;x!==arr.length;++x) if(arr[x]) last=arr[x]; else arr[x]=last;
-$t$=undefined;
+$t$=undef;
 $d$.tbl[-1]=s=>s.makeActionTimes();
 $d$.tbl[-2]=s=>s.sparam(9).toExponential(2);
 $d$.tbl._=()=>0;
@@ -6879,7 +6760,7 @@ $t$=($pppp$._getColorEdt=function f(){
 	if(!rtv) rtv=this._scale;
 	return rtv;
 }).toJson=$t$;
-$t$=undefined;
+$t$=undef;
 $pppp$._getAnchoryEdt=function f(){
 	let meta=this.getData().meta;
 	if(meta.anchorys){
@@ -10327,6 +10208,7 @@ $r$=$pppp$.list;
 			let tmp={note:cmt};
 			DataManager.extractMetadata(tmp);
 			tmp=tmp.meta;
+			if(tmp.preEval) objs._doFlow.call(this,tmp.preEval);
 			if(tmp.addCmd!==undefined){ switch(tmp.addCmd){
 				default: break;
 				case "scrollTo":{ if(tmp.scrollx!==undefined && tmp.scrolly!==undefined){
@@ -10350,9 +10232,10 @@ $r$=$pppp$.list;
 					rtv.push({code:355,indent:indent,parameters:["delete this._wait_scrollTo_done;"]}); // script
 				} }break;
 			} }
+			const enables=tmp.enables&&JSON.parse(tmp.enables);
 			if(olist[c].code===102){
 				// only worked if the next is choices (102)
-				f.convertToAdvancedChoice(olist[c],tmp.enables&&JSON.parse(tmp.enables));
+				f.convertToAdvancedChoice(olist[c],enables);
 				converted.add(c);
 			}
 			const rtvLen=rtv.length;
@@ -10364,7 +10247,7 @@ $r$=$pppp$.list;
 					const skipN=objs._getObj.call(this,tmp.elseSkipN);
 					const isFunc=(skipN && skipN.constructor===Function);
 					const line=isFunc?skipN(olist,c,rtv):skipN;
-					if(isFunc) for(let x=rtvLen;x!==rtv.length;++x) if(rtv[x].code===102 && rtv[x].parameters[0][0].constructor!==Array) f.convertToAdvancedChoice(rtv[x]);
+					if(isFunc) for(let x=rtvLen;x!==rtv.length;++x) if(rtv[x].code===102 && rtv[x].parameters[0][0].constructor!==Array) f.convertToAdvancedChoice(rtv[x],x===rtvLen&&enables);
 					c+=line; if(c>=olist.length) c=olist.length;
 				}
 			}
@@ -10783,7 +10666,7 @@ $t$={
 	12: $t$.isForAllFriend,
 	16: $t$.isForAllFriend,
 }; for(let x=64,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
-$t$=undefined;
+$t$=undef;
 $pppp$.speed=function(){
 	//let agi=this.subject().agi;
 	let speed=this.subject().agi; // + Math.randomInt(Math.floor(5 + agi / 4)); // edit: fixed speed
@@ -10867,7 +10750,7 @@ $t$={
 	15: $t$.isForBattler,
 	16: $t$.isForFriend, // 1, dead not matter
 }; for(let x=64,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
-$t$=undefined;
+$t$=undef;
 $pppp$.confusionTarget=function(){
 	switch (this.subject().confusionLevel()) {
 	// case 1: return this.opponentsUnit().randomTarget(); // remain same , but not user input
@@ -10898,7 +10781,7 @@ $t$={
 	5: $t$.isForRandom,
 	6: $t$.isForRandom,
 }; for(let x=32,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
-$t$=undefined;
+$t$=undef;
 ($d$=$pppp$.targetsForFriends=function f(U){ // scope: [7..12,16]
 	const func=f.tbl[this.item().scope];
 	if(func) return func.call(this,U||this.friendsUnit(),this.meta.targets);
@@ -11006,7 +10889,7 @@ $t$={
 	15: $t$.isForBattler,
 	16: $t$.isForAllFriend,
 }; for(let x=32,arr=$d$.tbl;x--;) if(!arr[x]) arr[x]=undefined;
-$t$=undefined;
+$t$=undef;
 $pppp$.getItemFilter=function(item){
 	item=item||this.item();
 	if(!item) return false;
@@ -13082,10 +12965,16 @@ $pppp$.getData=function(){
 	return this.troop();
 };
 $pppp$.clear = function() {
+	let tmp;
 	this._interpreter.clear();
+	this._itrpv=undefined;
 	this._troopId = 0;
-	this._eventFlags = {};
-	if(this._enemies) this._enemies.length=0; else this._enemies = []; 
+	if(tmp=this._eventFlags) tmp.length=0; else this._eventFlags=[];
+	if(tmp=this._pendAlways){
+		tmp.length=0;
+		if(tmp.s) tmp.s.clear(); else tmp.s=new Set();
+	}else (this._pendAlways=[]).s=new Set();
+	if(tmp=this._enemies) tmp.length=0; else this._enemies=[]; 
 	this._turnCount = 0;
 	this._namesCount = {};
 	this._trueEscape=false;
@@ -13109,9 +12998,14 @@ $pppp$.getViaUKey=function(key){
 	if(!$gameTemp._tp_key2e){ $gameTemp._tp_key2e=new Map(); this._setUKeys(); }
 	return $gameTemp._tp_key2e.get(key);
 };
+$r$=$pppp$.update;
+($pppp$.update=function f(){
+	return f.ori.apply(this,arguments);
+}.ori=$r$);
 $r$=$pppp$.setup;
 ($d$=$pppp$.setup=function f(id){
 	f.ori.call(this,id);
+	for(let x=0,xs=this.troop().pages.length;x!==xs;++x) this._eventFlags[x]=0;
 	this._setUKeys();
 	// meta // TODO
 	const meta=this.getData().meta;
@@ -13155,12 +13049,56 @@ $pppp$.remove=function(e){
 	BattleManager.updateChase(e,true);
 	e.clearCache();
 };
+($pppp$.updateParallel=function f(){
+	if(!this._itrpv) this.troop().pages.forEach(f.forEach,this._itrpv=[]);
+	for(let x=0,arr=this._itrpv,pgs=this.troop().pages;x!==arr.length;++x){
+		const i=arr[x].tpgid;
+		if(!arr[x].isRunning() && this.meetsConditions(pgs[i])){
+			arr[x].setup(pgs[i].list);
+			arr[x]._pageId=i;
+		}
+		arr[x].update();
+	}
+}).forEach=function(pg,i){
+	if(!pg.parallel) return;
+	const tmp=new Game_Interpreter;
+	tmp.tpgid=i;
+	this.push(tmp);
+};
 $k$='meetsConditions';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(page,c){
 	if(BattleManager.isBattleEnd()) return (c||page.conditions).btlEnd;
 	return f.ori.call(this,page,c);
 }).ori=$r$;
+($pppp$.setupBattleEvent=function f(){
+	const itrp=this._interpreter;
+	if(!itrp.isRunning()){
+		if(itrp.setupReservedCommonEvent()) return;
+		const pgs = this.troop().pages ;
+		itrp._pageId=undefined;
+		for(let p=0;p!==pgs.length;++p){
+			if(!this._eventFlags[p] && this.meetsConditions(pgs[p])){
+				itrp.setup(pgs[p].list);
+				itrp._pageId=p;
+				if(pgs[p].span <= 1) this._eventFlags[p]=true;
+				break;
+			}
+		}
+		const arr=this._pendAlways; if(!arr.s) arr.s=new Set(arr);
+		if(itrp._pageId>=0){
+			const beAlways = pgs[itrp._pageId] && pgs[itrp._pageId].always && itrp._pageId ;
+			if(beAlways>=0){
+				arr.s.add(beAlways);
+				arr.push(beAlways);
+			}
+		}else{
+			arr.s.clear();
+			arr.forEach(f.forEach,this._eventFlags);
+			arr.length=0;
+		}
+	}
+}).forEach=function(i){ this[i]=false; };
 $pppp$=$aaaa$=undef;
 
 if(window.Scenen_Debug) window.Scenen_Debug=undefined;
@@ -13651,7 +13589,7 @@ $t$=($d$=$pppp$.processEscapeCharacter=function f(code, textState){
 	}],
 ]);
 $t$.set('RGBA',$t$.get('RGB'));
-$t$=undefined;
+$t$=undef;
 $d$.re=/^\[((rgba\((\d+,){3}[01](\.\d+)?\))|(#[0-9A-Fa-f]{6}))\]/;
 $d$.re_iconloop=/^(\[\[-?[0-9]+,[0-9]+\](,\[-?[0-9]+,[0-9]+\])*),?\]/;
 $pppp$.calcTextHeight=function f(textState, all){

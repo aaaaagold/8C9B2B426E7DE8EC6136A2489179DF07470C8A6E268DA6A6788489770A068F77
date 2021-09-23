@@ -9,6 +9,23 @@ $pppp$=$aaaa$.prototype;
 $dddd$=$pppp$.arrangeData=function f(){
 	let tmp;
 	
+	// == tilesets ==
+	f.doForEach($dataTilesets,dataobj=>{
+		const t=dataobj.meta;
+		let s; // tmpstr
+		// as chair
+		if(s=t.chairThatCanSitUp){
+			let arr=s.split(',').map(Number);
+			t.chairThatCanSitUp=new Set(arr);
+			if(!t.chair) t.chair=new Set(arr);
+			else for(let x=0,s=t.chair;x!==arr.length;++x) s.add(arr[x]);
+		}
+		// battleback
+		// // [  [int_tileType,filename] , ...  ]
+		s=t.battleBack1; dataobj.battleBack1=s?new Map(JSON.parse(s)):undefined;
+		s=t.battleBack2; dataobj.battleBack2=s?new Map(JSON.parse(s)):undefined;
+	});
+	
 	// == tune consts ==
 	tmp=$dataSystem.elements;
 	if(undefined===tmp.barehand){
@@ -204,14 +221,6 @@ $dddd$=$pppp$.arrangeData=function f(){
 			});
 		}
 	});
-	
-	// terms backup
-	if(!$dataSystem.termsBackuped){
-		$dataSystem.termsBackuped=true;
-		$dataCustom.apps_ori=$dataCustom.apps;
-		$dataSystem.currencyUnit_ori=$dataSystem.currencyUnit;
-		$dataSystem.titleBgm_ori=deepcopy($dataSystem.titleBgm);
-	}
 	
 	// sorting order
 	{ const arr=$dataCustom.stateOrder.filter(x=>x&&x.constructor===Array).flat();
@@ -429,15 +438,17 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataArmors,f.makeCondColor);
 	f.doForEach($dataWeapons,f.makeCondColor);
 	
-	// troop cond: battle end
+	// troop cond: always / parallel / battle end
 	f.doForEach($dataTroops,dataobj=>{
 		for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
+			pgs[p].always=undefined; // non-number-able
+			pgs[p].parallel=undefined; // non-number-able
 			pgs[p].conditions.btlEnd=false;
 			for(let cmds=pgs[p].list,c=0;c!==cmds.length;++c){
-				if(cmds[c].code===108 && cmds[c].parameters[0]==="@END"){
-					pgs[p].conditions.btlEnd=true;
-					break;
-				}
+				if(cmds[c].code!==108) continue;
+				if(cmds[c].parameters[0]==="@ALWAYS") pgs[p].always=true;
+				if(cmds[c].parameters[0]==="@PARALLEL") pgs[p].parallel=true;
+				if(cmds[c].parameters[0]==="@END") pgs[p].conditions.btlEnd=true;
 			}
 		}
 	});
@@ -477,7 +488,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 		x.itemType='a';
 	});
 	
-	[$dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTroops,$dataWeapons,].forEach(arr=>{ if(!arr) throw new Error('database crached');
+	[ $dataActors,$dataArmors,$dataClasses,$dataEnemies,$dataItems,$dataSkills,$dataStates,$dataTilesets,$dataTroops,$dataWeapons, ].forEach(arr=>{ if(!arr) throw new Error('database crached');
 		if(!(arr.baselen>=0)) arr.baselen=arr.length;
 		arr.slice(arr.arrangeStart||1,arr.baselen).forEach(x=>x._base=undefined);
 		arr.arrangeStart=arr.length;
