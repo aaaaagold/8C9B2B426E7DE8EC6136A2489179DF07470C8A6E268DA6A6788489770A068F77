@@ -975,7 +975,7 @@ $pppp$.updatePosition = function() {
 	} else {
 		let parent=this._target.parent;
 		if(!parent) this._target.updatePosition();
-		let grandparent=parent?parent.parent:null;
+		let grandparent=parent?parent.parent:false; // !== null
 		let x = ~~this._target.x;
 		let y = ~~this._target.y;
 		if (this.parent === grandparent) {
@@ -2474,6 +2474,12 @@ $pppp$.create=function(){
 	DataManager.loadDatabase();
 	ConfigManager.load();
 	this.loadSystemWindowImage();
+	{ const t=window,w=t.innerWidth,h=t.innerHeight,g=Graphics,bw=g.boxWidth,bh=g.boxHeight;
+	if((bh<<1)+bh<h && (bw<<1)+bw<w){
+		g._stretchEnabled=false;
+		g._switchStretchMode();
+	}
+	}
 	if(debug.isdepress()){
 		Graphics.hideFps();
 		Graphics._switchFPSMeter();
@@ -2768,6 +2774,15 @@ $r$=$pppp$[$k$];
 	f.ori.call(this);
 	this._oriSwitchVal=undefined;
 }).ori=$r$;
+$pppp$.saveSwitch=function(){
+	const ss=this._saveSwitch_id;
+	if(ss===undefined) return;
+	if(ss-0+1) $gameSwitches.setValue(ss,1);
+	else{
+		const it=this._saveSwitch_interpreter;
+		$gameSelfSwitches._setValue(it._mapId,it._eventId,ss,1);
+	}
+};
 $k$='onSavefileOk';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(){
@@ -2775,8 +2790,15 @@ $r$=$pppp$[$k$];
 		this._oriSwitchVal=$gameSwitches.value($gameTemp._switchTrue_if_saved_id,true);
 		$gameSwitches.setValue($gameTemp._switchTrue_if_saved_id,true);
 	}
+	this.saveSwitch();
 	f.ori.call(this);
 	if(!$gameTemp._switchTrue_if_saved_preserveId) $gameTemp._switchTrue_if_saved_id=undefined;
+}).ori=$r$;
+$k$='onSaveSuccess';
+$r$=$pppp$[$k$];
+($pppp$[$k$]=function f(){
+	this._saveSwitch_id=undefined;
+	return f.ori.apply(this,arguments);
 }).ori=$r$;
 $k$='onSaveFailure';
 $r$=$pppp$[$k$];
@@ -3142,11 +3164,12 @@ $r$=$pppp$[$k$];
 		if($gameScreen._weatherPower) $gameScreen.clearWeather();
 	}
 	const lastMapId=$gameMap&&$gameMap._mapId,regenIds=0&&$gameMap._events.filter(f.tbl[0]).map(f.tbl[1]);
-	f.ori.call(this); // update '$gameMap' (and maybe others)
+	
+	//f.ori.call(this); // update '$gameMap' (and maybe others)
+	if(this._transfer) $gamePlayer.performTransfer();
+	
 	$gameTemp.poolEvt_newMap($gameMap._mapId);
-	Graphics._preCalScreenTileCoord(); // pre-cal. $gameMap.screenTileX(); $gameMap.screenTileY();
 	// custom pannels
-	this._createPannels();
 	f.fastSearchTbl();
 	// starting events from saves
 	if($gameMap._mapId===lastMapId && $gameMap._strtEvts){
@@ -3170,12 +3193,19 @@ $r$=$pppp$[$k$];
 			evtd.pages.push(newpage);
 		}
 	}
+	// - adjust evt ids
+	if($gameMap._mapId===lastMapId) $gameMap.adjEvtIds($gameMap._events);
 	//debug.log('',lastMapId,'->',$gameMap._mapId);
 		// from '$gamePlayer.reserveTransfer': different
 		// from New Game: 0 -> init_map_id
 		// from Continue: same
 		// from scenePush and then scenePop (e.g. open menu then close it): same
 	if($gameMap._mapId!==lastMapId){ // map changed
+		// adj evt id, put templates starting points
+		{ const mcs=$gameParty.mapChanges,mc=mcs&&mcs[this._mapId];
+		$gameMap._templateStrts=mc&&mc.templateStrts;
+		$gameMap.adjEvtIds(mc&&mc.events); // $gameMap.updateTemplateStrts();
+		}
 		// clear temp:clearedWhenNewMap to '{}'
 		$gameTemp.initClearedWhenNewMap();
 		// active initialization events: turn on its switch "A"
@@ -3216,6 +3246,10 @@ $r$=$pppp$[$k$];
 		let j=$dataMap.meta.weather_cond;
 		if(j?objs._getObj(j):true) $gameScreen.changeWeather.apply($gameScreen,JSON.parse($dataMap.meta.weather));
 	}
+	
+	this.createDisplayObjects();
+	Graphics._preCalScreenTileCoord(); // pre-cal. $gameMap.screenTileX(); $gameMap.screenTileY();
+	this._createPannels();
 }).ori=$r$;
 $d$.tbl=[
 	x=>x&&x.event().meta.regen,
@@ -4376,10 +4410,17 @@ $pppp$.load_recordLoc=function(){
 		delete mc.recordLoc;
 	}
 };
-($pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
+$pppp$.updateTemplateStrts=function(){
+	return this._templateStrts=$dataMap && {
+		ende:$dataMap.templateStrt_ende,
+		item:$dataMap.templateStrt_item,
+		move:$dataMap.templateStrt_move,
+		tile:$dataMap.templateStrt_tile,
+	};
+};
+($d$=$pppp$.loadDynamicEvents=function f(fromLoadFile,noUpdate){
 	debug.log('Game_Map.prototype.loadDynamicEvents');
-	debug.log($dataMap,$gameMap&&$gameMap._mapId);
-	let childssarr=[];
+	debug.log($dataMap,objs.$gameMap&&objs.$gameMap._mapId);
 	
 	if(fromLoadFile){
 		// placing dynamic events
@@ -4400,15 +4441,15 @@ $pppp$.load_recordLoc=function(){
 					use=use.split(',');
 					let key='templateStrt_'+use[0];
 					if(use[0] in $dataTemplateEvtFromMaps.others){ use.pop_front();
-						for(let i=0;i!==use.length;++i) $gameMap.cpevt(Number(use[i])+$dataMap[key],evt.x,evt.y,1,1,true);
+						for(let i=0;i!==use.length;++i) objs.$gameMap.cpevt(Number(use[i])+$dataMap[key],evt.x,evt.y,1,1,true);
 					}
 				}
 			}
 		}
 		//   
-		let evts=$gameParty.mapChanges[this._mapId].events;
+		let evts=objs.$gameParty.mapChanges[this._mapId].events;
 		if(evts){
-			let delList=[],gss=$gameSelfSwitches;
+			let delList=[],gss=objs.$gameSelfSwitches;
 			for(let i in evts){ //debug.log2(i);
 				if(i==='0') continue;
 				let evt=evts[i];
@@ -4441,7 +4482,7 @@ $pppp$.load_recordLoc=function(){
 			}
 		}
 	}
-	if(!noUpdate) $gameSelfSwitches.onChange();
+	if(!noUpdate) objs.$gameSelfSwitches.onChange();
 	for(let x=0,evts=this._events;x!==evts.length;++x) evts[x]&&f.trim(evts[x]);
 }).trim=evt=>{ // - - event
 	// queues
@@ -4456,7 +4497,7 @@ $pppp$.load_recordLoc=function(){
 		evt._preventZaWarudo=tmp;
 	}
 };
-$pppp$.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
+$d$.relatedSelfSwitches=(evt,doRemove)=>{
 	// evt.constructor === Game_Event
 	
 	// self switches
@@ -4464,13 +4505,69 @@ $pppp$.loadDynamicEvents.relatedSelfSwitches=(evt,doRemove)=>{
 		if(obj){ const sskeys=objs.$gameSelfSwitches.switches;
 			for(let x=0,arr=evt._sameStatEvts;x!==arr.length;++x){ let evtid=arr[x];
 				for(let z=0;z!==sskeys.length;++z){
-					objs.$gameSelfSwitches.setValue_(obj,evtid,sskeys[z],!doRemove && obj[evt._eventId][s]);
+					objs.$gameSelfSwitches.setValue_(obj,evtid,sskeys[z],!doRemove && obj[evt._eventId][sskeys[z]]);
 				}
 			}
 		}
 	}
 	
 	return evt;
+};
+($d$=$pppp$.adjEvtIds=function f(evts){
+	const pre=objs.$gameMap._templateStrts;
+	objs.$gameMap.updateTemplateStrts();
+	if(!pre||!evts) return;
+	const curr=objs.$gameMap._templateStrts,tss=[[0,0,0]];
+	let hasDiff=false;
+	for(let i in pre){
+		if(pre[i]!==curr[i]) hasDiff=true;
+		tss.push([pre[i],curr[i],$dataMap['templateStrt_'+i]]);
+	}
+	if(!hasDiff) return;
+	tss.sort(f.cmp);
+	tss.mappings=[];
+	for(let x=0,xs=tss.mappings.length=tss.back[0],last=0;x!==xs;++x){
+		if(x===tss[last+1][0]) ++last;
+		tss.mappings[x]=tss[last];
+	}
+	const delList=[];
+	if(evts.constructor!==Array) for(let i in evts) i!=='0' && delList.push(f.adj(evts[i],tss,evts));
+	else{
+		for(let x=0,arr=evts,xs=arr.length;x!==xs;++x) delList.push(f.adj(arr[x],tss,arr));
+		const newArr=evts.slice(0,Math.min(tss[1][0],tss[1][1]));
+		newArr.length=$dataMap.events.length;
+		for(let x=pre.ende,arr=evts;x!==arr.length;++x) newArr.push(arr[x]);
+		evts.length=0; evts.concat_inplaceThis(newArr);
+		evts.forEach(f.setIdx);
+	}
+	delList.forEach(f.del,evts);
+}).cmp=(a,b)=>a[0]-b[0];
+$d$.del=function(id){ if(id && !(id-0)){
+	delete this[id];
+} };
+$d$.map=x=>x[0];
+$d$.setIdx=(x,i,a)=>x && (a[x._eventId]=x);
+($d$.adj=function f(evt,tss,evts){
+	if(!evt) return;
+	const oriId=evt._eventId;
+	const newId=evt._eventId=f.newId(oriId,tss);
+	if(evts&&evts.constructor!==Array) evts[newId]=evt;
+	const arr=evt._sameStatEvts;
+	if(arr) for(let x=0;x!==arr.length;++x) arr[x]=f.newId(arr[x],tss);
+	if(newId!==oriId){
+		$gameSelfSwitches.moveTo(evt._mapId,newId,oriId);
+		return oriId;
+	}
+	return newId!==oriId&&oriId;
+}).newId=(evtid,tss)=>{
+	if(!evtid) return evtid;
+	const id=evtid.toId();
+	const m1=tss.mappings[id];
+	const m2=m1||tss.back;
+	const d=m2[0]-m2[1]; // str-d
+	if(!d) return id;
+	const subid=evtid.subId();
+	return subid?(id-d)+'-'+subid:id-d;
 };
 $pppp$.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 	// dist2
@@ -4481,7 +4578,7 @@ $pppp$.forEachEvtByDist=function(cxy,evts,callback,is_far2near){
 	while(h.length){ callback(h.top[1]); h.pop(); }
 };
 $pppp$.xy2idx=function(x,y,lv=0){
-	return $dataMap && this.isValid(x,y) ? x+$gameMap.width()*y+lv*this.size : undefined;
+	return $dataMap && this.isValid(x,y) ? (lv*this.height()+y)*this.width()+x : undefined;
 };
 $pppp$.getAllTileByRef=function(r){
 	return this.getAllTileByPos(r.x,r.y);
@@ -5043,6 +5140,7 @@ $r$=$pppp$.clear;
 	this._pageId=undefined;
 	this._tmpData=undefined;
 	this._strtMeta=undefined;
+	this._saveSwitch=undefined;
 	this._segtree_indent=undefined;
 	if(this._rightLe) this._rightLe.length=0;
 	else this._rightLe=[];
@@ -5303,6 +5401,19 @@ $d$=$pppp$.command314 = function f(){
 	return true;
 };
 $d$.recover=actor=>actor.recoverAll(true);
+$pppp$.command352=function(){
+	if(!$gameParty.inBattle()){
+		const sm=SceneManager;
+		sm.push(Scene_Save);
+		const nsc=sm._nextScene;
+		if(nsc){
+			nsc._saveSwitch_interpreter = this;
+			nsc._saveSwitch_id = this._saveSwitch;
+			this._saveSwitch = undefined;
+		}
+	}
+	return true;
+};
 $d$=$pppp$.command355 = function f() {
 	let script = this.currentCommand().parameters[0] + '\n';
 	let flag=script[0]===":"&&script[1]==="!"; // ===":!"
@@ -6619,6 +6730,7 @@ $k$='requestAnimation';
 $r$=$pppp$[$k$];
 ($pppp$[$k$]=function f(id){
 	if(!this._erased) f.ori.call(this,_global_conf.noAnimation?0:id);
+	return this;
 }).ori=$r$;
 $pppp$=$aaaa$=undef;
 
@@ -8634,8 +8746,8 @@ $pppp$.mch=function(mapid){
 	}
 }).forEach=v=>DataManager.resetData3d(v);
 $pppp$.saveDynamicEvents=function(fromTransfer){
-	let evts=$gameMap._events;
-	let mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef
+	const evts=$gameMap._events , mc=this.mapChanges[$gameMap._mapId]; // should be inited to {} when map loaded if it is undef
+	mc.templateStrts=$gameMap._templateStrts;
 	mc.events={};
 	for(let x=0;x!==evts.length;++x){ let evt=evts[x];
 		if(evt && evt._erased===false && evt._eventId.constructor!==Number)
@@ -9356,6 +9468,13 @@ $pppp$.clear = function(mapid) {
 	if(mapid>0) this._data[n]={};
 	else this._data = [];
 };
+$pppp$.moveTo=function(mapTo,evtIdTo,evtIdFrom,mapFrom){
+	if(evtIdTo===evtIdFrom) return;
+	if(mapFrom===undefined) mapFrom=mapTo;
+	const src=this._data[mapFrom][evtIdFrom];
+	delete this._data[mapFrom][evtIdFrom];
+	this._data[mapTo][evtIdTo]=src;
+};
 $pppp$=$aaaa$=undef;
 
 // - event
@@ -9420,10 +9539,13 @@ this.refresh=none;
 		for(let x=0;x!==tbl.length;++x) tbl[x]=new Queue();
 	}
 	
-	let rtv=f.ori.apply(this,arguments);
+	const rtv=f.ori.apply(this,arguments);
 	
-	let evtd=this.event();
-	let meta=evtd.meta;
+	const evtd=this.event();
+	const meta=evtd.meta;
+	
+	// self switches
+	//this._switches={}; // need to be saved after leaving a map so don't use this way
 	
 	// display
 	this._skipRender=meta.skipRender;
@@ -9751,6 +9873,10 @@ Object.defineProperties($pppp$,{
 		return this._odir=rhs;
 	},configurable:false},
 	// simply shorten (custom members)
+	//_switches:{ // need to be saved after leaving a map so don't use this way
+	//	get:function(){ return this._ss; },
+	//	set:function(rhs){ return this._ss=rhs; },
+	//configurable:false},
 	_skipRender:{
 		get:function(){ return this._sr; },
 		set:function(rhs){ return this._sr=rhs|0; },

@@ -474,28 +474,36 @@ $dddd$.forEach=function f(c){
 			c.setupAnimation();
 			c.setupBalloon();
 		}
-	}else c.update&&c.update();
+	}else{
+		if(c.constructor===Sprite_Animation && !f.t._updateLater_aniposSet.has(c)){
+			f.t._updateLater_aniposSet.add(c);
+			f.t._updateLater_aniposArr.push(c);
+		}
+		c.update&&c.update();
+	}
 };
-$pppp$.doUpdateLater=function(){
+$pppp$.doUpdateLater=function f(){
 	if(!this._updateLater_cnt) return;
-	const chr=this._updateLater_chrArr;
+	const chrv=this._updateLater_chrArr;
 	if(this._updateLater_cnt>1){
-		for(let x=0;x!==chr.length;++x){
-			chr[x].update(false,true);
-			chr[x]._noUpdatePos=true;
-			chr[x].update();
-			chr[x]._noUpdatePos=false;
+		for(let x=0;x!==chrv.length;++x){
+			chrv[x].update(false,true);
+			chrv[x]._noUpdatePos=true;
+			chrv[x].update();
+			chrv[x]._noUpdatePos=false;
 		}
 	}else{
-		
-		for(let x=0;x!==chr.length;++x){
-			chr[x].update();
+		for(let x=0;x!==chrv.length;++x){
+			chrv[x].update();
 		}
 	}
+	this.doWaitRemove();
+	for(let x=0,arr=this._updateLater_aniposArr;x!==arr.length;++x) arr[x].isReady()&&arr[x].updatePosition();
+	this._updateLater_aniposArr.length=0;
+	this._updateLater_aniposSet.clear();
 	this._updateLater_chrArr.length=0;
 	this._updateLater_chrSet.clear();
 	this._updateLater_cnt=0;
-	return this.doWaitRemove();
 };
 $dddd$=$pppp$._sortChildren=function f(){
 	f.cmp.r=this;
@@ -549,9 +557,13 @@ $dddd$=$pppp$.initialize=function f(){
 	this._tileRows=0^Math.ceil(this._height/this._tileHeight)+1;
 	
 	// reorder tasks
+	// - ani's pos
+	this._updateLater_aniposSet=new Set();
+	this._updateLater_aniposArr=[];
 	// - update right before sorting children
 	this._updateLater_chrSet=new Set();
 	this._updateLater_chrArr=[];
+	// - update count
 	this._updateLater_cnt=0;
 	
 	// fast search

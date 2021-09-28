@@ -144,6 +144,12 @@ list.defs=action=>{
 	txtarr.push("\n");
 	txtarr.push("\n");
 	
+	txtarr.push({txt:"本遊戲隨作者心情隨意更新，你可以假設發生更新的機率很低。"});
+	txtarr.push("\n");
+	txtarr.push({txt:"若該地圖有更新，重進該地圖後可讓新增的事件出現，但更大的機會是你那個存檔會直接不能用。"});
+	txtarr.push("\n");
+	txtarr.push("\n");
+	
 	let w=new Window_CustomTextBoard(txtarr);
 	//if(returnWindow) return w;
 	SceneManager.addWindowB(w);

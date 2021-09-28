@@ -17,8 +17,9 @@ $aaaa$.sortCmp=(a,b)=>{
 	const cmp=a.ord-b.ord; 
 	return cmp||a.id-b.id; // '.id' is unique
 };
-$dddd$=$aaaa$._databaseFiles;
-$dddd$.reverse(); [
+$t$=$aaaa$._databaseFiles;
+$t$.reverse();
+[
 	{ name: '$dataCustom',       src: 'custom.json'       },
 	{ name: '$dataTemplateEvtFromMap_overworld', src: 'Map077.json'   },
 	{ name: '$dataTemplateEvtFromMap_outside', src: 'Map078.json'   },
@@ -26,7 +27,9 @@ $dddd$.reverse(); [
 	{ name: '$dataTemplateEvtFromMap_inside', src: 'Map123.json'   },
 	{ name: '$dataTemplateEvt_move', src: 'Map089.json'   },
 	{ name: '$dataTemplateEvt_item', src: 'Map114.json'   },
-].reverse().forEach(x=>$dddd$.push(x)); $dddd$.reverse();
+].reverse().forEach(x=>$t$.push(x));
+$t$.reverse();
+$t$=undef;
 $aaaa$.isThisGameFile=function(savefileId){
 	let globalInfo=this.loadGlobalInfo();
 	if(globalInfo && globalInfo[savefileId]){
@@ -482,6 +485,8 @@ if(!$dataMap.meta.disablePreload){
 		this.resetHasA1();
 		// ====
 		// extended map data (including events)
+		// - padding // for test: auto adj evt id
+		//for(let x=8;x--;) $dataMap.events.push(null);
 		// - tileEvtTemplate
 		$dataMap.templateStrt=$dataMap.events.length;
 		if(tmp=$dataTemplateEvtFromMaps[$dataMap.tilesetId]){
@@ -509,13 +514,15 @@ if(!$dataMap.meta.disablePreload){
 		}
 		for(let i in $dataTemplateEvtFromMaps.others){
 			tmp=deepcopy($dataTemplateEvtFromMaps.others[i]);
-			let evts=$dataMap.events,strt=$dataMap['templateStrt_'+i]=evts.length;
+			const evts=$dataMap.events;
+			$dataMap['templateStrt_'+i]=evts.length;
 			tmp.forEach((evt)=>{ evts.push(evt); if(!evt) return;
 				evt.meta[i]=evt.meta.regen=true;
 				evt.id=evts.length-1;
 				evt.x=evt.y=-1; // loop map will x,y mod w,h
 			});
 		}
+		$dataMap.templateStrt_ende=$dataMap.events.length;
 		// cmdSameAsPage
 		for(let e=0,evtds=$dataMap.events,es=$dataMap.templateStrt;e!==es;++e){
 			const evtd=evtds[e]; if(evtd){ for(let p=0,pgs=evtd.pages;p!==pgs.length;++p){
@@ -905,7 +912,7 @@ $dddd$=$aaaa$.extractSaveContents=function f(content){
 	}
 	ConfigManager.save();
 	
-	content.map.loadDynamicEvents(1);
+	content.map.loadDynamicEvents(true);
 }; $dddd$.ori=$rrrr$;
 $aaaa$.maxSavefiles=function(){
 	let rtv=_global_conf["default max savefiles"]||64;
