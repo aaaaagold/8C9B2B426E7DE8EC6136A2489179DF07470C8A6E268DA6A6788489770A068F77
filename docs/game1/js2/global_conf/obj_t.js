@@ -305,7 +305,7 @@ $r$=$pppp$[$k$];
 			let p=$gameMap._events[chr.parentId];
 			if(p){
 				if(!p._sameStatEvts) p._sameStatEvts=[];
-				let id=""+chr._eventId;
+				const id=chr._eventId;
 				if(p._sameStatEvts.indexOf(id)===-1) p._sameStatEvts.push(id);
 			}
 		}
@@ -4531,16 +4531,18 @@ $d$.relatedSelfSwitches=(evt,doRemove)=>{
 		tss.mappings[x]=tss[last];
 	}
 	const delList=[];
-	if(evts.constructor!==Array) for(let i in evts) i!=='0' && delList.push(f.adj(evts[i],tss,evts));
-	else{
+	if(evts.constructor!==Array){
+		for(let i in evts) i!=='0' && delList.push(f.adj(evts[i],tss,evts));
+		delList.forEach(f.del,evts);
+	}else{
 		for(let x=0,arr=evts,xs=arr.length;x!==xs;++x) delList.push(f.adj(arr[x],tss,arr));
 		const newArr=evts.slice(0,Math.min(tss[1][0],tss[1][1]));
 		newArr.length=$dataMap.events.length;
 		for(let x=pre.ende,arr=evts;x!==arr.length;++x) newArr.push(arr[x]);
+		delList.forEach(f.del,evts);
 		evts.length=0; evts.concat_inplaceThis(newArr);
 		evts.forEach(f.setIdx);
 	}
-	delList.forEach(f.del,evts);
 }).cmp=(a,b)=>a[0]-b[0];
 $d$.del=function(id){ if(id && !(id-0)){
 	delete this[id];
@@ -4558,7 +4560,6 @@ $d$.setIdx=(x,i,a)=>x && (a[x._eventId]=x);
 		$gameSelfSwitches.moveTo(evt._mapId,newId,oriId);
 		return oriId;
 	}
-	return newId!==oriId&&oriId;
 }).newId=(evtid,tss)=>{
 	if(!evtid) return evtid;
 	const id=evtid.toId();
@@ -9471,8 +9472,11 @@ $pppp$.clear = function(mapid) {
 $pppp$.moveTo=function(mapTo,evtIdTo,evtIdFrom,mapFrom){
 	if(evtIdTo===evtIdFrom) return;
 	if(mapFrom===undefined) mapFrom=mapTo;
+	// evtid can be a string
+	if(!this._data[mapFrom]) this._data[mapFrom]={};
 	const src=this._data[mapFrom][evtIdFrom];
 	delete this._data[mapFrom][evtIdFrom];
+	if(!this._data[mapTo]) this._data[mapTo]={};
 	this._data[mapTo][evtIdTo]=src;
 };
 $pppp$=$aaaa$=undef;

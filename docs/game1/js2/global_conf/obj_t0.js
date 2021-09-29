@@ -1837,16 +1837,16 @@ $pppp$._editAccordingToArgs=function(){
 		const grayRate=grayscale[0], toColor=grayscale[1] , toColorRate=grayscale[2];
 		const c=d.ce('canvas'); c.width=src.width; c.height=src.height;
 		const ctx=c.getContext('2d');
-		const tmp=ctx.getImageData(0,0,c.width,c.height);
 		ctx.globalCompositeOperation='copy';
 		ctx.drawImage(src,0,0);
-		for(let x=0,xs=w*h<<2,gsc=1-grayRate;x!==xs;x+=4){
+		const xs=c.width*c.height<<2,tmp=ctx.getImageData(0,0,c.width,c.height);
+		for(let x=0,gsc=1-grayRate;x!==xs;x+=4){
 			let sum=0;
 			for(let c=0;c!==3;++c) sum+=tmp.data[x+c];
 			for(let c=0,v=grayRate*~~(sum/3);c!==3;++c) tmp.data[x+c]=tmp.data[x+c]*gsc+v;
 		}
 		if(!isNaN(toColorRate)){
-			for(let x=0,xs=w*h<<2,tcrc=1-toColorRate;x!==xs;x+=4){
+			for(let x=0,tcrc=1-toColorRate;x!==xs;x+=4){
 				for(let c=0;c!==3;++c) tmp.data[x+c]=tmp.data[x+c]*tcrc+toColorRate*toColor[c];
 			}
 		}
