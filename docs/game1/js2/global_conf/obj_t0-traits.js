@@ -438,6 +438,19 @@ $dddd$=$pppp$.arrangeData=function f(){
 	f.doForEach($dataArmors,f.makeCondColor);
 	f.doForEach($dataWeapons,f.makeCondColor);
 	
+	// weaponImg
+	{ const trgt=ImageManager.loadSystem;
+	if(!trgt._weaponImg) trgt._weaponImg={
+		a:[], // mapping tbl
+		m:new Map(), // search tbl
+		o:[], // dataobj
+	};
+	const note=trgt._weaponImg,strt=note.a.length; note.o.length=0;
+	f.doForEach($dataWeapons,f.makeWeaponImg_0,note);
+	note.o.forEach(f.makeWeaponImg_1,note);
+	for(let x=strt,arr=note.a,dst=trgt.tbl;x!==arr.length;++x) dst['Weapons'+(x+4)]=arr[x];
+	}
+	
 	// troop cond: always / parallel / battle end
 	f.doForEach($dataTroops,dataobj=>{
 		for(let pgs=dataobj.pages,p=0;p!==pgs.length;++p){
@@ -507,7 +520,7 @@ $dddd$.dmgViaSkill=dataobj=>{
 };
 }
 // 'empty' will be omitted by .forEach
-$dddd$.doForEach=(c,f)=>c.slice(c.arrangeStart||1).forEach(f);
+$dddd$.doForEach=(c,f,self)=>c.slice(c.arrangeStart||1).forEach(f,self);
 $dddd$.extendDescription_e=dataobj=>{
 	const arr=dataobj.params , txt=$dataSystem.terms.params;
 	let ext='';
@@ -705,6 +718,27 @@ $dddd$.makeUncounterable=dataobj=>dataobj.uncounterable=dataobj.meta.uncounterab
 $dddd$.makeUnionCnt=dataobj=>{
 	const u=dataobj.meta.unionCnt;
 	if(u) dataobj.unionCnt=JSON.parse(u);
+};
+$dddd$.makeWeaponImg_0=function(dataobj){
+	// parsing meta / collect images
+	const info=(dataobj.meta.weaponImg||'').split(',');
+	if(info[0]){
+		info[1]=info[1]-0||0;
+		info[2]=info[2]-0||0;
+		dataobj.weaponImg=info;
+		this.o.push(dataobj);
+		if(!this.m.has(info[0])){
+			this.m.set(info[0],this.a.length);
+			this.a.push(info[0]);
+		}
+	}else dataobj.weaponImg=undefined;
+};
+$dddd$.makeWeaponImg_1=function(dataobj){
+	// converting .weaponImg[1]
+	const info=dataobj.weaponImg;
+	info[1]+=(this.m.get(info[0])+3)*12+1;
+	info.weaponImageId=info[1];
+	info.type=info[2];
 };
 $dddd$.markAsNormalAtk=dataobj=>dataobj.isNormalAtk=dataobj.effects.some(e=>e.code===Game_Action.EFFECT_ADD_STATE&&e.dataId===0)|0;
 $dddd$.note2traits=x=>{

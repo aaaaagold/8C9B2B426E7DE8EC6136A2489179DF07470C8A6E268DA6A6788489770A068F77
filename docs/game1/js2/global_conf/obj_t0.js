@@ -1731,7 +1731,6 @@ $pppp$._editAccordingToArgs_chr2sv=function(src){
 			ctx.fillRect(0, 0, dstw, dsth);
 		}
 		const ctx=c.getContext('2d');
-		ctx.globalCompositeOperation='copy';
 		for(let y=0;y!=6;++y){ for(let x=0;x!==9;++x){
 			if(y*9+x===51) c2=c3;
 			ctx.drawImage(c2,x*dstw,y*dsth,dstw,dsth);

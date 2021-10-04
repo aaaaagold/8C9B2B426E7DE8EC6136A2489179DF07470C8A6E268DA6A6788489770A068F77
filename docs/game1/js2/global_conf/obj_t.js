@@ -1471,6 +1471,9 @@ $aaaa$._trimMetaArgs=p=>p.replace(/(\?|&)(color|scale|rnd|reflect_h|reflect_v)(=
 $aaaa$.loadEnemy=function(filename,hue,args){
 	return this.loadBitmap('img/enemies/', filename, hue, true, args);
 };
+($aaaa$.loadSystem=function f(filename,hue,args){
+	return this.loadBitmap('img/system/', f.tbl[filename]||filename, hue, false, args);
+}).tbl={}; // weaponImg
 $aaaa$.loadCharacter=function(filename, hue, args){ // re-write: add args: 'args': edit img
 	return this.loadBitmap('img/characters/', filename, hue, false, args);
 };
@@ -12695,11 +12698,11 @@ $pppp$.performAction=function(action){
 };
 ($d$=$pppp$.performAttack=function f(){
 	const weapons = this.weapons();
-	const attackMotion = $dataSystem.attackMotions[weapons[0]&&weapons[0].wtypeId];
-	const am2=$dataSystem.attackMotions[weapons[1]&&weapons[1].wtypeId];
+	const attackMotion = weapons[0] && (weapons[0].weaponImg || $dataSystem.attackMotions[weapons[0].wtypeId]);
+	const am2 = weapons[1] && (weapons[1].weaponImg || $dataSystem.attackMotions[weapons[1].wtypeId]);
 	const m=attackMotion||am2;
 	if(m){
-		if(f.tbl[m.type]) this.requestMotion(f.tbl[m.type]);
+		f.tbl[m.type] && this.requestMotion(f.tbl[m.type]);
 		this.startWeaponAnimation(attackMotion?attackMotion.weaponImageId:0);
 		this.startWeapon2Animation(am2?am2.weaponImageId:0);
 	}
