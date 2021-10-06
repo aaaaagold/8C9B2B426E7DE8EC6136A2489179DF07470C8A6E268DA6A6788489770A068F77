@@ -133,6 +133,7 @@ $dddd$=$pppp$.arrangeData=function f(){
 	// // custom traits id
 	objs.enums.
 		addEnum("AUTOREVIVE").
+		addEnum("AUTOREVIVE_Later").
 		addEnum("MUST_SUBST").
 		addEnum("HPCOSTRATE").
 		addEnum("ATKTIMES_MUL").
@@ -751,6 +752,9 @@ $dddd$.note2traits=x=>{
 	if(meta.revive){ // has
 		x.traits.push({code:tc,dataId:enums.AUTOREVIVE,value:meta.revive});
 	}
+	if(meta.reviveLater){ // has
+		x.traits.push({code:tc,dataId:enums.AUTOREVIVE_Later,value:meta.reviveLater});
+	}
 	if(meta.mustSubst){ // has
 		x.traits.push({code:tc,dataId:enums.MUST_SUBST,value:meta.mustSubst});
 	}
@@ -1069,6 +1073,7 @@ $pppp$.partyAbility=function(abilityId){
 // custom traits id
 { const enums=objs.enums.
 	addEnum("AUTOREVIVE").
+	addEnum("AUTOREVIVE_Later").
 	addEnum("MUST_SUBST").
 	addEnum("HPCOSTRATE").
 	addEnum("ATKTIMES_MUL").
@@ -1096,6 +1101,15 @@ $pppp$.partyAbility=function(abilityId){
 	addEnum("__DUMMY") ;
 $pppp$.isAbleToAutoRevive=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE);
+};
+$pppp$.isAbleToAutoReviveLater=function(){
+	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.AUTOREVIVE_Later);
+};
+$pppp$.reviveLater=function(){
+	// the call is late, not saying that the call doing late.
+	if(!this.isAbleToAutoReviveLater()) return;
+	if(BattleManager._phase) this.startAnimation(46);
+	this.recoverAll(true);
 };
 $pppp$.isAlwaysSubstitute=function(){
 	return this.traitsSet(gbb.TRAITS_CUSTOM).contains(enums.MUST_SUBST) && this.canMove();

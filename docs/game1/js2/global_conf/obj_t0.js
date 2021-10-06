@@ -3030,6 +3030,7 @@ $pppp$._databaseDel_state_all=function(){
 $aaaa$=Game_Unit;
 $pppp$=$aaaa$.prototype;
 $aaaa$.isAlive=m=>m.isAlive();
+$aaaa$.isDead=m=>m.isDead();
 $d$=$pppp$.aliveMembers=function f(){
     return this.members().filter(f.forEach);
 };
@@ -3037,7 +3038,7 @@ $d$.forEach=$aaaa$.isAlive;
 $d$=$pppp$.deadMembers=function f(){
     return this.members().filter(f.forEach);
 };
-$d$.forEach=m=>m.isDead();
+$d$.forEach=$aaaa$.isDead;
 $d$=$pppp$.randomTarget=function f(n,candi){
 	const tgrvp=[],actrv=[];
 	for(let x=0,arr=this.members(),s=0;x!==arr.length;++x){

@@ -2390,6 +2390,24 @@ $aaaa$.forceAction=function(battler){
 	let index=this._actionBattlers_obj2id.get(battler);
 	if(index) this._actionBattlers._data[index]=Queue.empty;
 };
+($aaaa$.checkBattleEnd=function f(){
+	if(this._phase){
+		
+		const dms=$gameParty.deadMembers();
+		dms.forEach(f.forEach); // reviveLater
+		const isAllDead=!($gameParty.members().length-dms.map(Game_Unit.isDead).sum()); // no alives
+		
+		if(this.checkAbort()) return true;
+		else if(isAllDead){
+			this.processDefeat();
+			return true;
+		}else if($gameTroop.isAllDead()){
+			this.processVictory();
+			return true;
+		}
+	}
+	return false;
+}).forEach=btlr=>btlr.reviveLater();
 $r$=$aaaa$.endBattle;
 ($d$=$aaaa$.endBattle=function f(res){
 	f.ori.call(this,res);
@@ -2462,6 +2480,16 @@ $pppp$.terminate=function(){
 	const c=d.ge("GameCanvas") , css=c&&c.style;
 	if(css) css.filter=t[3]>0?"saturate("+ satur +")":"";
 };
+($pppp$.checkGameover=function f(){
+	const dms=$gameParty.deadMembers();
+	dms.forEach(f.forEach); // reviveLater
+	const mN=$gameParty.members().length;
+	const aliveN=mN-dms.map(Game_Unit.isDead).sum();
+	if(($gameParty.inBattle()||mN)&&!aliveN) SceneManager.goto(Scene_Gameover);
+//	if($gameParty.isAllDead()){
+//		SceneManager.goto(Scene_Gameover);
+//	}
+}).forEach=btlr=>btlr.reviveLater();
 $pppp$.isBlurBorder=()=>false;
 $pppp$=$aaaa$=undef;
 
@@ -5486,7 +5514,7 @@ $d$=$pppp$.clearStates=function f(ignoreBuff){
 			if(meta.persist || ignoreBuff && meta.buff){
 				arr[newidx++]=arr[x];
 			}else{
-				this._stateDmgVal_del(arr[x]);
+				this._stateDmgVal_del($dataStates[arr[x]]);
 				this._databaseDel_state($dataStates[arr[x]],cache);
 			}
 		}

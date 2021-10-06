@@ -498,7 +498,7 @@ $pppp$.doUpdateLater=function f(){
 		}
 	}
 	this.doWaitRemove();
-	for(let x=0,arr=this._updateLater_aniposArr;x!==arr.length;++x) arr[x].isReady()&&arr[x].updatePosition();
+	for(let x=0,arr=this._updateLater_aniposArr;x!==arr.length;++x) arr[x].parent && arr[x].isReady()&&arr[x].updatePosition();
 	this._updateLater_aniposArr.length=0;
 	this._updateLater_aniposSet.clear();
 	this._updateLater_chrArr.length=0;
