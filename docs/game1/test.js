@@ -42,7 +42,7 @@
 	if(s!==0xF) throw new Error(msg);
 }
 // 3rdCookie
-if(typeof sha256!=='Function' || sha256(location.origin)!=="0x50AF9A92FA2A9520CB5FB95B065927CAA07436E9597D982433D02EA528D3A575"){
+if(typeof sha256!=='function' || sha256(location.origin)!=="0x50AF9A92FA2A9520CB5FB95B065927CAA07436E9597D982433D02EA528D3A575"){
 	const h=location.host , o=location.origin;
 	const isdev=h.match(/(^|\/\/)[0-9]+(\.[0-9]+){3}(:[0-9]+)?$/)||h.match(/pjs\.myrmmv:[0-9]+$/);
 	let msgShown=0;
