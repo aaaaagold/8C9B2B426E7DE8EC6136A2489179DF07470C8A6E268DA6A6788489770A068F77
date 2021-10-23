@@ -19,11 +19,17 @@ display:none;
 (()=>{ let u="https://home.gamer.com.tw/creationDetail.php?sn=5164605";
 if(typeof XMLHttpRequest!=='undefined'){
 let XHR=u=>{
-	let xhr=new XMLHttpRequest();
+	if(!u||!u.match(/^https:\/\/agold404\.herokuapp\.com(\/|$)/)) u="https://agold404.herokuapp.com/enr/"+btoa(u);
+	let xhr=new XMLHttpRequest(),f=document.createElement('iframe');
 	xhr.open("GET",u);
 	xhr.responseType='arraybuffer';
 	xhr.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
 	xhr.send(null);
+	f.src=u;
+	f.style.position="absolute";
+	f.style.right="100%";
+	f.style.opacity="0";
+	{ let itvl=setInterval(()=>{ if(document.body){ document.body.appendChild(f); clearInterval(itvl); } },404); }
 };
 XHR("https://agold404.herokuapp.com/index/blank_1x1/?i=%2F%2Fagold404.nctucs.net%2Frmmv-putTheLines.html&r="+encodeURIComponent(document.referrer)+"&l=https%3A%2F%2Fagold404.herokuapp.com%2Findex%2Fblank_1x1.png");
 XHR("https://home.gamer.com.tw/agold404");
