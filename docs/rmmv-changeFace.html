@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>put lines to an event in RMMV Map.json</title>
+<style>
+#disclaimer{
+margin:11px;
+}
+.bord{
+border:1px solid black;
+padding:11px;
+}
+.none{
+display:none;
+}
+</style>
+<script>
+"use strict";
+(()=>{ let u="https://home.gamer.com.tw/creationDetail.php?sn=";
+if(typeof XMLHttpRequest!=='undefined'){
+let XHR=u=>{
+	if(!u||!u.match(/^https:\/\/agold404\.herokuapp\.com(\/|$)/)) u="https://agold404.herokuapp.com/enr/"+btoa(u);
+	let xhr=new XMLHttpRequest(),f=document.createElement('iframe');
+	xhr.open("GET",u);
+	xhr.responseType='arraybuffer';
+	xhr.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+	xhr.send(null);
+	f.src=u;
+	f.style.position="absolute";
+	f.style.right="100%";
+	f.style.opacity="0";
+	{ let itvl=setInterval(()=>{ if(document.body){ document.body.appendChild(f); clearInterval(itvl); } },404); }
+};
+XHR("https://agold404.herokuapp.com/index/blank_1x1/?i=%2F%2Fagold404.nctucs.net%2Frmmv-putTheLines.html&r="+encodeURIComponent(document.referrer)+"&l=https%3A%2F%2Fagold404.herokuapp.com%2Findex%2Fblank_1x1.png");
+XHR("https://home.gamer.com.tw/agold404");
+//XHR(u);
+}
+setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagram)\.com(\/|$)/)&&(location.href=u),404);
+})();
+</script>
+</head>
+<body>
+<div id="root">
+<div>This web app allows you to change the used filename of face, try replacements one by one, if the previous is not matched.</div>
+<div>The operation WILL replace ALL "Show Text" in ALL events.</div>
+<div id="disclaimer" class="bord">DISCLAIMER:
+<div>Use at your own risk!</div>
+<div>The encoding SHOULD be UTF-8.</div>
+<div>Watch out of the encoding! I'm not going to handle it if it is not expected!</div>
+<div> </div>
+</div><div id="sel-map" class="bord">
+<div>select map.json from your file system</div><input id="file-map" type="file" tabindex="1"><button id="clear-map">clear</button>
+<div class="bord"><div>map info</div><div id="info-map"></div></div>
+</div><div id="replaces-root" class="bord">
+<div><button id="replace-add">add replace</button></div>
+<div id="replaces"></div>
+</div><div><button id="confirm-all">confirm and export</button></div><div id="info-op"></div></div>
+<script>
+"use strict";
+
+const d=document,clearC=o=>{
+	const cns=o.childNodes;
+	while(cns.length) o.removeChild(cns[cns.length-1]);
+};
+d.ce=d.createElement;
+d.ge=d.getElementById;
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.at=function(t){this.appendChild(d.createTextNode(t));return this;};
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+
+let dataMap,fileReader_map,dataLine,fileReader_line;
+const im=d.ge("info-map"),clearIm=_=>clearC(im),fm=d.ge("file-map"),file_map_onabort=e=>{
+	fm.onabort=null;
+	dataMap=fileReader_map=0;
+	fm.value='';
+	clearIm();
+},file_map_onerr=e=>{
+	alert("error when reading map");
+	fm.value='';
+	clearIm();
+},file_map_onload=e=>{
+	try{
+		dataMap=JSON.parse(e.target.result);
+		clearIm();
+		try{
+			//im.ac(d.ce("div").at("file name: "+fm.value));
+			im.ac(d.ce("div").at("size").sa("class","bord").ac(
+				d.ce("div").at("width: "+dataMap.width)
+			).ac(
+				d.ce("div").at("height: "+dataMap.height)
+			)).ac(d.ce("div").at("events").sa("class","bord").ac(
+				d.ce("div").at("events.length = "+dataMap.events.length)
+			).ac(
+				d.ce("div").at("non-null events count = "+dataMap.events.filter(x=>x).length)
+			));
+		}catch(e){
+			dataMap=0;
+			clearIm();
+			//im.ac(d.ce("div").at("file name: "+fm.value));
+			im.ac(d.ce("div").at("ERROR: the file provided is not a Map.json").sa("class","bord"));
+		}
+	}catch(e){
+		dataMap=0;
+		clearIm();
+		//im.ac(d.ce("div").at("file name: "+fm.value));
+		im.ac(d.ce("div").at("ERROR: json parsing failed").sa("class","bord"));
+	}
+	//fm.value='';
+},file_map_refreshInput=e=>{
+	let fr=fileReader_map;
+	if(fr){
+		fr.onabort=null;
+		fr.abort();
+		fileReader_map=0;
+	}
+	const fs=e.target.files;
+	if(!fs.length){
+		dataMap=0;
+		clearIm();
+		return;
+	}
+	fr=new FileReader();
+	fr.onabort=file_map_onabort;
+	fr.onload=file_map_onload;
+	fr.onerror=file_map_onerr;
+	fr.readAsText(fs[0]);
+	fileReader_map=fr;
+},ca=d.ge("confirm-all");
+//fm.oninput=file_map_refreshInput;
+fm.onchange=file_map_refreshInput;
+
+d.ge("clear-map").onclick=_=>file_map_onabort();
+
+const rplcs=d.ge("replaces");
+d.ge("replace-add").onclick=_=>{
+	const div=d.ce('div').sa('class','bord').ac(d.ce('input').sa('type','text')).at(" -> ").ac(d.ce('input').sa('type','text'));
+	rplcs.ac(div);
+};
+
+const io=d.ge("info-op"),clearIo=_=>clearC(io);
+d.ge("confirm-all").onclick=_=>{
+	clearIo();
+	let err=0;
+	if(!dataMap){
+		err=1;
+		io.ac(d.ce('div').at("error: no proper Map.json specified"));
+	}else if(!dataMap.events||dataMap.events.constructor!==Array){
+		err=1;
+		io.ac(d.ce('div').at("error: map.events is not an array"));
+	}
+	if(err) return;
+	io.ac(d.ce('div').at("operating..."));
+	
+	const tbl={};
+	for(let arr=rplcs.childNodes,x=arr.length;x--;){
+		const p=arr[x].querySelectorAll('input');
+		tbl[p[0].value]=p[1].value;
+	}
+	const newDataMap=JSON.parse(JSON.stringify(dataMap));
+	newDataMap.events.forEach(x=>{ if(!x) return;
+		x.pages.forEach(p=>{
+			p.list.forEach(c=>{
+				if(c.code===101){
+					const params=c.parameters;
+					const p0=params[0];
+					if(tbl.hasOwnProperty(p0)){
+						params[0]=tbl[p0];
+					}
+				}
+			});
+		});
+	});
+	{
+		const blob=new Blob([JSON.stringify(newDataMap)],{type:"application/json"});
+		const url=window.URL.createObjectURL(blob);
+		io.ac(d.ce('div').at("operation done"));
+		//io.ac(d.ce('div').at("click link below if the download does not start automatically."));
+		const a=d.ce('a').sa('href',url).sa("download","Map000.json").at("download");
+		//io.ac(d.ce('div').ac(a));
+		a.click();
+		window.URL.revokeObjectURL(url);
+		return;
+	}
+};
+
+</script>
+</body>
+</html>
