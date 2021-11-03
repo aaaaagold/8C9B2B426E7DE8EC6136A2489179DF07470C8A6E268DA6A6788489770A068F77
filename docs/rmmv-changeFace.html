@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <title>put lines to an event in RMMV Map.json</title>
@@ -133,7 +133,15 @@ d.ge("clear-map").onclick=_=>file_map_onabort();
 
 const rplcs=d.ge("replaces");
 d.ge("replace-add").onclick=_=>{
-	const div=d.ce('div').sa('class','bord').ac(d.ce('input').sa('type','text')).at(" -> ").ac(d.ce('input').sa('type','text'));
+	const div=d.ce('div').sa('class','bord').ac(
+		d.ce('input').sa('type','text').sa('placeholder','image name without extension')
+	).ac(
+		d.ce('input').sa('type','number').sa('step','1').sa('min','0').sa('placeholder','blank for not specifying id')
+	).at(" -> ").ac(
+		d.ce('input').sa('type','text').sa('placeholder','image name without extension')
+	).ac(
+		d.ce('input').sa('type','number').sa('step','1').sa('min','0').sa('placeholder','blank for remain same')
+	);
 	rplcs.ac(div);
 };
 
@@ -154,7 +162,9 @@ d.ge("confirm-all").onclick=_=>{
 	const tbl={};
 	for(let arr=rplcs.childNodes,x=arr.length;x--;){
 		const p=arr[x].querySelectorAll('input');
-		tbl[p[0].value]=p[1].value;
+		const key=p[0].value+(p[1].value?"<"+p[1].value+">":"");
+		const val=p[2].value+(p[3].value?"<"+p[3].value+">":"");
+		tbl[key]=val;
 	}
 	const newDataMap=JSON.parse(JSON.stringify(dataMap));
 	newDataMap.events.forEach(x=>{ if(!x) return;
@@ -162,9 +172,17 @@ d.ge("confirm-all").onclick=_=>{
 			p.list.forEach(c=>{
 				if(c.code===101){
 					const params=c.parameters;
-					const p0=params[0];
-					if(tbl.hasOwnProperty(p0)){
-						params[0]=tbl[p0];
+					const p0 = params[0] , p1 = params[1];
+					const key_s=p0+"<"+p1+">";
+					let dst;
+					if(tbl.hasOwnProperty(key_s)) dst=tbl[key_s];
+					else if(tbl.hasOwnProperty(p0)) dst=tbl[p0];
+					if(dst){
+						if(dst.slice(-1)===">"){
+							const idx=dst.indexOf("<");
+							params[0]=dst.slice(0,idx);
+							params[1]=parseInt(dst.slice(idx+1,-1));
+						}else params[0]=dst;
 					}
 				}
 			});
