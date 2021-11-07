@@ -1,8 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <title>put lines to an event in RMMV Map.json</title>
 <style>
+body{
+	font-family:Consolas,'Courier New',Courier,微軟正黑體,標楷體,monospace;
+}
 #disclaimer{
 margin:11px;
 }
@@ -45,7 +48,7 @@ setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagra
 <div>The operation WILL replace the content of the page in that event.</div>
 <div>A demo video can be found <a href="https://youtu.be/o74irzTA34k">here</a>.</div>
 <div id="disclaimer" class="bord">DISCLAIMER:
-<div>Use at your own risk!</div>
+<div><b>Use at your own risk!</b></div>
 <div>The encoding SHOULD be UTF-8.</div>
 <div>Watch out of the encoding! I'm not going to handle it if it is not expected!</div>
 <div> </div>
@@ -55,7 +58,7 @@ setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagra
 </div><div id="sel-lines" class="bord">
 <div>select the line.txt from your file system</div><input id="file-line" type="file" tabindex="2">
 <div>target event id = <input id="evtid" type="number" tabindex="3" value=0></div>
-<div><button id="show-line-format">show the format of line.txt</button></div>
+<div><button id="show-line-format">show/hide the format of line.txt</button></div>
 <div id="line-format" class="none">
 <div>If the content of line.txt is:</div>
 <div class="bord">
@@ -75,12 +78,20 @@ setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagra
 </div>
 <div>then</div>
 <div class="bord">
-<div>AA,BB,CC,DD,EE form a "Show Text..." Event command</div>
-<div>and FF,GG,HH form another "Show Text..." Event command</div>
-<div>and II,JJ,KK form the other "Show Text..." Event command</div>
+<div>AA,BB,CC,DD,EE form a "Show Text..." Event command, each in a line.</div>
+<div>and FF,GG,HH form another "Show Text..." Event command, each in a line.</div>
+<div>and II,JJ,KK form the other "Show Text..." Event command, each in a line.</div>
 </div>
 <div>Note that build in editor only accept 4 lines per "Show Text..." Event command</div>
 <div>so you better arrange the texts yourself!</div>
+</div>
+<div id="line-speFaces" class="bord">
+<div>specify faces by providing strings of exact first line</div>
+<div>specifying an empty string takes no effect</div>
+<div>a lower one existing string overwrites upper one</div>
+<div class="bord" style="padding:4px;display:inline-block;"><input id="line-ignoreFirst" type=checkbox> | the first lines are only for faces only</div>
+<div><button id="line-addRule">add new mapping rule</button></div>
+<div id="line-faceRules" class="bord"></div>
 </div>
 </div><div><button id="confirm-all">confirm and export</button></div><div id="info-op"></div></div>
 <script>
@@ -158,8 +169,17 @@ const im=d.ge("info-map"),clearIm=_=>clearC(im),fm=d.ge("file-map"),file_map_ona
 fm.onchange=file_map_refreshInput;
 
 d.ge("clear-map").onclick=_=>file_map_onabort();
-const lineFormat=d.ge("line-format");
+const lineFormat=d.ge("line-format"),igF=d.ge('line-ignoreFirst'),fRs=d.ge('line-faceRules');
 d.ge("show-line-format").onclick=_=>lineFormat.sa("class",lineFormat.getAttribute("class")==="none"?"bord":"none");
+
+const lineFaceRules=d.ge("line-faceRules");
+d.ge("line-addRule").onclick=_=>lineFaceRules.ac(d.ce('div').ac(
+	d.ce('input').sa('placeholder','exact first line')
+).at(" -> ").ac(
+	d.ce('input').sa('placeholder','face image name without extension')
+).ac(
+	d.ce('input').sa('min','0').sa('step','1').sa('type','number').sa('placeholder','id starting from 0 (default)')
+));
 
 const io=d.ge("info-op"),clearIo=_=>clearC(io),evtid=d.ge("evtid");
 d.ge("confirm-all").onclick=_=>{
@@ -176,24 +196,34 @@ d.ge("confirm-all").onclick=_=>{
 	const newDataMap=JSON.parse(JSON.stringify(dataMap));
 	const list=newDataMap.events[id].pages[0].list;
 	
+	const tbl={};
+	for(let x=0,arr=fRs.childNodes;x!==arr.length;++x){
+		const r=arr[x].querySelectorAll('input');
+		if(r[0].value) tbl[r[0].value]=[r[1].value,r[2].value|0];
+	}
+	
 	const fr=new FileReader();
 	fr.onload=e=>{ try{
 		const sep=/\n\n+/;
 		const txt=e.target.result.replace(/\r/g,'').split(sep);
 		list.length=0;
-		for(let x=0;x!==txt.length;++x){
+		for(let x=0,zb=igF.checked|0;x!==txt.length;++x){
 			const t=txt[x].split('\n');
-			list.push({code:101,indent:0,parameters:["",0,0,2],});
-			for(let z=0;z!==t.length;++z) list.push({code:401,indent:0,parameters:[t[z]],});
+			if(tbl.hasOwnProperty(t[0])){
+				list.push({code:101,indent:0,parameters:[tbl[t[0]][0],tbl[t[0]][1],0,2],});
+			}else list.push({code:101,indent:0,parameters:["",0,0,2],});
+			if(t.length) for(let z=zb;z!==t.length;++z) list.push({code:401,indent:0,parameters:[t[z]],});
 		}
 		list.push({code:0,indent:0,parameters:[]});
-		const data="data:application/json;charset=UTF-8,"+encodeURIComponent(JSON.stringify(newDataMap));
-		console.log(data);
+		
+		const blob=new Blob([JSON.stringify(window.newDataMap=newDataMap)],{type:"application/json"});
+		const url=window.URL.createObjectURL(blob);
 		io.ac(d.ce('div').at("operation done"));
 		io.ac(d.ce('div').at("click link below if the download does not start automatically."));
-		const a=d.ce('a').sa('href',data).sa("download","Map000.json").at("download");
+		const a=d.ce('a').sa('href',url).sa("download","Map000.json").at("download");
 		io.ac(d.ce('div').ac(a));
 		a.click();
+		window.URL.revokeObjectURL(url);
 	}catch(e){
 		io.ac(d.ce('div').at("operation failed"));
 	} };
