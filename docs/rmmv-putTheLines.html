@@ -86,11 +86,12 @@ setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagra
 <div>so you better arrange the texts yourself!</div>
 </div>
 <div id="line-speFaces" class="bord">
+<div class="bord" style="padding:4px;"> line starting string for comments <input id="line-commentBeg" placeholder="empty means no comments"></div>
 <div>specify faces by providing strings of exact first line</div>
 <div>specifying an empty string takes no effect</div>
 <div>a lower one existing string overwrites upper one</div>
-<div class="bord" style="padding:4px;display:inline-block;"><input id="line-ignoreFirst" type=checkbox> | the first lines are only for faces only</div>
-<div><button id="line-addRule">add new mapping rule</button></div>
+<div class="bord" style="padding:4px;display:inline-block;"><input id="line-ignoreFirst" type=checkbox> | the first lines are only for faces only </div>
+<div><button id="line-addRule"> add new mapping rule </button></div>
 <div id="line-faceRules" class="bord"></div>
 </div>
 </div><div><button id="confirm-all">confirm and export</button></div><div id="info-op"></div></div>
@@ -172,6 +173,7 @@ d.ge("clear-map").onclick=_=>file_map_onabort();
 const lineFormat=d.ge("line-format"),igF=d.ge('line-ignoreFirst'),fRs=d.ge('line-faceRules');
 d.ge("show-line-format").onclick=_=>lineFormat.sa("class",lineFormat.getAttribute("class")==="none"?"bord":"none");
 
+const lineComment=d.ge("line-commentBeg");
 const lineFaceRules=d.ge("line-faceRules");
 d.ge("line-addRule").onclick=_=>lineFaceRules.ac(d.ce('div').ac(
 	d.ce('input').sa('placeholder','exact first line')
@@ -207,12 +209,17 @@ d.ge("confirm-all").onclick=_=>{
 		const sep=/\n\n+/;
 		const txt=e.target.result.replace(/\r/g,'').split(sep);
 		list.length=0;
-		for(let x=0,zb=igF.checked|0;x!==txt.length;++x){
+		for(let x=0,zb=igF.checked|0,cmtstr=lineComment.value||"";x!==txt.length;++x){
 			const t=txt[x].split('\n');
-			if(tbl.hasOwnProperty(t[0])){
+			let code=401,cmt;
+			if(cmtstr && t[0].slice(0,cmtstr.length)===cmtstr){ // comment
+				cmt=1;
+				code=408;
+				list.push({code:108,indent:0,parameters:[t[0]],});
+			}else if(tbl.hasOwnProperty(t[0])){
 				list.push({code:101,indent:0,parameters:[tbl[t[0]][0],tbl[t[0]][1],0,2],});
 			}else list.push({code:101,indent:0,parameters:["",0,0,2],});
-			if(t.length) for(let z=zb;z!==t.length;++z) list.push({code:401,indent:0,parameters:[t[z]],});
+			if(t.length) for(let z=cmt||zb;z!==t.length;++z) list.push({code:code,indent:0,parameters:[t[z]],});
 		}
 		list.push({code:0,indent:0,parameters:[]});
 		
